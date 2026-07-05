@@ -7,6 +7,7 @@ import {
   type CategorySlug,
 } from "@/lib/content";
 import { ReportCard } from "@/components/ReportCard";
+import { Newsletter } from "@/components/Newsletter";
 
 const featureIcons: Partial<Record<CategorySlug, React.ReactNode>> = {
   bist: <BarChart3 className="w-6 h-6" />,
@@ -122,6 +123,8 @@ export default function Home() {
           )}
         </div>
       </section>
+      {/* Newsletter */}
+      <Newsletter />
     </div>
   );
 }
