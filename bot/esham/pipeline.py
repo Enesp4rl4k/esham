@@ -24,7 +24,44 @@ import requests
 
 log = get_logger(__name__)
 
-def fetch_report_image(title: str, slug: str) -> Path | None:
+_CATEGORY_PROMPTS = {
+    "insider": (
+        "Dark moody photograph of a corporate executive in a glass skyscraper office "
+        "looking at stock trading screens with candlestick charts, dramatic lighting, "
+        "cinematic, 8k, photorealistic"
+    ),
+    "ipo": (
+        "Photograph of a stock exchange trading floor bell ceremony with confetti, "
+        "IPO celebration, dramatic wide angle, cinematic lighting, 8k, photorealistic"
+    ),
+    "bist": (
+        "Professional photograph of Istanbul financial district skyline at dusk with "
+        "stock market data overlay, glowing screens, cinematic, 8k, photorealistic"
+    ),
+    "viop": (
+        "Dark photograph of futures and derivatives trading terminal with real-time "
+        "data flowing, multiple monitors, red and green indicators, cinematic, 8k"
+    ),
+    "global": (
+        "Aerial photograph of world financial centers connected by glowing data lines, "
+        "globe view, dark background, cinematic, 8k, photorealistic"
+    ),
+    "sector": (
+        "Professional photograph of industrial factory and stock chart overlay showing "
+        "sector rotation, split screen composition, cinematic, 8k, photorealistic"
+    ),
+}
+
+_DEFAULT_PROMPT = (
+    "Professional cinematic photograph of modern stock market trading screens "
+    "with financial data, dark moody lighting, 8k, photorealistic"
+)
+
+
+def fetch_report_image(
+    title: str, slug: str, category: str = "bist"
+) -> Path | None:
+    """Haberin başlığına ve kategorisine uygun, bağlamsal görsel üretir."""
     try:
         seed = 0
         for char in slug:
@@ -34,14 +71,19 @@ def fetch_report_image(title: str, slug: str) -> Path | None:
                 seed -= 0x100000000
         seed = abs(seed) % 10000
 
+        # Kategori bazlı temel sahne + başlıktan bağlamsal detay
+        base_scene = _CATEGORY_PROMPTS.get(category, _DEFAULT_PROMPT)
         prompt = urllib.parse.quote(
-            f"Cinematic professional stock market and finance photo about: {title}. High quality, minimal, dark tone."
+            f"{base_scene}. Context: {title}"
         )
-        url = f"https://image.pollinations.ai/prompt/{prompt}?width=800&height=400&nologo=true&seed={seed}"
-        
+        url = (
+            f"https://image.pollinations.ai/prompt/{prompt}"
+            f"?width=800&height=400&nologo=true&seed={seed}"
+        )
+
         resp = requests.get(url, timeout=30)
         resp.raise_for_status()
-        
+
         tmp = Path(tempfile.gettempdir()) / f"esham_{slug}.jpg"
         tmp.write_bytes(resp.content)
         return tmp
@@ -87,7 +129,7 @@ def run_morning_report(publish_social: bool = True) -> str | None:
     slug = draft.resolved_slug()
 
     if publish_social:
-        img_path = fetch_report_image(draft.title, slug)
+        img_path = fetch_report_image(draft.title, slug, category="bist")
         SocialPublisher().broadcast(
             f"📊 Günün BIST & küresel piyasa sabah raporu yayında.\n"
             f"{settings.site_url}/rapor/{slug}\n#BIST100 #Borsa",
@@ -180,7 +222,7 @@ Gün içi endeks yönü için küresel risk iştahı ve yabancı takas hareketle
         return None
     slug = draft.resolved_slug()
     if publish_social:
-        img_path = fetch_report_image(draft.title, slug)
+        img_path = fetch_report_image(draft.title, slug, category="bist")
         SocialPublisher().broadcast(
             f"🔔 BIST açılış: {bist.index} {bist.price} ({bist.change})\n"
             f"{settings.site_url}/rapor/{slug} #BIST100",
@@ -218,7 +260,7 @@ yarınki açılış beklentilerini şekillendirecek."""
         return None
     slug = draft.resolved_slug()
     if publish_social:
-        img_path = fetch_report_image(draft.title, slug)
+        img_path = fetch_report_image(draft.title, slug, category="bist")
         SocialPublisher().broadcast(
             f"🔚 Kapanış: BIST {bist.index} {bist.price} ({bist.change})\n"
             f"{settings.site_url}/rapor/{slug} #BIST100",
@@ -262,7 +304,7 @@ liderler orta vadeli momentum açısından izlenmeye değer."""
         return None
     slug = draft.resolved_slug()
     if publish_social:
-        img_path = fetch_report_image(draft.title, slug)
+        img_path = fetch_report_image(draft.title, slug, category="sector")
         SocialPublisher().broadcast(
             f"📊 Haftalık sektör rotasyonu yayında. Güçlü: {leaders}.\n"
             f"{settings.site_url}/rapor/{slug} #BIST #Sektör",

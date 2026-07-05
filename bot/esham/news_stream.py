@@ -17,6 +17,7 @@ from .ai import TweetComposer
 from .analysis import analyze_ipo_document
 from .config import get_logger, settings
 from .news_queue import NewsQueue
+from .pipeline import fetch_report_image
 from .publishing.social import SocialPublisher
 from .sources import Disclosure
 from .sources.kap import KapSource
@@ -109,7 +110,12 @@ class NewsStream:
             news = item.raw_text or f"{item.title} ({item.disclosure_type})"
             tweet = self.composer.compose(news, category=category, emoji=emoji)
 
-        self.social.broadcast(tweet)
+        # Habere uygun görsel üret
+        slug = f"haber-{item.company}-{item.date}"
+        img_path = fetch_report_image(item.title, slug, category=category)
+        self.social.broadcast(tweet, image_path=img_path)
+        if img_path and img_path.exists():
+            img_path.unlink()
         log.info("Yayınlandı (kalan kuyruk: %d).", len(self.queue))
         return True
 

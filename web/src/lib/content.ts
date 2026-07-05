@@ -212,20 +212,37 @@ export function formatDate(iso: string): string {
 }
 
 /**
- * Raporun başlığına göre dinamik, yapay zeka destekli bir görsel URL'si üretir.
+ * Raporun başlığına ve kategorisine göre dinamik, yapay zeka destekli bir görsel URL'si üretir.
  * Pollinations AI kullanılarak ücretsiz, on-the-fly görsel oluşturulur.
  */
+const CATEGORY_PROMPTS: Record<string, string> = {
+  insider:
+    "Dark moody photograph of a corporate executive in a glass skyscraper office looking at stock trading screens with candlestick charts, dramatic lighting, cinematic, 8k, photorealistic",
+  ipo:
+    "Photograph of a stock exchange trading floor bell ceremony with confetti, IPO celebration, dramatic wide angle, cinematic lighting, 8k, photorealistic",
+  bist:
+    "Professional photograph of Istanbul financial district skyline at dusk with stock market data overlay, glowing screens, cinematic, 8k, photorealistic",
+  viop:
+    "Dark photograph of futures and derivatives trading terminal with real-time data flowing, multiple monitors, red and green indicators, cinematic, 8k",
+  global:
+    "Aerial photograph of world financial centers connected by glowing data lines, globe view, dark background, cinematic, 8k, photorealistic",
+};
+
+const DEFAULT_PROMPT =
+  "Professional cinematic photograph of modern stock market trading screens with financial data, dark moody lighting, 8k, photorealistic";
+
 export function getReportImageUrl(report: Report, width = 800, height = 400): string {
-  // Slug'dan basit bir integer seed üret
   let seed = 0;
   for (let i = 0; i < report.slug.length; i++) {
     seed = report.slug.charCodeAt(i) + ((seed << 5) - seed);
   }
   seed = Math.abs(seed) % 10000;
 
+  const baseScene = CATEGORY_PROMPTS[report.category] || DEFAULT_PROMPT;
   const prompt = encodeURIComponent(
-    `Cinematic professional stock market and finance photo about: ${report.title}. High quality, minimal, dark tone.`
+    `${baseScene}. Context: ${report.title}`
   );
-  
+
   return `https://image.pollinations.ai/prompt/${prompt}?width=${width}&height=${height}&nologo=true&seed=${seed}`;
 }
+

@@ -37,6 +37,9 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    concurrency:
+      group: esham-publish
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -57,6 +60,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           ESHAM_TAKASBANK_VIOP_URL: ${{ secrets.ESHAM_TAKASBANK_VIOP_URL }}
+          ESHAM_SITE_URL: https://esham.pages.dev
         run: |
           case "${{ github.event.schedule }}" in
             "30 5 * * 1-5")   CMD="morning-report" ;;
