@@ -1,0 +1,63 @@
+.github/workflows/esham-schedule.yml
+  s_73b68b4236ce9b::t_4b3090360880c9 1-79
+web/.gitignore
+  s_171d82dcab9288::t_29c33a123b7961 1-41
+web/README.md
+  s_171d82dcab9288::t_6df1e2239c0c0d 1-36
+web/content/reports/2026-07-05-haftalik-sektor-rotasyonu.json
+  s_b7cb606ebae6b4::t_2868a42163ceb0 1-18
+web/content/reports/2026-07-05-viop-piyasa-teminat-stresi-raporu.json
+  s_b7cb606ebae6b4::t_a97bb27c67ef21 1-19
+web/eslint.config.mjs
+  s_171d82dcab9288::t_c4dc1a98a52fa4 1-18
+web/package-lock.json
+  s_b7cb606ebae6b4::t_b164bdd9766c03 1-8335
+web/postcss.config.mjs
+  s_171d82dcab9288::t_33574f7e325cee 1-7
+web/public/file.svg
+  s_171d82dcab9288::t_cae5bcb2bebc57 1
+web/public/globe.svg
+  s_171d82dcab9288::t_c257e363667c2e 1
+web/public/next.svg
+  s_171d82dcab9288::t_e164397cba5dbe 1
+web/public/vercel.svg
+  s_171d82dcab9288::t_30608d1188827a 1
+web/public/window.svg
+  s_171d82dcab9288::t_d44aff4dd2f60c 1
+web/src/app/feed.xml/route.ts
+  s_73b68b4236ce9b::t_99c6e639f6081f 1-50
+web/src/app/globals.css
+  s_171d82dcab9288::t_04a1d6eb2ba974 1-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "ca5a15cf87b9b730aebf3d76d3004ef17834ed9c",
+  "prompts": {},
+  "sessions": {
+    "s_171d82dcab9288": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "65cf8ee7-19e1-4220-a008-d6852f17305f",
+        "model": "default"
+      },
+      "human_author": "Enes Parlak <eparlak996@gmail.com>"
+    },
+    "s_73b68b4236ce9b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e0d48698-e52c-423b-8fac-e0a69b2a404e",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Enes Parlak <eparlak996@gmail.com>"
+    },
+    "s_b7cb606ebae6b4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fe5e74e5-6680-46b0-9962-25664b84c699",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Enes Parlak <eparlak996@gmail.com>"
+    }
+  }
+}
