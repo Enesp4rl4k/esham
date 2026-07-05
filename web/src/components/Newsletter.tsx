@@ -16,7 +16,7 @@ export function Newsletter() {
         
         {/* FORMSPREE INTEGRATION */}
         <form 
-          action="https://formspree.io/f/YOUR_FORMSPREE_ID" 
+          action="https://formspree.io/f/xnjkwdkr" 
           method="POST"
           className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto"
         >
