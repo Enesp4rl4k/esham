@@ -17,8 +17,37 @@ from .sources.kap import KapSource
 from .sources.sector import SectorSource
 from .sources.viop import ViopSource, assess_margin_stress
 
+import tempfile
+import urllib.parse
+from pathlib import Path
+import requests
+
 log = get_logger(__name__)
 
+def fetch_report_image(title: str, slug: str) -> Path | None:
+    try:
+        seed = 0
+        for char in slug:
+            seed = ((seed << 5) - seed) + ord(char)
+            seed &= 0xFFFFFFFF
+            if seed >= 0x80000000:
+                seed -= 0x100000000
+        seed = abs(seed) % 10000
+
+        prompt = urllib.parse.quote(
+            f"Cinematic professional stock market and finance photo about: {title}. High quality, minimal, dark tone."
+        )
+        url = f"https://image.pollinations.ai/prompt/{prompt}?width=800&height=400&nologo=true&seed={seed}"
+        
+        resp = requests.get(url, timeout=30)
+        resp.raise_for_status()
+        
+        tmp = Path(tempfile.gettempdir()) / f"esham_{slug}.jpg"
+        tmp.write_bytes(resp.content)
+        return tmp
+    except Exception as exc:
+        log.warning("Kapak görseli indirilemedi: %s", exc)
+        return None
 
 def gather_snapshot() -> MarketSnapshot:
     log.info("Piyasa verileri toplanıyor...")
@@ -58,10 +87,14 @@ def run_morning_report(publish_social: bool = True) -> str | None:
     slug = draft.resolved_slug()
 
     if publish_social:
+        img_path = fetch_report_image(draft.title, slug)
         SocialPublisher().broadcast(
             f"📊 Günün BIST & küresel piyasa sabah raporu yayında.\n"
-            f"{settings.site_url}/rapor/{slug}\n#BIST100 #Borsa"
+            f"{settings.site_url}/rapor/{slug}\n#BIST100 #Borsa",
+            image_path=img_path
         )
+        if img_path and img_path.exists():
+            img_path.unlink()
 
     log.info("=== Süreç tamamlandı: %s ===", slug)
     return slug
@@ -147,10 +180,14 @@ Gün içi endeks yönü için küresel risk iştahı ve yabancı takas hareketle
         return None
     slug = draft.resolved_slug()
     if publish_social:
+        img_path = fetch_report_image(draft.title, slug)
         SocialPublisher().broadcast(
             f"🔔 BIST açılış: {bist.index} {bist.price} ({bist.change})\n"
-            f"{settings.site_url}/rapor/{slug} #BIST100"
+            f"{settings.site_url}/rapor/{slug} #BIST100",
+            image_path=img_path
         )
+        if img_path and img_path.exists():
+            img_path.unlink()
     return slug
 
 
@@ -181,10 +218,14 @@ yarınki açılış beklentilerini şekillendirecek."""
         return None
     slug = draft.resolved_slug()
     if publish_social:
+        img_path = fetch_report_image(draft.title, slug)
         SocialPublisher().broadcast(
             f"🔚 Kapanış: BIST {bist.index} {bist.price} ({bist.change})\n"
-            f"{settings.site_url}/rapor/{slug} #BIST100"
+            f"{settings.site_url}/rapor/{slug} #BIST100",
+            image_path=img_path
         )
+        if img_path and img_path.exists():
+            img_path.unlink()
     return slug
 
 
@@ -221,8 +262,12 @@ liderler orta vadeli momentum açısından izlenmeye değer."""
         return None
     slug = draft.resolved_slug()
     if publish_social:
+        img_path = fetch_report_image(draft.title, slug)
         SocialPublisher().broadcast(
             f"📊 Haftalık sektör rotasyonu yayında. Güçlü: {leaders}.\n"
-            f"{settings.site_url}/rapor/{slug} #BIST #Sektör"
+            f"{settings.site_url}/rapor/{slug} #BIST #Sektör",
+            image_path=img_path
         )
+        if img_path and img_path.exists():
+            img_path.unlink()
     return slug
