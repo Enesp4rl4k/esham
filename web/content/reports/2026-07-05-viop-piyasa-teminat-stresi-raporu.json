@@ -1,0 +1,19 @@
+{
+  "slug": "viop-piyasa-teminat-stresi-raporu-2026-07-05",
+  "title": "VİOP Piyasa & Teminat Stresi Raporu",
+  "category": "viop",
+  "summary": "VİOP teminat stresi: Yükseliyor. Margin-call toplam 558,2 Milyon TL.",
+  "publishedAt": "2026-07-05T01:50:18.253459Z",
+  "author": "Esham AI",
+  "aiGenerated": false,
+  "sources": [
+    "TradingView",
+    "Takasbank"
+  ],
+  "tags": [
+    "VİOP",
+    "Teminat",
+    "Margin Call"
+  ],
+  "body": "## VİOP Piyasa Görünümü\n\n| Enstrüman | Değer | Değişim |\n| --- | --- | --- |\n| Endeks XU030 | 16.740,68 | -0,31% |\n\n\n## Marketwide Teminat (Takasbank)\n\n| Gösterge | Değer |\n| --- | --- |\n| Teminatlı hesap | 116,502 |\n| Margin-call toplam | 558,2 Milyon TL |\n| Gereken teminat | 119,6 Milyar TL |\n| Margin-call / Gereken | %0.467 |\n\n## Teminat Stresi: Yükseliyor\n\nMargin-call/gereken teminat oranı 0,30% → 0,47%. CCP teminatı sıkılaştırıyor; margin-call dalgası olası.\n\n> **Margin-call/gereken teminat** oranı marketwide stres sinyalidir. Yükselmesi,\n> takas kurumunun teminatı sıkılaştırdığını ve brokerların margin-call çıkaracağını\n> gösterir."
+}

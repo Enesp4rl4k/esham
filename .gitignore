@@ -1,0 +1,25 @@
+# Sırlar — ASLA commit'lenmez
+.env
+*.env
+!.env.example
+bot/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Bot çıktıları
+bot/output/
+
+# Next.js / Node
+web/node_modules/
+web/.next/
+web/out/
+node_modules/
+
+# Sistem
+.DS_Store
+Thumbs.db

@@ -1,0 +1,79 @@
+name: Esham Yayın Döngüsü
+
+# Stateless dağıtım: her iş kendi cron'unda çalışır, üretilen raporu commit'ler;
+# web platformu (Vercel vb.) commit ile otomatik yeniden derlenir.
+# Saatler UTC'dir; TR = UTC+3 (DST yok).
+#   05:30 UTC = 08:30 TR  günlük bülten
+#   06:30 UTC = 09:30 TR  VİOP açılış
+#   07:00 UTC = 10:00 TR  BIST açılış
+#   15:15 UTC = 18:15 TR  kapanış
+#   Pzt 06:00 UTC = 09:00 TR  haftalık sektör
+#   Her 15 dk (hafta içi seans): KAP/haber taraması (tek tur)
+#
+# Sürekli akış + durum-bağımlı margin-call izleyici için uzun-ömürlü süreç tercih
+# edilir: bir VPS'te `py -m esham.main run`. Bu workflow stateless alternatiftir.
+on:
+  schedule:
+    - cron: "30 5 * * 1-5"    # günlük bülten
+    - cron: "30 6 * * 1-5"    # VİOP açılış
+    - cron: "0 7 * * 1-5"     # BIST açılış
+    - cron: "15 15 * * 1-5"   # kapanış
+    - cron: "0 6 * * 1"       # haftalık sektör (Pazartesi)
+    - cron: "*/15 6-15 * * 1-5"  # haber/KAP taraması (seans içi)
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "Elle çalıştırılacak komut"
+        default: "morning-report"
+        type: choice
+        options:
+          - morning-report
+          - viop
+          - opening
+          - closing
+          - sector
+          - news-stream
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Bağımlılıklar
+        working-directory: bot
+        run: pip install -r requirements.txt
+
+      - name: Komutu seç ve çalıştır
+        working-directory: bot
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
+          TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
+          TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          TWITTER_ACCESS_SECRET: ${{ secrets.TWITTER_ACCESS_SECRET }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ESHAM_TAKASBANK_VIOP_URL: ${{ secrets.ESHAM_TAKASBANK_VIOP_URL }}
+        run: |
+          case "${{ github.event.schedule }}" in
+            "30 5 * * 1-5")   CMD="morning-report" ;;
+            "30 6 * * 1-5")   CMD="viop --publish" ;;
+            "0 7 * * 1-5")    CMD="opening" ;;
+            "15 15 * * 1-5")  CMD="closing" ;;
+            "0 6 * * 1")      CMD="sector" ;;
+            "*/15 6-15 * * 1-5") CMD="news-stream --once" ;;
+            *)                CMD="${{ github.event.inputs.command || 'morning-report' }}" ;;
+          esac
+          echo "Çalıştırılıyor: $CMD"
+          python -m esham.main $CMD
+
+      - name: Yeni raporları commit'le
+        run: |
+          git config user.name "esham-bot"
+          git config user.email "bot@esham.local"
+          git add web/content/reports
+          git diff --staged --quiet || git commit -m "content: otomatik yayın (${{ github.event.schedule }})"
+          git push

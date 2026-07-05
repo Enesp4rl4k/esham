@@ -1,0 +1,28 @@
+name: Esham Evals
+
+# AI çıktı kalitesi/güvenlik kapısı. Bot kodu değişince çalışır; başarısızsa
+# (örn. yatırım tavsiyesi dedektörü bozulursa) merge engellenir.
+on:
+  push:
+    paths:
+      - "bot/**"
+  pull_request:
+    paths:
+      - "bot/**"
+  workflow_dispatch: {}
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Bağımlılıklar
+        working-directory: bot
+        run: pip install -r requirements.txt
+      - name: Eval'leri çalıştır (kalite/güvenlik kapısı)
+        working-directory: bot
+        # Anahtarsız çalışır: fallback çıktı + dedektör/grounding kontrolleri.
+        run: python -m esham.main evals

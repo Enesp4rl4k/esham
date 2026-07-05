@@ -1,0 +1,9 @@
+requests==2.31.0
+beautifulsoup4==4.12.3
+python-dotenv==1.0.1
+google-genai==1.28.0
+pypdf==4.3.1
+tweepy==4.14.0
+
+# İsteğe bağlı (kuruluysa otomatik kullanılır):
+# pdfkit==1.0.0        # HTML -> PDF (wkhtmltopdf gerektirir)
