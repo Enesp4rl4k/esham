@@ -222,7 +222,7 @@ Gün içi endeks yönü için küresel risk iştahı ve yabancı takas hareketle
         return None
     slug = draft.resolved_slug()
     if publish_social:
-        img_path = fetch_report_image(draft.title, slug, category="bist")
+        img_path = BistSource().generate_chart_image(range_str="5d", interval="30m")
         SocialPublisher().broadcast(
             f"🔔 BIST açılış: {bist.index} {bist.price} ({bist.change})\n"
             f"{settings.site_url}/rapor/{slug} #BIST100",
@@ -260,7 +260,7 @@ yarınki açılış beklentilerini şekillendirecek."""
         return None
     slug = draft.resolved_slug()
     if publish_social:
-        img_path = fetch_report_image(draft.title, slug, category="bist")
+        img_path = BistSource().generate_chart_image(range_str="1d", interval="5m")
         SocialPublisher().broadcast(
             f"🔚 Kapanış: BIST {bist.index} {bist.price} ({bist.change})\n"
             f"{settings.site_url}/rapor/{slug} #BIST100",
