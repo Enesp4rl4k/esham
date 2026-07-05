@@ -1,5 +1,6 @@
 import { getAllReports } from "@/lib/content";
 
+export const dynamic = 'force-static';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://esham.com.tr";
 
 function escapeXml(value: string): string {
