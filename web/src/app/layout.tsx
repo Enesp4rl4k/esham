@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { CATEGORIES, type CategorySlug } from "@/lib/content";
+import { MobileMenu } from "@/components/MobileMenu";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -15,7 +16,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://esham.com.tr"),
+  metadataBase: new URL("https://esham.pages.dev"),
   title: {
     default: "Esham — Yapay Zeka Destekli Ekonomi & Piyasa Analizi",
     template: "%s — Esham",
@@ -72,6 +73,7 @@ export default function RootLayout({
                 </Link>
               ))}
             </nav>
+            <MobileMenu navItems={navItems} />
           </div>
         </header>
         <main className="flex-1 w-full">{children}</main>
