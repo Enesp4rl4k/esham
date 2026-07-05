@@ -18,8 +18,14 @@ from pathlib import Path
 
 class SocialPublisher:
     def post_tweet(self, message: str, image_path: Path | None = None) -> bool:
+        import re
+        # X API v2 link fiyatlandırma sürşarjından kaçınmak için linkleri kaldırıyoruz.
+        cleaned_message = re.sub(r"https?://[^\s]+", "", message).strip()
+        # Çift satır boşluklarını temizle
+        cleaned_message = re.sub(r"\n\s*\n", "\n", cleaned_message)
+
         if not settings.twitter_api_key:
-            log.info("[DRY-RUN][Twitter] %s (Image: %s)", message, image_path)
+            log.info("[DRY-RUN][Twitter] %s (Image: %s)", cleaned_message, image_path)
             return False
         try:
             import tweepy
@@ -41,7 +47,7 @@ class SocialPublisher:
                 media = api.media_upload(filename=str(image_path))
                 media_ids = [media.media_id]
 
-            client.create_tweet(text=message, media_ids=media_ids)
+            client.create_tweet(text=cleaned_message, media_ids=media_ids)
             log.info("Tweet gönderildi. (Görselli: %s)", bool(media_ids))
             return True
         except ImportError:
