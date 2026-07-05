@@ -59,7 +59,7 @@ export default function RootLayout({
               href="/"
               className="font-outfit font-bold text-xl tracking-tight text-white flex items-center gap-2"
             >
-              <span className="text-cyan-400">Es</span>ham
+              <span><span className="text-cyan-400">Es</span>ham</span>
             </Link>
             <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
               {navItems.map((item) => (
@@ -78,8 +78,7 @@ export default function RootLayout({
         <footer className="py-10 border-t border-zinc-900 mt-20">
           <div className="container mx-auto px-6 flex flex-col gap-4 text-center text-sm text-zinc-600">
             <p>
-              <span className="text-cyan-400 font-semibold">Esham</span> — Osmanlıca
-              &ldquo;hisse senetleri&rdquo;. Yapay zeka ile üretilen günlük ekonomi
+              <span className="text-cyan-400 font-semibold">Esham</span> — Yapay zeka ile üretilen günlük ekonomi
               içeriği.
             </p>
             <p className="max-w-2xl mx-auto text-xs text-zinc-700 leading-relaxed">
