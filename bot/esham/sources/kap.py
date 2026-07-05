@@ -117,22 +117,5 @@ class KapSource:
     # ---- fallback --------------------------------------------------------------
 
     def _sample(self) -> list[Disclosure]:
-        today = date.today().isoformat()
-        return [
-            Disclosure(
-                title="TechYazılım A.Ş. Fiyat Tespit Raporu",
-                company="TCHYZ",
-                date=today,
-                disclosure_type="Halka Arz",
-                pdf_link="/tr/Bildirim/Pdf/123456",
-                raw_text="TechYazılım A.Ş. halka arz fiyat tespit raporunu yayımladı.",
-            ),
-            Disclosure(
-                title="X Holding CEO'su pay alımı gerçekleştirdi",
-                company="XHOLD",
-                date=today,
-                disclosure_type="Pay Alım Satım Bildirimi",
-                is_insider=True,
-                raw_text="X Holding CEO'su borsada 1 Milyon TL'lik hisse alımı yaptı.",
-            ),
-        ]
+        # Hata durumunda sahte haber yayınlamamak için boş liste dönüyoruz.
+        return []
