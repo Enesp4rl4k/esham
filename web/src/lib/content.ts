@@ -210,3 +210,22 @@ export function formatDate(iso: string): string {
     return iso;
   }
 }
+
+/**
+ * Raporun başlığına göre dinamik, yapay zeka destekli bir görsel URL'si üretir.
+ * Pollinations AI kullanılarak ücretsiz, on-the-fly görsel oluşturulur.
+ */
+export function getReportImageUrl(report: Report, width = 800, height = 400): string {
+  // Slug'dan basit bir integer seed üret
+  let seed = 0;
+  for (let i = 0; i < report.slug.length; i++) {
+    seed = report.slug.charCodeAt(i) + ((seed << 5) - seed);
+  }
+  seed = Math.abs(seed) % 10000;
+
+  const prompt = encodeURIComponent(
+    `Cinematic professional stock market and finance photo about: ${report.title}. High quality, minimal, dark tone.`
+  );
+  
+  return `https://image.pollinations.ai/prompt/${prompt}?width=${width}&height=${height}&nologo=true&seed=${seed}`;
+}

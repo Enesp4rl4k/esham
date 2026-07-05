@@ -10,6 +10,7 @@ import {
   readingMinutes,
   accentClasses,
   CATEGORIES,
+  getReportImageUrl,
 } from "@/lib/content";
 import { Markdown } from "@/components/Markdown";
 import { Disclaimer } from "@/components/Disclaimer";
@@ -29,6 +30,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const report = getReport(slug);
   if (!report) return { title: "Rapor bulunamadı" };
+  const imageUrl = getReportImageUrl(report, 1200, 630);
   return {
     title: report.title,
     description: report.summary,
@@ -37,6 +39,7 @@ export async function generateMetadata({
       description: report.summary,
       type: "article",
       publishedTime: report.publishedAt,
+      images: [imageUrl],
     },
   };
 }
@@ -51,6 +54,7 @@ export default async function ReportPage({
   if (!report) notFound();
 
   const accent = accentClasses(CATEGORIES[report.category].accent);
+  const imageUrl = getReportImageUrl(report, 1200, 600);
 
   return (
     <article className="container mx-auto px-6 py-16 max-w-3xl">
@@ -60,6 +64,16 @@ export default async function ReportPage({
       >
         <ArrowLeft className="w-4 h-4" /> {categoryLabel(report.category)}
       </Link>
+
+      {/* Rapor Görseli (Hero) */}
+      <div className="w-full aspect-[2/1] rounded-2xl overflow-hidden mb-10 relative bg-zinc-900 border border-zinc-800">
+        <img 
+          src={imageUrl} 
+          alt={report.title} 
+          className="absolute inset-0 w-full h-full object-cover" 
+        />
+        <div className={`absolute inset-0 bg-gradient-to-tr ${accent.gradient} mix-blend-overlay opacity-60`} />
+      </div>
 
       <div className="mb-6">
         <span className={`text-sm font-medium ${accent.text}`}>
