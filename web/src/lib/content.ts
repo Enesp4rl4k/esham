@@ -217,19 +217,19 @@ export function formatDate(iso: string): string {
  */
 const CATEGORY_PROMPTS: Record<string, string> = {
   insider:
-    "Dark moody photograph of a corporate executive in a glass skyscraper office looking at stock trading screens with candlestick charts, dramatic lighting, cinematic, 8k, photorealistic",
+    "Abstract 3D render of elegant financial curves, dark navy blue background, minimalist design, gold accents, smooth light reflections, octane render, premium financial visualization, clean and high-end",
   ipo:
-    "Photograph of a stock exchange trading floor bell ceremony with confetti, IPO celebration, dramatic wide angle, cinematic lighting, 8k, photorealistic",
+    "Abstract 3D render of ascending geometric bars and rings, dark blue and platinum theme, clean minimal design, volumetric lighting, premium corporate graphic",
   bist:
-    "Professional photograph of Istanbul financial district skyline at dusk with stock market data overlay, glowing screens, cinematic, 8k, photorealistic",
+    "Minimalist abstract 3D render of smooth financial trend lines, dark midnight blue background, ice blue and white glowing curves, clean design, premium market visualization, 8k",
   viop:
-    "Dark photograph of futures and derivatives trading terminal with real-time data flowing, multiple monitors, red and green indicators, cinematic, 8k",
+    "Abstract 3D render of digital grid and trading waves, dark theme, sharp lines, glowing blue and red accents, minimalist composition, octane render",
   global:
-    "Aerial photograph of world financial centers connected by glowing data lines, globe view, dark background, cinematic, 8k, photorealistic",
+    "Abstract 3D render of interconnected globe network lines, dark blue background, minimalist tech design, glowing nodes, elegant, high-end",
 };
 
 const DEFAULT_PROMPT =
-  "Professional cinematic photograph of modern stock market trading screens with financial data, dark moody lighting, 8k, photorealistic";
+  "Abstract 3D render of elegant financial waves, dark midnight blue background, minimal design, glowing curves, octane render, clean, premium market visualization";
 
 export function getReportImageUrl(report: Report, width = 800, height = 400): string {
   let seed = 0;
