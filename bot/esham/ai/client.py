@@ -40,7 +40,7 @@ class LlmClient:
     def enabled(self) -> bool:
         return self._client is not None
 
-    def _config(self, *, as_json: bool = False):
+    def _config(self, *, as_json: bool = False, disable_thinking: bool = False):
         from google.genai import types
 
         kwargs = {
@@ -49,15 +49,37 @@ class LlmClient:
         }
         if as_json:
             kwargs["response_mime_type"] = "application/json"
+        if disable_thinking:
+            # Gemini 2.5 modelleri "thinking" için token bütçesinden gizlice pay
+            # ayırır; bu, doğrudan JSON çıkarım görevlerinde çıktının MAX_TOKENS'a
+            # takılıp yarıda kesilmesine yol açabilir. Çıkarım görevi çok adımlı
+            # akıl yürütme gerektirmediği için thinking'i kapatıp tüm bütçeyi
+            # gerçek çıktıya ayırıyoruz (ayrıca daha hızlı ve ucuz).
+            kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
         return types.GenerateContentConfig(**kwargs)
 
-    def generate(self, prompt: str) -> str | None:
+    @staticmethod
+    def _warn_if_truncated(resp) -> None:
+        try:
+            finish_reason = resp.candidates[0].finish_reason
+        except (AttributeError, IndexError, TypeError):
+            return
+        if finish_reason is not None and "MAX_TOKENS" in str(finish_reason):
+            log.warning(
+                "LLM yanıtı MAX_TOKENS'a takılıp yarıda kesildi; max_output_tokens "
+                "yetersiz kalmış olabilir."
+            )
+
+    def generate(self, prompt: str, *, disable_thinking: bool = False) -> str | None:
         if not self._client:
             return None
         try:
             resp = self._client.models.generate_content(
-                model=self.model_name, contents=prompt, config=self._config()
+                model=self.model_name,
+                contents=prompt,
+                config=self._config(disable_thinking=disable_thinking),
             )
+            self._warn_if_truncated(resp)
             return (resp.text or "").strip() or None
         except Exception as exc:
             log.error("LLM üretim hatası: %s", exc)
@@ -68,9 +90,19 @@ class LlmClient:
         if not self._client:
             return None
         try:
-            resp = self._client.models.generate_content(
-                model=self.model_name, contents=prompt, config=self._config(as_json=True)
-            )
+            try:
+                resp = self._client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt,
+                    config=self._config(as_json=True, disable_thinking=True),
+                )
+            except Exception:
+                # Model thinking_config'i desteklemiyorsa (örn. bazı eski modeller)
+                # thinking olmadan tekrar dene.
+                resp = self._client.models.generate_content(
+                    model=self.model_name, contents=prompt, config=self._config(as_json=True)
+                )
+            self._warn_if_truncated(resp)
             text = (resp.text or "").strip()
         except Exception as exc:
             log.error("LLM JSON üretim hatası: %s", exc)

@@ -18,6 +18,7 @@ from datetime import datetime, timezone
 import requests
 
 from ..config import default_headers, get_logger, settings
+from ..http import retry_get, retry_post
 from ..formatting import tr_money, tr_number
 
 log = get_logger(__name__)
@@ -74,7 +75,7 @@ class ViopSource:
 
     def market_quote(self) -> ViopQuote:
         try:
-            resp = requests.post(
+            resp = retry_post(
                 TV_SCAN_URL,
                 json={
                     "symbols": {"tickers": ["BIST:XU030", "BIST:XU030D"]},
@@ -128,7 +129,7 @@ class ViopSource:
         url = settings.takasbank_viop_url
         if url:
             try:
-                resp = requests.get(url, headers=self.headers, timeout=settings.http_timeout)
+                resp = retry_get(url, headers=self.headers, timeout=settings.http_timeout)
                 resp.raise_for_status()
                 snap = self._parse_margin(resp.json())
                 if snap:

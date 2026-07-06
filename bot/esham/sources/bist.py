@@ -7,17 +7,11 @@ zarifçe geri dönülür.
 from __future__ import annotations
 
 import requests
-from datetime import datetime
-import tempfile
-from pathlib import Path
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 
 from ..config import default_headers, get_logger, settings
 from ..formatting import tr_money as _tr_volume
 from ..formatting import tr_number as _tr_number
+from ..http import retry_get
 from . import MarketSummary
 
 log = get_logger(__name__)
@@ -32,7 +26,7 @@ class BistSource:
 
     def market_summary(self) -> MarketSummary:
         try:
-            resp = requests.get(
+            resp = retry_get(
                 CHART_URL.format(symbol=self.symbol),
                 headers=self.headers,
                 timeout=settings.http_timeout,
@@ -79,61 +73,20 @@ class BistSource:
             volume="120 Milyar TL",
         )
 
-    def generate_chart_image(self, range_str: str = "1d", interval: str = "5m") -> Path | None:
-        """BIST 100 endeksinin gerçek verileriyle bir çizgi grafik oluşturur ve yolunu döner."""
+    def fetch_closes(self, range_str: str = "1d", interval: str = "15m") -> list[float] | None:
+        """Ham kapanış fiyat serisini döner (kart sparkline'ı gibi hafif kullanımlar için).
+
+        `generate_chart_image` ile aynı veri kaynağını paylaşır; None değerler filtrelenir.
+        """
         try:
             url = f"{CHART_URL.format(symbol=self.symbol)}?range={range_str}&interval={interval}"
-            resp = requests.get(url, headers=self.headers, timeout=settings.http_timeout)
+            resp = retry_get(url, headers=self.headers, timeout=settings.http_timeout)
             resp.raise_for_status()
-            payload = resp.json()
-
-            result = payload["chart"]["result"][0]
-            timestamps = result.get("timestamp", [])
-            quotes = result["indicators"]["quote"][0]
-            close_prices = quotes.get("close", [])
-
-            # None değerleri filtrele
-            valid_data = [(ts, close) for ts, close in zip(timestamps, close_prices) if close is not None]
-            if not valid_data:
-                log.warning("Grafik için geçerli veri bulunamadı.")
-                return None
-
-            ts_list, close_list = zip(*valid_data)
-            dates = [datetime.fromtimestamp(ts) for ts in ts_list]
-
-            # Grafik Çizimi (Midnight Blue Tema)
-            plt.style.use("dark_background")
-            fig, ax = plt.subplots(figsize=(10, 5), facecolor="#090e1a")
-            ax.set_facecolor("#090e1a")
-
-            # Fiyat Çizgisi
-            ax.plot(dates, close_list, color="#38bdf8", linewidth=2.5, label="BIST 100")
-            # Altını hafifçe doldur (Alan Grafiği)
-            ax.fill_between(dates, close_list, min(close_list) * 0.999, color="#38bdf8", alpha=0.1)
-
-            # Eksen formatlaması
-            if range_str == "1d":
-                ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
-            else:
-                ax.xaxis.set_major_formatter(mdates.DateFormatter("%d %b"))
-
-            ax.tick_params(colors="#64748b", labelsize=10)
-            ax.grid(True, color="#1e293b", linestyle="--", alpha=0.5)
-
-            # Üst ve sağ çerçeveleri kaldır
-            for spine in ["top", "right"]:
-                ax.spines[spine].set_visible(False)
-            ax.spines["left"].set_color("#1e293b")
-            ax.spines["bottom"].set_color("#1e293b")
-
-            # Başlık
-            title_text = "BIST 100 Günlük Grafik" if range_str == "1d" else "BIST 100 5 Günlük Trend"
-            ax.set_title(title_text, fontsize=14, color="#ffffff", fontweight="bold", pad=15)
-
-            tmp = Path(tempfile.gettempdir()) / f"bist_chart_{range_str}.png"
-            plt.savefig(tmp, bbox_inches="tight", dpi=150, facecolor="#090e1a")
-            plt.close()
-            return tmp
-        except Exception as exc:
-            log.warning("BIST grafik resmi oluşturulamadı: %s", exc)
+            result = resp.json()["chart"]["result"][0]
+            closes = result["indicators"]["quote"][0].get("close", [])
+            valid = [c for c in closes if c is not None]
+            return valid or None
+        except (requests.RequestException, ValueError, KeyError, IndexError, TypeError) as exc:
+            log.warning("Fiyat serisi alınamadı (%s).", exc)
             return None
+

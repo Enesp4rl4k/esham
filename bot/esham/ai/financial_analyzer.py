@@ -22,6 +22,7 @@ class FinancialAnalysis:
     strengths: list[str] = field(default_factory=list)
     red_flags: list[str] = field(default_factory=list)
     ratios: dict[str, str] = field(default_factory=dict)  # Net Kâr Marjı, Cari Oran, Net Borç/FAVÖK
+    radar_scores: dict[str, int] = field(default_factory=dict)  # Büyüme, Kârlılık, Borçluluk, Çarpanlar, Likidite (1-10)
     ai_generated: bool = True
 
     def to_markdown(self) -> str:
@@ -33,9 +34,17 @@ class FinancialAnalysis:
             if self.ratios
             else "| — | — |"
         )
+        radar = (
+            "\n".join(f"- **{k}:** {v}/10" for k, v in self.radar_scores.items())
+            if self.radar_scores
+            else "- Veri yok"
+        )
         return f"""## Genel Görünüm
 
 {self.summary or 'Özet üretilemedi.'}
+
+## Radar Puanları (Sektöre Kıyasla)
+{radar}
 
 ## Temel Oranlar
 
@@ -58,6 +67,9 @@ Küçük yatırımcının gözden kaçırabileceği noktalara odaklan.
 
 Şirket: {company} — Dönem: {period}
 
+Ayrıca şirketin sektör ortalamalarına göre durumunu tahmin ederek 5 ana eksende 1 ile 10 arasında puanla (10=Mükemmel, 1=Çok Zayıf). Puanları "radar_scores" objesine koy.
+Eksenler: Büyüme, Kârlılık, Borçluluk, Çarpanlar, Likidite.
+
 Belge bölümleri:
 \"\"\"
 {document}
@@ -67,6 +79,7 @@ Belge bölümleri:
 {{
   "summary": "2-3 cümlelik genel görünüm",
   "ratios": {{"Net Kâr Marjı": "", "Cari Oran": "", "Net Borç/FAVÖK": "", "Özkaynak Kârlılığı": ""}},
+  "radar_scores": {{"Büyüme": 8, "Kârlılık": 6, "Borçluluk": 4, "Çarpanlar": 7, "Likidite": 5}},
   "strengths": ["3 olumlu nokta"],
   "red_flags": ["3 gizli tehlike/riskli nokta"]
 }}"""
@@ -74,7 +87,7 @@ Belge bölümleri:
 
 class FinancialReportAnalyzer:
     def __init__(self) -> None:
-        self.client = LlmClient(settings.gemini_model, max_output_tokens=1280)
+        self.client = LlmClient(settings.gemini_model, max_output_tokens=2048)
 
     def analyze(self, document_text: str, company: str, period: str = "") -> FinancialAnalysis:
         relevant = extract_relevant(document_text, FINANCIAL_KEYWORDS, max_chars=8000)
@@ -104,14 +117,20 @@ class FinancialReportAnalyzer:
             summary=str(data.get("summary", "")),
             strengths=_as_list(data.get("strengths")),
             red_flags=_as_list(data.get("red_flags")),
-            ratios={str(k): str(v) for k, v in (data.get("ratios") or {}).items() if str(v).strip()},
+            ratios={
+                str(k): str(v)
+                for k, v in (data.get("ratios") or {}).items()
+                if v not in (None, "") and str(v).strip()
+            },
             ai_generated=True,
         )
 
 
 def _as_list(value: object) -> list[str]:
     if isinstance(value, list):
-        return [str(v) for v in value if str(v).strip()]
+        # None/null öğeleri at — str(None) == "None" gibi anlamlı görünen ama
+        # aslında boş bir değeri yanlışlıkla tutmayalım.
+        return [str(v) for v in value if v not in (None, "") and str(v).strip()]
     if isinstance(value, str) and value.strip():
         return [value.strip()]
     return []

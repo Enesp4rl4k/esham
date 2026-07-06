@@ -30,12 +30,16 @@ Postgres) taşınabilir; iki tarafın da geri kalanı değişmeden kalır.
 | Modül | Görev |
 | --- | --- |
 | `config` | Ortam ayarları (.env) ve loglama |
-| `sources/kap` | KAP `memberDisclosureQuery` API — bildirimler (savunmacı parse) |
+| `sources/kap` | KAP `disclosure/members/byCriteria` API — GERÇEK, doğrulanmış bildirimler |
 | `sources/bist` | Yahoo Finance chart JSON API — XU100 canlı endeks |
 | `sources/calendar` | TradingView ekonomik takvim API — günlük veri açıklamaları |
 | `sources/viop` | VİOP kotasyonu (TradingView) + Takasbank teminat agregatı + stres |
+| `sources/kap_filter` | KAP önem filtresi — rutin/idari bildirimleri eler (spam önleme) |
+| `turkish` | Türkçe-doğru büyük harf + aksan-toleranslı eşleştirme (tek kaynak) |
+| `state` | Kalıcı durum (seen-set, margin önceki değer, günlük sayaç, iş sağlığı) |
 | `risk/margin` | Hesap bazlı teminat izleme & margin-call motoru (deterministik) |
 | `evals/` | AI çıktı kalite/güvenlik kapısı — tavsiye dedektörü, grounding, biçim |
+| `publishing/cards` | Marka kartı üreticisi (PIL) — TEK görsel hem tweet'e hem web hero/OG'ye |
 | `documents/` | PDF metin çıkarma + ilgili bölüm ayıklama (maliyet kontrolü) |
 | `ai/client` | Ortak LLM istemcisi (JSON çıktı, anahtarsız `None`) |
 | `ai/tweet_composer` | Ucuz model ile haber→tweet (drip akış için) |
@@ -81,6 +85,52 @@ py -m esham.main viop --positions hesap.json --prior-pct 0.30 --publish
   deterministik; veri kaynağından bağımsız çalışır. Teminat parametreleri Takasbank
   değerleriyle beslenmelidir (varsayılanlar temsilidir).
 
+### KAP entegrasyonu — gerçek, doğrulanmış uç noktalar
+
+KAP 2026'da Next.js tabanlı bir SPA'ye geçti; eski `memberDisclosureQuery` uç noktası
+artık **yok** (WAF tanınmayan API yollarını sessizce yutuyor, bu yüzden sonsuz
+timeout alınıyordu). Gerçek uç noktalar headless tarayıcı (Playwright) ile ağ trafiği
+izlenerek bulundu ve gerçek verilerle doğrulandı:
+
+| Amaç | Uç nokta |
+| --- | --- |
+| Bildirim listesi | `POST /tr/api/disclosure/members/byCriteria` |
+| Bildirim detay sayfası | `GET /tr/Bildirim/{disclosureIndex}` |
+| KAP'ın kendi bildirim kapağı (birkaç yüz karakter, İÇERİK DEĞİL) | `GET /tr/api/BildirimPdf/{disclosureIndex}` |
+| **Gerçek ek dosya** (izahname/fiyat tespit raporu, çok sayfalı) | `GET /tr/api/file/download/{hash}` |
+
+Kritik ayrıntı: gerçek belge içeriği `BildirimPdf` linkinde DEĞİL, ayrı bir ek
+dosyadadır — hash'i sadece detay sayfasının HTML'sinde bulunur (arama sonucunda
+yoktur). `KapSource.resolve_attachment_url(disclosure_index)` bunu çözer; sadece
+IPO analizi tetiklendiğinde çağrılır (her taramada değil, performans için).
+
+Gerçek verilerle uçtan uca doğrulandı: canlı bir "Fiyat Tespit Raporu" (ŞA-RA Enerji
+İnşaat, TERA Yatırım aracılığıyla) indirildi, 200K karakterlik gerçek belge metninden
+doğru fiyat (70,00 TL), iskonto (%20) ve halka arz büyüklüğü (6.230.000.000 TL)
+çıkarıldı — kaynak belgeyle birebir eşleşti. Bu test sırasında iki ek hata bulundu ve
+düzeltildi: (1) `extract_relevant` bütçesi (8000→24000 karakter) gerçek belgelerin
+çoğu zaman 100-200K karakter olduğunu, fiyat sonucunun genelde giriş/metodoloji
+bölümlerinden SONRA geldiğini hesaba katmıyordu; (2) AI'ın döndürdüğü `null` değerler
+`_as_list`/`_as_dict` filtrelerinde `"None"` string'ine dönüşüp sızıyordu.
+
+### KAP önem filtresi — spam önleme
+
+`news_stream` KAP'tan gelen HER bildirimi paylaşmaz — bu, akışı gürültüye ve veri
+yığılmasına boğar. `sources/kap_filter.py` deterministik, ücretsiz bir ağırlıklı
+anahtar kelime skorlayıcısıdır:
+
+- **Materiality sinyali** (pozitif ağırlık): birleşme/devralma, halka arz, kâr payı,
+  sermaye artırımı, önemli sözleşme, yönetim değişikliği, dava/ceza, derecelendirme...
+- **Rutin/idari** (negatif ağırlık): genel kurul çağrısı, imza sirküleri, bağımsız
+  denetim sözleşmesi yenileme, yatırımcı sunumu, portföy dağılım raporu...
+- Skor `ESHAM_KAP_MIN_IMPORTANCE` (varsayılan 1) eşiğini geçerse paylaşılır.
+- **Insider ve IPO bildirimleri bu filtreyi atlar** — zaten ayrı, öncelikli işlem
+  görürler (her zaman önemli sayılır).
+- Türkçe eklemeli dil olduğu için anahtar kelimeler **kök** olarak yazılır ("devral"
+  hem "devralma" hem "devraldı" ile eşleşir) ve `turkish.tr_fold()` ile aksan-toleranslı
+  karşılaştırılır ("taahhüt" aksansız "taahhut" yazılmışsa da bulunur).
+- Regresyon koruması: `evals/suites.py`'de 10 vakalık `kap_filter_suite()`.
+
 ### Belge analizi nasıl ucuz?
 
 Uzun belge (izahname yüzlerce sayfa) doğrudan AI'a gönderilmez. Önce
@@ -103,8 +153,58 @@ PDF'ini besler.
 - **Grounding:** analizdeki sayısal değerler kaynak belgede geçiyor mu (halüsinasyon önler)
 - **Biçim & metrik:** tweet ≤280, alan tamlığı; ayrıca gecikme ve tahmini maliyet
 
-Check'ler saf ve yeniden kullanılabilir — aynılar ileride yayın öncesi **guardrail** olarak
-da takılabilir. Anahtarsız da çalışır (fallback çıktı + dedektör/grounding testleri).
+Check'ler saf ve yeniden kullanılabilir — aynılar yayın öncesi **guardrail** olarak da
+takılıdır (`guardrails.py`): ihlal içeren rapor/tweet `ESHAM_GUARDRAILS=enforce`
+modunda hiç yayınlanmaz/gönderilmez. Anahtarsız da çalışır (fallback çıktı +
+dedektör/grounding testleri).
+
+### Marka kartları — tweet görselleri ve web hero/OG
+
+`publishing/cards.py` (`CardGenerator`) her rapor için **gerçek veriye dayalı, marka
+tutarlı** bir kart üretir (1200×630 PNG): Esham wordmark, kategori rengi (cyan/blue/
+emerald/violet/amber), büyük rakam + değişim %, gerçek fiyat serisinden sparkline
+(BIST/VİOP) veya sektör bar grafiği, metrik chip'leri (IPO fiyat/iskonto/büyüklük).
+Fontlar (Outfit/Inter) `esham/assets/fonts/` altında gömülüdür — dış servise bağımlılık
+yok, üretim tamamen yerel ve hızlı (<1sn).
+
+**Tek görsel, iki kullanım:** `ReportDraft.image_path` ile üretilen kart hem
+`ContentStore.publish()` tarafından `web/public/cards/<slug>.png`'e kopyalanır (web
+hero/OG) hem `SocialPublisher.broadcast()`'e verilir (tweet medyası) — aynı görsel,
+tek üretim. Kart yoksa (rapor guardrail'a takıldıysa veya üretim başarısızsa) web
+tarafı `default-<kategori>.png` yedeğine düşer; dış AI görsel servisi (ör. Pollinations)
+**kullanılmaz** (yavaş, markasız, deterministik değil).
+
+> **Not:** `web/content/reports/` boşken (`output: export` + sıfır rapor) Next.js bu
+> sürümde build'i tamamen reddeder. `rapor/[slug]/page.tsx` bu yüzden boş durumda bir
+> sentinel param döner — repo'da en az bir gerçek rapor bulunmasa bile site build olur.
+
+### Operasyonel dayanıklılık — "izlemezken güvenebilir miyim?"
+
+Tam otomasyonda asıl risk çalışmıyor olması değil, **sessizce** çalışmamasıdır. Dört
+katman bunu önler:
+
+1. **Kalıcı durum** (`state.py`) — `NewsStream._seen` ve `MarginWatcher._prev_pct`
+   artık `bot/state/esham_state.json`'da (atomik yazım). Render gibi platformlarda
+   süreç yeniden başlasa da (deploy/uyku modu/çökme) aynı KAP bildirimi tekrar
+   tweetlenmez, margin-call karşılaştırması sıfırlanmaz. Disk kalıcı değilse en kötü
+   ihtimalle eskisi gibi davranır — asla daha kötü olmaz.
+2. **İş sağlığı + ardışık hata uyarısı** (`scheduler.py`) — her zamanlanmış iş
+   sonucu kaydedilir. Bir iş **3 kez üst üste** başarısız olursa **tek seferlik**
+   bir operasyonel uyarı Telegram'a gider (halka açık Twitter'a değil); düzelince de
+   tek seferlik "düzeldi" mesajı — spam yok, ama sessiz arıza da yok.
+3. **Sağlık uç noktası** (`render_app.py` `/health`) — heartbeat, başarısız işler,
+   günlük paylaşım sayısı, paused durumu JSON olarak döner. Heartbeat 5 dakikadan
+   eskiyse `503` döner — bir uptime pinger (UptimeRobot vb.) buna bağlanıp alarm
+   üretebilir.
+4. **Acil durdurma + günlük kota** — `ESHAM_PAUSED=true` hem rapor yayınını hem
+   sosyal paylaşımı anında durdurur (redeploy gerekir, ama tek değişken). Kota,
+   `ESHAM_MAX_POSTS_PER_DAY` (varsayılan 60): bir hata/döngü API kotasını sessizce
+   tüketmesin diye güvenlik ağı — sadece gerçek canlı paylaşımları sayar.
+
+Tümü gerçek senaryolarla test edildi: restart sonrası aynı KAP haberi tekrar
+işlenmiyor, margin-call karşılaştırması korunuyor, 3 ardışık hatadan sonra tek
+uyarı + düzelince tek "düzeldi" mesajı, paused modda hiçbir paylaşım yapılmıyor,
+günlük tavan aşılınca paylaşım sessizce durduruluyor.
 
 ## web/ — yayın katmanı
 
@@ -168,8 +268,31 @@ Her rapor ve site genelinde SPK uyumlu yasal uyarı gösterilir.
 - [x] Guardrails: eval check'leri yayın öncesi hatta BLOKLAYICI (enforce/warn/off).
       Kötü rapor diske yazılmaz, kötü tweet gönderilmez
 - [x] Gerçek sosyal paylaşım: tweepy (X API v2) + Telegram; anahtar yoksa dry-run
-- [ ] Deploy: git repo + Vercel + Actions secrets (domain/anahtar kararları)
-- [ ] Gemini anahtarıyla gerçek koşu + AI çıktı doğrulaması
+- [x] Gemini anahtarıyla gerçek koşu doğrulandı (google-genai SDK'sine geçildi —
+      eski google-generativeai Python 3.14 ile uyumsuz); analiz modeli gemini-2.5-flash
+      (ücretsiz tier'da pro çalışmıyor)
+- [x] Marka kartı üreticisi (`publishing/cards.py`): gerçek veri + Esham kimliği,
+      Pollinations AI (rastgele/yavaş/markasız) tamamen kaldırıldı. Tek görsel hem
+      tweet hem web hero/OG'de kullanılıyor
+- [x] Belge şablonu düzeltmeleri: HTML kaçış (`&`/`<`/`>`), birim tekrarı ("TL TL"),
+      Türkçe aksan-toleranslı bölüm eşleştirme (taahhüt/taahhut), Gemini "thinking"
+      token tükenmesi (MAX_TOKENS kesilmesi) — `thinking_config` ile çözüldü
+- [x] Next.js `output: export` + sıfır rapor build hatası için sentinel fallback
+- [x] KAP önem filtresi (`sources/kap_filter.py`): rutin/idari bildirimler (genel
+      kurul, imza sirküleri, yatırımcı sunumu...) paylaşılmaz — spam/veri yığılması
+      önlenir. Insider/IPO filtreyi atlar (her zaman önemli). Türkçe kök-tabanlı
+      eşleştirme + evals regresyon koruması (10 vaka)
+- [x] KAP→halka arz otomatik analiz zinciri gerçek Gemini ile uçtan uca doğrulandı
+      (sentetik KAP bildirimi → filtre → belge yükleme → analiz → web raporu →
+      marka kartı → linkli tweet — canlı paylaşım yapılmadan)
+- [x] Operasyonel dayanıklılık: kalıcı durum (`state.py`), iş sağlığı + ardışık
+      hata uyarısı (Telegram, spam yok), `/health` uç noktası, acil durdurma
+      (`ESHAM_PAUSED`), günlük paylaşım kotası (`ESHAM_MAX_POSTS_PER_DAY`)
+- [x] **KAP gerçek entegrasyonu** — eski `memberDisclosureQuery` uç noktası hiç
+      var olmayan/kaldırılmış bir yoldu (WAF sessizce yutuyordu, bu yüzden hep
+      timeout alıyorduk). Gerçek uç noktalar bulundu, doğrulandı, canlı veriyle
+      uçtan uca test edildi (bkz. "KAP entegrasyonu" bölümü)
+- [ ] Deploy: Cloudflare Pages + Render (bot) canlıya alma, domain bağlama
 - [ ] LLM-as-judge ile analiz kalitesi puanı
 - [ ] Takasbank per-kontrat SPAN parametrelerinin canlı entegrasyonu (captcha/WAF engeli)
 - [ ] KAP eklerinden (fiyat tespit PDF'i) otomatik dosya çözümü

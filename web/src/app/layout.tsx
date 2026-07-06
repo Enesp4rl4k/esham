@@ -4,30 +4,33 @@ import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { CATEGORIES, type CategorySlug } from "@/lib/content";
 import { MobileMenu } from "@/components/MobileMenu";
+import { DesktopNav } from "@/components/DesktopNav";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://esham.pages.dev"),
   title: {
-    default: "Esham — Yapay Zeka Destekli Ekonomi & Piyasa Analizi",
+    default: "Esham — Yapay Zeka Destekli Piyasa Analizi",
     template: "%s — Esham",
   },
   description:
-    "BIST, küresel makro veriler ve KAP halka arz raporları her gün yapay zeka tarafından analiz edilir. Sıfır gürültü, maksimum içgörü.",
+    "BIST, küresel makro veriler ve KAP halka arz raporları her gün yapay zeka tarafından analiz edilir.",
   alternates: {
     types: { "application/rss+xml": "/feed.xml" },
   },
   openGraph: {
-    title: "Esham — Yapay Zeka Destekli Ekonomi & Piyasa Analizi",
+    title: "Esham — Yapay Zeka Destekli Piyasa Analizi",
     description:
       "BIST, küresel makro ve halka arz raporları her gün yapay zeka ile analiz edilir.",
     type: "website",
@@ -41,6 +44,7 @@ const navItems: { href: string; label: string }[] = [
     href: `/kategori/${slug}`,
     label: CATEGORIES[slug].label,
   })),
+  { href: "/arsiv", label: "Arşiv" },
 ];
 
 export default function RootLayout({
@@ -51,42 +55,125 @@ export default function RootLayout({
   return (
     <html
       lang="tr"
-      className={`${inter.variable} ${outfit.variable} dark antialiased`}
+      className={`${inter.variable} ${outfit.variable} antialiased`}
     >
-      <body className="min-h-screen bg-black text-zinc-100 flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
-        <header className="sticky top-0 z-50 w-full border-b border-zinc-800 bg-black/50 backdrop-blur-md">
-          <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+      <body
+        className="min-h-screen flex flex-col font-sans"
+        style={{ background: "var(--background)", color: "var(--text-primary)" }}
+      >
+        {/* ── Header ──────────────────────────────────────────── */}
+        <header
+          className="sticky top-0 z-50 w-full backdrop-blur-md"
+          style={{ borderBottom: "1px solid var(--border)", background: "rgba(10,10,10,0.85)" }}
+        >
+          <div className="container mx-auto px-6 h-14 flex items-center justify-between">
+            {/* Wordmark */}
             <Link
               href="/"
-              className="font-outfit font-bold text-xl tracking-tight text-white flex items-center gap-2"
+              className="font-display font-bold text-lg tracking-tight flex items-center"
+              style={{ color: "var(--text-primary)" }}
             >
-              <span><span className="text-cyan-400">Es</span>ham</span>
+              <span style={{ color: "var(--accent)" }}>Es</span>ham
             </Link>
-            <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="hover:text-white transition-colors"
+
+            <DesktopNav navItems={navItems} />
+
+            <div className="flex items-center gap-1">
+              {/* Arama */}
+              <Link
+                href="/arama"
+                aria-label="Rapor ara"
+                className="p-2 rounded-lg transition-colors"
+                style={{ color: "var(--text-muted)" }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
                 >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-            <MobileMenu navItems={navItems} />
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+              </Link>
+              <MobileMenu navItems={navItems} />
+            </div>
           </div>
         </header>
+
+        {/* ── Main ─────────────────────────────────────────────── */}
         <main className="flex-1 w-full">{children}</main>
-        <footer className="py-10 border-t border-zinc-900 mt-20">
-          <div className="container mx-auto px-6 flex flex-col gap-4 text-center text-sm text-zinc-600">
-            <p>
-              <span className="text-cyan-400 font-semibold">Esham</span> — Yapay zeka ile üretilen günlük ekonomi
-              içeriği.
-            </p>
-            <p className="max-w-2xl mx-auto text-xs text-zinc-700 leading-relaxed">
-              Burada yer alan içerikler yatırım tavsiyesi niteliği taşımaz; genel
-              bilgilendirme amaçlıdır. © {new Date().getFullYear()} Esham.
-            </p>
+
+        {/* ── Footer ───────────────────────────────────────────── */}
+        <footer
+          className="mt-24"
+          style={{ borderTop: "1px solid var(--border)" }}
+        >
+          {/* Kategori linkleri */}
+          <div
+            className="border-b py-8"
+            style={{ borderColor: "var(--border)" }}
+          >
+            <div className="container mx-auto px-6">
+              <div className="flex flex-wrap gap-x-8 gap-y-3">
+                <span
+                  className="text-[10px] font-bold tracking-[0.15em] uppercase self-center mr-2"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  Kategoriler
+                </span>
+                {(Object.keys(CATEGORIES) as CategorySlug[]).map((slug) => (
+                  <Link
+                    key={slug}
+                    href={`/kategori/${slug}`}
+                    className="text-sm transition-opacity hover:opacity-70"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    {CATEGORIES[slug].label}
+                  </Link>
+                ))}
+                <Link
+                  href="/arsiv"
+                  className="text-sm transition-opacity hover:opacity-70"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Arşiv
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Alt satır */}
+          <div className="py-6">
+            <div className="container mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                © {new Date().getFullYear()}{" "}
+                <span style={{ color: "var(--accent)" }} className="font-semibold">Esham</span>.
+                {" "}Buradaki içerikler yatırım tavsiyesi değildir.
+              </p>
+              <div className="flex items-center gap-6">
+                <Link
+                  href="/feed.xml"
+                  className="text-xs transition-opacity hover:opacity-70"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  RSS
+                </Link>
+                <Link
+                  href="/sitemap.xml"
+                  className="text-xs transition-opacity hover:opacity-70"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  Sitemap
+                </Link>
+              </div>
+            </div>
           </div>
         </footer>
       </body>

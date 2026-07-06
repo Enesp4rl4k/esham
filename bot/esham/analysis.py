@@ -1,7 +1,9 @@
 """Belge analiz orkestrasyonu.
 
 Bir KAP belgesini (izahname, fiyat tespit, faaliyet raporu) alır, yapılandırılmış
-analiz üretir ve sonucu yayınlar: web raporu (markdown) + halka arzsa ayrıca PDF.
+analiz üretir ve sonucu yayınlar: web raporu (markdown) + halka arzsa ayrıca PDF +
+gerçek analiz verisine dayalı marka kartı (aynı kart hem web hero'da hem tweet'te
+kullanılır).
 """
 from __future__ import annotations
 
@@ -17,9 +19,20 @@ from .ai import (
 from .config import get_logger
 from .documents import load_document_text
 from .publishing import ContentStore, ReportDraft
+from .publishing.cards import CardGenerator, CardSpec
 from .publishing.ipo_pdf import IpoPdfGenerator
 
 log = get_logger(__name__)
+
+_cards = CardGenerator()
+
+
+def _render_card(spec: CardSpec) -> Path | None:
+    try:
+        return _cards.render(spec)
+    except Exception as exc:  # kart üretimi asla analizi/yayını durdurmasın
+        log.warning("Kart görseli üretilemedi (%s); görselsiz devam ediliyor.", exc)
+        return None
 
 
 @dataclass
@@ -28,6 +41,53 @@ class IpoResult:
     slug: str | None = None
     report_path: Path | None = None
     pdf_path: Path | None = None
+    image_path: Path | None = None
+
+
+def _ipo_card_spec(company: str, ticker: str, analysis: IpoAnalysis) -> CardSpec:
+    """IpoAnalysis nesnesinden IPO kart spesifikasyonu üretir.
+
+    Kart ızgarası (4 hücre, soldan sağa):
+      1. Fiyat        — halka arz fiyatı (TL birimi dahil)
+      2. İskonto      — yüzde oranı
+      3. Hasılat      — halka arz büyüklüğü
+      4. Marj / F/K   — net kâr marjı varsa, yoksa ilk değerleme çarpanı
+
+    Büyük iskonto rozeti: discount_pct_float() > 20 ise _render_ipo sağ kenarda gösterir.
+    Fon kullanımı özeti: fund_usage_summary(3) → kartın alt satırı.
+    """
+    metrics: list[tuple[str, str]] = []
+
+    if analysis.price:
+        price_str = analysis.price
+        if "TL" not in price_str and "tl" not in price_str.lower():
+            price_str = f"{price_str} TL"
+        metrics.append(("Fiyat", price_str))
+
+    if analysis.discount_rate:
+        metrics.append(("İskonto", analysis.discount_rate))
+
+    if analysis.offer_size:
+        metrics.append(("Hasılat", analysis.offer_size))
+
+    # 4. hücre: Net Kâr Marjı öncelikli, yoksa ilk değerleme çarpanı
+    if analysis.net_margin:
+        metrics.append(("Marj", analysis.net_margin))
+    else:
+        for name, value in list(analysis.valuation.items())[:1]:
+            if value:
+                metrics.append((name, value))
+
+    return CardSpec(
+        category="ipo",
+        kicker="Halka Arz Analizi",
+        headline=company,
+        ticker=ticker,
+        metrics=metrics,
+        discount_pct=analysis.discount_pct_float(),
+        fund_usage=analysis.fund_usage_summary(max_items=3),
+        template="ipo" if metrics else "bist",
+    )
 
 
 def analyze_ipo_document(
@@ -46,6 +106,7 @@ def analyze_ipo_document(
 
     analysis = IpoProspectusAnalyzer().analyze(text, company, ticker)
     result = IpoResult(analysis=analysis)
+    result.image_path = _render_card(_ipo_card_spec(company, ticker, analysis))
 
     if publish:
         summary = analysis.verdict or f"{company} halka arzı için yapılandırılmış analiz."
@@ -57,6 +118,7 @@ def analyze_ipo_document(
             sources=["KAP", "İzahname", "Fiyat Tespit Raporu"],
             tags=[ticker, "Halka Arz"],
             ai_generated=analysis.ai_generated,
+            image_path=result.image_path,
         )
         result.report_path = ContentStore().publish(draft)
         # Yayın guardrail'a takıldıysa slug atama — var olmayan rapora link verilmesin.
@@ -86,6 +148,15 @@ def analyze_company_report(
 
     if publish:
         title = f"{company} Finansal Analiz" + (f" — {period}" if period else "")
+        card_path = _render_card(
+            CardSpec(
+                category="bist",
+                kicker=f"Finansal Analiz{' — ' + period if period else ''}",
+                headline=f"{company}: {analysis.summary}" if analysis.summary else company,
+                metrics=list(analysis.ratios.items())[:3],
+                radar_scores=analysis.radar_scores,
+            )
+        )
         ContentStore().publish(
             ReportDraft(
                 title=title,
@@ -95,6 +166,7 @@ def analyze_company_report(
                 sources=["KAP", "Finansal Tablolar"],
                 tags=[company, "Bilanço", "Analiz"],
                 ai_generated=analysis.ai_generated,
+                image_path=card_path,
             )
         )
 

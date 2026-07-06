@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import re
 
+from ..turkish import tr_fold as _tr_fold
+
 # Halka arz belgeleri için önemli bölümler.
 IPO_KEYWORDS = (
     "fiyat tespit",
@@ -74,11 +76,12 @@ def extract_relevant(
     if not paras:
         return text[:max_chars]
 
-    lowered = [p.lower() for p in paras]
+    folded_paras = [_tr_fold(p) for p in paras]
+    folded_keywords = [_tr_fold(k) for k in keywords]
     keep: list[int] = []
     picked: set[int] = set()
-    for i, low in enumerate(lowered):
-        if any(k in low for k in keywords):
+    for i, folded in enumerate(folded_paras):
+        if any(k in folded for k in folded_keywords):
             for j in range(i, min(i + 1 + context_after, len(paras))):
                 if j not in picked:
                     picked.add(j)

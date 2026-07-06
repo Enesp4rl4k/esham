@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 import requests
+from ..http import retry_get
 
 from ..config import default_headers, get_logger, settings
 from . import CalendarEvent
@@ -45,7 +46,7 @@ class EconomicCalendarSource:
         frm = now.replace(hour=0, minute=0, second=0, microsecond=0)
         to = frm + timedelta(days=1)
         try:
-            resp = requests.get(
+            resp = retry_get(
                 EVENTS_URL,
                 params={
                     "from": frm.strftime("%Y-%m-%dT%H:%M:%S.000Z"),

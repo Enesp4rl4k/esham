@@ -13,13 +13,19 @@ import sys
 
 from .analysis import analyze_company_report, analyze_ipo_document
 from .config import configure_logging, get_logger
+from .jobs.publish_fear_greed import run_fear_greed_report
+from .jobs.publish_heatmap import run_heatmap
 from .news_stream import NewsStream
 from .pipeline import (
     run_closing_report,
+    run_global_report,
+    run_gundem_report,
     run_morning_report,
+    run_news_report,
     run_opening_report,
     run_sector_report,
     run_viop_report,
+    run_weekly_summary,
 )
 from .scheduler import build_default_scheduler
 from .publishing.ipo_pdf import IpoPdfGenerator
@@ -31,6 +37,16 @@ log = get_logger(__name__)
 
 def _cmd_morning_report(args: argparse.Namespace) -> None:
     run_morning_report(publish_social=not args.no_social)
+
+
+def _cmd_fear_greed(args: argparse.Namespace) -> None:
+    from .jobs.publish_fear_greed import run_fear_greed_report
+    run_fear_greed_report()
+
+
+def _cmd_heatmap(args: argparse.Namespace) -> None:
+    from .jobs.publish_heatmap import run_heatmap
+    run_heatmap()
 
 
 def _cmd_news_stream(args: argparse.Namespace) -> None:
@@ -99,7 +115,9 @@ def _cmd_viop(args: argparse.Namespace) -> None:
             print(f"  {alert}")
 
     if args.publish:
-        slug = run_viop_report(prior_pct=args.prior_pct, publish=True)
+        slug = run_viop_report(
+            prior_pct=args.prior_pct, publish=True, publish_social=not args.no_social
+        )
         print(f"\n  Web raporu yayınlandı: /rapor/{slug}")
 
 
@@ -119,8 +137,30 @@ def _cmd_closing(_: argparse.Namespace) -> None:
     run_closing_report()
 
 
+def _cmd_gundem(args: argparse.Namespace) -> None:
+    slug = run_gundem_report(
+        headline=args.headline,
+        body=args.body,
+        summary=args.summary or args.headline,
+        tags=args.tags or [],
+        publish_social=not args.no_social,
+    )
+    if slug:
+        print(f"Gündem raporu yayınlandı: /rapor/{slug}")
+
+
 def _cmd_sector(_: argparse.Namespace) -> None:
     run_sector_report()
+
+
+def _cmd_global(_: argparse.Namespace) -> None:
+    run_global_report()
+
+
+def _cmd_weekly_summary(args: argparse.Namespace) -> None:
+    slug = run_weekly_summary(publish_social=not args.no_social)
+    if slug:
+        print(f"Haftalık özet yayınlandı: /rapor/{slug}")
 
 
 def _cmd_evals(_: argparse.Namespace) -> None:
@@ -194,6 +234,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Önceki gün margin-call/gereken oranı (stres karşılaştırması için)",
     )
     vp.add_argument("--publish", action="store_true", help="Web'e VİOP raporu yayınla")
+    vp.add_argument("--no-social", action="store_true", help="Sosyal medya paylaşımını atla")
     vp.set_defaults(func=_cmd_viop)
 
     rn = sub.add_parser("run", help="Günlük yayın orkestratörünü başlat (uzun-ömürlü)")
@@ -205,6 +246,20 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("opening", help="BIST açılış notu yayınla").set_defaults(func=_cmd_opening)
     sub.add_parser("closing", help="Kapanış bülteni yayınla").set_defaults(func=_cmd_closing)
     sub.add_parser("sector", help="Haftalık sektör rotasyonu yayınla").set_defaults(func=_cmd_sector)
+    sub.add_parser("global-report", help="Küresel makro raporu yayınla").set_defaults(func=_cmd_global)
+    sub.add_parser("heatmap", help="BIST30 Piyasa Isı Haritası üret ve yayınla").set_defaults(func=_cmd_heatmap)
+
+    ws = sub.add_parser("weekly-summary", help="Haftalık piyasa özeti üret ve yayınla")
+    ws.add_argument("--no-social", action="store_true", help="Sosyal medya paylaşımını atla")
+    ws.set_defaults(func=_cmd_weekly_summary)
+
+    gn = sub.add_parser("gundem", help="Anlık gündem haberi / piyasa yorumu yayınla")
+    gn.add_argument("headline", help="Kısa başlık (tweet ve kart için)")
+    gn.add_argument("body", help="Markdown formatında rapor gövdesi")
+    gn.add_argument("--summary", default="", help="Tek cümlelik özet (opsiyonel; verilmezse başlık kullanılır)")
+    gn.add_argument("--tags", nargs="*", default=[], metavar="TAG", help="Etiketler (opsiyonel)")
+    gn.add_argument("--no-social", action="store_true", help="Sosyal medya paylaşımını atla")
+    gn.set_defaults(func=_cmd_gundem)
     sub.add_parser("evals", help="AI çıktı kalitesi/güvenlik eval'lerini çalıştır").set_defaults(func=_cmd_evals)
 
     ip = sub.add_parser("ipo-pdf", help="Örnek halka arz raporu üret")

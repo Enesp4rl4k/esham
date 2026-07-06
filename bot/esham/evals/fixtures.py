@@ -8,10 +8,10 @@ Halka arz fiyatı 45,50 TL olarak belirlenmiştir. İskonto oranı %22,5 seviyes
 Halka arz büyüklüğü 500 Milyon TL'dir.
 
 Fon Kullanım Yeri
-Kapasite artırımı, Ar-Ge ve işletme sermayesi için kullanılacaktır.
+Kapasite artırımı %50, Ar-Ge %30 ve işletme sermayesi %20 için kullanılacaktır.
 
 Değerleme
-Fiyat/Kazanç oranı 12,3 olarak hesaplanmıştır.
+Fiyat/Kazanç oranı 12,3 olarak hesaplanmıştır. Net kâr marjı %18,0 seviyesindedir.
 
 Risk Faktörleri
 Müşteri yoğunlaşması ve kur farkı riski bulunmaktadır.
@@ -22,7 +22,8 @@ GROUNDED_JSON = {
     "price": "45,50 TL",
     "discount_rate": "%22,5",
     "offer_size": "500 Milyon TL",
-    "fund_usage": ["Kapasite artırımı", "Ar-Ge"],
+    "net_margin": "%18,0",
+    "fund_usage": ["Kapasite artırımı %50", "Ar-Ge %30", "İşletme sermayesi %20"],
     "commitments": ["1 yıl ortak satmama"],
     "strengths": ["Yüksek net kâr marjı", "Düşük borçluluk"],
     "risks": ["Müşteri yoğunlaşması", "Kur riski"],

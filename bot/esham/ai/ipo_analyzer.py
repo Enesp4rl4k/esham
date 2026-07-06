@@ -21,6 +21,7 @@ class IpoAnalysis:
     price: str = ""
     discount_rate: str = ""
     offer_size: str = ""
+    net_margin: str = ""  # Net kâr marjı — AI çıktısından parse edilir
     fund_usage: list[str] = field(default_factory=list)
     commitments: list[str] = field(default_factory=list)
     strengths: list[str] = field(default_factory=list)
@@ -29,6 +30,32 @@ class IpoAnalysis:
     verdict: str = ""
     confidence: str = "orta"  # düşük | orta | yüksek
     ai_generated: bool = True
+
+    def discount_pct_float(self) -> float:
+        """'%22,5', '%22.5', '22,5%', '22.5' gibi formatları float'a çevirir.
+        Parse edilemezse 0.0 döner.
+        """
+        import re
+        raw = self.discount_rate.strip()
+        if not raw:
+            return 0.0
+        # Rakam+virgül/nokta kombinasyonunu bul
+        m = re.search(r"(\d+[.,]\d+|\d+)", raw.replace(",", "."))
+        if m:
+            try:
+                return float(m.group(1).replace(",", "."))
+            except ValueError:
+                pass
+        return 0.0
+
+    def fund_usage_summary(self, max_items: int = 3) -> str:
+        """Fon kullanım kalemlerini tek satır özetine dönüştürür.
+        Örn. ['Kapasite %50', 'AR-GE %30', 'Borç ödemesi %20'] → 'Kapasite %50 · AR-GE %30 · ...'
+        """
+        items = self.fund_usage[:max_items]
+        if not items:
+            return ""
+        return " · ".join(items)
 
     def to_markdown(self) -> str:
         def bullets(items: list[str]) -> str:
@@ -48,6 +75,7 @@ class IpoAnalysis:
 | Halka Arz Fiyatı | {self.price or '-'} |
 | İskonto Oranı | {self.discount_rate or '-'} |
 | Halka Arz Büyüklüğü | {self.offer_size or '-'} |
+| Net Kâr Marjı | {self.net_margin or '-'} |
 
 ## Fonun Kullanım Yeri
 
@@ -84,6 +112,7 @@ class IpoAnalysis:
             "price": self.price,
             "discount": self.discount_rate,
             "offer_size": self.offer_size,
+            "net_margin": self.net_margin,
             "fund_usage": self.fund_usage,
             "commitments": self.commitments,
             "strengths": self.strengths,
@@ -95,7 +124,20 @@ class IpoAnalysis:
 
 _PROMPT = """Sen deneyimli bir sermaye piyasası analistisin. Aşağıdaki halka arz
 izahnamesi / fiyat tespit raporu bölümlerini incele ve yalnızca JSON döndür.
-Yatırım tavsiyesi verme; nesnel ol. Bulamadığın alanları boş bırak.
+Yatırım tavsiyesi verme; nesnel ol. Bulamadığın alanları boş bırak (uydurma).
+
+ÖNEMLİ biçim kuralları:
+1. "price", "discount_rate", "offer_size" ve valuation değerlerinin HER BİRİ
+   birimini/sembolünü KENDİ İÇİNDE barındırmalı (örn. "45,50 TL", "%22,5",
+   "500 Milyon TL"). Bu alanları gösteren şablonlar birim EKLEMEZ.
+2. "discount_rate" kesinlikle yüzde biçiminde olmalı (örn. "%22,5" veya "22,5%").
+   İzahnamede "halka arz fiyatı / değerleme iskonto oranı" veya "piyasa değeri /
+   defter değeri" iskontosundan hesaplanan oran. Bulamazsan boş bırak.
+3. "net_margin" (Net Kâr Marjı) varsa yüzde olarak ver (örn. "%18,3").
+4. "valuation" içindeki değerler KISA olmalı — sadece rakam/oran (örn. "12,3"
+   veya "8,1x"). Net bir rakam bulamazsan o çarpanı boş bırak.
+5. "fund_usage" kalemleri mümkün olduğunca kısa tut (örn. "Kapasite artırımı %50",
+   "Ar-Ge %30", "Borç ödemesi %20"). Her kalem tek satır, max 50 karakter.
 
 Şirket: {company} ({ticker})
 
@@ -106,10 +148,11 @@ Belge bölümleri:
 
 Şu JSON şemasını doldur:
 {{
-  "price": "halka arz fiyatı (TL)",
-  "discount_rate": "iskonto oranı (%)",
-  "offer_size": "halka arz büyüklüğü",
-  "fund_usage": ["fon kullanım kalemleri"],
+  "price": "halka arz fiyatı, birimiyle (örn. '45,50 TL')",
+  "discount_rate": "iskonto oranı, yüzde işaretiyle (örn. '%22,5')",
+  "offer_size": "halka arz büyüklüğü, birimiyle (örn. '500 Milyon TL')",
+  "net_margin": "net kâr marjı yüzde olarak (örn. '%18,3') — bulamazsan boş",
+  "fund_usage": ["kısa fon kullanım kalemleri, her biri max 50 karakter"],
   "commitments": ["fiyat istikrarı, ortak satmama, bedelli yok gibi taahhütler"],
   "strengths": ["3-5 olumlu nokta"],
   "risks": ["3-5 risk/red flag"],
@@ -121,10 +164,15 @@ Belge bölümleri:
 
 class IpoProspectusAnalyzer:
     def __init__(self) -> None:
-        self.client = LlmClient(settings.gemini_model, max_output_tokens=1536)
+        self.client = LlmClient(settings.gemini_model, max_output_tokens=2560)
 
     def analyze(self, document_text: str, company: str, ticker: str) -> IpoAnalysis:
-        relevant = extract_relevant(document_text, IPO_KEYWORDS, max_chars=8000)
+        # Gerçek fiyat tespit raporları 100-200K karakter olabilir (çok sayfalı);
+        # 8000 karakterlik bütçe genelde giriş/metodoloji bölümlerini yakalayıp asıl
+        # fiyat SONUCUNU (genelde dokümanın ilerleyen bir bölümünde) kaçırıyordu.
+        # Gemini flash'ın bağlam penceresi bu bütçeyi rahatça karşılar; maliyet ihmal
+        # edilebilir düzeyde artar ama isabet oranı önemli ölçüde yükselir.
+        relevant = extract_relevant(document_text, IPO_KEYWORDS, max_chars=24000)
         if not self.client.enabled:
             log.info("IPO analizörü: AI kapalı; iskele analizi dönülüyor.")
             return self._fallback(company, ticker)
@@ -142,6 +190,7 @@ class IpoProspectusAnalyzer:
             price=str(data.get("price", "")),
             discount_rate=str(data.get("discount_rate", "")),
             offer_size=str(data.get("offer_size", "")),
+            net_margin=str(data.get("net_margin", "")),
             fund_usage=_as_list(data.get("fund_usage")),
             commitments=_as_list(data.get("commitments")),
             strengths=_as_list(data.get("strengths")),
@@ -168,7 +217,9 @@ class IpoProspectusAnalyzer:
 
 def _as_list(value: object) -> list[str]:
     if isinstance(value, list):
-        return [str(v) for v in value if str(v).strip()]
+        # None/null öğeleri at — str(None) == "None" gibi anlamlı görünen ama
+        # aslında boş bir değeri yanlışlıkla tutmayalım.
+        return [str(v) for v in value if v not in (None, "") and str(v).strip()]
     if isinstance(value, str) and value.strip():
         return [value.strip()]
     return []
@@ -176,5 +227,9 @@ def _as_list(value: object) -> list[str]:
 
 def _as_dict(value: object) -> dict[str, str]:
     if isinstance(value, dict):
-        return {str(k): str(v) for k, v in value.items() if str(v).strip()}
+        return {
+            str(k): str(v)
+            for k, v in value.items()
+            if v not in (None, "") and str(v).strip()
+        }
     return {}

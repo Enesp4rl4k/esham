@@ -22,19 +22,28 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 
-from .config import get_logger
+from .config import get_logger, settings
 from .news_stream import NewsStream
 from .pipeline import (
     run_closing_report,
+    run_global_report,
     run_morning_report,
     run_opening_report,
     run_sector_report,
     run_viop_report,
+    run_weekly_summary,
 )
+from .jobs.publish_heatmap import run_heatmap
 from .publishing.social import SocialPublisher
 from .sources.viop import ViopSource, assess_margin_stress
+from .state import get_state
 
 log = get_logger(__name__)
+
+# Bir iş bu kadar ardışık başarısız olursa TEK SEFERLİK bir operasyonel uyarı
+# gönderilir (Telegram'a — halka açık Twitter'a DEĞİL). Her hatada spam olmasın
+# diye eşik + "zaten uyarıldı" izlemesi kullanılır.
+ALERT_FAILURE_THRESHOLD = 3
 
 # Türkiye saati — kalıcı UTC+3 (2016'dan beri DST yok).
 TR_TZ = timezone(timedelta(hours=3))
@@ -73,12 +82,19 @@ class IntervalJob:
 
 
 class MarginWatcher:
-    """Teminat stresi önceki değere göre sıçrarsa VİOP margin-call raporu yayınlar."""
+    """Teminat stresi önceki değere göre sıçrarsa VİOP margin-call raporu yayınlar.
+
+    `_prev_pct` diske kalıcıdır (StateStore) — süreç yeniden başlasa da (Render
+    restart/deploy) karşılaştırma sıfırlanmaz. Kalıcı olmasaydı her restart'ta
+    "önceki gün verisi yok" durumuna dönerdi ve gerçek bir stres sıçraması
+    kaçırılabilirdi.
+    """
 
     def __init__(self, jump_threshold: float = 0.05) -> None:
         self.jump_threshold = jump_threshold
-        self._prev_pct: float | None = None
         self.social = SocialPublisher()
+        self._state = get_state()
+        self._prev_pct: float | None = self._state.get_margin_prev_pct()
 
     def check(self) -> None:
         snap = ViopSource().margin_snapshot()
@@ -92,6 +108,7 @@ class MarginWatcher:
                 f"%{pct:.2f}. Detay raporda. #VİOP #MarginCall"
             )
         self._prev_pct = pct
+        self._state.set_margin_prev_pct(pct)
 
 
 class Scheduler:
@@ -99,6 +116,8 @@ class Scheduler:
         self.tick_seconds = tick_seconds
         self.daily: list[DailyJob] = []
         self.interval: list[IntervalJob] = []
+        self._state = get_state()
+        self._alerted_jobs: set[str] = set()  # bu çalıştırmada zaten uyarılan işler
 
     def add_daily(self, name: str, at: str, func: Callable[[], object], days=WEEKDAYS) -> None:
         self.daily.append(DailyJob(name, at, func, frozenset(days)))
@@ -118,6 +137,7 @@ class Scheduler:
         now = now or tr_now()
         mono = mono if mono is not None else time.monotonic()
         fired: list[str] = []
+        self._state.record_heartbeat()
 
         for job in self.daily:
             if job.is_due(now):
@@ -132,13 +152,38 @@ class Scheduler:
                 fired.append(job.name)
         return fired
 
-    @staticmethod
-    def _safe_run(name: str, func: Callable[[], object]) -> None:
+    def _safe_run(self, name: str, func: Callable[[], object]) -> None:
         try:
             log.info("İş çalışıyor: %s", name)
             func()
+            self._state.record_job_result(name, ok=True)
+            if name in self._alerted_jobs:
+                self._alerted_jobs.discard(name)
+                self._notify_ops(f"✅ Düzeldi: '{name}' işi tekrar başarılı çalışıyor.")
         except Exception as exc:  # bir işin hatası döngüyü durdurmamalı
             log.error("İş başarısız (%s): %s", name, exc)
+            self._state.record_job_result(name, ok=False, detail=str(exc))
+            self._maybe_alert_failure(name, str(exc))
+
+    def _maybe_alert_failure(self, name: str, detail: str) -> None:
+        """Bir iş eşiği aşacak kadar ardışık başarısız olursa TEK SEFERLİK uyarır
+        (her hatada değil — spam olmasın). Düzelince de tek seferlik "düzeldi" mesajı."""
+        jobs = self._state.snapshot().get("jobs", {})
+        consecutive = jobs.get(name, {}).get("consecutive_failures", 0)
+        if consecutive >= ALERT_FAILURE_THRESHOLD and name not in self._alerted_jobs:
+            self._alerted_jobs.add(name)
+            self._notify_ops(
+                f"🔧 UYARI: '{name}' işi {consecutive} kez üst üste başarısız oldu.\n"
+                f"Son hata: {detail[:200]}"
+            )
+
+    @staticmethod
+    def _notify_ops(message: str) -> None:
+        """Operasyonel uyarı — Telegram'a (varsa) gider, ASLA Twitter'a değil."""
+        try:
+            SocialPublisher().post_telegram(message)
+        except Exception as exc:
+            log.error("Operasyonel uyarı gönderilemedi: %s", exc)
 
     def run(self) -> None:
         self.prime()
@@ -157,24 +202,39 @@ def build_default_scheduler(
     scan_interval: int = 300,
     publish_interval: int = 90,
     margin_interval: int = 1800,
+    macro_scan_interval: int = 600,
 ) -> Scheduler:
-    """İstenen günlük döngüyü kuran hazır orkestratör."""
+    """İstenen günlük döngüyü kuran hazır orkestratör.
+
+    scan_interval       — KAP bildirim tarama sıklığı (saniye, varsayılan 5 dk)
+    macro_scan_interval — Makro/sektör fiyat hareketi tarama sıklığı (saniye, varsayılan 10 dk)
+    publish_interval    — Kuyruktan tek haber yayın aralığı (saniye, drip)
+    margin_interval     — VİOP teminat stres kontrolü sıklığı (saniye)
+    """
     sched = Scheduler()
-    stream = NewsStream()  # KAP/haber taraması + drip + halka arz otomatik analizi
+    stream = NewsStream()  # KAP + makro tarama + drip yayın + halka arz otomatik analizi
     watcher = MarginWatcher()
 
-    # Sürekli akış
+    # Sürekli akış — KAP bildirimleri
     sched.add_interval("haber-tarama", scan_interval, stream.scan)
+    # Sürekli akış — Makro/sektör fiyat hareketleri (VIX, faiz, altın, sektör vb.)
+    sched.add_interval("makro-tarama", macro_scan_interval, stream.macro_scan)
     sched.add_interval("haber-yayın", publish_interval, stream.publish_next)
     sched.add_interval("margin-call-izleyici", margin_interval, watcher.check)
 
     # Sabit saatli (TR)
     sched.add_daily("gunluk-bulten", "08:30", lambda: run_morning_report())
+    sched.add_daily("kuresel-makro", "08:45", lambda: run_global_report())
     sched.add_daily("viop-acilis", "09:30", lambda: run_viop_report(publish=True))
     sched.add_daily("bist-acilis", "10:00", lambda: run_opening_report(publish_social=True))
+    sched.add_daily("heatmap-ogle", "13:00", lambda: run_heatmap())
     sched.add_daily("kapanis", "18:15", lambda: run_closing_report())
+    sched.add_daily("heatmap-aksam", "18:30", lambda: run_heatmap())
 
     # Haftalık (Pazartesi)
     sched.add_daily("haftalik-sektor", "09:00", lambda: run_sector_report(), days={0})
+
+    # Haftalık özet (Cuma kapanış sonrası 18:30 TR)
+    sched.add_daily("haftalik-ozet", "18:30", lambda: run_weekly_summary(), days={4})
 
     return sched

@@ -14,12 +14,13 @@ name: Esham Yayın Döngüsü
 # edilir: bir VPS'te `py -m esham.main run`. Bu workflow stateless alternatiftir.
 on:
   schedule:
-    - cron: "30 5 * * 1-5"    # günlük bülten
-    - cron: "30 6 * * 1-5"    # VİOP açılış
-    - cron: "0 7 * * 1-5"     # BIST açılış
-    - cron: "15 15 * * 1-5"   # kapanış
-    - cron: "0 6 * * 1"       # haftalık sektör (Pazartesi)
-    - cron: "*/15 6-15 * * 1-5"  # haber/KAP taraması (seans içi)
+    - cron: "30 5 * * 1-5"    # günlük bülten          08:30 TR
+    - cron: "30 6 * * 1-5"    # VİOP açılış             09:30 TR
+    - cron: "0 7 * * 1-5"     # BIST açılış             10:00 TR
+    - cron: "15 15 * * 1-5"   # kapanış                 18:15 TR
+    - cron: "0 6 * * 1"       # haftalık sektör          09:00 TR (Pazartesi)
+    - cron: "30 15 * * 5"     # haftalık özet            18:30 TR (Cuma)
+    - cron: "5,20,35,50 6-15 * * 1-5"  # haber/KAP+makro tarama (seans içi)
   workflow_dispatch:
     inputs:
       command:
@@ -32,6 +33,7 @@ on:
           - opening
           - closing
           - sector
+          - weekly-summary
           - news-stream
 
 jobs:
@@ -63,13 +65,14 @@ jobs:
           ESHAM_SITE_URL: https://esham.pages.dev
         run: |
           case "${{ github.event.schedule }}" in
-            "30 5 * * 1-5")   CMD="morning-report" ;;
-            "30 6 * * 1-5")   CMD="viop --publish" ;;
-            "0 7 * * 1-5")    CMD="opening" ;;
-            "15 15 * * 1-5")  CMD="closing" ;;
-            "0 6 * * 1")      CMD="sector" ;;
-            "*/15 6-15 * * 1-5") CMD="news-stream --once" ;;
-            *)                CMD="${{ github.event.inputs.command || 'morning-report' }}" ;;
+            "30 5 * * 1-5")      CMD="morning-report" ;;
+            "30 6 * * 1-5")      CMD="viop --publish" ;;
+            "0 7 * * 1-5")       CMD="opening" ;;
+            "15 15 * * 1-5")     CMD="closing" ;;
+            "0 6 * * 1")         CMD="sector" ;;
+            "30 15 * * 5")       CMD="weekly-summary" ;;
+            "5,20,35,50 6-15 * * 1-5") CMD="news-stream --once" ;;
+            *)                   CMD="${{ github.event.inputs.command || 'morning-report' }}" ;;
           esac
           echo "Çalıştırılıyor: $CMD"
           python -m esham.main $CMD

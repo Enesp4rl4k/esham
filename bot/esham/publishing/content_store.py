@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 import unicodedata
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -44,17 +45,19 @@ class ReportDraft:
     ai_generated: bool = True
     published_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     slug: str | None = None
+    # Aynı görsel hem tweet'e hem web hero/OG'ye gider — tek üretim, tek kaynak.
+    image_path: Path | None = None
 
     def resolved_slug(self) -> str:
         base = self.slug or slugify(self.title)
         return f"{base}-{self.published_at.date().isoformat()}"
 
-    def to_document(self) -> dict:
+    def to_document(self, image_rel_url: str | None = None) -> dict:
         if self.category not in VALID_CATEGORIES:
             raise ValueError(
                 f"Geçersiz kategori: {self.category!r}. Beklenen: {sorted(VALID_CATEGORIES)}"
             )
-        return {
+        doc = {
             "slug": self.resolved_slug(),
             "title": self.title,
             "category": self.category,
@@ -68,22 +71,45 @@ class ReportDraft:
             "tags": self.tags,
             "body": self.body,
         }
+        if image_rel_url:
+            doc["image"] = image_rel_url
+        return doc
 
 
 class ContentStore:
-    def __init__(self, content_dir: Path | None = None) -> None:
+    def __init__(self, content_dir: Path | None = None, cards_dir: Path | None = None) -> None:
         self.content_dir = content_dir or settings.content_dir
         self.content_dir.mkdir(parents=True, exist_ok=True)
+        self.cards_dir = cards_dir or settings.cards_dir
 
     def publish(self, draft: ReportDraft) -> Path | None:
-        """Raporu yayınlar. Guardrail'a takılırsa yazmaz ve None döner."""
+        """Raporu yayınlar. Acil durdurma veya guardrail'a takılırsa yazmaz, None döner."""
+        if settings.paused:
+            log.info("[PAUSED] Rapor yayını atlandı: %s", draft.title)
+            return None
         violations = validate_report(draft.title, draft.summary, draft.body)
         if not allow(f"rapor '{draft.title}'", violations):
             return None
 
-        doc = draft.to_document()
+        slug = draft.resolved_slug()
+        image_rel_url = self._store_image(draft.image_path, slug)
+
+        doc = draft.to_document(image_rel_url)
         filename = f"{draft.published_at.date().isoformat()}-{slugify(draft.title)}.json"
         path = self.content_dir / filename
         path.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         log.info("Rapor yayınlandı: %s (%s)", doc["slug"], path)
         return path
+
+    def _store_image(self, image_path: Path | None, slug: str) -> str | None:
+        """Üretilen kartı web'in statik `public/cards/` klasörüne kopyalar."""
+        if not image_path or not image_path.exists():
+            return None
+        try:
+            self.cards_dir.mkdir(parents=True, exist_ok=True)
+            dest = self.cards_dir / f"{slug}.png"
+            shutil.copy(image_path, dest)
+            return f"/cards/{slug}.png"
+        except OSError as exc:
+            log.warning("Kart görseli kopyalanamadı (%s); rapor görselsiz yayınlanacak.", exc)
+            return None

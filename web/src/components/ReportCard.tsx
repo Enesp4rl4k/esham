@@ -1,51 +1,91 @@
 import Link from "next/link";
 import {
   type Report,
-  accentClasses,
-  categoryLabel,
+  type CategorySlug,
+  CATEGORIES,
   formatDate,
   readingMinutes,
-  CATEGORIES,
   getReportImageUrl,
-} from "@/lib/content";
+} from "@/lib/content-utils";
+
+const catColor: Record<CategorySlug, string> = {
+  bist:   "text-sky-400",
+  global: "text-violet-400",
+  ipo:    "text-emerald-400",
+  viop:   "text-orange-400",
+  gundem: "text-amber-400",
+};
+
+const catBorder: Record<CategorySlug, string> = {
+  bist:   "border-sky-400/20",
+  global: "border-violet-400/20",
+  ipo:    "border-emerald-400/20",
+  viop:   "border-orange-400/20",
+  gundem: "border-amber-400/20",
+};
 
 /**
- * Bir raporun liste/grid kartı. Ana sayfa, kategori sayfaları ve arşivde kullanılır.
+ * Editorial rapor kartı — sade, içeriğe odaklı.
+ * Görsel önemli ama metin hiyerarşisi onu yönetir.
  */
 export function ReportCard({ report }: { report: Report }) {
-  const accent = accentClasses(CATEGORIES[report.category].accent);
-  const imageUrl = getReportImageUrl(report, 800, 400);
+  const imageUrl = getReportImageUrl(report);
+  const color = catColor[report.category];
+  const border = catBorder[report.category];
 
   return (
     <Link href={`/rapor/${report.slug}`} className="group block">
+      {/* Görsel */}
       <div
-        className={`aspect-[2/1] rounded-2xl bg-zinc-900 mb-6 overflow-hidden border border-zinc-800 relative`}
+        className={`aspect-[2/1] rounded-lg overflow-hidden mb-4 border ${border} relative`}
+        style={{ background: "var(--surface)" }}
       >
-        {/* Görsel Arka Plan */}
-        <img 
-          src={imageUrl} 
-          alt={report.title} 
-          className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay transition-all duration-500 group-hover:opacity-100 group-hover:scale-105" 
-          loading="lazy" 
+        <img
+          src={imageUrl}
+          alt={report.title}
+          className="w-full h-full object-cover opacity-75 group-hover:opacity-95 transition-all duration-500 group-hover:scale-[1.02]"
         />
-        <div className={`absolute inset-0 bg-gradient-to-tr ${accent.gradient}`} />
-        <div className="absolute bottom-4 left-4">
+        {/* Alt solda kategori etiketi */}
+        <div className="absolute bottom-3 left-3">
           <span
-            className={`px-3 py-1 bg-black/60 backdrop-blur-md rounded-lg text-xs font-medium border ${accent.badge}`}
+            className={`text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded ${color}`}
+            style={{ background: "rgba(10,10,10,0.75)", backdropFilter: "blur(4px)" }}
           >
-            {categoryLabel(report.category)}
+            {CATEGORIES[report.category].label}
           </span>
         </div>
       </div>
-      <p className="text-sm text-zinc-500 mb-2">
-        {formatDate(report.publishedAt)} • {readingMinutes(report.body)} dk okuma
-      </p>
+
+      {/* Meta */}
+      <div className="flex items-center gap-2 mb-2">
+        <time
+          dateTime={report.publishedAt}
+          className="text-xs"
+          style={{ color: "var(--text-muted)" }}
+        >
+          {formatDate(report.publishedAt)}
+        </time>
+        <span style={{ color: "var(--border-2)" }}>·</span>
+        <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+          {readingMinutes(report.body)} dk
+        </span>
+      </div>
+
+      {/* Başlık */}
       <h3
-        className={`text-2xl font-bold font-outfit mb-3 transition-colors ${accent.groupHoverText}`}
+        className="text-base font-display font-semibold leading-snug mb-2 group-hover:opacity-70 transition-opacity"
+        style={{ letterSpacing: "-0.01em" }}
       >
         {report.title}
       </h3>
-      <p className="text-zinc-400 line-clamp-2">{report.summary}</p>
+
+      {/* Özet */}
+      <p
+        className="text-sm leading-relaxed line-clamp-2"
+        style={{ color: "var(--text-secondary)" }}
+      >
+        {report.summary}
+      </p>
     </Link>
   );
 }

@@ -5,53 +5,81 @@ bile tarama hepsini kuyruğa atar; yayıncı her `publish_interval`'de kuyruktan
 haber servis eder. Böylece haberler aralıklı (drip) paylaşılır — spam ve rate-limit
 önlenir. Öncelik: insider > ipo > diğer.
 
-Maliyet notu: tweet metni yayın anında üretilir; kuyrukta bekleyip düşürülen haberler
-için AI çağrısı yapılmaz.
+Haber kaynakları:
+- KAP akışı        : şirket bildirimleri (insider, IPO, finansal sonuçlar vb.)
+- Makro dedektör   : VIX sıçraması, ABD faiz hareketi, altın rallisi, sektör rotasyonu
+  gibi eşiği aşan küresel/sektör gelişmeleri otomatik haber olarak kuyruğa girer.
+
+Maliyet notu: tweet ve analiz metni yayın anında üretilir; kuyrukta bekleyip
+düşürülen haberler için AI çağrısı yapılmaz.
 """
 from __future__ import annotations
 
-import re
 import time
+from pathlib import Path
+from typing import Union
 
-from .ai import TweetComposer
 from .analysis import analyze_ipo_document
 from .config import get_logger, settings
 from .news_queue import NewsQueue
-from .pipeline import fetch_report_image
+from .pipeline import run_news_report
+from .publishing.cards import CardGenerator, CardSpec
 from .publishing.social import SocialPublisher
+from .publishing.ticker_data import update_ticker_data
 from .sources import Disclosure
 from .sources.kap import KapSource
+from .sources.kap_filter import is_significant, score
+from .sources.news_detector import MarketEvent, NewsDetector
+from .state import get_state
+from .turkish import tr_fold
 
 log = get_logger(__name__)
 
+_cards = CardGenerator()
+
+# KAP + makro olaylar aynı kuyrukta birleşir
+QueueItem = Union[Disclosure, MarketEvent]
+
+
+def _render_card(spec: CardSpec) -> Path | None:
+    try:
+        return _cards.render(spec)
+    except Exception as exc:  # kart üretimi asla yayını durdurmasın
+        log.warning("Kart görseli üretilemedi (%s); görselsiz devam ediliyor.", exc)
+        return None
+
+
+def _cleanup(path: Path | None) -> None:
+    if path and path.exists():
+        try:
+            path.unlink()
+        except OSError:
+            pass
+
 # Fiyat tespit / izahname bildirimlerini tam analize yönlendirmek için işaretler.
-_IPO_DOC_MARKERS = ("fiyat tespit", "izahname", "halka arz")
-# Şirket adından bildirim türü eklerini temizlemek için.
-_TITLE_NOISE = re.compile(
-    r"\s*(fiyat tespit raporu|izahname[si]*|halka arz.*|özel durum.*)\s*$",
-    re.IGNORECASE,
-)
+_IPO_DOC_MARKERS = ("fiyat tespit rapor", "onaylı izahname", "taslak izahname")
 
 
 def _classify(d: Disclosure) -> tuple[str, str]:
     """Bildirimden (kategori, emoji) çıkarır."""
     if d.is_insider:
         return "insider", "🚨"
-    text = f"{d.disclosure_type} {d.title}".lower()
-    if any(m in text for m in _IPO_DOC_MARKERS):
+    text = tr_fold(f"{d.disclosure_type} {d.title}")
+    if any(tr_fold(m) in text for m in _IPO_DOC_MARKERS):
         return "ipo", "📄"
     return "bist", "📰"
 
 
 def _is_analyzable_ipo(d: Disclosure) -> bool:
     """Fiyat tespit/izahname gibi belge içeren bir halka arz bildirimi mi?"""
-    text = f"{d.disclosure_type} {d.title}".lower()
-    return any(m in text for m in _IPO_DOC_MARKERS)
+    text = tr_fold(f"{d.disclosure_type} {d.title}")
+    return any(tr_fold(m) in text for m in _IPO_DOC_MARKERS)
 
 
 def _company_and_ticker(d: Disclosure) -> tuple[str, str]:
-    company = _TITLE_NOISE.sub("", d.title).strip() or d.company
-    return company, d.company
+    """KAP'ın yapılandırılmış alanlarından (kapTitle/stockCodes) doğrudan alır —
+    artık başlık metnini regex'le ayrıştırmaya gerek yok."""
+    return d.company, d.ticker or d.company
 
 
 class NewsStream:
@@ -63,87 +91,169 @@ class NewsStream:
         analyze_ipo: bool = True,
     ) -> None:
         self.kap = KapSource()
-        self.composer = TweetComposer()
         self.social = SocialPublisher()
+        self.detector = NewsDetector()   # makro + sektör olay dedektörü
         # Fiyat tespit/izahname bildirimlerini tam analize yönlendir.
         self.analyze_ipo = analyze_ipo
 
         self.scan_interval = scan_interval or settings.news_scan_interval
         self.publish_interval = publish_interval or settings.news_publish_interval
-        self.queue: NewsQueue[Disclosure] = NewsQueue(queue_max or settings.news_queue_max)
+        self.queue: NewsQueue[QueueItem] = NewsQueue(queue_max or settings.news_queue_max)
 
-        self._seen: set[str] = set()  # taranmış/kuyruğa alınmış anahtarlar
+        # Süreç yeniden başlasa da (Render restart/deploy) aynı bildirim tekrar
+        # tweetlenmesin diye diskte kalıcı — sadece bellekte olsaydı her restart
+        # sıfırdan başlar ve yakın zamanda paylaşılmış haberler tekrar kuyruğa girerdi.
+        self._state = get_state()
+        self._seen: set[str] = self._state.load_seen()
 
     def _key(self, d: Disclosure) -> str:
         return f"{d.company}:{d.title}:{d.date}"
 
-    # ---- tarama ----------------------------------------------------------------
+    # ---- KAP taraması ----------------------------------------------------------
 
     def scan(self) -> int:
-        """Yeni bildirimleri kuyruğa atar; kaç yeni haber eklendiğini döner."""
+        """Yeni KAP bildirimlerini kuyruğa atar; kaç yeni haber eklendiğini döner.
+
+        Önem filtresi: insider/IPO her zaman kuyruğa girer (ayrı, öncelikli işlem
+        görürler). Genel KAP akışındaki rutin/idari bildirimler (genel kurul
+        çağrısı, imza sirküleri, yatırımcı sunumu vb.) filtrelenir — aksi halde
+        her önemsiz KAP bildirimi paylaşılır ve akış gürültüye/veri yığılmasına
+        döner.
+        """
         added = 0
+        skipped = 0
         for d in self.kap.latest_disclosures():
             key = self._key(d)
             if key in self._seen:
                 continue
             self._seen.add(key)
             category, _ = _classify(d)
+
+            if category not in ("insider", "ipo") and not is_significant(
+                d, settings.kap_min_importance
+            ):
+                skipped += 1
+                log.debug(
+                    "Filtrelendi (skor=%d, eşik=%d): %s",
+                    score(d), settings.kap_min_importance, d.title,
+                )
+                continue
+
             self.queue.enqueue(d, category)
             added += 1
+        if added or skipped:
+            self._state.save_seen(self._seen)  # süreç yeniden başlasa da kalıcı
+            log.info(
+                "KAP tarama: %d yeni haber kuyruğa alındı, %d önemsiz bildirim filtrelendi "
+                "(bekleyen: %d).",
+                added, skipped, len(self.queue),
+            )
+        return added
+
+    # ---- makro/sektör taraması -------------------------------------------------
+
+    def macro_scan(self) -> int:
+        """Makro ve sektör fiyat hareketlerini tarar; tetikleyici olayları kuyruğa atar.
+
+        NewsDetector eşiği aşan hareketleri döner (VIX sıçraması, faiz hareketi,
+        altın rallisi, sektör rotasyonu vb.). Her olay daha önce görülmediyse
+        kuyruğa "global" önceliğiyle eklenir.
+        """
+        added = 0
+        try:
+            events = self.detector.scan()
+        except Exception as exc:
+            log.warning("Makro tarama hatası: %s", exc)
+            return 0
+
+        for event in events:
+            self.queue.enqueue(event, event.category)
+            added += 1
+            log.info("Makro olay kuyruğa alındı: %s", event.headline[:80])
+
         if added:
-            log.info("Tarama: %d yeni haber kuyruğa alındı (bekleyen: %d).", added, len(self.queue))
+            log.info("Makro tarama: %d yeni olay kuyruğa alındı (bekleyen: %d).", added, len(self.queue))
         return added
 
     # ---- yayın -----------------------------------------------------------------
 
     def publish_next(self) -> bool:
-        """Kuyruktan tek haber servis eder; yayınlandıysa True."""
+        """Kuyruktan tek öğe servis eder; yayınlandıysa True.
+
+        Öğe türüne göre yönlendirme:
+        - MarketEvent  → run_news_report(event=...) — makro/sektör AI analizi
+        - Disclosure   → IPO ise tam analiz, değilse run_news_report(disclosure=...)
+        """
         item = self.queue.dequeue()
         if item is None:
             return False
-        category, emoji = _classify(item)
 
-        # Fiyat tespit/izahname → tam analiz üret, tweet analiz linkine bağlansın.
+        # ---- makro/sektör olayı ------------------------------------------------
+        if isinstance(item, MarketEvent):
+            try:
+                run_news_report(event=item, publish_social=True)
+            except Exception as exc:
+                log.error("Makro olay yayın hatası (%s): %s", item.label, exc)
+            log.info("Makro olay yayınlandı (kalan kuyruk: %d).", len(self.queue))
+            return True
+
+        # ---- KAP bildirimi (Disclosure) ----------------------------------------
+        category, _ = _classify(item)
+
+        # Fiyat tespit/izahname → halka arz tam analiz (mevcut IPO pipeline'ı)
         if self.analyze_ipo and _is_analyzable_ipo(item):
-            tweet = self._handle_ipo(item)
-        else:
-            news = item.raw_text or f"{item.title} ({item.disclosure_type})"
-            tweet = self.composer.compose(news, category=category, emoji=emoji)
+            try:
+                img_path = self._handle_ipo(item)
+            except Exception as exc:
+                log.error("IPO analiz hatası: %s", exc)
+            log.info("IPO bildirimi yayınlandı (kalan kuyruk: %d).", len(self.queue))
+            return True
 
-        # Habere uygun görsel üret
-        slug = f"haber-{item.company}-{item.date}"
-        img_path = fetch_report_image(item.title, slug, category=category)
-        self.social.broadcast(tweet, image_path=img_path)
-        if img_path and img_path.exists():
-            img_path.unlink()
-        log.info("Yayınlandı (kalan kuyruk: %d).", len(self.queue))
+        # Diğer KAP bildirimleri → AI analiz raporu + tweet
+        try:
+            run_news_report(disclosure=item, publish_social=True)
+        except Exception as exc:
+            log.error("KAP bildirim yayın hatası (%s): %s", item.title[:60], exc)
+
+        log.info("KAP bildirimi yayınlandı (kalan kuyruk: %d).", len(self.queue))
         return True
 
-    def _handle_ipo(self, item: Disclosure) -> str:
-        """Halka arz belgesini indir + analiz et + yayınla; analiz linkli tweet döner."""
+    def _handle_ipo(self, item: Disclosure) -> Path | None:
+        """Halka arz belgesini indir + analiz et + yayınla."""
         company, ticker = _company_and_ticker(item)
-        source = item.pdf_link or item.raw_text or item.title
+        source = (
+            self.kap.resolve_attachment_url(item.disclosure_index)
+            or item.pdf_link
+            or item.raw_text
+            or item.title
+        )
         try:
             result = analyze_ipo_document(
                 source, company=company, ticker=ticker, publish=True, make_pdf=True
             )
         except Exception as exc:
-            log.error("Halka arz otomatik analizi başarısız (%s); kısa tweet'e düşülüyor.", exc)
-            return self.composer.compose(
-                item.raw_text or item.title, category="ipo", emoji="📄"
-            )
+            log.error("Halka arz otomatik analizi başarısız (%s); haber raporuna düşülüyor.", exc)
+            run_news_report(disclosure=item, publish_social=True)
+            return None
 
         if result.slug:
             link = f"{settings.site_url}/rapor/{result.slug}"
-            return f"📄 HALKA ARZ ANALİZİ: {company} ({ticker})\n{link}\n#HalkaArz #BIST"
-        # Yayın yapılmadıysa yine de bir şey paylaş.
-        return self.composer.compose(item.raw_text or item.title, category="ipo", emoji="📄")
+            self.social.broadcast(
+                f"📄 HALKA ARZ ANALİZİ: {company} ({ticker})\n{link}\n#HalkaArz #BIST",
+                image_path=result.image_path,
+            )
+        return result.image_path
 
     # ---- çalıştırma modları ----------------------------------------------------
 
     def check_once(self) -> int:
-        """Tek tur: tara ve kuyruktakilerin TAMAMINI hemen yayınla (manuel test)."""
+        """Tek tur: KAP + makro tara, ticker JSON güncelle, tümünü yayınla."""
         self.scan()
+        self.macro_scan()
+        try:
+            update_ticker_data()
+        except Exception as exc:
+            log.warning("Ticker JSON güncellenemedi: %s", exc)
         published = 0
         while self.publish_next():
             published += 1
@@ -162,8 +272,16 @@ class NewsStream:
             if now - last_scan >= self.scan_interval:
                 try:
                     self.scan()
-                except Exception as exc:  # tarama hatası döngüyü durdurmasın
-                    log.error("Tarama hatası: %s", exc)
+                except Exception as exc:
+                    log.error("KAP tarama hatası: %s", exc)
+                try:
+                    self.macro_scan()
+                except Exception as exc:
+                    log.error("Makro tarama hatası: %s", exc)
+                try:
+                    update_ticker_data()
+                except Exception as exc:
+                    log.warning("Ticker JSON güncellenemedi: %s", exc)
                 last_scan = now
 
             try:

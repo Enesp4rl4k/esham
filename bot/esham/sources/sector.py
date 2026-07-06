@@ -11,6 +11,7 @@ from dataclasses import dataclass
 import requests
 
 from ..config import default_headers, get_logger, settings
+from ..http import retry_get
 from ..formatting import tr_number
 
 log = get_logger(__name__)
@@ -66,7 +67,7 @@ class SectorSource:
 
     def _fetch_change(self, code: str) -> float | None:
         try:
-            resp = requests.get(
+            resp = retry_get(
                 CHART_URL.format(symbol=code),
                 headers=self.headers,
                 timeout=settings.http_timeout,

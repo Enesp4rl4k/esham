@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from ..ai.ipo_analyzer import IpoAnalysis, IpoProspectusAnalyzer
 from ..ai.tweet_composer import TweetComposer
+from ..sources import Disclosure
+from ..sources.kap_filter import is_significant
 from . import fixtures
 from .checks import (
     check_has_fields,
@@ -117,5 +119,45 @@ def ipo_grounding_suite() -> SuiteResult:
     return run_suite("IPO analiz grounding & güvenlik", cases)
 
 
+_KAP_LABELED: list[tuple[str, str, str, bool]] = [
+    # (başlık, tip, ham_metin, önemli_mi_olmalı)
+    ("Olağan Genel Kurul Toplantısına Çağrı", "Genel Kurul", "Toplantı gündemi ekte.", False),
+    ("İmza Sirküleri Güncellemesi", "Özel Durum", "İmza sirküleri güncellendi.", False),
+    ("Yatırımcı Sunumu Yayınlandı", "Finansal Rapor", "Sunum ekte paylaşılmıştır.", False),
+    ("Bağımsız Denetim Sözleşmesi Yenilendi", "Özel Durum", "Sözleşme 1 yıl uzatıldı.", False),
+    ("Rutin Faaliyet Raporu Yayımlandı", "Faaliyet Raporu", "Faaliyet raporu yayımlandı.", False),
+    ("X Holding, Y A.Ş.'yi Devraldı", "Özel Durum", "Devralma tamamlandı, 200 Milyon TL.", True),
+    ("2025 Yılı Kâr Payı Dağıtım Kararı", "Kâr Payı Dağıtımı", "%20 nakit kâr payı dağıtımı.", True),
+    ("Sermaye Artırımı Kararı", "Sermaye Artırımı", "%50 bedelli sermaye artırımı.", True),
+    ("Önemli Sözleşme İmzalandı", "Özel Durum", "500 Milyon TL'lik sözleşme imzalandı.", True),
+    ("Bir Şirket Diğerini Satın Aldı", "Özel Durum", "Rakibini satın aldığını açıkladı.", True),
+]
+
+
+def kap_filter_suite() -> SuiteResult:
+    """KAP önem filtresinin rutin/idari bildirimleri ayırt ettiğini doğrular.
+
+    Bu filtre olmadan her KAP bildirimi paylaşılır ve akış gürültüye/veri
+    yığılmasına döner — regresyonu evals'te yakalamak kritik.
+    """
+    cases: list[EvalCase] = []
+    for i, (title, dtype, raw, expected) in enumerate(_KAP_LABELED, 1):
+        d = Disclosure(title=title, company="TEST", date="2026-07-05", disclosure_type=dtype, raw_text=raw)
+        cases.append(
+            EvalCase(
+                name=f"kap-{i} ({'önemli' if expected else 'rutin'}): {title[:30]}",
+                produce=lambda disc=d: disc,
+                checks=[
+                    check_predicate(
+                        "filtre doğru karar verdi",
+                        lambda o, exp=expected: is_significant(o) == exp,
+                        "önem sınıflandırması hatalı",
+                    )
+                ],
+            )
+        )
+    return run_suite("KAP önem filtresi (spam önleme)", cases)
+
+
 def all_suites() -> list[SuiteResult]:
-    return [tweet_suite(), safety_suite(), ipo_grounding_suite()]
+    return [tweet_suite(), safety_suite(), ipo_grounding_suite(), kap_filter_suite()]

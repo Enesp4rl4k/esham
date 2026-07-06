@@ -1,28 +1,58 @@
 """KAP (Kamuyu Aydınlatma Platformu) bildirim kaynağı.
 
-KAP'ın `memberDisclosureQuery` JSON uç noktasına POST atar. Yanıt bir bildirim
-dizisidir; alan adları zaman zaman değiştiği için savunmacı biçimde ayrıştırılır.
+KAP 2026 itibarıyla Next.js tabanlı bir SPA'ye geçmiş; eski `memberDisclosureQuery`
+uç noktası artık YOK (WAF tanınmayan API yollarını sessizce yutuyor — bu yüzden
+timeout alıyorduk). Gerçek uç noktalar, headless tarayıcı (Playwright) ile ağ
+trafiği izlenerek bulundu ve doğrulandı:
+
+    POST https://www.kap.org.tr/tr/api/disclosure/members/byCriteria   (bildirim listesi)
+    GET  https://www.kap.org.tr/tr/Bildirim/{disclosureIndex}          (detay sayfası)
+    GET  https://www.kap.org.tr/tr/api/BildirimPdf/{disclosureIndex}   (KAP'ın kendi
+         bildirim KAPAĞI — birkaç yüz karakter, gerçek belge İÇERİĞİ DEĞİL)
+    GET  https://www.kap.org.tr/tr/api/file/download/{hash}            (GERÇEK ek dosya
+         — izahname/fiyat tespit raporu gibi çok sayfalı belgeler burada; hash SADECE
+         detay sayfasının HTML'sinde bulunur, arama sonucunda yoktur)
+
 Bağlantı/timeout/parse hatasında örnek veriyle zarifçe geri dönülür (KAP bazı
-ağlardan yavaş/erişilemez olabilir).
+ağlardan yavaş/erişilemez olabilir; ayrıca site tekrar değişebilir).
 """
 from __future__ import annotations
 
-from datetime import date, timedelta
+import re
+from datetime import date, datetime, timedelta
 
 import requests
 
 from ..config import default_headers, get_logger, settings
+from ..http import retry_get, retry_post
+from ..turkish import tr_fold
 from . import Disclosure
 
 log = get_logger(__name__)
 
 BASE_URL = "https://www.kap.org.tr"
-QUERY_URL = f"{BASE_URL}/tr/api/memberDisclosureQuery"
+QUERY_URL = f"{BASE_URL}/tr/api/disclosure/members/byCriteria"
 # KAP yavaş yanıt verebildiği için genel timeout'tan daha cömert davranırız.
 KAP_TIMEOUT = max(settings.http_timeout, 30)
 
 IPO_KEYWORDS = ("halka arz", "fiyat tespit", "izahname")
 INSIDER_KEYWORDS = ("pay alım satım", "geri alım", "içsel bilgi")
+
+_PUBLISH_DATE_FMT = "%d.%m.%Y %H:%M:%S"  # KAP: "05.07.2026 18:21:10"
+_ATTACHMENT_RE = re.compile(r"/tr/api/file/download/[a-f0-9]+")
+
+# Bir aracı kurumun başka bir şirket adına yayınladığı bildirimlerin `summary`
+# alanı "Şirket Adı A.Ş. Fiyat Tespit Raporu" gibi kalıplarla biter — gerçek
+# şirket adını çıkarmak için bu ekleri kırparız.
+_DISCLOSURE_SUFFIX_RE = re.compile(
+    r"\s+(fiyat tespit raporu.*|fiyat tespit raporu\.?|i̇zahname.*|izahname.*|"
+    r"paylarının halka arzına.*|halka arzına iliş[kc]in.*)\s*$",
+    re.IGNORECASE,
+)
+
+
+def _strip_disclosure_suffix(text: str) -> str:
+    return _DISCLOSURE_SUFFIX_RE.sub("", text).strip()
 
 
 def _query_payload(days: int = 1) -> dict:
@@ -30,21 +60,40 @@ def _query_payload(days: int = 1) -> dict:
     return {
         "fromDate": (today - timedelta(days=days)).isoformat(),
         "toDate": today.isoformat(),
-        "year": "", "prd": "", "term": "", "ruleType": "", "bdkReview": "",
-        "disclosureClass": "", "index": "", "market": "", "isLate": "",
-        "subjectList": [], "mkkMemberOidList": [], "inactiveMkkMemberOidList": [],
-        "bdkMemberOidList": [], "mainSector": "", "sector": "", "subSector": "",
-        "memberType": "IGS", "fromSrc": "N", "srcCategory": "", "discIndex": [],
+        "memberType": "IGS",
+        "mkkMemberOidList": [],
+        "inactiveMkkMemberOidList": [],
+        "disclosureClass": "",
+        "subjectList": [],
+        "isLate": "",
+        "mainSector": "",
+        "sector": "",
+        "subSector": "",
+        "marketOid": "",
+        "index": "",
+        "bdkReview": "",
+        "bdkMemberOidList": [],
+        "year": "",
+        "term": "",
+        "ruleType": "",
+        "period": "",
+        "fromSrc": False,
+        "srcCategory": "",
+        "disclosureIndexList": [],
     }
 
 
 class KapSource:
     def __init__(self) -> None:
-        self.headers = {**default_headers(), "Content-Type": "application/json"}
+        self.headers = {
+            **default_headers(),
+            "Content-Type": "application/json",
+            "Referer": f"{BASE_URL}/tr/bildirim-sorgu",
+        }
 
     def latest_disclosures(self, days: int = 1) -> list[Disclosure]:
         try:
-            resp = requests.post(
+            resp = retry_post(
                 QUERY_URL,
                 json=_query_payload(days),
                 headers=self.headers,
@@ -62,12 +111,58 @@ class KapSource:
             log.warning("KAP verisi alınamadı (%s); örnek veri kullanılıyor.", exc)
         return self._sample()
 
+    def resolve_attachment_url(self, disclosure_index: str) -> str | None:
+        """Detay sayfasını çekip GERÇEK ek dosya (izahname/fiyat tespit raporu vb.)
+        linkini bulur. `/tr/api/BildirimPdf/{index}` sadece KAP'ın kendi bildirim
+        kapağını verir (birkaç yüz karakter); asıl çok sayfalı belge ayrı bir ek
+        dosyadır ve hash'i sadece bu detay sayfasının HTML'sinde bulunur.
+        """
+        if not disclosure_index:
+            return None
+        try:
+            resp = retry_get(
+                f"{BASE_URL}/tr/Bildirim/{disclosure_index}",
+                headers=default_headers(),
+                timeout=KAP_TIMEOUT,
+            )
+            resp.raise_for_status()
+            match = _ATTACHMENT_RE.search(resp.text)
+            if match:
+                return f"{BASE_URL}{match.group(0)}"
+            log.info("Bildirim %s için ek dosya linki bulunamadı.", disclosure_index)
+        except (requests.RequestException, ValueError) as exc:
+            log.warning("KAP detay çekme hatası (%s): %s", disclosure_index, exc)
+            return None
+
+    def get_detail_text(self, disclosure_index: str) -> str:
+        """Bildirimin detay sayfasından tam metnini çeker.
+        (Örn: Kredi notu güncellemelerinde notun ne olduğu sadece bu metindedir)."""
+        if not disclosure_index:
+            return ""
+        try:
+            resp = retry_get(
+                f"{BASE_URL}/tr/Bildirim/{disclosure_index}",
+                headers=default_headers(),
+                timeout=KAP_TIMEOUT,
+            )
+            resp.raise_for_status()
+            
+            # HTML'den düz metni basitçe ayıklayalım
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(resp.text, 'html.parser')
+            text = soup.get_text(separator=" ", strip=True)
+            return text
+        except Exception as exc:
+            log.warning("Detay metni çekilemedi (index=%s): %s", disclosure_index, exc)
+            return ""
+
     def ipo_disclosures(self, days: int = 3) -> list[Disclosure]:
         return [
             d
             for d in self.latest_disclosures(days)
             if any(
-                k in d.disclosure_type.lower() or k in d.title.lower() for k in IPO_KEYWORDS
+                k in tr_fold(d.disclosure_type) or k in tr_fold(d.title)
+                for k in map(tr_fold, IPO_KEYWORDS)
             )
         ]
 
@@ -75,44 +170,68 @@ class KapSource:
 
     @staticmethod
     def _as_rows(data: object) -> list[dict]:
-        """Yanıt liste ya da {'disclosures'/'result': [...]} olabilir."""
+        """Yanıt liste ya da {'disclosures'/'result': [...]} olabilir (dayanıklılık)."""
         if isinstance(data, list):
             return [r for r in data if isinstance(r, dict)]
         if isinstance(data, dict):
-            for key in ("disclosures", "result", "data", "basic"):
+            for key in ("disclosures", "result", "data", "content"):
                 val = data.get(key)
                 if isinstance(val, list):
                     return [r for r in val if isinstance(r, dict)]
         return []
 
     def _to_disclosure(self, row: dict) -> Disclosure:
-        def first(*keys: str) -> str:
-            for k in keys:
-                v = row.get(k)
-                if v:
-                    return str(v).strip()
-            return ""
+        kap_title = str(row.get("kapTitle") or "").strip()
+        subject = str(row.get("subject") or "").strip()
+        summary = str(row.get("summary") or "").strip()
+        index = row.get("disclosureIndex")
+        stock_codes = str(row.get("stockCodes") or "").strip()
+        related_stocks = str(row.get("relatedStocks") or "").strip()
 
-        title = first("title", "kapTitle", "subject", "disclosureType")
-        company = first("stockCodes", "ticker", "companyName", "kapTitle")
-        dtype = first("disclosureCategory", "disclosureClass", "ruleTypeTerm", "type", "subject")
-        publish = first("publishDate", "date", "disclosureDate") or date.today().isoformat()
-        index = first("disclosureIndex", "basicNotificationId", "id")
-        summary = first("summary", "description")
+        content = summary or subject or "Bildirim"
 
-        low = f"{title} {dtype} {summary}".lower()
-        is_insider = any(k in low for k in INSIDER_KEYWORDS)
-        pdf_link = f"{BASE_URL}/tr/Bildirim/{index}" if index else ""
+        # `relatedStocks` doluysa bildirim BAŞKA bir şirket adına yayınlanmıştır
+        # (ör. bir aracı kurumun halka arz ettiği şirket için hazırladığı fiyat
+        # tespit raporu/izahname). Bu durumda `kapTitle` yayıncı aracı kurumdur,
+        # gerçek ihraççı DEĞİLDİR — ticker'ı relatedStocks'tan, şirket adını da
+        # içerikten (aracı kurum adı değil) almalıyız.
+        if related_stocks:
+            ticker = related_stocks.split(",")[0].strip()
+            company = _strip_disclosure_suffix(content) or kap_title
+        else:
+            ticker = stock_codes.split(",")[0].strip() if stock_codes else ""
+            company = kap_title
+
+        title = f"{company}: {content}" if company and company not in content else content
+
+        publish = self._parse_date(row.get("publishDate"))
+        attachment_count = row.get("attachmentCount") or 0
+        pdf_link = f"{BASE_URL}/tr/api/BildirimPdf/{index}" if index and attachment_count else ""
+
+        low = tr_fold(f"{subject} {summary}")
+        is_insider = any(tr_fold(k) in low for k in INSIDER_KEYWORDS)
 
         return Disclosure(
             title=title,
-            company=company,
-            date=publish[:10],
-            disclosure_type=dtype or "Özel Durum Açıklaması",
+            company=company or ticker or "Bilinmiyor",
+            date=publish,
+            disclosure_type=subject or "Özel Durum Açıklaması",
             pdf_link=pdf_link,
             is_insider=is_insider,
-            raw_text=summary or title,
+            raw_text=content,
+            ticker=ticker,
+            disclosure_index=str(index) if index else "",
         )
+
+    @staticmethod
+    def _parse_date(value: object) -> str:
+        """KAP tarihi 'DD.MM.YYYY HH:MM:SS' -> 'YYYY-MM-DD'."""
+        if isinstance(value, str) and value.strip():
+            try:
+                return datetime.strptime(value.strip(), _PUBLISH_DATE_FMT).date().isoformat()
+            except ValueError:
+                pass
+        return date.today().isoformat()
 
     # ---- fallback --------------------------------------------------------------
 

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="500" viewBox="0 0 1500 500">
+  <!-- Deep Midnight Blue Background -->
+  <rect width="1500" height="500" fill="#090e1a"/>
+  
+  <!-- Centered clean typography -->
+  <g transform="translate(750, 240)">
+    <!-- Bold brand mark with ice blue terminal dot -->
+    <text text-anchor="middle" font-family="'Outfit', 'Inter', 'Segoe UI', -apple-system, sans-serif" font-weight="800" font-size="120" fill="#ffffff" letter-spacing="-4">
+      esham<tspan fill="#38bdf8">.</tspan>
+    </text>
+    
+    <!-- Clean, minimalist subtext -->
+    <text y="70" text-anchor="middle" font-family="'Inter', 'Segoe UI', -apple-system, sans-serif" font-weight="500" font-size="18" fill="#64748b" letter-spacing="8">
+      YAPAY ZEKA DESTEKLİ PİYASA ANALİZLERİ
+    </text>
+  </g>
+</svg>

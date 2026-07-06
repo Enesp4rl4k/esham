@@ -10,6 +10,7 @@ import requests
 
 from ..config import get_logger, settings
 from ..guardrails import allow, validate_tweet
+from ..state import get_state
 
 log = get_logger(__name__)
 
@@ -17,12 +18,27 @@ log = get_logger(__name__)
 from pathlib import Path
 
 class SocialPublisher:
-    def post_tweet(self, message: str, image_path: Path | None = None) -> bool:
+    @staticmethod
+    def _twitter_message(message: str) -> str:
+        """X API v2 link fiyatlandırma sürşarjından kaçınmak için tam URL'leri
+        kısa path'e dönüştürür.
+
+        Örn: 'https://esham.com.tr/rapor/abc-123' → '/rapor/abc-123'
+
+        Neden: X Basic/Free API'de URL içeren tweetler ek ücrete tabidir. Ancak
+        domain olmayan /rapor/slug ifadesi "link" sayılmaz — kullanıcı karta veya
+        profile bakarak siteye ulaşabilir. Telegram'a her zaman tam URL gider.
+        """
         import re
-        # X API v2 link fiyatlandırma sürşarjından kaçınmak için linkleri kaldırıyoruz.
-        cleaned_message = re.sub(r"https?://[^\s]+", "", message).strip()
+        # https://esham.com.tr/rapor/abc → /rapor/abc
+        cleaned = re.sub(r"https?://[^\s/]+(/[^\s]*)", r"\1", message)
+        # Bare domain (link değil, site adı) olduğu gibi kalsın: esham.com.tr
         # Çift satır boşluklarını temizle
-        cleaned_message = re.sub(r"\n\s*\n", "\n", cleaned_message)
+        cleaned = re.sub(r"\n\s*\n", "\n", cleaned).strip()
+        return cleaned
+
+    def post_tweet(self, message: str, image_path: Path | None = None) -> bool:
+        cleaned_message = self._twitter_message(message)
 
         if not settings.twitter_api_key:
             log.info("[DRY-RUN][Twitter] %s (Image: %s)", cleaned_message, image_path)
@@ -94,8 +110,26 @@ class SocialPublisher:
             return False
 
     def broadcast(self, message: str, image_path: Path | None = None) -> None:
+        # Acil durdurma: ESHAM_PAUSED=true ise hiçbir kanala paylaşım yapılmaz.
+        if settings.paused:
+            log.info("[PAUSED] Paylaşım atlandı: %s", message[:60])
+            return
         # Guardrail: kurallara aykırı metni hiçbir kanala gönderme.
         if not allow("sosyal paylaşım", validate_tweet(message)):
             return
-        self.post_tweet(message, image_path)
+
+        # Günlük paylaşım tavanı — bir hata/döngü API kotasını sessizce tüketmesin
+        # diye güvenlik ağı. Sadece GERÇEK canlı tweet'leri sayar (dry-run saymaz).
+        state = get_state()
+        if state.get_daily_post_count() >= settings.max_posts_per_day:
+            log.warning(
+                "Günlük paylaşım tavanına ulaşıldı (%d); bu paylaşım atlandı "
+                "(API kotası korunuyor).",
+                settings.max_posts_per_day,
+            )
+            return
+
+        tweeted = self.post_tweet(message, image_path)
         self.post_telegram(message, image_path)
+        if tweeted:
+            state.increment_daily_post_count()

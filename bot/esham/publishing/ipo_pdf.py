@@ -6,11 +6,20 @@ değilse HTML çıktısı diske yazılır ve uyarı loglanır.
 """
 from __future__ import annotations
 
+import html as html_escape_module
 from pathlib import Path
 
 from ..config import get_logger, settings
 
 log = get_logger(__name__)
+
+
+def _esc(value) -> str:
+    """HTML özel karakterlerini kaçışlar (&, <, > vb.) — AI çıktısı şirket adında
+    '&' gibi karakterler içerebilir; kaçışlanmazsa üretilen HTML bozulabilir."""
+    if value in (None, ""):
+        return "-"
+    return html_escape_module.escape(str(value))
 
 
 class IpoPdfGenerator:
@@ -20,18 +29,18 @@ class IpoPdfGenerator:
 
     @staticmethod
     def _render_field(value) -> str:
-        """Liste -> <ul>, sözlük -> tablo, diğer -> düz metin."""
+        """Liste -> <ul>, sözlük -> tablo, diğer -> düz metin. Tüm değerler kaçışlanır."""
         if isinstance(value, list):
             if not value:
                 return "<p>-</p>"
-            items = "".join(f"<li>{v}</li>" for v in value)
+            items = "".join(f"<li>{_esc(v)}</li>" for v in value)
             return f"<ul>{items}</ul>"
         if isinstance(value, dict):
             if not value:
                 return "<p>-</p>"
-            rows = "".join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in value.items())
+            rows = "".join(f"<tr><td>{_esc(k)}</td><td>{_esc(v)}</td></tr>" for k, v in value.items())
             return f"<table class='ratios'>{rows}</table>"
-        return f"<p>{value if value not in (None, '') else '-'}</p>"
+        return f"<p>{_esc(value)}</p>"
 
     def build_html(self, data: dict) -> str:
         r = self._render_field
@@ -58,21 +67,21 @@ class IpoPdfGenerator:
 </head>
 <body>
   <div class="header">
-    <div class="title">{data.get('company_name', 'Halka Arz Analizi')}</div>
-    <div>Borsa Kodu: {data.get('ticker', 'UNKNOWN')}</div>
+    <div class="title">{_esc(data.get('company_name', 'Halka Arz Analizi'))}</div>
+    <div>Borsa Kodu: {_esc(data.get('ticker', 'UNKNOWN'))}</div>
   </div>
   <div class="content">
     <div class="grid">
-      <div class="box"><h3>Halka Arz Fiyatı & İskonto</h3>
-        <p>Fiyat: {data.get('price', '-')} TL</p>
-        <p>İskonto Oranı: {data.get('discount', '-')}</p>
-        <p>Büyüklük: {data.get('offer_size', '-')}</p></div>
+      <div class="box"><h3>Halka Arz Fiyatı &amp; İskonto</h3>
+        <p>Fiyat: {_esc(data.get('price'))}</p>
+        <p>İskonto Oranı: {_esc(data.get('discount'))}</p>
+        <p>Büyüklük: {_esc(data.get('offer_size'))}</p></div>
       <div class="box"><h3>Değerleme Çarpanları</h3>{r(data.get('valuation'))}</div>
       <div class="box"><h3>Fonun Kullanım Yeri</h3>{r(data.get('fund_usage', data.get('funds_usage')))}</div>
       <div class="box"><h3>Taahhütler</h3>{r(data.get('commitments'))}</div>
       <div class="box strengths"><h3>✅ Olumlu Noktalar</h3>{r(data.get('strengths'))}</div>
       <div class="box risks"><h3>🚨 Riskler</h3>{r(data.get('risks'))}</div>
-      <div class="box full"><h3>Değerlendirme</h3>{r(data.get('verdict', data.get('financials')))}</div>
+      <div class="box full"><h3>Değerlendirme</h3>{_esc(data.get('verdict', data.get('financials')))}</div>
     </div>
     <hr />
     <p class="disclaimer">Bu rapor yapay zeka tarafından KAP belgeleri analiz edilerek

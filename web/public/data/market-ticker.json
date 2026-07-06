@@ -1,0 +1,47 @@
+{
+  "updatedAt": "2026-07-07T00:24:03+03:00",
+  "tickers": [
+    {
+      "label": "XU100",
+      "value": "14.424,54",
+      "change": "+0,05%",
+      "up": true
+    },
+    {
+      "label": "ABD 10Y",
+      "value": "4,48%",
+      "change": "-0,13%",
+      "up": false
+    },
+    {
+      "label": "EUR/USD",
+      "value": "1,14",
+      "change": "+0,05%",
+      "up": true
+    },
+    {
+      "label": "USD/TRY",
+      "value": "₺46,82",
+      "change": "+0,14%",
+      "up": true
+    },
+    {
+      "label": "ALTIN",
+      "value": "$4.187",
+      "change": "+1,49%",
+      "up": true
+    },
+    {
+      "label": "VIX",
+      "value": "15,57",
+      "change": "-1,52%",
+      "up": false
+    },
+    {
+      "label": "BRENT",
+      "value": "$72,13",
+      "change": "+0,46%",
+      "up": true
+    }
+  ]
+}

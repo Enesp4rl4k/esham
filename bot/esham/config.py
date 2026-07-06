@@ -26,6 +26,23 @@ def _default_content_dir() -> Path:
     return PROJECT_ROOT / "web" / "content" / "reports"
 
 
+def _default_cards_dir() -> Path:
+    """Üretilen marka kartlarının (tweet + web hero/OG için) yazıldığı statik klasör."""
+    override = os.getenv("ESHAM_CARDS_DIR")
+    if override:
+        return Path(override)
+    return PROJECT_ROOT / "web" / "public" / "cards"
+
+
+def _default_state_file() -> Path:
+    """Süreç yeniden başlasa da kaybolmaması gereken küçük durum dosyası (seen-set,
+    margin-call önceki değer, günlük paylaşım sayacı, iş sağlığı)."""
+    override = os.getenv("ESHAM_STATE_FILE")
+    if override:
+        return Path(override)
+    return PROJECT_ROOT / "bot" / "state" / "esham_state.json"
+
+
 @dataclass(frozen=True)
 class Settings:
     gemini_api_key: str | None = field(default_factory=lambda: os.getenv("GEMINI_API_KEY"))
@@ -58,13 +75,39 @@ class Settings:
     )
 
     site_url: str = field(
-        default_factory=lambda: os.getenv("ESHAM_SITE_URL", "https://esham.com.tr")
+        default_factory=lambda: os.getenv("ESHAM_SITE_URL", "https://esham.pages.dev")
+    )
+    # Kart footer'ında ve wordmark'ta gösterilen domain (site_url'den türetilir,
+    # override için ESHAM_DISPLAY_DOMAIN kullanılır. Örn: "benimsite.com")
+    display_domain: str = field(
+        default_factory=lambda: os.getenv(
+            "ESHAM_DISPLAY_DOMAIN",
+            os.getenv("ESHAM_SITE_URL", "https://esham.com.tr")
+            .removeprefix("https://")
+            .removeprefix("http://")
+            .rstrip("/"),
+        )
+    )
+    # Kart wordmark'ında gösterilen marka adı (iki parça: accent renkli + beyaz)
+    # Örn: brand_name_accent="Pi", brand_name_rest="yasaBot"
+    brand_name_accent: str = field(
+        default_factory=lambda: os.getenv("ESHAM_BRAND_ACCENT", "Es")
+    )
+    brand_name_rest: str = field(
+        default_factory=lambda: os.getenv("ESHAM_BRAND_REST", "ham")
+    )
+    # Kart alt satırı tagline
+    brand_tagline: str = field(
+        default_factory=lambda: os.getenv(
+            "ESHAM_BRAND_TAGLINE", "YAPAY ZEKA DESTEKLİ PİYASA ANALİZİ"
+        )
     )
     # Takasbank VİOP agregat teminat verisi (opsiyonel; boşsa gerçekçi örnek kullanılır).
     takasbank_viop_url: str | None = field(
         default_factory=lambda: os.getenv("ESHAM_TAKASBANK_VIOP_URL")
     )
     content_dir: Path = field(default_factory=_default_content_dir)
+    cards_dir: Path = field(default_factory=_default_cards_dir)
     ipo_output_dir: Path = field(
         default_factory=lambda: PROJECT_ROOT / "bot" / "output" / "ipo_reports"
     )
@@ -84,6 +127,25 @@ class Settings:
     )
     news_queue_max: int = field(
         default_factory=lambda: int(os.getenv("ESHAM_NEWS_QUEUE_MAX", "200"))
+    )
+    # Genel KAP akışı için önem eşiği (insider/IPO bu filtreyi atlar, her zaman
+    # önemli sayılır). Yükseltmek daha az/daha seçici paylaşım demektir.
+    kap_min_importance: int = field(
+        default_factory=lambda: int(os.getenv("ESHAM_KAP_MIN_IMPORTANCE", "3"))
+    )
+
+    state_file: Path = field(default_factory=_default_state_file)
+
+    # Acil durdurma: true ise hiçbir sosyal paylaşım/rapor yayını yapılmaz (dry-run
+    # gibi davranır). Redeploy/restart ile değişir — anlık bir "panic switch" değil,
+    # ama tek bir ortam değişkeniyle tüm otomasyonu durdurmaya yeter.
+    paused: bool = field(
+        default_factory=lambda: os.getenv("ESHAM_PAUSED", "false").lower() in ("1", "true", "yes")
+    )
+    # Günlük sosyal paylaşım tavanı — bir hata/döngü API kotasını tüketmesin diye
+    # güvenlik ağı. Normal kullanımda asla dolmaz (varsayılan cömert).
+    max_posts_per_day: int = field(
+        default_factory=lambda: int(os.getenv("ESHAM_MAX_POSTS_PER_DAY", "60"))
     )
 
     @property

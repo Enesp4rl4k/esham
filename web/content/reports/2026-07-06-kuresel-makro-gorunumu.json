@@ -1,0 +1,23 @@
+{
+  "slug": "kuresel-makro-gorunumu-2026-07-06",
+  "title": "Küresel Makro Görünümü",
+  "category": "global",
+  "summary": "ABD 10Y ↑+0,09% | EUR/USD ↓-0,17% | ALTIN ↑+0,46%",
+  "publishedAt": "2026-07-06T14:58:35.746706Z",
+  "author": "Esham AI",
+  "aiGenerated": false,
+  "sources": [
+    "Yahoo Finance",
+    "Fed",
+    "ECB"
+  ],
+  "tags": [
+    "Makro",
+    "ABD",
+    "Faiz",
+    "Döviz",
+    "Altın"
+  ],
+  "body": "## Küresel Makro Görünümü\n\n| Enstrüman | Değer | Değişim |\n| --- | --- | --- |\n| ABD 10Y | 4,49% | +0,09% |\n| EUR/USD | 1,14 | -0,17% |\n| ALTIN | $4.145 | +0,46% |\n| VIX | 16,10 | +1,83% |\n| BRENT | $72,51 | +0,99% |\n\n## Özet\n\nVIX ↑ +1,83% öne çıktı; küresel risk iştahı artıyor.\n\n> Küresel makro göstergeler BIST'i doğrudan etkiler: ABD tahvil faizleri yükselirse\n> gelişmekte olan piyasalardan çıkış artar; VIX yükselirse risk iştahı düşer.\n",
+  "image": "/cards/kuresel-makro-gorunumu-2026-07-06.png"
+}

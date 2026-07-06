@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 
 export function MobileMenu({
@@ -10,6 +11,7 @@ export function MobileMenu({
   navItems: { href: string; label: string }[];
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <div className="md:hidden">
@@ -23,16 +25,26 @@ export function MobileMenu({
 
       {isOpen && (
         <div className="absolute top-16 left-0 w-full bg-zinc-950 border-b border-zinc-900 shadow-xl py-4 flex flex-col px-6 gap-4">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setIsOpen(false)}
-              className="text-lg font-medium text-zinc-300 hover:text-cyan-400 transition-colors py-2 border-b border-zinc-900/50"
-            >
-              {item.label}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const isActive =
+              item.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setIsOpen(false)}
+                className={`text-lg font-medium transition-colors py-2 border-b border-zinc-900/50 ${
+                  isActive
+                    ? "text-cyan-400"
+                    : "text-zinc-300 hover:text-cyan-400"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
