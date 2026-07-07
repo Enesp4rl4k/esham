@@ -2,6 +2,7 @@
 
 fpdf2 saf Python, sistem bağımlılığı yok — GitHub Actions ve Render'da sorunsuz çalışır.
 Esham marka kimliğiyle branded, A4 formatında sabah piyasa bülteni PDF'i üretir.
+Türkçe karakter desteği için projede mevcut Inter-Regular.ttf kullanılır.
 
 Çıktı: web/public/reports/{slug}.pdf (Cloudflare Pages'te statik dosya olarak sunulur)
 """
@@ -19,16 +20,24 @@ log = get_logger(__name__)
 # Çıktı klasörü — web/public/reports/ altında statik olarak sunulur
 _DEFAULT_OUT_DIR = Path(__file__).resolve().parents[4] / "web" / "public" / "reports"
 
+# Font dosyaları — cards.py ile aynı assets/fonts klasörü
+_FONTS_DIR = Path(__file__).resolve().parent.parent / "assets" / "fonts"
+_INTER_TTF   = _FONTS_DIR / "Inter-Regular.ttf"
+_OUTFIT_TTF  = _FONTS_DIR / "Outfit-Bold.ttf"
+
 # Renk paleti (Esham dark theme)
-_BLACK    = (6,   11,  24)   # #060B18 — arkaplan
-_NAVY     = (15,  23,  42)   # #0F172A — kart arkaplanı
-_SLATE800 = (30,  41,  59)   # #1E293B — kenarlık
-_SLATE600 = (71,  85,  105)  # #475569 — muted metin
-_SLATE400 = (148, 163, 184)  # #94A3B8 — ikincil metin
-_WHITE    = (241, 245, 249)  # #F1F5F9 — ana metin
-_BLUE     = (59,  130, 246)  # #3B82F6 — accent
-_GREEN    = (34,  197, 94)   # #22C55E — pozitif
-_RED      = (239, 68,  68)   # #EF4444 — negatif
+_BLACK    = (6,   11,  24)
+_NAVY     = (15,  23,  42)
+_SLATE800 = (30,  41,  59)
+_SLATE600 = (71,  85,  105)
+_SLATE400 = (148, 163, 184)
+_WHITE    = (241, 245, 249)
+_BLUE     = (59,  130, 246)
+_GREEN    = (34,  197, 94)
+_RED      = (239, 68,  68)
+_LIGHT_BG = (248, 250, 252)
+_DARK_TEXT= (15,  23,  42)
+_BODY_TEXT= (51,  65,  85)
 
 
 def _change_color(change: str) -> tuple[int, int, int]:
@@ -41,12 +50,69 @@ def _change_color(change: str) -> tuple[int, int, int]:
 
 def _strip_md(text: str) -> str:
     """Markdown işaretlerini düz metne çevirir."""
-    text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)   # bold
-    text = re.sub(r"\*(.+?)\*", r"\1", text)         # italic
-    text = re.sub(r"`(.+?)`", r"\1", text)            # code
-    text = re.sub(r"#+\s*", "", text)                 # başlıklar
-    text = re.sub(r"^\s*[-*]\s+", "• ", text, flags=re.MULTILINE)  # listeler
+    text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)
+    text = re.sub(r"\*(.+?)\*",     r"\1", text)
+    text = re.sub(r"`(.+?)`",        r"\1", text)
+    text = re.sub(r"#+\s*",          "",    text)
+    text = re.sub(r"^\s*[-*•]\s+",  "• ",  text, flags=re.MULTILINE)
     return text.strip()
+
+
+class _EshamPDF:
+    """fpdf2 FPDF wrapper — font kayıt ve temel çizim yardımcıları."""
+
+    def __init__(self) -> None:
+        from fpdf import FPDF  # type: ignore[import]
+
+        self.pdf = FPDF(orientation="P", unit="mm", format="A4")
+        self.pdf.set_auto_page_break(auto=True, margin=18)
+
+        # Unicode fontları kaydet
+        self._has_inter  = False
+        self._has_outfit = False
+
+        if _INTER_TTF.exists():
+            self.pdf.add_font("Inter",  "",  str(_INTER_TTF),  uni=True)
+            self.pdf.add_font("Inter",  "B", str(_INTER_TTF),  uni=True)
+            self._has_inter = True
+
+        if _OUTFIT_TTF.exists():
+            self.pdf.add_font("Outfit", "B", str(_OUTFIT_TTF), uni=True)
+            self._has_outfit = True
+
+    def _set_font(self, family: str, bold: bool, size: float) -> None:
+        style = "B" if bold else ""
+        if family == "outfit" and self._has_outfit:
+            self.pdf.set_font("Outfit", style, size)
+        elif self._has_inter:
+            self.pdf.set_font("Inter", style, size)
+        else:
+            self.pdf.set_font("Helvetica", style, size)
+
+    def _set_color(self, r: int, g: int, b: int) -> None:
+        self.pdf.set_text_color(r, g, b)
+
+    def _fill(self, r: int, g: int, b: int) -> None:
+        self.pdf.set_fill_color(r, g, b)
+
+    def _draw_color(self, r: int, g: int, b: int) -> None:
+        self.pdf.set_draw_color(r, g, b)
+
+    def text(self, x: float, y: float, txt: str) -> None:
+        self.pdf.set_xy(x, y)
+        self.pdf.cell(0, 5, txt)
+
+    def multiline(self, x: float, y: float, w: float, txt: str, line_h: float = 5.5) -> float:
+        """Çok satırlı metin yazar; son Y konumunu döner."""
+        self.pdf.set_xy(x, y)
+        self.pdf.multi_cell(w, line_h, txt)
+        return self.pdf.get_y()
+
+    def rect_fill(self, x: float, y: float, w: float, h: float) -> None:
+        self.pdf.rect(x, y, w, h, "F")
+
+    def line(self, x1: float, y1: float, x2: float, y2: float) -> None:
+        self.pdf.line(x1, y1, x2, y2)
 
 
 def generate_pdf(
@@ -58,7 +124,7 @@ def generate_pdf(
 ) -> Path | None:
     """fpdf2 ile branded PDF sabah bülteni üretir. Path döner, başarısızsa None."""
     try:
-        from fpdf import FPDF  # type: ignore[import]
+        from fpdf import FPDF  # noqa: F401 — sadece import testi
     except ImportError:
         log.warning("fpdf2 kurulu değil; PDF atlanıyor. pip install fpdf2")
         return None
@@ -72,52 +138,53 @@ def generate_pdf(
         date_str = today.strftime("%d.%m.%Y")
         time_str = today.strftime("%H:%M")
 
-        pdf = FPDF(orientation="P", unit="mm", format="A4")
-        pdf.set_auto_page_break(auto=True, margin=15)
-        pdf.add_page()
+        e = _EshamPDF()
+        p = e.pdf
+        p.add_page()
 
-        # ── Karanlık başlık bandı ──────────────────────────────────────────────
-        pdf.set_fill_color(*_BLACK)
-        pdf.rect(0, 0, 210, 40, "F")
+        # ── Başlık bandı (koyu arkaplan) ───────────────────────────────────────
+        e._fill(*_BLACK)
+        e.rect_fill(0, 0, 210, 42)
 
-        # Sol: Marka adı
-        pdf.set_xy(12, 8)
-        pdf.set_font("Helvetica", "B", 22)
-        pdf.set_text_color(*_BLUE)
-        pdf.cell(12, 10, "E")
-        pdf.set_text_color(*_WHITE)
-        pdf.set_font("Helvetica", "B", 22)
-        pdf.cell(0, 10, "sham", ln=False)
+        # Marka: "E" accent, "sham" beyaz
+        e._set_font("outfit", True, 24)
+        e._set_color(*_BLUE)
+        p.set_xy(12, 9)
+        p.cell(10, 10, "E")
+
+        e._set_color(*_WHITE)
+        p.set_xy(21, 9)
+        p.cell(0, 10, "sham")
 
         # Tagline
-        pdf.set_xy(12, 21)
-        pdf.set_font("Helvetica", "", 7)
-        pdf.set_text_color(*_SLATE600)
-        pdf.cell(0, 5, "YAPAY ZEKA DESTEKLI PIYASA ANALIZI")
+        e._set_font("inter", False, 7)
+        e._set_color(*_SLATE600)
+        p.set_xy(12, 22)
+        p.cell(0, 5, "YAPAY ZEKA DESTEKLI PIYASA ANALIZI")
 
-        # Sağ: Tarih ve rapor tipi
-        pdf.set_xy(130, 8)
-        pdf.set_font("Helvetica", "B", 8)
-        pdf.set_text_color(*_BLUE)
-        pdf.cell(68, 5, "SABAH BULTENI", align="R", ln=True)
+        # Sağ: Rapor tipi + tarih
+        e._set_font("inter", True, 8)
+        e._set_color(*_BLUE)
+        p.set_xy(130, 9)
+        p.cell(68, 5, "SABAH BULTENI", align="R")
 
-        pdf.set_xy(130, 15)
-        pdf.set_font("Helvetica", "B", 16)
-        pdf.set_text_color(*_WHITE)
-        pdf.cell(68, 8, date_str, align="R", ln=True)
+        e._set_font("outfit", True, 16)
+        e._set_color(*_WHITE)
+        p.set_xy(130, 16)
+        p.cell(68, 8, date_str, align="R")
 
-        pdf.set_xy(130, 25)
-        pdf.set_font("Helvetica", "", 8)
-        pdf.set_text_color(*_SLATE400)
-        pdf.cell(68, 5, f"{time_str} TR", align="R", ln=True)
+        e._set_font("inter", False, 8)
+        e._set_color(*_SLATE400)
+        p.set_xy(130, 26)
+        p.cell(68, 5, f"{time_str} TR", align="R")
 
         # Accent çizgi
-        pdf.set_fill_color(*_BLUE)
-        pdf.rect(0, 40, 210, 1.2, "F")
+        e._fill(*_BLUE)
+        e.rect_fill(0, 42, 210, 1.2)
 
-        # ── Piyasa özeti bandı ─────────────────────────────────────────────────
-        pdf.set_fill_color(*_NAVY)
-        pdf.rect(0, 41, 210, 20, "F")
+        # ── Piyasa ticker bandı ────────────────────────────────────────────────
+        e._fill(*_NAVY)
+        e.rect_fill(0, 43, 210, 22)
 
         bist = snapshot.bist
         pills: list[tuple[str, str, str]] = []
@@ -128,99 +195,93 @@ def generate_pdf(
                 pills.append((t.label, t.value_str, ""))
 
         pill_x = 12.0
-        pdf.set_xy(pill_x, 47)
         for label, value, change in pills[:5]:
-            # Etiket
-            pdf.set_font("Helvetica", "B", 7)
-            pdf.set_text_color(*_SLATE400)
-            pdf.set_xy(pill_x, 44)
-            pdf.cell(30, 4, label.upper()[:10])
-            # Değer
-            pdf.set_font("Helvetica", "B", 9)
-            pdf.set_text_color(*_WHITE)
-            pdf.set_xy(pill_x, 49)
-            pdf.cell(30, 5, str(value)[:10])
-            # Değişim
+            e._set_font("inter", True, 7)
+            e._set_color(*_SLATE400)
+            p.set_xy(pill_x, 46)
+            p.cell(35, 4, label.upper()[:10])
+
+            e._set_font("inter", True, 9)
+            e._set_color(*_WHITE)
+            p.set_xy(pill_x, 51)
+            p.cell(35, 5, str(value)[:12])
+
             if change:
-                pdf.set_font("Helvetica", "B", 7)
-                pdf.set_text_color(*_change_color(change))
-                pdf.set_xy(pill_x, 55)
-                pdf.cell(30, 4, change[:8])
+                e._set_font("inter", True, 7)
+                e._set_color(*_change_color(change))
+                p.set_xy(pill_x, 57)
+                p.cell(35, 4, change[:8])
+
             pill_x += 38
 
         # ── Rapor başlığı ──────────────────────────────────────────────────────
-        pdf.set_fill_color(*_WHITE[0] - 5, *(_WHITE[1] - 5,), *(_WHITE[2] - 5,))
-        pdf.set_xy(0, 62)
-        pdf.set_fill_color(248, 250, 252)  # #F8FAFC
-        pdf.rect(0, 62, 210, 18, "F")
+        e._fill(*_LIGHT_BG)
+        e.rect_fill(0, 65, 210, 20)
 
-        # Kenarlık çizgi
-        pdf.set_draw_color(*_SLATE800)
-        pdf.set_line_width(0.3)
-        pdf.line(0, 80, 210, 80)
+        e._draw_color(*_SLATE800)
+        p.set_line_width(0.3)
+        e.line(0, 85, 210, 85)
 
-        pdf.set_xy(12, 65)
-        pdf.set_font("Helvetica", "B", 14)
-        pdf.set_text_color(15, 23, 42)  # #0F172A
-        # Türkçe karakter güvenliği: latin-1 encode
-        safe_title = title.encode("latin-1", errors="replace").decode("latin-1")
-        pdf.cell(0, 10, safe_title)
+        e._set_font("outfit", True, 14)
+        e._set_color(*_DARK_TEXT)
+        p.set_xy(12, 68)
+        p.multi_cell(186, 8, title)
 
         # ── Ana içerik ─────────────────────────────────────────────────────────
-        pdf.set_xy(12, 85)
+        p.set_xy(12, 90)
 
-        # Markdown satır satır işle
         lines = body_md.split("\n")
         for raw_line in lines:
             stripped = raw_line.strip()
+
             if not stripped:
-                pdf.ln(3)
+                p.ln(3)
                 continue
 
             # ## Bölüm başlığı
             if stripped.startswith("## "):
                 heading = _strip_md(stripped[3:])
-                # Accent çizgi sol kenarda
-                pdf.set_fill_color(*_BLUE)
-                x, y = pdf.get_x(), pdf.get_y()
-                pdf.rect(12, y, 2.5, 7, "F")
-                pdf.set_xy(16, y)
-                pdf.set_font("Helvetica", "B", 10)
-                pdf.set_text_color(*_NAVY)
-                safe = heading.upper().encode("latin-1", errors="replace").decode("latin-1")
-                pdf.multi_cell(182, 7, safe)
-                pdf.ln(2)
+                y0 = p.get_y()
+                if y0 > 265:
+                    p.add_page()
+                    y0 = p.get_y()
+                e._fill(*_BLUE)
+                e.rect_fill(12, y0, 2.5, 7)
+                e._set_font("inter", True, 10)
+                e._set_color(*_DARK_TEXT)
+                p.set_xy(16, y0)
+                p.multi_cell(182, 7, heading.upper())
+                p.ln(2)
                 continue
 
             # ### Alt başlık
             if stripped.startswith("### "):
                 heading = _strip_md(stripped[4:])
-                pdf.set_font("Helvetica", "B", 9)
-                pdf.set_text_color(51, 65, 85)  # #334155
-                safe = heading.encode("latin-1", errors="replace").decode("latin-1")
-                pdf.set_x(12)
-                pdf.multi_cell(186, 6, safe)
-                pdf.ln(1)
+                e._set_font("inter", True, 9)
+                e._set_color(*_BODY_TEXT)
+                p.set_x(12)
+                p.multi_cell(186, 6, heading)
+                p.ln(1)
                 continue
 
             # Liste öğesi
             if stripped.startswith(("- ", "* ", "• ")):
                 item = _strip_md(stripped[2:])
-                pdf.set_font("Helvetica", "", 8.5)
-                pdf.set_text_color(51, 65, 85)
-                pdf.set_x(16)
-                safe = ("• " + item).encode("latin-1", errors="replace").decode("latin-1")
-                pdf.multi_cell(182, 5.5, safe)
+                e._set_font("inter", False, 8.5)
+                e._set_color(*_BODY_TEXT)
+                p.set_x(16)
+                p.multi_cell(182, 5.5, "• " + item)
                 continue
 
             # Normal paragraf
             text = _strip_md(stripped)
-            pdf.set_font("Helvetica", "", 8.5)
-            pdf.set_text_color(51, 65, 85)
-            pdf.set_x(12)
-            safe = text.encode("latin-1", errors="replace").decode("latin-1")
-            pdf.multi_cell(186, 5.5, safe)
-            pdf.ln(1)
+            if not text:
+                continue
+            e._set_font("inter", False, 8.5)
+            e._set_color(*_BODY_TEXT)
+            p.set_x(12)
+            p.multi_cell(186, 5.5, text)
+            p.ln(1)
 
         # ── Sektör tablosu (varsa) ─────────────────────────────────────────────
         if snapshot.sector:
@@ -231,69 +292,69 @@ def generate_pdf(
             )[:8]
 
             if sectors:
-                # Sayfada yer var mı kontrol
-                if pdf.get_y() > 230:
-                    pdf.add_page()
+                if p.get_y() > 240:
+                    p.add_page()
 
-                pdf.ln(4)
-                y0 = pdf.get_y()
-                pdf.set_fill_color(*_BLUE)
-                pdf.rect(12, y0, 2.5, 7, "F")
-                pdf.set_xy(16, y0)
-                pdf.set_font("Helvetica", "B", 10)
-                pdf.set_text_color(*_NAVY)
-                pdf.cell(0, 7, "SEKTOR GORUNUMU")
-                pdf.ln(10)
+                p.ln(4)
+                y0 = p.get_y()
+                e._fill(*_BLUE)
+                e.rect_fill(12, y0, 2.5, 7)
+                e._set_font("inter", True, 10)
+                e._set_color(*_DARK_TEXT)
+                p.set_xy(16, y0)
+                p.cell(0, 7, "SEKTOR GORUNUMU")
+                p.ln(10)
 
-                # Tablo başlık
-                pdf.set_fill_color(241, 245, 249)
-                pdf.rect(12, pdf.get_y(), 80, 6, "F")
-                pdf.set_font("Helvetica", "B", 7.5)
-                pdf.set_text_color(100, 116, 139)
-                pdf.set_x(12)
-                pdf.cell(60, 6, "SEKTOR")
-                pdf.cell(20, 6, "DEGISIM", align="R")
-                pdf.ln(6)
+                # Tablo başlığı
+                e._fill(241, 245, 249)
+                e.rect_fill(12, p.get_y(), 82, 6)
+                e._set_font("inter", True, 7.5)
+                e._set_color(100, 116, 139)
+                p.set_x(12)
+                p.cell(62, 6, "SEKTOR")
+                p.cell(20, 6, "DEGISIM", align="R")
+                p.ln(6)
 
                 for s in sectors:
                     pct = float(getattr(s, "change_pct", 0) or 0)
                     name = getattr(s, "name", "")
-                    # Kenarlık
-                    pdf.set_draw_color(241, 245, 249)
-                    pdf.set_line_width(0.2)
-                    y_row = pdf.get_y()
-                    pdf.line(12, y_row + 5.5, 92, y_row + 5.5)
 
-                    pdf.set_font("Helvetica", "", 8)
-                    pdf.set_text_color(51, 65, 85)
-                    pdf.set_x(12)
-                    safe_name = name.encode("latin-1", errors="replace").decode("latin-1")
-                    pdf.cell(60, 5.5, safe_name[:28])
+                    e._set_font("inter", False, 8)
+                    e._set_color(*_BODY_TEXT)
+                    p.set_x(12)
+                    p.cell(62, 5.5, name[:30])
 
-                    pdf.set_font("Helvetica", "B", 8)
-                    pdf.set_text_color(*(_GREEN if pct >= 0 else _RED))
-                    pdf.cell(20, 5.5, f"{pct:+.2f}%", align="R")
-                    pdf.ln(5.5)
+                    e._set_font("inter", True, 8)
+                    e._set_color(*(_GREEN if pct >= 0 else _RED))
+                    p.cell(20, 5.5, f"{pct:+.2f}%", align="R")
+                    p.ln(5.5)
+
+                    # ince ayırıcı
+                    e._draw_color(241, 245, 249)
+                    p.set_line_width(0.15)
+                    e.line(12, p.get_y(), 94, p.get_y())
 
         # ── Footer ────────────────────────────────────────────────────────────
-        # Her sayfanın altına — set_auto_page_break ile birlikte çalışır
-        footer_y = 282
-        pdf.set_fill_color(*_BLACK)
-        pdf.rect(0, footer_y, 210, 15, "F")
-        pdf.set_draw_color(*_SLATE800)
-        pdf.line(0, footer_y, 210, footer_y)
+        # Mevcut sayfanın altına mutlak konumda çiz
+        footer_y = 285
+        e._fill(*_BLACK)
+        e.rect_fill(0, footer_y, 210, 12)
 
-        pdf.set_xy(12, footer_y + 4)
-        pdf.set_font("Helvetica", "B", 7.5)
-        pdf.set_text_color(*_SLATE400)
-        pdf.cell(100, 5, "esham.pages.dev")
+        e._draw_color(*_SLATE800)
+        p.set_line_width(0.3)
+        e.line(0, footer_y, 210, footer_y)
 
-        pdf.set_xy(110, footer_y + 4)
-        pdf.set_font("Helvetica", "I", 7)
-        pdf.set_text_color(*_SLATE600)
-        pdf.cell(88, 5, "Bu rapor yatirim tavsiyesi degildir.", align="R")
+        e._set_font("inter", True, 7.5)
+        e._set_color(*_SLATE400)
+        p.set_xy(12, footer_y + 3.5)
+        p.cell(100, 5, "esham.pages.dev")
 
-        pdf.output(str(pdf_path))
+        e._set_font("inter", False, 7)
+        e._set_color(*_SLATE600)
+        p.set_xy(110, footer_y + 3.5)
+        p.cell(88, 5, "Bu rapor yatirim tavsiyesi degildir.", align="R")
+
+        p.output(str(pdf_path))
         log.info("PDF uretildi (fpdf2): %s", pdf_path)
         return pdf_path
 
