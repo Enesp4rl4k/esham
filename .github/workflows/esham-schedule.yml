@@ -40,6 +40,10 @@ on:
           - sector
           - weekly-summary
           - news-stream
+      dry_run:
+        description: "Twitter/Telegram'a GERÇEK gönderi YAPMA (test modu)"
+        type: boolean
+        default: false
 
 jobs:
   publish:
@@ -65,12 +69,13 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
-          TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
-          TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-          TWITTER_ACCESS_SECRET: ${{ secrets.TWITTER_ACCESS_SECRET }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # dry_run=true ise Twitter/Telegram keys boş geçilir → social.py dry-run moda girer
+          TWITTER_API_KEY: ${{ github.event.inputs.dry_run == 'true' && '' || secrets.TWITTER_API_KEY }}
+          TWITTER_API_SECRET: ${{ github.event.inputs.dry_run == 'true' && '' || secrets.TWITTER_API_SECRET }}
+          TWITTER_ACCESS_TOKEN: ${{ github.event.inputs.dry_run == 'true' && '' || secrets.TWITTER_ACCESS_TOKEN }}
+          TWITTER_ACCESS_SECRET: ${{ github.event.inputs.dry_run == 'true' && '' || secrets.TWITTER_ACCESS_SECRET }}
+          TELEGRAM_BOT_TOKEN: ${{ github.event.inputs.dry_run == 'true' && '' || secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ github.event.inputs.dry_run == 'true' && '' || secrets.TELEGRAM_CHAT_ID }}
           ESHAM_TAKASBANK_VIOP_URL: ${{ secrets.ESHAM_TAKASBANK_VIOP_URL }}
           ESHAM_SITE_URL: https://esham.pages.dev
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
