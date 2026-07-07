@@ -245,7 +245,10 @@ Bu bildirimi güncel küresel makro tablo (faiz oranları, kur hareketleri, risk
             + ("- ⚠️ İçsel bildirim\n" if is_insider else "")
             + "\n## Not\n\nBu bildirim otomatik olarak derlendi; AI analizi şu an kullanılamıyor."
         )
-        tweet = f"{emoji} {company} ({ticker}): {title[:200]}"
+        # Şablon tweet: company+ticker+emoji sabit ~30 karakter, title için kalan yer
+        _prefix = f"{emoji} {company} ({ticker}): "
+        _max_title = max(10, 270 - len(_prefix))
+        tweet = f"{_prefix}{title[:_max_title]}"
         return body, summary, tweet
 
     def generate_morning_report_and_thread(
