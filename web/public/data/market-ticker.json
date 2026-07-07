@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-07T20:25:21+03:00",
+  "updatedAt": "2026-07-07T20:29:11+03:00",
   "tickers": [
     {
       "label": "XU100",
@@ -9,14 +9,14 @@
     },
     {
       "label": "S&P 500",
-      "value": "7.515,99",
+      "value": "7.516,62",
       "change": "-0,28%",
       "up": false
     },
     {
       "label": "NASDAQ",
-      "value": "25.946,31",
-      "change": "-0,67%",
+      "value": "25.939,15",
+      "change": "-0,70%",
       "up": false
     },
     {
@@ -34,13 +34,13 @@
     {
       "label": "ABD 10Y",
       "value": "4,52%",
-      "change": "+0,98%",
+      "change": "+0,94%",
       "up": true
     },
     {
       "label": "EUR/USD",
       "value": "1,14",
-      "change": "-0,16%",
+      "change": "-0,17%",
       "up": false
     },
     {
@@ -52,19 +52,19 @@
     {
       "label": "ALTIN",
       "value": "$4.154",
-      "change": "-0,31%",
+      "change": "-0,34%",
       "up": false
     },
     {
       "label": "VIX",
-      "value": "15,68",
-      "change": "+0,71%",
+      "value": "15,67",
+      "change": "+0,64%",
       "up": true
     },
     {
       "label": "BRENT",
-      "value": "$74,10",
-      "change": "+2,93%",
+      "value": "$74,23",
+      "change": "+3,11%",
       "up": true
     },
     {
@@ -74,9 +74,15 @@
       "up": false
     },
     {
-      "label": "GARAN",
-      "value": "₺134.40",
-      "change": "+0.67%",
+      "label": "BIMAS",
+      "value": "₺374.25",
+      "change": "+0.88%",
+      "up": true
+    },
+    {
+      "label": "KCHOL",
+      "value": "₺189.20",
+      "change": "+0.69%",
       "up": true
     },
     {
@@ -86,9 +92,9 @@
       "up": false
     },
     {
-      "label": "BIMAS",
-      "value": "₺374.25",
-      "change": "+0.88%",
+      "label": "GARAN",
+      "value": "₺134.40",
+      "change": "+0.67%",
       "up": true
     },
     {
@@ -110,15 +116,9 @@
       "up": false
     },
     {
-      "label": "KCHOL",
-      "value": "₺189.20",
-      "change": "+0.69%",
-      "up": true
-    },
-    {
-      "label": "PGSUS",
-      "value": "₺174.10",
-      "change": "-0.29%",
+      "label": "SISE",
+      "value": "₺43.16",
+      "change": "-0.64%",
       "up": false
     },
     {
@@ -128,15 +128,15 @@
       "up": true
     },
     {
-      "label": "FROTO",
-      "value": "₺83.00",
-      "change": "+1.41%",
+      "label": "YKBNK",
+      "value": "₺37.60",
+      "change": "+0.37%",
       "up": true
     },
     {
-      "label": "SISE",
-      "value": "₺43.16",
-      "change": "-0.64%",
+      "label": "PGSUS",
+      "value": "₺174.10",
+      "change": "-0.29%",
       "up": false
     },
     {
@@ -146,16 +146,16 @@
       "up": false
     },
     {
-      "label": "YKBNK",
-      "value": "₺37.60",
-      "change": "+0.37%",
-      "up": true
-    },
-    {
       "label": "TOASO",
       "value": "₺299.00",
       "change": "-0.42%",
       "up": false
+    },
+    {
+      "label": "FROTO",
+      "value": "₺83.00",
+      "change": "+1.41%",
+      "up": true
     }
   ]
 }
