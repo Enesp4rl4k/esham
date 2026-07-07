@@ -15,9 +15,12 @@ name: Esham Yayın Döngüsü
 on:
   schedule:
     - cron: "30 5 * * 1-5"    # günlük bülten          08:30 TR
+    - cron: "45 5 * * 1-5"    # küresel makro raporu    08:45 TR
     - cron: "30 6 * * 1-5"    # VİOP açılış             09:30 TR
     - cron: "0 7 * * 1-5"     # BIST açılış             10:00 TR
+    - cron: "0 10 * * 1-5"    # öğle ısı haritası       13:00 TR
     - cron: "15 15 * * 1-5"   # kapanış                 18:15 TR
+    - cron: "30 15 * * 1-4"   # akşam ısı haritası      18:30 TR (Pzt-Per)
     - cron: "0 6 * * 1"       # haftalık sektör          09:00 TR (Pazartesi)
     - cron: "30 15 * * 5"     # haftalık özet            18:30 TR (Cuma)
     - cron: "5,20,35,50 6-15 * * 1-5"  # haber/KAP+makro tarama (seans içi)
@@ -29,9 +32,11 @@ on:
         type: choice
         options:
           - morning-report
+          - global-report
           - viop
           - opening
           - closing
+          - heatmap
           - sector
           - weekly-summary
           - news-stream
@@ -55,6 +60,7 @@ jobs:
         working-directory: bot
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
           TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
           TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
@@ -63,16 +69,21 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           ESHAM_TAKASBANK_VIOP_URL: ${{ secrets.ESHAM_TAKASBANK_VIOP_URL }}
           ESHAM_SITE_URL: https://esham.pages.dev
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          ESHAM_KAP_MIN_IMPORTANCE: "1"
         run: |
           case "${{ github.event.schedule }}" in
-            "30 5 * * 1-5")      CMD="morning-report" ;;
-            "30 6 * * 1-5")      CMD="viop --publish" ;;
-            "0 7 * * 1-5")       CMD="opening" ;;
-            "15 15 * * 1-5")     CMD="closing" ;;
-            "0 6 * * 1")         CMD="sector" ;;
-            "30 15 * * 5")       CMD="weekly-summary" ;;
-            "5,20,35,50 6-15 * * 1-5") CMD="news-stream --once" ;;
-            *)                   CMD="${{ github.event.inputs.command || 'morning-report' }}" ;;
+            "30 5 * * 1-5")              CMD="morning-report" ;;
+            "45 5 * * 1-5")              CMD="global-report" ;;
+            "30 6 * * 1-5")              CMD="viop --publish" ;;
+            "0 7 * * 1-5")               CMD="opening" ;;
+            "0 10 * * 1-5")              CMD="heatmap" ;;
+            "15 15 * * 1-5")             CMD="closing" ;;
+            "30 15 * * 1-4")             CMD="heatmap" ;;
+            "0 6 * * 1")                 CMD="sector" ;;
+            "30 15 * * 5")               CMD="weekly-summary" ;;
+            "5,20,35,50 6-15 * * 1-5")  CMD="news-stream --once --max-publish 5" ;;
+            *)                           CMD="${{ github.event.inputs.command || 'morning-report' }}" ;;
           esac
           echo "Çalıştırılıyor: $CMD"
           python -m esham.main $CMD
@@ -81,7 +92,7 @@ jobs:
         run: |
           git config user.name "esham-bot"
           git config user.email "bot@esham.local"
-          git add web/content/reports
+          git add web/content/reports web/public/cards web/public/data
           git diff --staged --quiet || git commit -m "content: otomatik yayın (${{ github.event.schedule }})"
           git push
 
