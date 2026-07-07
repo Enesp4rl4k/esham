@@ -10,6 +10,7 @@ hem tweet'e hem web hero/OG'ye gider (tek üretim, tek kaynak, marka tutarlılı
 """
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FuturesTimeout
 from pathlib import Path
 
 from .ai import MarketAIAnalyzer
@@ -51,58 +52,41 @@ def _cleanup(path: Path | None) -> None:
 
 
 def gather_snapshot() -> MarketSnapshot:
-    """Tüm veri kaynaklarından paralel olarak veri toplar.
+    """Tüm veri kaynaklarından PARALEL olarak veri toplar (ThreadPoolExecutor).
 
     Her kaynak kendi try/except ile sarılır — bir kaynak bozulsa diğerleri
-    etkilenmez (graceful degradation). Snapshot'a macro, viop ve sektör
-    verileri de dahil edilir; bu sayede AI prompt'u çok daha zengin bağlam
-    alır ve üretilen haberler/bültenler gerçekten kapsamlı olur.
+    etkilenmez (graceful degradation). Toplam bekleme süresi en yavaş kaynakla
+    sınırlıdır (sıralı değil); GitHub Actions timeout riskini minimize eder.
     """
-    log.info("Piyasa verileri toplanıyor (BIST + KAP + Takvim + Makro + VİOP + Sektör)...")
+    log.info("Piyasa verileri toplanıyor (BIST + KAP + Takvim + Makro + VİOP + Sektör) [paralel]...")
 
     snapshot = MarketSnapshot()
 
-    # BIST endeks özeti
-    try:
-        snapshot.bist = BistSource().market_summary()
-    except Exception as exc:
-        log.warning("BIST verisi alınamadı: %s", exc)
+    # Her kaynak: (snapshot_alanı, callable)
+    tasks: list[tuple[str, object]] = [
+        ("bist",        lambda: BistSource().market_summary()),
+        ("disclosures", lambda: KapSource().latest_disclosures()),
+        ("calendar",    lambda: EconomicCalendarSource().daily_events()),
+        ("macro",       lambda: GlobalMacroSource().snapshot()),
+        ("viop_quote",  lambda: ViopSource().market_quote()),
+        ("viop_margin", lambda: ViopSource().margin_snapshot()),
+        ("sector",      lambda: SectorSource().snapshot()),
+    ]
 
-    # KAP bildirimleri
-    try:
-        snapshot.disclosures = KapSource().latest_disclosures()
-    except Exception as exc:
-        log.warning("KAP bildirimleri alınamadı: %s", exc)
+    # Her kaynak en fazla 30 saniye bekler; toplam paralel bekleme ~30s olur
+    _FETCH_TIMEOUT = 30
 
-    # Ekonomik takvim
-    try:
-        snapshot.calendar = EconomicCalendarSource().daily_events()
-    except Exception as exc:
-        log.warning("Ekonomik takvim alınamadı: %s", exc)
-
-    # Küresel makro (ABD 10Y, EUR/USD, Altın, VIX, Brent)
-    try:
-        snapshot.macro = GlobalMacroSource().snapshot()
-    except Exception as exc:
-        log.warning("Küresel makro verisi alınamadı: %s", exc)
-
-    # VİOP kotasyonu (XU030 endeks + vadeli)
-    try:
-        snapshot.viop_quote = ViopSource().market_quote()
-    except Exception as exc:
-        log.warning("VİOP kotasyonu alınamadı: %s", exc)
-
-    # VİOP teminat snapshot'ı (Takasbank)
-    try:
-        snapshot.viop_margin = ViopSource().margin_snapshot()
-    except Exception as exc:
-        log.warning("VİOP teminat verisi alınamadı: %s", exc)
-
-    # Sektör rotasyonu (BIST sektör endeksleri)
-    try:
-        snapshot.sector = SectorSource().snapshot()
-    except Exception as exc:
-        log.warning("Sektör verisi alınamadı: %s", exc)
+    with ThreadPoolExecutor(max_workers=len(tasks)) as pool:
+        future_to_field = {pool.submit(fn): field for field, fn in tasks}
+        for future in as_completed(future_to_field, timeout=_FETCH_TIMEOUT + 5):
+            field = future_to_field[future]
+            try:
+                result = future.result(timeout=_FETCH_TIMEOUT)
+                setattr(snapshot, field, result)
+            except FuturesTimeout:
+                log.warning("%s kaynağı zaman aşımına uğradı; atlanıyor.", field)
+            except Exception as exc:
+                log.warning("%s kaynağı başarısız (%s); atlanıyor.", field, exc)
 
     log.info(
         "Snapshot hazır — KAP: %d bildirim, takvim: %d olay, sektör: %d, makro: %s",

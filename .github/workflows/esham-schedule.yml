@@ -44,6 +44,7 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     concurrency:
       group: esham-publish
       cancel-in-progress: false
@@ -58,6 +59,7 @@ jobs:
 
       - name: Komutu seç ve çalıştır
         working-directory: bot
+        timeout-minutes: 12
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
