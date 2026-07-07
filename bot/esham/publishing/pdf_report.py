@@ -1,14 +1,12 @@
-"""Sabah bülteni PDF üreticisi.
+"""Sabah bülteni PDF üreticisi (fpdf2).
 
+fpdf2 saf Python, sistem bağımlılığı yok — GitHub Actions ve Render'da sorunsuz çalışır.
 Esham marka kimliğiyle branded, A4 formatında sabah piyasa bülteni PDF'i üretir.
-HTML şablonu oluşturur; PDF dönüşümü için WeasyPrint veya pdfkit kullanır.
-Her ikisi de kurulu değilse HTML dosyası diske kaydedilir ve uyarı loglanır.
 
 Çıktı: web/public/reports/{slug}.pdf (Cloudflare Pages'te statik dosya olarak sunulur)
 """
 from __future__ import annotations
 
-import html as _html
 import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -21,418 +19,34 @@ log = get_logger(__name__)
 # Çıktı klasörü — web/public/reports/ altında statik olarak sunulur
 _DEFAULT_OUT_DIR = Path(__file__).resolve().parents[4] / "web" / "public" / "reports"
 
-
-def _esc(v: object) -> str:
-    """HTML özel karakterlerini kaçışlar."""
-    if v in (None, ""):
-        return ""
-    return _html.escape(str(v))
-
-
-def _md_to_html(md: str) -> str:
-    """Basit markdown → HTML dönüştürücü (başlıklar, bold, liste, paragraf).
-    Tam markdown parser gerekmeden temel biçimlendirmeyi destekler.
-    """
-    lines = md.split("\n")
-    out: list[str] = []
-    in_list = False
-
-    for line in lines:
-        stripped = line.strip()
-
-        # Boş satır
-        if not stripped:
-            if in_list:
-                out.append("</ul>")
-                in_list = False
-            out.append("")
-            continue
-
-        # ## Başlık 2
-        if stripped.startswith("## "):
-            if in_list:
-                out.append("</ul>")
-                in_list = False
-            out.append(f'<h2 class="section-title">{_esc(stripped[3:])}</h2>')
-            continue
-
-        # ### Başlık 3
-        if stripped.startswith("### "):
-            if in_list:
-                out.append("</ul>")
-                in_list = False
-            out.append(f'<h3 class="sub-title">{_esc(stripped[4:])}</h3>')
-            continue
-
-        # Liste öğesi (- veya *)
-        if stripped.startswith(("- ", "* ", "• ")):
-            if not in_list:
-                out.append('<ul class="bullet-list">')
-                in_list = True
-            item = stripped[2:]
-            # Bold içinde **...**
-            item = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", _esc(item))
-            out.append(f"<li>{item}</li>")
-            continue
-
-        # Numaralı liste
-        num_match = re.match(r"^(\d+)\.\s+(.+)$", stripped)
-        if num_match:
-            if not in_list:
-                out.append('<ul class="bullet-list">')
-                in_list = True
-            item = num_match.group(2)
-            item = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", _esc(item))
-            out.append(f"<li>{item}</li>")
-            continue
-
-        # Normal paragraf
-        if in_list:
-            out.append("</ul>")
-            in_list = False
-        para = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", _esc(stripped))
-        out.append(f"<p>{para}</p>")
-
-    if in_list:
-        out.append("</ul>")
-
-    return "\n".join(out)
+# Renk paleti (Esham dark theme)
+_BLACK    = (6,   11,  24)   # #060B18 — arkaplan
+_NAVY     = (15,  23,  42)   # #0F172A — kart arkaplanı
+_SLATE800 = (30,  41,  59)   # #1E293B — kenarlık
+_SLATE600 = (71,  85,  105)  # #475569 — muted metin
+_SLATE400 = (148, 163, 184)  # #94A3B8 — ikincil metin
+_WHITE    = (241, 245, 249)  # #F1F5F9 — ana metin
+_BLUE     = (59,  130, 246)  # #3B82F6 — accent
+_GREEN    = (34,  197, 94)   # #22C55E — pozitif
+_RED      = (239, 68,  68)   # #EF4444 — negatif
 
 
-def _snapshot_pills(snapshot: MarketSnapshot) -> str:
-    """Snapshot verilerinden üst bant için HTML pill'leri üretir."""
-    pills: list[str] = []
-
-    if snapshot.bist:
-        b = snapshot.bist
-        color = "positive" if b.change and b.change.startswith("+") else "negative"
-        pills.append(
-            f'<span class="pill">'
-            f'<span class="pill-label">{_esc(b.index)}</span>'
-            f'<span class="pill-value">{_esc(b.price)}</span>'
-            f'<span class="pill-change {color}">{_esc(b.change)}</span>'
-            f"</span>"
-        )
-
-    if snapshot.macro and snapshot.macro.tickers:
-        for t in snapshot.macro.tickers[:5]:
-            pills.append(
-                f'<span class="pill">'
-                f'<span class="pill-label">{_esc(t.label)}</span>'
-                f'<span class="pill-value">{_esc(t.value_str)}</span>'
-                f"</span>"
-            )
-
-    return "\n".join(pills)
+def _change_color(change: str) -> tuple[int, int, int]:
+    if change and change.strip().startswith("+"):
+        return _GREEN
+    if change and change.strip().startswith("-"):
+        return _RED
+    return _SLATE400
 
 
-def _sector_table(snapshot: MarketSnapshot) -> str:
-    """Sektör tablosu HTML'i."""
-    if not snapshot.sector:
-        return ""
-    rows = []
-    for s in sorted(snapshot.sector, key=lambda x: float(x.change_pct or 0), reverse=True)[:8]:
-        pct = getattr(s, "change_pct", None)
-        color = "positive" if pct and float(pct) >= 0 else "negative"
-        rows.append(
-            f"<tr>"
-            f"<td>{_esc(getattr(s, 'name', ''))}</td>"
-            f'<td class="{color}">{float(pct):+.2f}%</td>'
-            f"</tr>"
-        )
-    if not rows:
-        return ""
-    return (
-        '<table class="sector-table">'
-        "<thead><tr><th>Sektör</th><th>Değişim</th></tr></thead>"
-        "<tbody>" + "".join(rows) + "</tbody>"
-        "</table>"
-    )
-
-
-def build_html(
-    body_md: str,
-    snapshot: MarketSnapshot,
-    title: str = "BIST & Küresel Piyasalar Sabah Raporu",
-    slug: str = "",
-    site_url: str = "",
-) -> str:
-    """Branded HTML sabah bülteni şablonu üretir."""
-    today = datetime.now(timezone(timedelta(hours=3)))
-    date_str = today.strftime("%d %B %Y")
-    time_str = today.strftime("%H:%M")
-
-    body_html = _md_to_html(body_md)
-    pills_html = _snapshot_pills(snapshot)
-    sector_html = _sector_table(snapshot)
-
-    report_url = f"{site_url}/rapor/{slug}" if site_url and slug else site_url
-
-    return f"""<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8" />
-  <title>{_esc(title)}</title>
-  <style>
-    /* ── Genel reset ── */
-    *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
-    body {{
-      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-      background: #ffffff;
-      color: #1e293b;
-      font-size: 13px;
-      line-height: 1.6;
-    }}
-
-    /* ── Üst başlık bandı ── */
-    .header {{
-      background: #060b18;
-      color: #ffffff;
-      padding: 28px 40px 20px;
-      border-bottom: 3px solid #3b82f6;
-    }}
-    .header-top {{
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 16px;
-    }}
-    .brand {{
-      display: flex;
-      flex-direction: column;
-    }}
-    .brand-name {{
-      font-size: 32px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-    }}
-    .brand-name .accent {{ color: #3b82f6; }}
-    .brand-tagline {{
-      font-size: 11px;
-      color: #64748b;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-      margin-top: 2px;
-    }}
-    .header-meta {{
-      text-align: right;
-    }}
-    .report-type {{
-      font-size: 11px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: #3b82f6;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }}
-    .report-date {{
-      font-size: 20px;
-      font-weight: 700;
-      color: #ffffff;
-    }}
-    .report-time {{
-      font-size: 12px;
-      color: #64748b;
-      margin-top: 2px;
-    }}
-
-    /* ── Piyasa pills bandı ── */
-    .ticker-band {{
-      background: #0f172a;
-      padding: 12px 40px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      border-bottom: 1px solid #1e293b;
-    }}
-    .pill {{
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: #1e293b;
-      border-radius: 6px;
-      padding: 5px 10px;
-    }}
-    .pill-label {{
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      color: #64748b;
-    }}
-    .pill-value {{
-      font-size: 12px;
-      font-weight: 600;
-      color: #f1f5f9;
-    }}
-    .pill-change {{
-      font-size: 11px;
-      font-weight: 600;
-    }}
-    .positive {{ color: #22c55e; }}
-    .negative {{ color: #ef4444; }}
-
-    /* ── Ana başlık ── */
-    .report-title {{
-      padding: 24px 40px 0;
-      background: #f8fafc;
-      border-bottom: 1px solid #e2e8f0;
-    }}
-    .report-title h1 {{
-      font-size: 22px;
-      font-weight: 800;
-      color: #0f172a;
-      letter-spacing: -0.3px;
-      padding-bottom: 20px;
-    }}
-
-    /* ── İçerik alanı ── */
-    .content {{
-      padding: 28px 40px;
-      max-width: 900px;
-    }}
-
-    /* ── Bölüm başlıkları ── */
-    h2.section-title {{
-      font-size: 15px;
-      font-weight: 700;
-      color: #0f172a;
-      border-left: 4px solid #3b82f6;
-      padding-left: 10px;
-      margin: 24px 0 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }}
-    h2.section-title:first-child {{ margin-top: 0; }}
-
-    h3.sub-title {{
-      font-size: 13px;
-      font-weight: 700;
-      color: #334155;
-      margin: 16px 0 6px;
-    }}
-
-    p {{
-      margin-bottom: 8px;
-      color: #334155;
-    }}
-
-    /* ── Listeler ── */
-    ul.bullet-list {{
-      margin: 6px 0 10px 18px;
-      color: #334155;
-    }}
-    ul.bullet-list li {{
-      margin-bottom: 4px;
-    }}
-
-    /* ── Sektör tablosu ── */
-    .sector-section {{
-      margin-top: 24px;
-      padding-top: 20px;
-      border-top: 1px solid #e2e8f0;
-    }}
-    .sector-section h2 {{
-      font-size: 13px;
-      font-weight: 700;
-      color: #0f172a;
-      border-left: 4px solid #3b82f6;
-      padding-left: 10px;
-      margin-bottom: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }}
-    .sector-table {{
-      width: 320px;
-      border-collapse: collapse;
-      font-size: 12px;
-    }}
-    .sector-table th {{
-      background: #f1f5f9;
-      color: #64748b;
-      font-weight: 700;
-      text-align: left;
-      padding: 6px 10px;
-      font-size: 10px;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-    }}
-    .sector-table td {{
-      padding: 6px 10px;
-      border-bottom: 1px solid #f1f5f9;
-      color: #334155;
-    }}
-    .sector-table td:last-child {{
-      font-weight: 700;
-      text-align: right;
-    }}
-
-    /* ── Footer ── */
-    .footer {{
-      background: #060b18;
-      color: #64748b;
-      padding: 16px 40px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 10px;
-      border-top: 1px solid #1e293b;
-      margin-top: 32px;
-    }}
-    .footer a {{
-      color: #3b82f6;
-      text-decoration: none;
-    }}
-    .footer .disclaimer {{
-      color: #475569;
-      font-style: italic;
-    }}
-  </style>
-</head>
-<body>
-
-  <!-- Üst başlık -->
-  <div class="header">
-    <div class="header-top">
-      <div class="brand">
-        <div class="brand-name"><span class="accent">E</span>sham</div>
-        <div class="brand-tagline">Yapay Zeka Destekli Piyasa Analizi</div>
-      </div>
-      <div class="header-meta">
-        <div class="report-type">Sabah Bülteni</div>
-        <div class="report-date">{_esc(date_str)}</div>
-        <div class="report-time">{_esc(time_str)} TR</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Piyasa ticker bandı -->
-  {"<div class='ticker-band'>" + pills_html + "</div>" if pills_html else ""}
-
-  <!-- Rapor başlığı -->
-  <div class="report-title">
-    <h1>{_esc(title)}</h1>
-  </div>
-
-  <!-- Ana içerik -->
-  <div class="content">
-    {body_html}
-
-    <!-- Sektör tablosu (varsa) -->
-    {('<div class="sector-section"><h2>Sektör Görünümü</h2>' + sector_html + "</div>") if sector_html else ""}
-  </div>
-
-  <!-- Footer -->
-  <div class="footer">
-    <div>
-      <strong style="color:#94a3b8;">esham.pages.dev</strong>
-      {(' · <a href="' + _esc(report_url) + '">Tam Rapor</a>') if report_url else ''}
-    </div>
-    <div class="disclaimer">Bu rapor yatırım tavsiyesi değildir.</div>
-  </div>
-
-</body>
-</html>"""
+def _strip_md(text: str) -> str:
+    """Markdown işaretlerini düz metne çevirir."""
+    text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)   # bold
+    text = re.sub(r"\*(.+?)\*", r"\1", text)         # italic
+    text = re.sub(r"`(.+?)`", r"\1", text)            # code
+    text = re.sub(r"#+\s*", "", text)                 # başlıklar
+    text = re.sub(r"^\s*[-*]\s+", "• ", text, flags=re.MULTILINE)  # listeler
+    return text.strip()
 
 
 def generate_pdf(
@@ -442,52 +56,247 @@ def generate_pdf(
     title: str = "BIST & Küresel Piyasalar Sabah Raporu",
     out_dir: Path | None = None,
 ) -> Path | None:
-    """PDF sabah bülteni üretir. Başarılıysa PDF Path'ini, başarısızsa None döner.
+    """fpdf2 ile branded PDF sabah bülteni üretir. Path döner, başarısızsa None."""
+    try:
+        from fpdf import FPDF  # type: ignore[import]
+    except ImportError:
+        log.warning("fpdf2 kurulu değil; PDF atlanıyor. pip install fpdf2")
+        return None
 
-    Önce WeasyPrint, sonra pdfkit dener. Her ikisi de yoksa HTML kaydeder ve None döner.
-    """
     out_dir = out_dir or _DEFAULT_OUT_DIR
     out_dir.mkdir(parents=True, exist_ok=True)
-
-    site_url = settings.site_url
-    html_content = build_html(
-        body_md=body_md,
-        snapshot=snapshot,
-        title=title,
-        slug=slug,
-        site_url=site_url,
-    )
-
     pdf_path = out_dir / f"{slug}.pdf"
-    html_path = out_dir / f"{slug}.html"
 
-    # Önce WeasyPrint dene
     try:
-        from weasyprint import HTML  # type: ignore[import]
-        HTML(string=html_content).write_pdf(str(pdf_path))
-        log.info("PDF üretildi (WeasyPrint): %s", pdf_path)
-        return pdf_path
-    except ImportError:
-        log.debug("WeasyPrint kurulu değil, pdfkit deneniyor.")
-    except Exception as exc:
-        log.warning("WeasyPrint PDF hatası: %s", exc)
+        today = datetime.now(timezone(timedelta(hours=3)))
+        date_str = today.strftime("%d.%m.%Y")
+        time_str = today.strftime("%H:%M")
 
-    # pdfkit dene
-    try:
-        import pdfkit  # type: ignore[import]
-        pdfkit.from_string(html_content, str(pdf_path))
-        log.info("PDF üretildi (pdfkit): %s", pdf_path)
-        return pdf_path
-    except ImportError:
-        log.debug("pdfkit kurulu değil.")
-    except Exception as exc:
-        log.warning("pdfkit PDF hatası: %s", exc)
+        pdf = FPDF(orientation="P", unit="mm", format="A4")
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.add_page()
 
-    # Fallback: sadece HTML kaydet
-    html_path.write_text(html_content, encoding="utf-8")
-    log.warning(
-        "PDF kütüphanesi bulunamadı; HTML kaydedildi: %s. "
-        "PDF için: pip install weasyprint",
-        html_path,
-    )
-    return None
+        # ── Karanlık başlık bandı ──────────────────────────────────────────────
+        pdf.set_fill_color(*_BLACK)
+        pdf.rect(0, 0, 210, 40, "F")
+
+        # Sol: Marka adı
+        pdf.set_xy(12, 8)
+        pdf.set_font("Helvetica", "B", 22)
+        pdf.set_text_color(*_BLUE)
+        pdf.cell(12, 10, "E")
+        pdf.set_text_color(*_WHITE)
+        pdf.set_font("Helvetica", "B", 22)
+        pdf.cell(0, 10, "sham", ln=False)
+
+        # Tagline
+        pdf.set_xy(12, 21)
+        pdf.set_font("Helvetica", "", 7)
+        pdf.set_text_color(*_SLATE600)
+        pdf.cell(0, 5, "YAPAY ZEKA DESTEKLI PIYASA ANALIZI")
+
+        # Sağ: Tarih ve rapor tipi
+        pdf.set_xy(130, 8)
+        pdf.set_font("Helvetica", "B", 8)
+        pdf.set_text_color(*_BLUE)
+        pdf.cell(68, 5, "SABAH BULTENI", align="R", ln=True)
+
+        pdf.set_xy(130, 15)
+        pdf.set_font("Helvetica", "B", 16)
+        pdf.set_text_color(*_WHITE)
+        pdf.cell(68, 8, date_str, align="R", ln=True)
+
+        pdf.set_xy(130, 25)
+        pdf.set_font("Helvetica", "", 8)
+        pdf.set_text_color(*_SLATE400)
+        pdf.cell(68, 5, f"{time_str} TR", align="R", ln=True)
+
+        # Accent çizgi
+        pdf.set_fill_color(*_BLUE)
+        pdf.rect(0, 40, 210, 1.2, "F")
+
+        # ── Piyasa özeti bandı ─────────────────────────────────────────────────
+        pdf.set_fill_color(*_NAVY)
+        pdf.rect(0, 41, 210, 20, "F")
+
+        bist = snapshot.bist
+        pills: list[tuple[str, str, str]] = []
+        if bist:
+            pills.append((bist.index, bist.price, bist.change or ""))
+        if snapshot.macro and snapshot.macro.tickers:
+            for t in snapshot.macro.tickers[:4]:
+                pills.append((t.label, t.value_str, ""))
+
+        pill_x = 12.0
+        pdf.set_xy(pill_x, 47)
+        for label, value, change in pills[:5]:
+            # Etiket
+            pdf.set_font("Helvetica", "B", 7)
+            pdf.set_text_color(*_SLATE400)
+            pdf.set_xy(pill_x, 44)
+            pdf.cell(30, 4, label.upper()[:10])
+            # Değer
+            pdf.set_font("Helvetica", "B", 9)
+            pdf.set_text_color(*_WHITE)
+            pdf.set_xy(pill_x, 49)
+            pdf.cell(30, 5, str(value)[:10])
+            # Değişim
+            if change:
+                pdf.set_font("Helvetica", "B", 7)
+                pdf.set_text_color(*_change_color(change))
+                pdf.set_xy(pill_x, 55)
+                pdf.cell(30, 4, change[:8])
+            pill_x += 38
+
+        # ── Rapor başlığı ──────────────────────────────────────────────────────
+        pdf.set_fill_color(*_WHITE[0] - 5, *(_WHITE[1] - 5,), *(_WHITE[2] - 5,))
+        pdf.set_xy(0, 62)
+        pdf.set_fill_color(248, 250, 252)  # #F8FAFC
+        pdf.rect(0, 62, 210, 18, "F")
+
+        # Kenarlık çizgi
+        pdf.set_draw_color(*_SLATE800)
+        pdf.set_line_width(0.3)
+        pdf.line(0, 80, 210, 80)
+
+        pdf.set_xy(12, 65)
+        pdf.set_font("Helvetica", "B", 14)
+        pdf.set_text_color(15, 23, 42)  # #0F172A
+        # Türkçe karakter güvenliği: latin-1 encode
+        safe_title = title.encode("latin-1", errors="replace").decode("latin-1")
+        pdf.cell(0, 10, safe_title)
+
+        # ── Ana içerik ─────────────────────────────────────────────────────────
+        pdf.set_xy(12, 85)
+
+        # Markdown satır satır işle
+        lines = body_md.split("\n")
+        for raw_line in lines:
+            stripped = raw_line.strip()
+            if not stripped:
+                pdf.ln(3)
+                continue
+
+            # ## Bölüm başlığı
+            if stripped.startswith("## "):
+                heading = _strip_md(stripped[3:])
+                # Accent çizgi sol kenarda
+                pdf.set_fill_color(*_BLUE)
+                x, y = pdf.get_x(), pdf.get_y()
+                pdf.rect(12, y, 2.5, 7, "F")
+                pdf.set_xy(16, y)
+                pdf.set_font("Helvetica", "B", 10)
+                pdf.set_text_color(*_NAVY)
+                safe = heading.upper().encode("latin-1", errors="replace").decode("latin-1")
+                pdf.multi_cell(182, 7, safe)
+                pdf.ln(2)
+                continue
+
+            # ### Alt başlık
+            if stripped.startswith("### "):
+                heading = _strip_md(stripped[4:])
+                pdf.set_font("Helvetica", "B", 9)
+                pdf.set_text_color(51, 65, 85)  # #334155
+                safe = heading.encode("latin-1", errors="replace").decode("latin-1")
+                pdf.set_x(12)
+                pdf.multi_cell(186, 6, safe)
+                pdf.ln(1)
+                continue
+
+            # Liste öğesi
+            if stripped.startswith(("- ", "* ", "• ")):
+                item = _strip_md(stripped[2:])
+                pdf.set_font("Helvetica", "", 8.5)
+                pdf.set_text_color(51, 65, 85)
+                pdf.set_x(16)
+                safe = ("• " + item).encode("latin-1", errors="replace").decode("latin-1")
+                pdf.multi_cell(182, 5.5, safe)
+                continue
+
+            # Normal paragraf
+            text = _strip_md(stripped)
+            pdf.set_font("Helvetica", "", 8.5)
+            pdf.set_text_color(51, 65, 85)
+            pdf.set_x(12)
+            safe = text.encode("latin-1", errors="replace").decode("latin-1")
+            pdf.multi_cell(186, 5.5, safe)
+            pdf.ln(1)
+
+        # ── Sektör tablosu (varsa) ─────────────────────────────────────────────
+        if snapshot.sector:
+            sectors = sorted(
+                snapshot.sector,
+                key=lambda s: float(getattr(s, "change_pct", 0) or 0),
+                reverse=True,
+            )[:8]
+
+            if sectors:
+                # Sayfada yer var mı kontrol
+                if pdf.get_y() > 230:
+                    pdf.add_page()
+
+                pdf.ln(4)
+                y0 = pdf.get_y()
+                pdf.set_fill_color(*_BLUE)
+                pdf.rect(12, y0, 2.5, 7, "F")
+                pdf.set_xy(16, y0)
+                pdf.set_font("Helvetica", "B", 10)
+                pdf.set_text_color(*_NAVY)
+                pdf.cell(0, 7, "SEKTOR GORUNUMU")
+                pdf.ln(10)
+
+                # Tablo başlık
+                pdf.set_fill_color(241, 245, 249)
+                pdf.rect(12, pdf.get_y(), 80, 6, "F")
+                pdf.set_font("Helvetica", "B", 7.5)
+                pdf.set_text_color(100, 116, 139)
+                pdf.set_x(12)
+                pdf.cell(60, 6, "SEKTOR")
+                pdf.cell(20, 6, "DEGISIM", align="R")
+                pdf.ln(6)
+
+                for s in sectors:
+                    pct = float(getattr(s, "change_pct", 0) or 0)
+                    name = getattr(s, "name", "")
+                    # Kenarlık
+                    pdf.set_draw_color(241, 245, 249)
+                    pdf.set_line_width(0.2)
+                    y_row = pdf.get_y()
+                    pdf.line(12, y_row + 5.5, 92, y_row + 5.5)
+
+                    pdf.set_font("Helvetica", "", 8)
+                    pdf.set_text_color(51, 65, 85)
+                    pdf.set_x(12)
+                    safe_name = name.encode("latin-1", errors="replace").decode("latin-1")
+                    pdf.cell(60, 5.5, safe_name[:28])
+
+                    pdf.set_font("Helvetica", "B", 8)
+                    pdf.set_text_color(*(_GREEN if pct >= 0 else _RED))
+                    pdf.cell(20, 5.5, f"{pct:+.2f}%", align="R")
+                    pdf.ln(5.5)
+
+        # ── Footer ────────────────────────────────────────────────────────────
+        # Her sayfanın altına — set_auto_page_break ile birlikte çalışır
+        footer_y = 282
+        pdf.set_fill_color(*_BLACK)
+        pdf.rect(0, footer_y, 210, 15, "F")
+        pdf.set_draw_color(*_SLATE800)
+        pdf.line(0, footer_y, 210, footer_y)
+
+        pdf.set_xy(12, footer_y + 4)
+        pdf.set_font("Helvetica", "B", 7.5)
+        pdf.set_text_color(*_SLATE400)
+        pdf.cell(100, 5, "esham.pages.dev")
+
+        pdf.set_xy(110, footer_y + 4)
+        pdf.set_font("Helvetica", "I", 7)
+        pdf.set_text_color(*_SLATE600)
+        pdf.cell(88, 5, "Bu rapor yatirim tavsiyesi degildir.", align="R")
+
+        pdf.output(str(pdf_path))
+        log.info("PDF uretildi (fpdf2): %s", pdf_path)
+        return pdf_path
+
+    except Exception as exc:
+        log.warning("PDF uretilemedi: %s", exc)
+        return None

@@ -117,12 +117,19 @@ def run_morning_report(publish_social: bool = True) -> str | None:
         f"{index} endeksi {price} seviyesinde, {change} değişimle güne başladı. "
         "Küresel makro gelişmeler ve KAP gündemi sabah bülteninde."
     )
+    # Kart görseli için kısa başlık — sparkline + büyük stat olduğunda sol kolona
+    # fazla alan kalmaz, bu yüzden sadece kısa ve çarpıcı bir ifade kullan.
+    card_headline = (
+        f"Küresel makro ve KAP gündemli sabah bülteni"
+        if not change else
+        f"{change} değişimle {'yükseliş' if change.startswith('+') else 'düşüş'} — sabah bülteni"
+    )
 
     card_path = _render_card(
         CardSpec(
             category="bist",
             kicker=f"{bist.index} Endeksi" if bist else "BIST",
-            headline=summary,
+            headline=card_headline,
             stat_value=bist.price if bist else "",
             stat_change=bist.change if bist else "",
             sparkline=BistSource().fetch_closes("1d", "15m") if bist else None,
