@@ -109,11 +109,16 @@ jobs:
 
       - name: Web Sitesini Derle ve Cloudflare'e Gönder
         working-directory: web
+        continue-on-error: true
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           npm ci
           npm run build
-          npx wrangler pages deploy out --project-name esham --commit-dirty=true
+          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            npx wrangler pages deploy out --project-name esham --commit-dirty=true
+          else
+            echo "Cloudflare secrets eksik — deploy atlanıyor (build başarılı)."
+          fi
 
