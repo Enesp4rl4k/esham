@@ -18,6 +18,7 @@ from .config import get_logger, settings
 from .publishing import ContentStore, ReportDraft
 from .publishing.cards import CardGenerator, CardSpec
 from .publishing.social import SocialPublisher
+from .publishing.pdf_report import generate_pdf
 from .publishing.stock_data import write_stock_json
 from .publishing.ticker_data import update_ticker_data
 from .sources import Disclosure, MarketSnapshot
@@ -146,22 +147,49 @@ def run_morning_report(publish_social: bool = True) -> str | None:
         return None
     slug = draft.resolved_slug()
 
+    # PDF bülteni üret — web/public/reports/{slug}.pdf
+    pdf_path: Path | None = None
+    try:
+        pdf_path = generate_pdf(
+            body_md=body,
+            snapshot=snapshot,
+            slug=slug,
+            title="BIST & Küresel Piyasalar Sabah Raporu",
+        )
+        if pdf_path:
+            log.info("Sabah bülteni PDF üretildi: %s", pdf_path)
+    except Exception as exc:
+        log.warning("PDF üretilemedi (devam ediliyor): %s", exc)
+
     if publish_social:
         # Thread hazır (rapor ile aynı AI çağrısında üretildi)
         if thread_tweets:
-            # Son tweet'e rapor linkini ekle
+            # Son tweet'e rapor + PDF linkini ekle
             last = thread_tweets[-1]
-            link_suffix = f"\n{settings.site_url}/rapor/{slug}\n#BIST100 #Borsa"
+            pdf_suffix = (
+                f"\nPDF Bülten: {settings.site_url}/reports/{slug}.pdf"
+                if pdf_path
+                else ""
+            )
+            link_suffix = f"\n{settings.site_url}/rapor/{slug}{pdf_suffix}\n#BIST100 #Borsa"
             if len(last) + len(link_suffix) <= 280:
                 thread_tweets[-1] = last + link_suffix
             else:
-                thread_tweets.append(f"Tam rapor: {settings.site_url}/rapor/{slug}\n#BIST100 #Borsa")
+                extra = f"Tam rapor: {settings.site_url}/rapor/{slug}\n#BIST100 #Borsa"
+                if pdf_path:
+                    extra += f"\nPDF: {settings.site_url}/reports/{slug}.pdf"
+                thread_tweets.append(extra)
             SocialPublisher().broadcast_thread(thread_tweets, image_path=card_path)
         else:
             # Fallback: tek tweet
+            pdf_line = (
+                f"\nPDF Bülten: {settings.site_url}/reports/{slug}.pdf"
+                if pdf_path
+                else ""
+            )
             SocialPublisher().broadcast(
                 f"Günün BIST & küresel piyasa sabah raporu yayında.\n"
-                f"{settings.site_url}/rapor/{slug}\n#BIST100 #Borsa",
+                f"{settings.site_url}/rapor/{slug}{pdf_line}\n#BIST100 #Borsa",
                 image_path=card_path,
             )
     _cleanup(card_path)
