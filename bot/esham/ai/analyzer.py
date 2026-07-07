@@ -155,37 +155,43 @@ Haber Başlığı: {news_title}
         else:
             insider_prompt_extra = ""
 
-        prompt = f"""
-Sen üst düzey bir Türk sermaye piyasaları analistisin. Aşağıdaki KAP bildirimini oku ve
-derinlemesine, kurumsal kalitede bir piyasa analizi yaz. Yatırım tavsiyesi verme. Türkçe yaz.
+        prompt = f"""Sen deneyimli bir Türk sermaye piyasaları analistisin. Kurumsal kalitede, \
+derinlemesine analiz yap. Türkçe yaz. Yatırım tavsiyesi verme.
 {insider_prompt_extra}
 Şirket: {company} ({ticker})
 Bildirim türü: {disclosure_type}
 Başlık: {title}
-İçerik: {raw_text or title}
+Bildirim içeriği (tam metin):
+{raw_text or title}
 {macro_block}{sector_block}
 
-Şu formatta yanıt ver (başlıkları aynen koru):
+Şu formatta yanıt ver (başlıkları aynen koru, her bölümü eksiksiz doldur):
 
 ## ÖZET
-Tek cümlelik özet (max 150 karakter). Rakamsal detay varsa (fiyat, tutar, oran) mutlaka ekle.
+Tek cümle (max 160 karakter). Sayısal veri varsa (fiyat, tutar, oran, lot, yüzde) mutlaka dahil et.
 
 ## ANALİZ
-3-5 madde halinde bildirimin piyasa etkisini, şirketin finansallarına veya sektördeki rekabete olası yansımalarını derinlemesine analiz et. Yüzeysel ifadelerden kaçın; haberin "neden" önemli olduğunu ve satır aralarındaki risk/fırsatları belirt. Sayısal veriler, oranlar veya tutarlar varsa bunları yorumuna dahil et. Her madde 2-3 cümlelik doyurucu bir paragraf olsun.
+Aşağıdaki 4 perspektiften her birini ayrı paragraf olarak yaz (min 3 cümle/paragraf):
+
+1. **Bildirimin özü**: Haberin tam olarak ne anlama geldiğini, neden açıklandığını ve şirket yönetiminin bunu neden şu an duyurduğunu açıkla. Sayısal detayları (tutar, oran, tarih, lot) yorumla.
+
+2. **Finansal/operasyonel etki**: Bu gelişmenin şirketin gelir, kâr marjı, nakit akışı veya bilanço yapısı üzerindeki olası etkisini somut gerekçelerle tartış. Sektör ortalamaları veya geçmiş dönem verileriyle karşılaştır.
+
+3. **Rekabetçi ve sektörel boyut**: Bu bildirimi sektördeki rakiplerle, sektör trendleriyle ve BIST sektör rotasyonuyla ilişkilendir. Sektörde bu tür gelişmeler genellikle ne anlama gelir?
+
+4. **Risk ve fırsatlar**: Bu haberin yatırımcı açısından yaratabileceği riskleri (olumsuz senaryo) ve fırsatları (olumlu senaryo) dengeli biçimde değerlendir. Hangi koşullarda olumlu, hangi koşullarda olumsuz etki beklenebilir?
 
 ## BAĞLAM
-Bu bildirimi küresel makro trendler (faizler, kurlar) ve ilgili sektördeki rotasyon/gelişmeler ile ilişkilendir. Şirketin bu makro konjonktürdeki pozisyonunu yorumla (2-3 cümle, veri yoksa atla).
+Bu bildirimi güncel küresel makro tablo (faiz oranları, kur hareketleri, risk iştahı) ve Türkiye ekonomisindeki gelişmelerle ilişkilendir. Şirketin bu konjonktürdeki stratejik pozisyonunu 3-4 cümleyle yorumla. Veri yoksa bu bölümü atla.
 
 ## TWEET
-280 karakteri iyi kullanan, bilgi yoğun bir tweet yaz. Şu kurallara uy:
-- İLK CÜMLE bağımsız okunabilir, çarpıcı ve tek başına paylaşılabilir bir "hook" olsun.
-  Örnek format: "X şirketi Y işleminde Z tutar açıkladı — bu [sektör/piyasa] için [etki]."
-- Varsa rakam/oran MUTLAKA ekle (fiyat, tutar, yüzde, lot).
-- Haberin NEDEN önemli olduğunu ver, sadece ne olduğunu değil.
-- İçsel işlemse alım/satım sinyali ve tutar büyüklüğü öne çıksın.
-- SORU ile bitir (etkileşimi artırır). Örnek: "Sizce bu [sektör] için ne anlama geliyor?"
-- EMOJİ KULLANMA — sadece metin ve veriler.
-- Hashtag EKLEMEde — zaten dışarıdan ekleniyor.
+280 karakter sınırını verimli kullanan, bilgi yoğun bir tweet:
+- İlk cümle: çarpıcı "hook" — tek başına paylaşılabilir. Format: "[Şirket] [ne yaptı/ne açıkladı] — bu [etki/önemi] demek."
+- Rakam/oran/tutar MUTLAKA ekle (varsa).
+- Sadece ne olduğunu değil, NEDEN önemli olduğunu ver.
+- İçsel işlemse: alım/satım yönü + tutar büyüklüğü öne çıksın.
+- Son cümle soru olsun (etkileşim için). Örnek: "Bu gelişme [sektör] için nasıl yorumlanmalı?"
+- EMOJİ KULLANMA. Hashtag EKLEME.
 """
         raw = self.client.generate(prompt, disable_thinking=True, task_type="analysis")
         if raw:
@@ -279,37 +285,57 @@ Bu bildirimi küresel makro trendler (faizler, kurlar) ve ilgili sektördeki rot
         sections.append("Değerlendirme (özet görüş; yatırım tavsiyesi verme)")
         sections_text = "\n".join(f"  {i+1}. {s}" for i, s in enumerate(sections))
 
-        prompt = f"""Aracı kurum baş stratejisti kalitesinde, Türkçe bir sabah piyasa bülteni ve tweet thread'i yaz. Tarih: {date_str}.
+        prompt = f"""Sen İstanbul merkezli bir aracı kurumun baş piyasa stratejistisin. \
+{date_str} sabahı için kurumsal kalitede, veri odaklı bir piyasa bülteni ve Twitter thread'i yaz. \
+Türkçe yaz. Yatırım tavsiyesi verme. Yer tutucu (köşeli parantez içi metin) KULLANMA.
 
-=== BÖLÜM A: RAPOR ===
-Markdown formatında (## başlıklar, listeler). Yatırım tavsiyesi verme. Verileri birbiriyle bağdaştır.
-ASLA köşeli parantezli yer tutucu yazma. En üste ## başlık koyma.
+=== BÖLÜM A: SABAH BÜLTENİ (RAPOR) ===
+Markdown formatında (## başlıklar, madde listeleri, kalın vurgular). \
+Her bölümü en az 4-5 cümleyle doyurucu biçimde doldur. \
+Verileri birbiriyle ilişkilendir — sadece rakam sıralama değil, yorumlama yap. \
+En üste ## başlık KOYMA (dışarıdan eklenecek).
 
-Bölümler (sırayla):
+Bölümler (sırayla, her birini tam doldur):
 {sections_text}
 
-=== BÖLÜM B: TWEET THREAD ===
-5-6 tweet'lik thread. Her tweet max 260 karakter, bağımsız okunabilir, rakam/oran içermeli.
-EMOJİ KULLANMA, hashtag EKLEME. Son tweet soru ile bitsin.
+Yazım kuralları:
+- Her bölüm kendi içinde eksiksiz olmalı; okuyucu bölümü atlayabilmeli
+- Rakamları mutlaka bağlam içinde yorumla (örn: "XU100 1.2% geriledi — bu Mart'tan bu yana en sert günlük düşüş")
+- Küresel veri varsa BIST'e yansımasını açıkla
+- Sektör rotasyonu varsa para akışının nereden nereye gittiğini yorumla
+- KAP bildirimi varsa sadece başlık değil, bildirimin önemini açıkla
+- Ekonomik takvim varsa açıklanacak verinin piyasa beklentisini ve olası etkisini belirt
 
-Format (kesinlikle bu şablonu kullan):
+=== BÖLÜM B: TWITTER THREAD ===
+6 tweet'lik thread. Her tweet tam bağımsız okunabilir ve değer katmalı.
+- Her tweet max 260 karakter
+- Her tweet farklı bir konuyu ele alsın (BIST, küresel, sektör, KAP, takvim, özet)
+- Rakam/oran/yüzde içermeli — soyut ifadeden kaçın
+- Birinci tweet en vurucu "hook" olsun — günün en önemli gelişmesini tek cümlede ver
+- Son tweet günün özeti + soru olsun (etkileşim için)
+- EMOJİ KULLANMA. Hashtag EKLEME.
+
+Format (kesinlikle bu şablonu kullan, başka metin ekleme):
 TWEET 1: [metin]
 TWEET 2: [metin]
 TWEET 3: [metin]
 TWEET 4: [metin]
 TWEET 5: [metin]
-TWEET 6: [metin — özet + soru]
+TWEET 6: [metin]
 
-=== VERİLER ===
+=== PİYASA VERİLERİ ===
 {context}
 
-Çıktı formatı:
+Çıktı formatı (başka hiçbir şey ekleme, sadece bu iki bölüm):
 ---RAPOR---
-[markdown rapor buraya]
+[bülten metni buraya — markdown]
 ---THREAD---
 TWEET 1: [metin]
 TWEET 2: [metin]
-...
+TWEET 3: [metin]
+TWEET 4: [metin]
+TWEET 5: [metin]
+TWEET 6: [metin]
 """
         raw = self.client.generate(prompt, disable_thinking=True, task_type="analysis")
         if not raw:
