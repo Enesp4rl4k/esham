@@ -8,8 +8,10 @@ web tarafındaki okuma sözleşmesi değişmeden kalır.
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
+import subprocess
 import unicodedata
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -20,8 +22,8 @@ from ..guardrails import allow, validate_report
 
 log = get_logger(__name__)
 
-# web/src/lib/content.ts içindeki CATEGORIES ile senkron tutulmalı.
-VALID_CATEGORIES = {"bist", "global", "ipo", "viop", "gundem"}
+# web/src/lib/content-utils.ts içindeki CATEGORIES ile senkron tutulmalı.
+VALID_CATEGORIES = {"bist", "global", "ipo", "viop", "gundem", "kripto", "teknoloji"}
 
 _TR_MAP = str.maketrans("çğıöşüÇĞİÖŞÜ", "cgiosucgiosu")
 
@@ -99,7 +101,77 @@ class ContentStore:
         path = self.content_dir / filename
         path.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         log.info("Rapor yayınlandı: %s (%s)", doc["slug"], path)
+
+        # Render/VPS modunda: üretilen raporu otomatik git push yap ki
+        # Cloudflare Pages yeni içeriği görebilsin.
+        self._git_push(path, slug)
+
         return path
+
+    def _git_push(self, report_path: Path, slug: str) -> None:
+        """Yeni raporu ve varsa kart görselini git'e commit edip push eder.
+
+        Sadece GIT_AUTO_PUSH=true ortam değişkeni set edilmişse çalışır.
+        GitHub Actions zaten kendi commit/push adımını yönetir; bu metot
+        Render gibi uzun-ömürlü süreçler içindir.
+        """
+        if os.getenv("GIT_AUTO_PUSH", "").lower() not in ("1", "true", "yes"):
+            return
+
+        git_token = os.getenv("GIT_PUSH_TOKEN") or os.getenv("GITHUB_TOKEN")
+        git_repo = os.getenv("GIT_REPO_URL")  # https://github.com/user/repo.git
+
+        try:
+            from ..config import PROJECT_ROOT
+            repo_root = PROJECT_ROOT
+
+            # Remote URL'yi token ile güncelle (ilk seferinde veya her seferinde)
+            if git_token and git_repo:
+                # token'ı URL'e göm: https://token@github.com/user/repo.git
+                authed_url = git_repo.replace("https://", f"https://{git_token}@")
+                subprocess.run(
+                    ["git", "remote", "set-url", "origin", authed_url],
+                    cwd=repo_root, capture_output=True, check=False
+                )
+
+            # git config (bot kimliği)
+            subprocess.run(["git", "config", "user.email", "bot@esham.local"],
+                           cwd=repo_root, capture_output=True, check=False)
+            subprocess.run(["git", "config", "user.name", "esham-bot"],
+                           cwd=repo_root, capture_output=True, check=False)
+
+            # Stage: rapor JSON + cards klasörü + data klasörü
+            subprocess.run(
+                ["git", "add",
+                 "web/content/reports",
+                 "web/public/cards",
+                 "web/public/data"],
+                cwd=repo_root, capture_output=True, check=False
+            )
+
+            # Değişiklik var mı?
+            diff = subprocess.run(
+                ["git", "diff", "--staged", "--quiet"],
+                cwd=repo_root, capture_output=True
+            )
+            if diff.returncode == 0:
+                log.debug("Git push atlandı: staged değişiklik yok.")
+                return
+
+            subprocess.run(
+                ["git", "commit", "-m", f"content: {slug}"],
+                cwd=repo_root, capture_output=True, check=True
+            )
+            result = subprocess.run(
+                ["git", "push", "origin", "HEAD"],
+                cwd=repo_root, capture_output=True, text=True
+            )
+            if result.returncode == 0:
+                log.info("Git push başarılı: %s", slug)
+            else:
+                log.warning("Git push başarısız: %s", result.stderr[:200])
+        except Exception as exc:
+            log.warning("Git push hatası (%s); rapor yerel olarak yazıldı.", exc)
 
     def _store_image(self, image_path: Path | None, slug: str) -> str | None:
         """Üretilen kartı web'in statik `public/cards/` klasörüne kopyalar."""
