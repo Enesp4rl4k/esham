@@ -87,7 +87,15 @@ jobs:
             "0 6 * * 1")                 CMD="sector" ;;
             "30 15 * * 5")               CMD="weekly-summary" ;;
             "5,20,35,50 6-15 * * 1-5")  CMD="news-stream --once --max-publish 5" ;;
-            *)                           CMD="${{ github.event.inputs.command || 'morning-report' }}" ;;
+            *)
+              _RAW="${{ github.event.inputs.command || 'morning-report' }}"
+              # news-stream manuel dispatch'te de --once ile çalışsın (Actions timeout'u aşmaz)
+              if [ "$_RAW" = "news-stream" ]; then
+                CMD="news-stream --once --max-publish 10"
+              else
+                CMD="$_RAW"
+              fi
+              ;;
           esac
           echo "Çalıştırılıyor: $CMD"
           python -m esham.main $CMD
