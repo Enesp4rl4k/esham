@@ -96,7 +96,8 @@ jobs:
         run: |
           git config user.name "esham-bot"
           git config user.email "bot@esham.local"
-          git add web/content/reports web/public/cards web/public/data web/public/reports
+          git add web/content/reports web/public/cards web/public/data
+          git add --ignore-unmatch web/public/reports
           git diff --staged --quiet || git commit -m "content: otomatik yayın (${{ github.event.schedule }})"
           git push
 
