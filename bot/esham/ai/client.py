@@ -1,16 +1,20 @@
-"""Ortak LLM istemcisi — Groq primary, Gemini fallback.
+"""Ortak LLM istemcisi — görev bazlı provider seçimi.
 
-Öncelik sırası:
-1. Groq (GROQ_API_KEY varsa) — dakikada 30, günde 14.400 ücretsiz istek
-2. Gemini (GEMINI_API_KEY varsa) — günde 20 ücretsiz istek (fallback)
-3. Her ikisi de yoksa None döner, pipeline şablona düşer
+Öncelik sırası (task_type'a göre):
+- "analysis" / "tweet": Gemini primary → Groq fallback
+  (Gemini 1500 req/gün; Groq çok kısıtlı günlük kota)
+- "filter": Groq fast primary → Gemini fallback
+  (binary kararlar — Groq ucuz/hızlı modeli uygundur)
+- "json" / "default": Groq primary → Gemini fallback
+
+Her ikisi de yoksa None döner, pipeline şablona düşer.
 
 Groq OpenAI-uyumlu API kullandığı için `groq` paketi gerekir:
     pip install groq==0.13.1
 
 Rate-limit (429) yönetimi:
 - Her provider kendi retry'ını yönetir
-- Groq başarısız olursa Gemini'ye düşer
+- Primary başarısız olursa fallback'e düşer
 - Her ikisi de başarısız olursa None döner
 """
 from __future__ import annotations
@@ -162,15 +166,18 @@ TASK_MODEL_MAP: dict[str, str] = {
 }
 
 
-class LlmClient:
-    """Groq primary + Gemini fallback LLM istemcisi.
+# "analysis" ve "tweet" görevlerinde Gemini primary — daha cömert günlük kota
+_GEMINI_PRIMARY_TASKS = frozenset({"analysis", "tweet"})
 
-    Groq API key varsa Groq kullanılır (çok daha yüksek ücretsiz kota).
-    task_type parametresiyle görev bazlı model seçimi yapılır:
-    - "filter": hızlı/ucuz model (haber filtreleme, binary kararlar)
-    - "tweet": büyük model (tweet üretimi)
-    - "analysis": büyük model (rapor analizi)
-    Groq başarısız olursa ya da yoksa Gemini'ye düşer.
+
+class LlmClient:
+    """Görev bazlı provider seçimi: Gemini primary (analysis/tweet) veya Groq primary (filter/json).
+
+    task_type bazlı öncelik:
+    - "analysis" / "tweet": Gemini → Groq fallback
+      (Gemini 1500 req/gün, Groq günlük kota çok kısıtlı)
+    - "filter": Groq fast → Gemini fallback
+    - "json" / "default": Groq → Gemini fallback
     Her ikisi de yoksa None döner.
     """
 
@@ -185,17 +192,21 @@ class LlmClient:
         self.temperature = temperature
         self.model_name = model_name or settings.groq_model
 
-        # Primary: Groq (task bazlı model seçimi için backend'i lazy init ediyoruz)
         self._groq_default = _GroqBackend(settings.groq_model)
         self._groq_fast = _GroqBackend(settings.groq_tweet_model)  # llama-3.1-8b-instant
-        # Fallback: Gemini
         self._gemini = _GeminiBackend(model_name or settings.gemini_model)
 
-        if self._groq_default.enabled:
-            log.info("LLM: Groq primary (%s) + fast (%s) + Gemini fallback",
-                     settings.groq_model, settings.groq_tweet_model)
+        if self._gemini.enabled and self._groq_default.enabled:
+            log.info(
+                "LLM: Gemini primary (analysis/tweet) + Groq primary (filter/json) — çapraz fallback aktif."
+            )
         elif self._gemini.enabled:
             log.info("LLM: Gemini only (%s) — Groq key yok", settings.gemini_model)
+        elif self._groq_default.enabled:
+            log.info(
+                "LLM: Groq primary (%s) + fast (%s) — Gemini key yok",
+                settings.groq_model, settings.groq_tweet_model,
+            )
         else:
             log.warning("LLM: API key yok; şablon üretimi kullanılacak.")
 
@@ -211,33 +222,58 @@ class LlmClient:
 
     def generate(self, prompt: str, *, disable_thinking: bool = False,
                  task_type: str = "default") -> str | None:
-        """Groq → Gemini sıralamasıyla üretim yapar.
+        """Görev türüne göre provider seçerek üretim yapar.
 
-        task_type: "filter" (hızlı/ucuz), "tweet", "analysis", "default"
+        task_type:
+        - "analysis" / "tweet" → Gemini primary, Groq fallback
+        - "filter" / "json" / "default" → Groq primary, Gemini fallback
         """
         if not self.enabled:
             return None
 
-        # Görev türüne göre uygun Groq backend'ini seç
-        groq = self._groq_for_task(task_type)
-        if groq.enabled:
-            result = groq.generate(
-                prompt,
-                max_tokens=self.max_output_tokens,
-                temperature=self.temperature,
-            )
-            if result:
-                return result
-            log.info("Groq başarısız/boş [task=%s]; Gemini fallback deneniyor.", task_type)
+        if task_type in _GEMINI_PRIMARY_TASKS:
+            # Gemini primary — analysis/tweet için daha cömert kota
+            if self._gemini.enabled:
+                result = self._gemini.generate(
+                    prompt,
+                    disable_thinking=disable_thinking,
+                    max_tokens=self.max_output_tokens,
+                )
+                if result:
+                    return result
+                log.info("Gemini başarısız/boş [task=%s]; Groq fallback deneniyor.", task_type)
 
-        # Gemini fallback
-        if self._gemini.enabled:
-            return self._gemini.generate(
-                prompt,
-                disable_thinking=disable_thinking,
-                max_tokens=self.max_output_tokens,
-            )
-        return None
+            # Groq fallback
+            groq = self._groq_for_task(task_type)
+            if groq.enabled:
+                return groq.generate(
+                    prompt,
+                    max_tokens=self.max_output_tokens,
+                    temperature=self.temperature,
+                )
+            return None
+
+        else:
+            # Groq primary — filter/json/default için
+            groq = self._groq_for_task(task_type)
+            if groq.enabled:
+                result = groq.generate(
+                    prompt,
+                    max_tokens=self.max_output_tokens,
+                    temperature=self.temperature,
+                )
+                if result:
+                    return result
+                log.info("Groq başarısız/boş [task=%s]; Gemini fallback deneniyor.", task_type)
+
+            # Gemini fallback
+            if self._gemini.enabled:
+                return self._gemini.generate(
+                    prompt,
+                    disable_thinking=disable_thinking,
+                    max_tokens=self.max_output_tokens,
+                )
+            return None
 
     def generate_json(self, prompt: str) -> dict | None:
         """JSON üretim — Groq önce (text modu), sonra Gemini (native JSON)."""

@@ -483,21 +483,21 @@ Veri: {financial_data_text}
             lines.append("Güçlü: " + ", ".join(f"{s.name} ({s.change_str})" for s in leaders))
             lines.append("Zayıf: " + ", ".join(f"{s.name} ({s.change_str})" for s in laggards))
 
-        # Ekonomik takvim
+        # Ekonomik takvim (en fazla 5 kritik olay)
         if snapshot.calendar:
             lines.append("\n### Ekonomik Takvim")
-            for ev in snapshot.calendar:
+            for ev in snapshot.calendar[:5]:
                 lines.append(
                     f"- {ev.time} {ev.country}: {ev.event}"
                     f" (önem: {ev.importance}, beklenti: {ev.forecast})"
                 )
 
-        # KAP bildirimleri
+        # KAP bildirimleri (en fazla 10 — prompt boyutunu kontrol altında tut)
         if snapshot.disclosures:
-            lines.append("\n### KAP Bildirimleri")
-            for d in snapshot.disclosures:
+            lines.append("\n### KAP Bildirimleri (öne çıkanlar)")
+            for d in snapshot.disclosures[:10]:
                 insider_flag = " [İÇSEL]" if d.is_insider else ""
-                lines.append(f"- {d.title} [{d.disclosure_type}]{insider_flag}")
+                lines.append(f"- {d.title[:80]} [{d.disclosure_type}]{insider_flag}")
 
         return "\n".join(lines) or "- Veri bulunamadı."
 
