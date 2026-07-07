@@ -57,7 +57,31 @@ def _cleanup(path: Path | None) -> None:
             pass
 
 # Fiyat tespit / izahname bildirimlerini tam analize yönlendirmek için işaretler.
-_IPO_DOC_MARKERS = ("fiyat tespit rapor", "onaylı izahname", "taslak izahname")
+# SADECE yeni/aktif halka arz sürecine ait belgeler — post-arz bildirimleri dahil DEĞİL.
+_IPO_DOC_MARKERS = ("onaylı izahname", "taslak izahname", "halka arz fiyat tespit")
+
+# Post-arz bildirimleri: artık tamamlanmış arzlara ait rutin açıklamalar.
+# "fiyat tespit raporuna ilişkin analist raporu", "%5'inden fazlasını alanlar",
+# "idari sorumluluğu olan kişiler", "arz edilen toplam payların" vb.
+# Bu başlıklar _is_post_ipo() ile tespit edilir ve kuyruğa alınmaz.
+_POST_IPO_MARKERS = (
+    "fiyat tespit raporuna iliskin",  # analist raporu — eski arz
+    "inden fazlasini alanlar",        # %5 bildirim — eski arz
+    "arz edilen toplam paylarin",     # pay dağılımı — eski arz
+    "pay alimi yapan idari",          # yönetici alımı — eski arz
+    "paylarinin halka arzinda",       # genel post-arz ifadesi
+    "halka arz isleminde",            # işlem tamamlandı bildirimi
+    "halka arzi tamamlandi",          # tamamlanmış arz
+    "talep toplama sonuclari",        # talep toplama bitti
+    "kesin tahsisat",                 # kesin tahsisat bildirimi
+)
+
+
+def _is_post_ipo(d: "Disclosure") -> bool:  # type: ignore[name-defined]
+    """Tamamlanmış bir halka arza ait post-bildirim mi? Bunları filtrele."""
+    from .turkish import tr_fold
+    text = tr_fold(f"{d.disclosure_type} {d.title}")
+    return any(tr_fold(m) in text for m in _POST_IPO_MARKERS)
 
 
 def _classify(d: Disclosure) -> tuple[str, str]:
@@ -127,6 +151,14 @@ class NewsStream:
             if key in self._seen:
                 continue
             self._seen.add(key)
+
+            # Post-arz bildirimleri (tamamlanmış arzlara ait rutin açıklamalar)
+            # hiçbir zaman paylaşılmaz — category kontrolünden önce elenir.
+            if _is_post_ipo(d):
+                skipped += 1
+                log.debug("Post-arz bildirimi filtrelendi: %s", d.title)
+                continue
+
             category, _ = _classify(d)
 
             if category not in ("insider", "ipo") and not is_significant(

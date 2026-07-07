@@ -79,6 +79,16 @@ ROUTINE_KEYWORDS: dict[str, int] = {
     "finansal rapor gönder": -1, "faaliyet raporu yayım": -1,
     "pay sahipleri": -1, "iç kaynaklardan": -1,
     "ortaklığın adres": -3, "unvan değişikliği": -1,
+    # ── Post-arz bildirimleri (tamamlanmış halka arzlara ait rutin açıklamalar) ──
+    # Bunlar yatırımcıya yeni bilgi taşımaz; eski arzların kapanış işlemleridir.
+    "fiyat tespit raporuna iliskin": -5,   # analist raporu — eski arz
+    "inden fazlasini alanlar": -5,          # %5 bildirim — eski arz
+    "arz edilen toplam paylarin": -5,       # pay dağılımı — eski arz
+    "pay alimi yapan idari": -5,            # yönetici alımı — eski arz
+    "paylarinin halka arzinda": -4,         # genel post-arz ifadesi
+    "halka arz isleminde": -4,              # işlem bildirimi
+    "talep toplama sonuclari": -5,          # talep toplama bitti
+    "kesin tahsisat": -5,                   # tahsisat bildirimi
 }
 
 # Genel/kategorisiz KAP akışı için varsayılan eşik. Insider/IPO bu filtreyi
