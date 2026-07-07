@@ -58,15 +58,27 @@ def gather_snapshot() -> MarketSnapshot:
     Her kaynak kendi try/except ile sarılır — bir kaynak bozulsa diğerleri
     etkilenmez (graceful degradation). Toplam bekleme süresi en yavaş kaynakla
     sınırlıdır (sıralı değil); GitHub Actions timeout riskini minimize eder.
+
+    KAP bildirimleri kap_filter.is_significant() ile süzülür — devre kesici,
+    genel kurul tutanağı, imza sirküleri gibi rutin bildirimler sabah
+    bültenine ve tweet thread'ine girmez.
     """
+    from .sources.kap_filter import is_significant as _kap_significant
+
     log.info("Piyasa verileri toplanıyor (BIST + KAP + Takvim + Makro + VİOP + Sektör) [paralel]...")
 
     snapshot = MarketSnapshot()
 
+    def _filtered_disclosures() -> list:
+        raw = KapSource().latest_disclosures()
+        filtered = [d for d in raw if _kap_significant(d)]
+        log.info("KAP filtre: %d / %d bildirim önemli sayıldı.", len(filtered), len(raw))
+        return filtered
+
     # Her kaynak: (snapshot_alanı, callable)
     tasks: list[tuple[str, object]] = [
         ("bist",        lambda: BistSource().market_summary()),
-        ("disclosures", lambda: KapSource().latest_disclosures()),
+        ("disclosures", _filtered_disclosures),
         ("calendar",    lambda: EconomicCalendarSource().daily_events()),
         ("macro",       lambda: GlobalMacroSource().snapshot()),
         ("viop_quote",  lambda: ViopSource().market_quote()),
