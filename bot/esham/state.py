@@ -76,6 +76,29 @@ class StateStore:
         self._data["seen_disclosures"] = pruned
         self._save()
 
+    # ---- SON_DAKIKA global haber seen set (24 saatlik TTL) -----------------------
+    # KAP bildirimleri 14 gün saklanır ama global haber linkleri 24 saat yeterli —
+    # aynı haber ertesi gün tekrar geçerliyse zaten yeni bir event olarak gelir.
+
+    _NEWS_RETENTION_SECONDS = 24 * 3600  # 24 saat
+
+    def load_seen_news(self) -> set[str]:
+        seen: dict[str, float] = self._data.get("seen_news", {})
+        now = time.time()
+        cutoff = now - self._NEWS_RETENTION_SECONDS
+        # Süresi dolmuş kayıtları at
+        valid = {k for k, ts in seen.items() if ts >= cutoff}
+        return valid
+
+    def save_seen_news(self, keys: set[str]) -> None:
+        existing: dict[str, float] = self._data.get("seen_news", {})
+        now = time.time()
+        cutoff = now - self._NEWS_RETENTION_SECONDS
+        merged = {k: existing.get(k, now) for k in keys}
+        pruned = {k: ts for k, ts in merged.items() if ts >= cutoff}
+        self._data["seen_news"] = pruned
+        self._save()
+
     # ---- margin-call önceki değer -----------------------------------------------
 
     def get_margin_prev_pct(self) -> float | None:

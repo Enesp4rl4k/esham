@@ -9,19 +9,23 @@ import {
 } from "@/lib/content-utils";
 
 const catColor: Record<CategorySlug, string> = {
-  bist:   "text-sky-400",
-  global: "text-violet-400",
-  ipo:    "text-emerald-400",
-  viop:   "text-orange-400",
-  gundem: "text-amber-400",
+  bist:      "text-sky-400",
+  global:    "text-violet-400",
+  ipo:       "text-emerald-400",
+  viop:      "text-orange-400",
+  gundem:    "text-amber-400",
+  kripto:    "text-orange-300",
+  teknoloji: "text-pink-400",
 };
 
 const catBorder: Record<CategorySlug, string> = {
-  bist:   "border-sky-400/20",
-  global: "border-violet-400/20",
-  ipo:    "border-emerald-400/20",
-  viop:   "border-orange-400/20",
-  gundem: "border-amber-400/20",
+  bist:      "border-sky-400/20",
+  global:    "border-violet-400/20",
+  ipo:       "border-emerald-400/20",
+  viop:      "border-orange-400/20",
+  gundem:    "border-amber-400/20",
+  kripto:    "border-orange-300/20",
+  teknoloji: "border-pink-400/20",
 };
 
 /**

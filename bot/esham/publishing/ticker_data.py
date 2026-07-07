@@ -23,6 +23,7 @@ from pathlib import Path
 from ..config import PROJECT_ROOT, get_logger
 from ..sources.bist import BistSource
 from ..sources.global_macro import GlobalMacroSource
+from ..sources.watchlist import WATCHLIST, fetch_stock_price
 
 log = get_logger(__name__)
 
@@ -60,6 +61,23 @@ def update_ticker_data() -> bool:
             })
     except Exception as exc:
         log.warning("Ticker JSON — makro alınamadı: %s", exc)
+
+    # BIST-30 watchlist hisseleri
+    try:
+        from concurrent.futures import ThreadPoolExecutor, as_completed as _as_completed
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            futures = {pool.submit(fetch_stock_price, sym, tick): tick for sym, tick in WATCHLIST}
+            for fut in _as_completed(futures):
+                move = fut.result()
+                if move:
+                    tickers.append({
+                        "label": move.ticker,
+                        "value": move.price_str,
+                        "change": move.change_str,
+                        "up": move.change_pct >= 0,
+                    })
+    except Exception as exc:
+        log.warning("Ticker JSON — watchlist alınamadı: %s", exc)
 
     if not tickers:
         log.warning("Ticker JSON — hiç veri yok; dosya güncellenmedi.")

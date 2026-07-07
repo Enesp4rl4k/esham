@@ -12,11 +12,13 @@ import { TickerBand } from "@/components/TickerBand";
 
 // Kategori etiket renkleri — CSS değişkenleriyle
 const catColors: Record<CategorySlug, string> = {
-  bist:   "text-sky-400   border-sky-400/30   bg-sky-400/8",
-  global: "text-violet-400 border-violet-400/30 bg-violet-400/8",
-  ipo:    "text-emerald-400 border-emerald-400/30 bg-emerald-400/8",
-  viop:   "text-orange-400 border-orange-400/30 bg-orange-400/8",
-  gundem: "text-amber-400  border-amber-400/30  bg-amber-400/8",
+  bist:      "text-sky-400   border-sky-400/30   bg-sky-400/8",
+  global:    "text-violet-400 border-violet-400/30 bg-violet-400/8",
+  ipo:       "text-emerald-400 border-emerald-400/30 bg-emerald-400/8",
+  viop:      "text-orange-400 border-orange-400/30 bg-orange-400/8",
+  gundem:    "text-amber-400  border-amber-400/30  bg-amber-400/8",
+  kripto:    "text-orange-300 border-orange-300/30 bg-orange-300/8",
+  teknoloji: "text-pink-400   border-pink-400/30   bg-pink-400/8",
 };
 
 export default async function Home() {

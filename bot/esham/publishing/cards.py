@@ -87,7 +87,7 @@ FORMAT_SIZES: dict[str, tuple[int, int]] = {
 
 @dataclass
 class CardSpec:
-    category: str  # bist | global | ipo | viop | gundem | insider
+    category: str  # bist | global | ipo | viop | gundem | insider | kripto | teknoloji
     kicker: str  # üst küçük etiket, örn. "XU100 ENDEKSİ"
     headline: str  # ana başlık/metin
     stat_value: str = ""  # büyük rakam, örn. "14.417,91"
@@ -107,6 +107,10 @@ class CardSpec:
     discount_pct: float = 0.0
     # IPO fon kullanım açıklaması
     fund_usage: str = ""
+    # Unsplash fotoğrafı — genel haber kartları için arka plan (opsiyonel)
+    # Verilirse kart arka planı bu fotoğrafla (karartılmış) döşenir.
+    # KAP/analiz kartları için kullanılmaz (veri kartları fotoğrafsız kalır).
+    photo_path: Path | None = None
 
 
 class CardGenerator:
@@ -183,12 +187,64 @@ class CardGenerator:
 
     # ---- arkaplan/glow ------------------------------------------------------
 
-    def _background(self, accent_hex: str, w: int = CARD_W, h: int = CARD_H) -> Image.Image:
+    def _background(
+        self, accent_hex: str, w: int = CARD_W, h: int = CARD_H,
+        photo_path: Path | None = None,
+    ) -> Image.Image:
+        """Kart arka planını üretir.
+
+        photo_path verilirse Unsplash fotoğrafını kart boyutuna sığdırır,
+        üzerine koyu gradient overlay + accent glow ekler. Bu sayede fotoğraf
+        hem görünür hem de metin okunabilirliği korunur.
+        Foto yoksa standart siyah + glow arka planı kullanılır.
+        """
+        if photo_path and photo_path.exists():
+            try:
+                photo = Image.open(photo_path).convert("RGB")
+                # Kart boyutuna cover (kırp + genişlet)
+                photo_ratio = photo.width / photo.height
+                card_ratio = w / h
+                if photo_ratio > card_ratio:
+                    new_h = h
+                    new_w = int(h * photo_ratio)
+                else:
+                    new_w = w
+                    new_h = int(w / photo_ratio)
+                photo = photo.resize((new_w, new_h), Image.LANCZOS)
+                left = (new_w - w) // 2
+                top = (new_h - h) // 2
+                photo = photo.crop((left, top, left + w, top + h))
+
+                # Koyu overlay — fotoğrafı okurken metin kaybolmasın
+                # Sol %60 çok karanlık (metin alanı), sağ %40 biraz daha açık
+                overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+                odraw = ImageDraw.Draw(overlay)
+                # Gradient efekti için bölgeler
+                odraw.rectangle([0, 0, int(w * 0.65), h], fill=(0, 0, 0, 185))
+                odraw.rectangle([int(w * 0.65), 0, w, h], fill=(0, 0, 0, 155))
+                img = photo.convert("RGBA")
+                img = Image.alpha_composite(img, overlay).convert("RGB")
+
+                # Accent glow — sağ üst köşe
+                glow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+                gdraw = ImageDraw.Draw(glow)
+                r, g, b = _hex(accent_hex)
+                gdraw.ellipse(
+                    [w - int(w * 0.52), -int(h * 0.67), w + int(w * 0.32), int(h * 0.76)],
+                    fill=(r, g, b, 40),
+                )
+                glow = glow.filter(ImageFilter.GaussianBlur(120))
+                img_rgba = img.convert("RGBA")
+                img_rgba = Image.alpha_composite(img_rgba, glow)
+                return img_rgba.convert("RGB")
+            except Exception as exc:
+                log.warning("Unsplash foto arka plana yerleştirilemedi (%s); standart arka plan.", exc)
+
+        # Standart arka plan — siyah + accent glow
         img = Image.new("RGB", (w, h), _hex(COLORS["black"]))
         glow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
         gdraw = ImageDraw.Draw(glow)
         r, g, b = _hex(accent_hex)
-        # Sağ üst köşe parıltısı — boyuta orantılı.
         gdraw.ellipse(
             [w - int(w * 0.52), -int(h * 0.67), w + int(w * 0.32), int(h * 0.76)],
             fill=(r, g, b, 70),
@@ -476,7 +532,7 @@ class CardGenerator:
         accent_hex = ACCENTS[accent]["400"]
 
         w, h = self._canvas_size(spec.format)
-        img = self._background(accent_hex, w, h).convert("RGBA")
+        img = self._background(accent_hex, w, h, photo_path=spec.photo_path).convert("RGBA")
         draw = ImageDraw.Draw(img)
 
         # Sol kenar vurgu çubuğu — haber şablonuna özgü kimlik.
@@ -1021,7 +1077,7 @@ class CardGenerator:
         accent_hex = ACCENTS["amber"]["400"]
         w, h = self._canvas_size(spec.format)
 
-        img = self._background(accent_hex, w, h).convert("RGBA")
+        img = self._background(accent_hex, w, h, photo_path=spec.photo_path).convert("RGBA")
         draw = ImageDraw.Draw(img)
 
         # Sol kenar vurgu çubuğu (gündem kimliği)

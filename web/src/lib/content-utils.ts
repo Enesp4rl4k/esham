@@ -3,7 +3,7 @@
  * content.ts bu dosyayı re-export eder; server-only veri okuma fonksiyonları content.ts'te kalır.
  */
 
-export type CategorySlug = "bist" | "global" | "ipo" | "viop" | "gundem";
+export type CategorySlug = "bist" | "global" | "ipo" | "viop" | "gundem" | "kripto" | "teknoloji";
 
 export interface Report {
   slug: string;
@@ -30,7 +30,7 @@ export interface CategoryMeta {
   accent: Accent;
 }
 
-export type Accent = "cyan" | "blue" | "emerald" | "amber" | "violet";
+export type Accent = "cyan" | "blue" | "emerald" | "amber" | "violet" | "orange" | "pink";
 
 export const CATEGORIES: Record<CategorySlug, CategoryMeta> = {
   bist: {
@@ -61,6 +61,18 @@ export const CATEGORIES: Record<CategorySlug, CategoryMeta> = {
     label: "Gündem",
     description: "Piyasaları etkileyen anlık siyasi ve ekonomik gelişmeler.",
     accent: "amber",
+  },
+  kripto: {
+    label: "Kripto",
+    description:
+      "Bitcoin, Ethereum ve majör kripto varlıklarda önemli fiyat hareketleri ve piyasa analizi.",
+    accent: "orange",
+  },
+  teknoloji: {
+    label: "Teknoloji & AI",
+    description:
+      "Yapay zeka, yarı iletken ve büyük tech gelişmelerinin piyasalara ve ekonomiye etkileri.",
+    accent: "pink",
   },
 };
 
@@ -123,6 +135,22 @@ export function accentClasses(accent: Accent) {
       gradient: "from-violet-900/60 to-transparent",
       dot: "bg-violet-500",
       borderTop: "border-t-2 border-violet-500",
+    },
+    orange: {
+      text: "text-orange-400",
+      groupHoverText: "group-hover:text-orange-400",
+      badge: "text-orange-400 border-orange-900/50",
+      gradient: "from-orange-900/60 to-transparent",
+      dot: "bg-orange-500",
+      borderTop: "border-t-2 border-orange-500",
+    },
+    pink: {
+      text: "text-pink-400",
+      groupHoverText: "group-hover:text-pink-400",
+      badge: "text-pink-400 border-pink-900/50",
+      gradient: "from-pink-900/60 to-transparent",
+      dot: "bg-pink-500",
+      borderTop: "border-t-2 border-pink-500",
     },
   };
   return map[accent] ?? map.cyan;

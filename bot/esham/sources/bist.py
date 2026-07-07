@@ -56,13 +56,17 @@ class BistSource:
             pct = (price - prev) / prev * 100
             change = f"{'+' if pct >= 0 else ''}{_tr_number(pct, 2)}%"
 
-        volume = meta.get("regularMarketVolume")
+        volume = (
+            meta.get("regularMarketVolume")
+            or meta.get("regularMarketDayVolume")
+            or meta.get("averageDailyVolume10Day")
+        )
         index = meta.get("symbol", self.symbol).replace(".IS", "")
         return MarketSummary(
             index=index,
             price=_tr_number(float(price)),
             change=change,
-            volume=_tr_volume(float(volume)) if volume else "",
+            volume=_tr_volume(float(volume)) if volume else "—",
         )
 
     def _sample(self) -> MarketSummary:

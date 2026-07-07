@@ -55,7 +55,7 @@ def _cmd_news_stream(args: argparse.Namespace) -> None:
         publish_interval=args.publish_interval,
     )
     if args.once:
-        stream.check_once()
+        stream.check_once(max_publish=args.max_publish)
     else:
         stream.run()
 
@@ -204,7 +204,14 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Haberler arası yayın aralığı/drip (saniye)",
     )
-    ns.add_argument("--once", action="store_true", help="Tek tur tara ve tümünü yayınla")
+    ns.add_argument("--once", action="store_true", help="Tek tur tara ve yayınla")
+    ns.add_argument(
+        "--max-publish",
+        type=int,
+        default=5,
+        dest="max_publish",
+        help="--once ile en fazla kaç haber yayınlanacak (varsayılan: 5, spam/rate-limit önler)",
+    )
     ns.set_defaults(func=_cmd_news_stream)
 
     ai = sub.add_parser("analyze-ipo", help="İzahname/fiyat tespit raporunu analiz et")

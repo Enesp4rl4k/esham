@@ -77,6 +77,8 @@ const glowColors: Record<Accent, string> = {
   emerald: "bg-emerald-500/20",
   amber: "bg-amber-500/20",
   violet: "bg-violet-500/20",
+  orange: "bg-orange-500/20",
+  pink: "bg-pink-500/20",
 };
 
 function GlowBlob({ accent }: { accent: Accent }) {
@@ -96,6 +98,8 @@ const svgColors: Record<Accent, string> = {
   emerald: "#34d399",
   amber: "#fbbf24",
   violet: "#a78bfa",
+  orange: "#fb923c",
+  pink: "#f472b6",
 };
 
 function CategoryDecoration({

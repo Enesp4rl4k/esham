@@ -246,8 +246,15 @@ class NewsStream:
 
     # ---- çalıştırma modları ----------------------------------------------------
 
-    def check_once(self) -> int:
-        """Tek tur: KAP + makro tara, ticker JSON güncelle, tümünü yayınla."""
+    def check_once(self, max_publish: int = 5) -> int:
+        """Tek tur: KAP + makro tara, ticker JSON güncelle, en fazla max_publish haber yayınla.
+
+        max_publish ile yayın sayısı sınırlanır — GitHub Actions'ta her 15 dakikada
+        bir çalıştırıldığında 258 KAP bildiriminin hepsini tek seferde boşaltmak
+        yerine kademeli drip servis yapılır. Bu Twitter rate-limit ve Gemini 429'u önler.
+        Varsayılan 5: günde ~20 seans dakikasında çalışırsa toplamda ~100 haber/gün —
+        maksimum önem sıralamasıyla (insider > ipo > diğer) en kritikler önce gider.
+        """
         self.scan()
         self.macro_scan()
         try:
@@ -255,8 +262,13 @@ class NewsStream:
         except Exception as exc:
             log.warning("Ticker JSON güncellenemedi: %s", exc)
         published = 0
-        while self.publish_next():
+        while published < max_publish and self.publish_next():
             published += 1
+        if len(self.queue) > 0:
+            log.info(
+                "check_once: %d haber yayınlandı, %d haber kuyruкta kaldı (max_publish=%d).",
+                published, len(self.queue), max_publish,
+            )
         return published
 
     def run(self) -> None:

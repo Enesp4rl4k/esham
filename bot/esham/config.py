@@ -46,15 +46,25 @@ def _default_state_file() -> Path:
 @dataclass(frozen=True)
 class Settings:
     gemini_api_key: str | None = field(default_factory=lambda: os.getenv("GEMINI_API_KEY"))
-    # Derin analiz/sabah raporu modeli. Varsayılan flash: ücretsiz tier'da çalışır ve
-    # yeterince güçlü. Paralı tier'da ESHAM_GEMINI_MODEL=gemini-2.5-pro ile yükseltilebilir.
+    # Derin analiz/sabah raporu modeli.
     gemini_model: str = field(
         default_factory=lambda: os.getenv("ESHAM_GEMINI_MODEL", "gemini-2.5-flash")
     )
-    # Anlık tweet özetleri için ucuz/hızlı model. Yüksek hacimli çağrılarda maliyeti
-    # düşürmek için en küçük katman kullanılır.
+    # Anlık tweet özetleri için ucuz/hızlı model.
     tweet_model: str = field(
         default_factory=lambda: os.getenv("ESHAM_TWEET_MODEL", "gemini-2.5-flash-lite")
+    )
+
+    # Groq — primary AI provider (cok daha yuksek ucretsiz kota: dakikada 30 istek)
+    # console.groq.com → API Keys → ucretsiz kayit
+    groq_api_key: str | None = field(default_factory=lambda: os.getenv("GROQ_API_KEY"))
+    # Groq modeli — llama-3.3-70b-versatile kaliteli ve hizli, ücretsiz tier dahil
+    groq_model: str = field(
+        default_factory=lambda: os.getenv("ESHAM_GROQ_MODEL", "llama-3.3-70b-versatile")
+    )
+    # Groq tweet modeli — hizli ve ucuz
+    groq_tweet_model: str = field(
+        default_factory=lambda: os.getenv("ESHAM_GROQ_TWEET_MODEL", "llama-3.1-8b-instant")
     )
 
     twitter_api_key: str | None = field(default_factory=lambda: os.getenv("TWITTER_API_KEY"))
@@ -97,6 +107,12 @@ class Settings:
         default_factory=lambda: os.getenv("ESHAM_BRAND_REST", "ham")
     )
     # Kart alt satırı tagline
+    # Unsplash — genel haber kartları için otomatik fotoğraf arka plan
+    # unsplash.com/developers → New Application → Access Key (ücretsiz, kredi kartı yok)
+    unsplash_access_key: str | None = field(
+        default_factory=lambda: os.getenv("UNSPLASH_ACCESS_KEY")
+    )
+
     brand_tagline: str = field(
         default_factory=lambda: os.getenv(
             "ESHAM_BRAND_TAGLINE", "YAPAY ZEKA DESTEKLİ PİYASA ANALİZİ"
@@ -150,7 +166,11 @@ class Settings:
 
     @property
     def ai_enabled(self) -> bool:
-        return bool(self.gemini_api_key)
+        return bool(self.groq_api_key or self.gemini_api_key)
+
+    @property
+    def groq_enabled(self) -> bool:
+        return bool(self.groq_api_key)
 
 
 settings = Settings()

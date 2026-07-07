@@ -41,6 +41,32 @@ MATERIAL_KEYWORDS: dict[str, int] = {
     "halka arz": 3, "fiyat tespit": 3, "izahname": 2,
     "kâr tahmin": 2, "kar tahmin": 2, "beklenti revizyon": 2,
     "hisse devri": 2, "blok satış": 2,
+
+    # ── Makroekonomik ve para politikası sinyalleri ────────────────────────
+    # TCMB & para politikası
+    "faiz karar": 4, "faiz artır": 4, "faiz indir": 4,
+    "para politikası": 3, "ppk karar": 4, "merkez bankası karar": 4,
+    "tcmb": 3, "rezerv": 2, "swap": 2, "zorunlu karşılık": 3,
+    "enflasyon hedef": 3, "enflasyon raporu": 3,
+
+    # Hazine & kamu maliyesi
+    "hazine ihale": 3, "tahvil ihale": 3, "bono ihale": 3,
+    "bütçe açık": 3, "bütçe fazla": 3, "cari açık": 3, "cari denge": 2,
+    "eurobond": 3, "dış borç": 2,
+
+    # Makro veri açıklamaları
+    "enflasyon": 2, "tüfe": 3, "üfe": 3, "gsyh": 3, "büyüme": 2,
+    "işsizlik": 2, "istihdam": 2, "ihracat": 1, "ithalat": 1,
+    "dış ticaret": 2, "sanayi üretim": 2, "kapasite kullanım": 1,
+
+    # SPK & düzenleyici
+    "spk karar": 3, "bddk karar": 3, "düzenleyici karar": 2,
+    "muafiyet": 2, "onay": 1, "ret": 1,
+
+    # Uluslararası piyasa & kredi
+    "imf": 2, "dünya bankası": 2, "kredi notu": 3, "görünüm": 1,
+    "yabancı yatırımcı": 2, "portföy akış": 2,
+    "kur": 2, "dolar": 1, "euro": 1, "sterlin": 1,
 }
 
 # Rutin/idari bildirimler (negatif ağırlık) — tek başına paylaşıma değmez.
