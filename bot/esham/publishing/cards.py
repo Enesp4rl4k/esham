@@ -323,9 +323,9 @@ class CardGenerator:
                 cursor_y += 16
 
         if spec.headline:
-            headline_font = self.outfit(38 if spec.stat_value else 50)
+            headline_font = self.outfit(34 if spec.stat_value else 50)
             line_h = self._line_h(headline_font)
-            desired_lines = 2 if spec.stat_value else 3
+            desired_lines = 3 if spec.stat_value else 4
             # Kalan dikey alana göre kaç satır GERÇEKTEN sığar hesapla; _wrap'a bunu
             # ver ki taşan satır sessizce kaybolmasın, düzgün "…" ile ayarlansın.
             available = content_bottom - 8 - cursor_y

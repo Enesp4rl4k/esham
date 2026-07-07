@@ -105,7 +105,8 @@ def run_morning_report(publish_social: bool = True) -> str | None:
     snapshot = gather_snapshot()
 
     analyzer = MarketAIAnalyzer()
-    body, ai_used = analyzer.generate_morning_report(snapshot)
+    # Rapor + tweet thread tek AI çağrısında üretilir (rate limit önlemi)
+    body, ai_used, thread_tweets = analyzer.generate_morning_report_and_thread(snapshot)
 
     bist = snapshot.bist
     change = bist.change if bist else ""
@@ -146,8 +147,7 @@ def run_morning_report(publish_social: bool = True) -> str | None:
     slug = draft.resolved_slug()
 
     if publish_social:
-        # Thread formatı: sabah bülteni 5-6 tweet'e bölünür, son tweet'e rapor linki eklenir
-        thread_tweets = analyzer.generate_morning_thread(snapshot)
+        # Thread hazır (rapor ile aynı AI çağrısında üretildi)
         if thread_tweets:
             # Son tweet'e rapor linkini ekle
             last = thread_tweets[-1]

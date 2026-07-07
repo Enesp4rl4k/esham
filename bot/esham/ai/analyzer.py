@@ -242,140 +242,133 @@ Bu bildirimi küresel makro trendler (faizler, kurlar) ve ilgili sektördeki rot
         tweet = f"{emoji} {company} ({ticker}): {title[:200]}"
         return body, summary, tweet
 
-    def generate_morning_report(self, snapshot: MarketSnapshot) -> tuple[str, bool]:
-        """Sabah bülteninin markdown gövdesini üretir.
+    def generate_morning_report_and_thread(
+        self, snapshot: MarketSnapshot
+    ) -> tuple[str, bool, list[str]]:
+        """Sabah bültenini VE tweet thread'ini tek AI çağrısında üretir.
 
-        Döndürür: (body_markdown, ai_used)
-        - body_markdown : web raporuna yazılacak markdown gövde
-        - ai_used       : True ise AI üretimi, False ise deterministik şablon
+        Rate limit sorununu önlemek için rapor + thread tek prompt'ta istenir,
+        ardından parse edilir.
+
+        Döndürür: (body_markdown, ai_used, tweets)
         """
         from datetime import datetime, timedelta, timezone
+        import re
 
         today = datetime.now(timezone(timedelta(hours=3)))
         date_str = today.strftime("%d.%m.%Y")
         context = self._snapshot_context(snapshot)
 
-        # Hangi veri kaynaklarının mevcut olduğunu belirle
         has_macro = snapshot.macro is not None and bool(snapshot.macro.tickers)
         has_viop = snapshot.viop_quote is not None
         has_sector = bool(snapshot.sector)
         has_kap = bool(snapshot.disclosures)
         has_calendar = bool(snapshot.calendar)
 
-        # Mevcut kaynaklara göre dinamik bölüm listesi oluştur
         sections: list[str] = ["Genel Görünüm (BIST endeksi, genel tablo)"]
         if has_macro:
-            sections.append("Küresel Piyasalar (ABD 10Y faiz, EUR/USD, Altın, VIX, Brent — her birinin BIST'e etkisini yorumla)")
+            sections.append("Küresel Piyasalar (ABD 10Y faiz, EUR/USD, Altın, VIX, Brent — BIST etkisini yorumla)")
         if has_viop:
-            sections.append("VİOP & Türev Piyasa (endeks/vadeli fiyat, teminat stresi varsa belirt)")
+            sections.append("VİOP & Türev Piyasa (endeks/vadeli fiyat, teminat stresi)")
         if has_sector:
-            sections.append("Sektör Rotasyonu (güçlü ve zayıf sektörler, para akışı yorumu)")
+            sections.append("Sektör Rotasyonu (güçlü ve zayıf sektörler, para akışı)")
         if has_kap:
-            sections.append("KAP Öne Çıkanlar (önemli bildirimleri kısa özetle; içsel işlem varsa vurgula)")
+            sections.append("KAP Öne Çıkanlar (önemli bildirimler; içsel işlem varsa vurgula)")
         if has_calendar:
-            sections.append("Ekonomik Takvim (bugünün kritik veri açıklamaları ve piyasa beklentisi)")
+            sections.append("Ekonomik Takvim (bugünün kritik veri açıklamaları)")
         sections.append("Değerlendirme (özet görüş; yatırım tavsiyesi verme)")
-
         sections_text = "\n".join(f"  {i+1}. {s}" for i, s in enumerate(sections))
 
-        prompt = f"""
-Aracı kurum baş stratejisti kalitesinde, Türkçe bir "sabah piyasa bülteni" yaz. Bugünün tarihi: {date_str}.
+        prompt = f"""Aracı kurum baş stratejisti kalitesinde, Türkçe bir sabah piyasa bülteni ve tweet thread'i yaz. Tarih: {date_str}.
 
-Kurallar:
-- Markdown kullan (## başlıklar, listeler, gerekirse tablo).
-- Yatırım tavsiyesi verme; nesnel, öngörülü, vizyoner ve derinlemesine analitik bir dil kullan. Yüzeysel "arttı/azaldı" yorumlarından kaçın.
-- Verileri birbiriyle bağdaştırarak (örneğin ABD faizi ile BIST'teki teknoloji/banka rotasyonunu) bütüncül bir hikaye anlat. Paranın nereye aktığını analiz et.
-- ASLA köşeli parantezli yer tutucu ([...]) yazma; sadece aşağıdaki verilerle yaz.
-- En üste ## başlık koyma, doğrudan bölümlerle başla.
-- Her bölüm doyurucu, bilgi yoğun ve profesyonel argümanlarla desteklenmiş olsun.
+=== BÖLÜM A: RAPOR ===
+Markdown formatında (## başlıklar, listeler). Yatırım tavsiyesi verme. Verileri birbiriyle bağdaştır.
+ASLA köşeli parantezli yer tutucu yazma. En üste ## başlık koyma.
 
-Aşağıdaki güncel piyasa verileri sana sağlanmıştır:
-
-{context}
-
-Bülten şu bölümleri SIRALI olarak içersin:
+Bölümler (sırayla):
 {sections_text}
-"""
-        body = self.client.generate(prompt, disable_thinking=True, task_type="analysis")
-        if body:
-            return body, True
-        log.info("AI kapalı/başarısız; şablon sabah raporu üretiliyor.")
-        return self._template_morning_report(snapshot), False
 
-    def generate_morning_thread(self, snapshot: MarketSnapshot) -> list[str]:
-        """Sabah bültenini 5-6 tweet'lik thread olarak üretir.
+=== BÖLÜM B: TWEET THREAD ===
+5-6 tweet'lik thread. Her tweet max 260 karakter, bağımsız okunabilir, rakam/oran içermeli.
+EMOJİ KULLANMA, hashtag EKLEME. Son tweet soru ile bitsin.
 
-        Her tweet bağımsız okunabilir, bilgi yoğun ve makro/sektör/KAP verilerini özetler.
-        İlk tweet çarpıcı bir "hook" ve genel görünüm, sonrakiler detayları işler.
-        
-        Döndürür: tweet listesi (her biri max 280 karakter)
-        """
-        if not self.client.enabled:
-            # Fallback: tek tweet
-            b = snapshot.bist
-            return [f"BIST {b.index if b else 'XU100'} bugün {b.price if b else '—'} seviyesinde. Detaylı bülten web sitesinde."]
+Format (kesinlikle bu şablonu kullan):
+TWEET 1: [metin]
+TWEET 2: [metin]
+TWEET 3: [metin]
+TWEET 4: [metin]
+TWEET 5: [metin]
+TWEET 6: [metin — özet + soru]
 
-        context = self._snapshot_context(snapshot)
-        prompt = f"""
-Sen üst düzey bir piyasa analisti ve içerik stratejistisin. Aşağıdaki sabah verilerini kullanarak
-5-6 tweet'lik bir thread yaz. Her tweet BAĞIMSIZ okunabilir, bilgi yoğun ve çarpıcı olmalı.
-
-KURALLAR:
-1. İLK TWEET: Genel görünüm + çarpıcı hook. BIST endeks seviyesi, değişim ve günün en kritik başlığı.
-   Örnek format: "BIST100 10.450'de (-%0.8) açılış öncesinde. ABD 10Y faizi %4.5'e yükselirken [etki] izleniyor."
-
-2. İKİNCİ TWEET: Küresel makro gelişmeler (ABD faiz, EUR/USD, altın, VIX). En dikkat çeken 2-3 veriyi yorumla.
-   Örnek: "ABD 10Y tahvil faizi %4.5 — son 3 ayın zirvesi. Bu gelişmekte olan piyasalara baskı sinyali."
-
-3. ÜÇÜNCÜ TWEET: VİOP/teminat veya sektör rotasyonu. Hangi sektörlere para akıyor, kim güçlü kim zayıf.
-   Örnek: "Sektör rotasyonu: Ulaştırma %3.1 ile öne çıkıyor. Teknoloji -%1.2 ile geri planda."
-
-4. DÖRDÜNCÜ TWEET: KAP öne çıkanlar. İçsel işlem/halka arz/büyük açıklama varsa vurgula.
-   Örnek: "KAP'ta dikkat: [Şirket] [işlem] açıkladı. [Etki yorumu]."
-
-5. BEŞİNCİ TWEET (opsiyonel): Ekonomik takvim veya ek bağlam. Bugün açıklanacak kritik veri.
-   Örnek: "Bugün 14:30'da ABD istihdam verisi açıklanacak — BIST için volatilite tetikleyicisi olabilir."
-
-6. SON TWEET: Özet değerlendirme + SORU ile bitir (etkileşimi artırır).
-   Örnek: "Özetle: Küresel faiz baskısı BIST'te temkinli bir gün işaret ediyor. Sizce sektör rotasyonu devam eder mi?"
-
-HER TWEET için:
-- Max 260 karakter (thread'de link yok ama güvenlik payı)
-- Rakam/oran MUTLAKA ekle (fiyat, yüzde, tutar)
-- SORU formatı etkileşimi artırır (özellikle son tweet)
-- EMOJİ KULLANMA, hashtag EKLEMEde
-- Her tweet bağımsız anlaşılabilir olsun
-
-Güncel veriler:
+=== VERİLER ===
 {context}
 
-Her tweet'i ayrı satırda "TWEET [numara]:" başlığıyla ver. Örnek format:
+Çıktı formatı:
+---RAPOR---
+[markdown rapor buraya]
+---THREAD---
 TWEET 1: [metin]
 TWEET 2: [metin]
 ...
 """
         raw = self.client.generate(prompt, disable_thinking=True, task_type="analysis")
         if not raw:
-            # Fallback
-            b = snapshot.bist
-            return [f"BIST {b.index if b else 'XU100'} bugün {b.price if b else '—'} seviyesinde. Detaylı sabah bülteni web sitesinde."]
+            log.info("AI kapalı/başarısız; şablon sabah raporu üretiliyor.")
+            body = self._template_morning_report(snapshot)
+            tweets = self._fallback_tweets(snapshot)
+            return body, False, tweets
 
-        # Parse tweet'leri
-        import re
-        pattern = r"TWEET\s+\d+:\s*(.+?)(?=TWEET\s+\d+:|$)"
-        matches = re.findall(pattern, raw, re.DOTALL | re.IGNORECASE)
-        tweets = [m.strip() for m in matches if m.strip()]
-        
-        # Her tweet'i 280 karakterle sınırla
-        tweets = [t[:280] if len(t) > 280 else t for t in tweets]
-        
-        # En az 3, en fazla 7 tweet
+        # --- Rapor bölümünü parse et ---
+        report_match = re.search(r"---RAPOR---\s*(.*?)(?=---THREAD---|$)", raw, re.DOTALL)
+        body = report_match.group(1).strip() if report_match else raw.strip()
+        if not body:
+            body = self._template_morning_report(snapshot)
+
+        # --- Thread bölümünü parse et ---
+        thread_match = re.search(r"---THREAD---\s*(.*?)$", raw, re.DOTALL)
+        thread_raw = thread_match.group(1).strip() if thread_match else raw
+
+        tweet_pattern = r"TWEET\s+\d+:\s*(.+?)(?=TWEET\s+\d+:|$)"
+        matches = re.findall(tweet_pattern, thread_raw, re.DOTALL | re.IGNORECASE)
+        tweets = [m.strip()[:280] for m in matches if m.strip()]
+
         if len(tweets) < 3:
-            # Fallback
-            b = snapshot.bist
-            return [f"BIST {b.index if b else 'XU100'} sabah raporu hazır. {b.price if b else '—'} seviyesinde. Detaylar web'de."]
-        
-        return tweets[:7]  # max 7 tweet
+            tweets = self._fallback_tweets(snapshot)
+
+        return body, True, tweets[:7]
+
+    def generate_morning_report(self, snapshot: MarketSnapshot) -> tuple[str, bool]:
+        """Sadece rapor üretir (eski uyumluluk). Thread gerekmiyorsa bunu kullan."""
+        body, ai_used, _ = self.generate_morning_report_and_thread(snapshot)
+        return body, ai_used
+
+    def generate_morning_thread(self, snapshot: MarketSnapshot) -> list[str]:
+        """Sadece thread üretir. generate_morning_report_and_thread kullanılması önerilir."""
+        _, _, tweets = self.generate_morning_report_and_thread(snapshot)
+        return tweets
+
+    def _fallback_tweets(self, snapshot: MarketSnapshot) -> list[str]:
+        """AI başarısız olduğunda snapshot verisiyle deterministik tweet listesi üretir."""
+        b = snapshot.bist
+        index = b.index if b else "XU100"
+        price = b.price if b else "—"
+        change = b.change if b else "—"
+
+        tweets = [
+            f"BIST {index} bugün {price} seviyesinde, {change} değişimle açıldı. Sabah bülteni hazır.",
+        ]
+        if snapshot.macro and snapshot.macro.tickers:
+            macro_bits = []
+            for t in snapshot.macro.tickers[:3]:
+                macro_bits.append(f"{t.label}: {t.value_str}")
+            tweets.append("Küresel piyasalar: " + " | ".join(macro_bits))
+        if snapshot.sector:
+            top = sorted(snapshot.sector, key=lambda s: abs(float(s.change_pct or 0)), reverse=True)[:2]
+            sector_bits = [f"{s.name} {s.change_pct:+.1f}%" for s in top if hasattr(s, "change_pct")]
+            if sector_bits:
+                tweets.append("Öne çıkan sektörler: " + ", ".join(sector_bits))
+        tweets.append(f"Detaylı sabah raporu web sitesinde. Bugün piyasayı ne yönlendirir sizce?")
+        return tweets
 
     def generate_global_report(self, macro_snapshot: str) -> tuple[str, str]:
         """Küresel makro verilerini alıp detaylı bir AI raporu ve tweet üretir.
