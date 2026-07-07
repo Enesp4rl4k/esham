@@ -56,15 +56,23 @@ class SocialPublisher:
 
             media_ids = None
             if image_path and image_path.exists():
-                auth = tweepy.OAuth1UserHandler(
-                    settings.twitter_api_key, settings.twitter_api_secret,
-                    settings.twitter_access_token, settings.twitter_access_secret
-                )
-                api = tweepy.API(auth)
-                media = api.media_upload(filename=str(image_path))
-                media_ids = [media.media_id]
+                try:
+                    auth = tweepy.OAuth1UserHandler(
+                        settings.twitter_api_key, settings.twitter_api_secret,
+                        settings.twitter_access_token, settings.twitter_access_secret
+                    )
+                    api = tweepy.API(auth)
+                    media = api.media_upload(filename=str(image_path))
+                    media_ids = [media.media_id]
+                except Exception as media_exc:
+                    # Free plan v1.1 media/upload endpoint'i kullanılamıyor;
+                    # görselsiz tweet göndermeye devam et.
+                    log.warning("Medya yüklenemedi (%s); görselsiz tweet gönderiliyor.", media_exc)
+                    media_ids = None
 
-            kwargs: dict = {"text": cleaned_message, "media_ids": media_ids}
+            kwargs: dict = {"text": cleaned_message}
+            if media_ids:
+                kwargs["media_ids"] = media_ids
             if reply_to_id and reply_to_id != "dry-run-id":
                 kwargs["in_reply_to_tweet_id"] = reply_to_id
 
