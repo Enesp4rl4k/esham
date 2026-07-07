@@ -31,25 +31,88 @@ olası etkilerini çok kısa, net ve anlaşılır bir dille (yatırım tavsiyesi
 
 Haber: {news_text}
 """
-        return self.client.generate(prompt) or "🤖 Yapay zeka yorumu şu an üretilemedi."
+        return self.client.generate(prompt, task_type="analysis") or "Yapay zeka yorumu şu an üretilemedi."
+
+    def generate_breaking_news_tweet(self, headline: str, macro_context: str = "") -> tuple[str, str]:
+        """SON DAKİKA haberi için AI destekli tweet metni ve kısa rapor gövdesi üretir.
+
+        Döndürür: (tweet_text, body_markdown)
+        - tweet_text   : 280 karakter hedefli, bağlam ve etki açıklaması olan tweet
+        - body_markdown: web raporu için kısa analiz gövdesi
+        """
+        macro_block = f"\nGüncel makro bağlam: {macro_context}" if macro_context else ""
+
+        prompt = f"""
+Sen bir finansal haber masası analistisin. Aşağıdaki son dakika haberini analiz et.
+
+Haber: {headline}
+{macro_block}
+
+Şu formatta yanıt ver:
+
+## TWEET
+280 karakteri akıllıca kullanan, bilgi yoğun bir tweet yaz. Kurallar:
+- Haberin NEDEN önemli olduğunu ve piyasalara/ekonomiye olası etkisini belirt
+- Varsa rakam/veri mutlaka ekle (fiyat, oran, tutar, yüzde)
+- Sadece başlığı tekrar etme — yorum ve bağlam ekle
+- EMOJİ KULLANMA — sadece metin, rakam ve veriler
+- Hashtag EKLEMEde — zaten dışarıdan eklenecek
+
+## ANALIZ
+3-4 cümlelik kısa Türkçe analiz. Bu haberin piyasalar, sektörler veya Türkiye ekonomisi
+üzerindeki etkisini, risk ve fırsatları ve izlenmesi gereken sonraki gelişmeleri açıkla.
+Yatırım tavsiyesi verme.
+"""
+        raw = self.client.generate(prompt, disable_thinking=True, task_type="tweet")
+        if not raw:
+            # Fallback — sadece başlık
+            return headline[:260], f"## {headline}\n\nBu gelişme piyasalar üzerinde etkili olabilir."
+
+        import re
+        def _extract(section: str) -> str:
+            pattern = rf"##\s*{re.escape(section)}\s*\n(.*?)(?=\n##\s|\Z)"
+            m = re.search(pattern, raw, re.DOTALL | re.IGNORECASE)
+            return m.group(1).strip() if m else ""
+
+        tweet = _extract("TWEET") or headline[:260]
+        analysis = _extract("ANALİZ") or _extract("ANALIZ") or ""
+        body = f"## {headline}\n\n{analysis}" if analysis else f"## {headline}\n\n{raw}"
+        return tweet, body
 
     def analyze_global_breaking_news(self, news_title: str) -> str | None:
-        """İngilizce haber başlığını analiz edip çok önemliyse Türkçe SON DAKİKA başlığına çevirir."""
+        """Haber başlığını analiz edip çok önemliyse Türkçe SON DAKİKA başlığına çevirir.
+
+        Kapsam: ekonomi, piyasalar, kripto, teknoloji/AI (piyasa etkisi olan) haberleri.
+        Önemsiz haberler için None döner — AI prompt'u agresif filtreler.
+        """
         if not self.client.enabled:
             return None
-        
+
         prompt = f"""
-Sen bir küresel piyasalar haber masası şefisin. Aşağıdaki İngilizce son dakika haber başlığını analiz et.
-Bu haber Borsa İstanbul (BIST) veya Küresel Piyasalar (Makro, Altın, Kripto, FED, ABD Hisseleri) için DİREKT ETKİ yaratacak kadar çok önemli bir "SON DAKİKA (BREAKING)" haberi mi? (Örneğin: Faiz kararları, savaş, sürpriz veri, büyük şirket iflası/satın alması vs.)
-Eğer haber sıradan bir piyasa yorumu, beklenti raporu veya ikincil bir gelişmeyse sadece "NO" yaz.
-Eğer gerçekten çok önemli bir SON DAKİKA gelişmesiyse, Türkçe ve çok vurucu bir başlık olarak çevir. Metin kesinlikle "SON DAKİKA: " ile başlamalıdır.
+Sen bir finansal haber masası şefisin. Aşağıdaki haber başlığını analiz et.
+
+Bu haber aşağıdaki kategorilerden birinde DOĞRUDAN ve ÖNEMLİ bir gelişme mi?
+1. Makro Ekonomi: Merkez bankası faiz kararları (FED, ECB, TCMB), enflasyon sürprizi, resesyon, savaş/jeopolitik kriz
+2. Küresel Piyasalar: Büyük borsa çöküşü/rallisi, büyük şirket iflası/satın alması, S&P500/NASDAQ/BIST sert hareketi
+3. Kripto: Bitcoin/ETH sert hareket, büyük exchange çöküşü/hack, ülke yasağı/kabulü, balina hareketi
+4. Teknoloji/AI (Piyasa Etkisi): Yeni büyük AI modeli lansmanı (GPT-5, Claude 4 vb.), çip/yarı iletken krizi, büyük tech şirketi satın alması, NVIDIA/AMD/TSMC önemli haberi, veri merkezi yatırımı/krizi
+5. Türkiye Ekonomisi: TCMB kararı, enflasyon verisi, döviz krizi, büyük şirket haberi
+
+Eğer haber yukarıdaki kategorilerden birinde SÜRPRIZ, ÖNEMLİ ve DOĞRUDAN ETKİ YARATABİLECEK bir gelişmeyse:
+→ Türkçe, kısa (max 120 karakter), çok vurucu ve bilgi yoğun bir başlık yaz. "SON DAKİKA: " ile başla.
+
+Eğer haber sıradan bir analiz, rutin güncelleme, tahmin raporu, ikincil bir gelişme veya yukarıdaki kategorilerle ilgisizse:
+→ Sadece "NO" yaz.
 
 Haber Başlığı: {news_title}
 """
-        result = self.client.generate(prompt, disable_thinking=True)
-        if not result or result.strip() == "NO" or "NO" in result.strip().split("\n")[0].upper():
+        result = self.client.generate(prompt, disable_thinking=True, task_type="filter")
+        if not result:
             return None
-        
+        first_line = result.strip().split("\n")[0].strip().upper()
+        if first_line == "NO" or first_line.startswith("NO ") or first_line.startswith("NO."):
+            return None
+
         # Temizle
         result = result.strip().strip('"').strip("'")
         if result.upper().startswith("SON DAKİKA:"):
@@ -80,10 +143,22 @@ Haber Başlığı: {news_title}
         macro_block = f"\nGüncel makro bağlam:\n{macro_context}" if macro_context else ""
         sector_block = f"\nSektör bağlamı:\n{sector_context}" if sector_context else ""
 
+        if is_insider:
+            insider_prompt_extra = """
+ÖNEMLİ — Bu bir İÇSEL İŞLEM bildirimidir:
+- Alım mı satım mı olduğunu net belirt (alım = yönetim güveni sinyali / satım = olası çıkış sinyali)
+- Kim yapıyor? (YK üyesi, CEO, büyük ortak) — pozisyon ne kadar önemli?
+- Tutar/lot büyüklüğüne dikkat — sembolik mi, yoksa agresif mi?
+- İçsel bilgiye sahip kişinin bu hareketi şirketin yakın dönem görünümü hakkında ne söylüyor?
+- BIST'teki emsal içsel işlemlerle karşılaştır (varsa bağlam ver)
+"""
+        else:
+            insider_prompt_extra = ""
+
         prompt = f"""
-Sen bir Türk sermaye piyasaları analistisin. Aşağıdaki KAP bildirimini oku ve
-kısa, nesnel bir piyasa analizi yaz. Yatırım tavsiyesi verme. Türkçe yaz.
-{insider_note}
+Sen üst düzey bir Türk sermaye piyasaları analistisin. Aşağıdaki KAP bildirimini oku ve
+derinlemesine, kurumsal kalitede bir piyasa analizi yaz. Yatırım tavsiyesi verme. Türkçe yaz.
+{insider_prompt_extra}
 Şirket: {company} ({ticker})
 Bildirim türü: {disclosure_type}
 Başlık: {title}
@@ -93,7 +168,7 @@ Başlık: {title}
 Şu formatta yanıt ver (başlıkları aynen koru):
 
 ## ÖZET
-Tek cümlelik özet (max 150 karakter).
+Tek cümlelik özet (max 150 karakter). Rakamsal detay varsa (fiyat, tutar, oran) mutlaka ekle.
 
 ## ANALİZ
 3-5 madde halinde bildirimin piyasa etkisini, şirketin finansallarına veya sektördeki rekabete olası yansımalarını derinlemesine analiz et. Yüzeysel ifadelerden kaçın; haberin "neden" önemli olduğunu ve satır aralarındaki risk/fırsatları belirt. Sayısal veriler, oranlar veya tutarlar varsa bunları yorumuna dahil et. Her madde 2-3 cümlelik doyurucu bir paragraf olsun.
@@ -102,9 +177,17 @@ Tek cümlelik özet (max 150 karakter).
 Bu bildirimi küresel makro trendler (faizler, kurlar) ve ilgili sektördeki rotasyon/gelişmeler ile ilişkilendir. Şirketin bu makro konjonktürdeki pozisyonunu yorumla (2-3 cümle, veri yoksa atla).
 
 ## TWEET
-280 karakter sınırını iyi kullanarak 2-3 cümlelik, bilgi yoğun bir tweet metni yaz. Asla sadece başlığı tekrar etme; haberin rakamsal detaylarını (fiyat, oran, tutar) ve piyasaya/şirkete olası etkisini mutlaka vurgula. Emojilerle destekle. İlgili hashtag'leri ekle.
+280 karakteri iyi kullanan, bilgi yoğun bir tweet yaz. Şu kurallara uy:
+- İLK CÜMLE bağımsız okunabilir, çarpıcı ve tek başına paylaşılabilir bir "hook" olsun.
+  Örnek format: "X şirketi Y işleminde Z tutar açıkladı — bu [sektör/piyasa] için [etki]."
+- Varsa rakam/oran MUTLAKA ekle (fiyat, tutar, yüzde, lot).
+- Haberin NEDEN önemli olduğunu ver, sadece ne olduğunu değil.
+- İçsel işlemse alım/satım sinyali ve tutar büyüklüğü öne çıksın.
+- SORU ile bitir (etkileşimi artırır). Örnek: "Sizce bu [sektör] için ne anlama geliyor?"
+- EMOJİ KULLANMA — sadece metin ve veriler.
+- Hashtag EKLEMEde — zaten dışarıdan ekleniyor.
 """
-        raw = self.client.generate(prompt, disable_thinking=True)
+        raw = self.client.generate(prompt, disable_thinking=True, task_type="analysis")
         if raw:
             return self._parse_news_analysis(raw, title, company, ticker, is_insider)
 
@@ -159,8 +242,13 @@ Bu bildirimi küresel makro trendler (faizler, kurlar) ve ilgili sektördeki rot
         tweet = f"{emoji} {company} ({ticker}): {title[:200]}"
         return body, summary, tweet
 
-    def generate_morning_report(self, snapshot: MarketSnapshot) -> str:
-        """Sabah bülteninin markdown gövdesini üretir."""
+    def generate_morning_report(self, snapshot: MarketSnapshot) -> tuple[str, bool]:
+        """Sabah bülteninin markdown gövdesini üretir.
+
+        Döndürür: (body_markdown, ai_used)
+        - body_markdown : web raporuna yazılacak markdown gövde
+        - ai_used       : True ise AI üretimi, False ise deterministik şablon
+        """
         from datetime import datetime, timedelta, timezone
 
         today = datetime.now(timezone(timedelta(hours=3)))
@@ -208,11 +296,86 @@ Aşağıdaki güncel piyasa verileri sana sağlanmıştır:
 Bülten şu bölümleri SIRALI olarak içersin:
 {sections_text}
 """
-        body = self.client.generate(prompt, disable_thinking=True)
+        body = self.client.generate(prompt, disable_thinking=True, task_type="analysis")
         if body:
-            return body
+            return body, True
         log.info("AI kapalı/başarısız; şablon sabah raporu üretiliyor.")
-        return self._template_morning_report(snapshot)
+        return self._template_morning_report(snapshot), False
+
+    def generate_morning_thread(self, snapshot: MarketSnapshot) -> list[str]:
+        """Sabah bültenini 5-6 tweet'lik thread olarak üretir.
+
+        Her tweet bağımsız okunabilir, bilgi yoğun ve makro/sektör/KAP verilerini özetler.
+        İlk tweet çarpıcı bir "hook" ve genel görünüm, sonrakiler detayları işler.
+        
+        Döndürür: tweet listesi (her biri max 280 karakter)
+        """
+        if not self.client.enabled:
+            # Fallback: tek tweet
+            b = snapshot.bist
+            return [f"BIST {b.index if b else 'XU100'} bugün {b.price if b else '—'} seviyesinde. Detaylı bülten web sitesinde."]
+
+        context = self._snapshot_context(snapshot)
+        prompt = f"""
+Sen üst düzey bir piyasa analisti ve içerik stratejistisin. Aşağıdaki sabah verilerini kullanarak
+5-6 tweet'lik bir thread yaz. Her tweet BAĞIMSIZ okunabilir, bilgi yoğun ve çarpıcı olmalı.
+
+KURALLAR:
+1. İLK TWEET: Genel görünüm + çarpıcı hook. BIST endeks seviyesi, değişim ve günün en kritik başlığı.
+   Örnek format: "BIST100 10.450'de (-%0.8) açılış öncesinde. ABD 10Y faizi %4.5'e yükselirken [etki] izleniyor."
+
+2. İKİNCİ TWEET: Küresel makro gelişmeler (ABD faiz, EUR/USD, altın, VIX). En dikkat çeken 2-3 veriyi yorumla.
+   Örnek: "ABD 10Y tahvil faizi %4.5 — son 3 ayın zirvesi. Bu gelişmekte olan piyasalara baskı sinyali."
+
+3. ÜÇÜNCÜ TWEET: VİOP/teminat veya sektör rotasyonu. Hangi sektörlere para akıyor, kim güçlü kim zayıf.
+   Örnek: "Sektör rotasyonu: Ulaştırma %3.1 ile öne çıkıyor. Teknoloji -%1.2 ile geri planda."
+
+4. DÖRDÜNCÜ TWEET: KAP öne çıkanlar. İçsel işlem/halka arz/büyük açıklama varsa vurgula.
+   Örnek: "KAP'ta dikkat: [Şirket] [işlem] açıkladı. [Etki yorumu]."
+
+5. BEŞİNCİ TWEET (opsiyonel): Ekonomik takvim veya ek bağlam. Bugün açıklanacak kritik veri.
+   Örnek: "Bugün 14:30'da ABD istihdam verisi açıklanacak — BIST için volatilite tetikleyicisi olabilir."
+
+6. SON TWEET: Özet değerlendirme + SORU ile bitir (etkileşimi artırır).
+   Örnek: "Özetle: Küresel faiz baskısı BIST'te temkinli bir gün işaret ediyor. Sizce sektör rotasyonu devam eder mi?"
+
+HER TWEET için:
+- Max 260 karakter (thread'de link yok ama güvenlik payı)
+- Rakam/oran MUTLAKA ekle (fiyat, yüzde, tutar)
+- SORU formatı etkileşimi artırır (özellikle son tweet)
+- EMOJİ KULLANMA, hashtag EKLEMEde
+- Her tweet bağımsız anlaşılabilir olsun
+
+Güncel veriler:
+{context}
+
+Her tweet'i ayrı satırda "TWEET [numara]:" başlığıyla ver. Örnek format:
+TWEET 1: [metin]
+TWEET 2: [metin]
+...
+"""
+        raw = self.client.generate(prompt, disable_thinking=True, task_type="analysis")
+        if not raw:
+            # Fallback
+            b = snapshot.bist
+            return [f"BIST {b.index if b else 'XU100'} bugün {b.price if b else '—'} seviyesinde. Detaylı sabah bülteni web sitesinde."]
+
+        # Parse tweet'leri
+        import re
+        pattern = r"TWEET\s+\d+:\s*(.+?)(?=TWEET\s+\d+:|$)"
+        matches = re.findall(pattern, raw, re.DOTALL | re.IGNORECASE)
+        tweets = [m.strip() for m in matches if m.strip()]
+        
+        # Her tweet'i 280 karakterle sınırla
+        tweets = [t[:280] if len(t) > 280 else t for t in tweets]
+        
+        # En az 3, en fazla 7 tweet
+        if len(tweets) < 3:
+            # Fallback
+            b = snapshot.bist
+            return [f"BIST {b.index if b else 'XU100'} sabah raporu hazır. {b.price if b else '—'} seviyesinde. Detaylar web'de."]
+        
+        return tweets[:7]  # max 7 tweet
 
     def generate_global_report(self, macro_snapshot: str) -> tuple[str, str]:
         """Küresel makro verilerini alıp detaylı bir AI raporu ve tweet üretir.
@@ -242,9 +405,14 @@ Veriler:
 [Bu küresel tablonun Türkiye piyasalarına olası yansımaları]
 
 ## TWEET
-[280 karakteri iyi kullanan, sadece veri tekrarlamayan, en kritik küresel gelişmeyi ve etkisini özetleyen emojili, hashtagli vurucu bir tweet metni]
+280 karakter hedefli, güçlü bir tweet. Kurallar:
+- İLK CÜMLE çarpıcı ve quote tweet'lenebilir bir "hook" olsun.
+- En kritik makro hareketi ve BIST için ne anlama geldiğini ver.
+- Tarihsel bağlam ekle (örn: "Son 3 ayın en yüksek X değeri").
+- SORU ile bitir (etkileşimi artırır).
+- EMOJİ KULLANMA, hashtag EKLEMEde.
 """
-        raw = self.client.generate(prompt)
+        raw = self.client.generate(prompt, task_type="analysis")
         if raw:
             import re
             def _extract(section: str) -> str:
@@ -276,7 +444,7 @@ ancak profesyonellerin dikkat edeceği derinlemesine bir analiz yap.
 
 Veri: {financial_data_text}
 """
-        return self.client.generate(prompt) or "Analiz şu an üretilemedi."
+        return self.client.generate(prompt, task_type="analysis") or "Analiz şu an üretilemedi."
 
     # ---- yardımcılar -----------------------------------------------------------
 

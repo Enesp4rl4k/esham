@@ -18,7 +18,9 @@ from .publishing import ContentStore, ReportDraft
 from .publishing.cards import CardGenerator, CardSpec
 from .publishing.social import SocialPublisher
 from .publishing.stock_data import write_stock_json
+from .publishing.ticker_data import update_ticker_data
 from .sources import Disclosure, MarketSnapshot
+from .sources.unsplash import PexelsSource as _PhotoSource
 from .sources.bist import BistSource
 from .sources.calendar import EconomicCalendarSource
 from .sources.global_macro import GlobalMacroSource
@@ -119,7 +121,7 @@ def run_morning_report(publish_social: bool = True) -> str | None:
     snapshot = gather_snapshot()
 
     analyzer = MarketAIAnalyzer()
-    body = analyzer.generate_morning_report(snapshot)
+    body, ai_used = analyzer.generate_morning_report(snapshot)
 
     bist = snapshot.bist
     change = bist.change if bist else ""
@@ -149,7 +151,7 @@ def run_morning_report(publish_social: bool = True) -> str | None:
         body=body,
         sources=["KAP", "BIST", "Ekonomik Takvim"],
         tags=["BIST100", "Sabah Raporu", "Makro"],
-        ai_generated=settings.ai_enabled,
+        ai_generated=ai_used,
         image_path=card_path,
     )
 
@@ -160,12 +162,31 @@ def run_morning_report(publish_social: bool = True) -> str | None:
     slug = draft.resolved_slug()
 
     if publish_social:
-        SocialPublisher().broadcast(
-            f"📊 Günün BIST & küresel piyasa sabah raporu yayında.\n"
-            f"{settings.site_url}/rapor/{slug}\n#BIST100 #Borsa",
-            image_path=card_path,
-        )
+        # Thread formatı: sabah bülteni 5-6 tweet'e bölünür, son tweet'e rapor linki eklenir
+        thread_tweets = analyzer.generate_morning_thread(snapshot)
+        if thread_tweets:
+            # Son tweet'e rapor linkini ekle
+            last = thread_tweets[-1]
+            link_suffix = f"\n{settings.site_url}/rapor/{slug}\n#BIST100 #Borsa"
+            if len(last) + len(link_suffix) <= 280:
+                thread_tweets[-1] = last + link_suffix
+            else:
+                thread_tweets.append(f"Tam rapor: {settings.site_url}/rapor/{slug}\n#BIST100 #Borsa")
+            SocialPublisher().broadcast_thread(thread_tweets, image_path=card_path)
+        else:
+            # Fallback: tek tweet
+            SocialPublisher().broadcast(
+                f"Günün BIST & küresel piyasa sabah raporu yayında.\n"
+                f"{settings.site_url}/rapor/{slug}\n#BIST100 #Borsa",
+                image_path=card_path,
+            )
     _cleanup(card_path)
+
+    # Ticker band JSON'unu güncelle — ana sayfadaki canlı bant bu dosyadan beslenir.
+    try:
+        update_ticker_data()
+    except Exception as exc:
+        log.warning("Ticker JSON güncellenemedi (sabah raporu): %s", exc)
 
     log.info("=== Süreç tamamlandı: %s ===", slug)
     return slug
@@ -251,7 +272,7 @@ def run_viop_report(
 
     if publish_social:
         SocialPublisher().broadcast(
-            f"📐 VİOP piyasa görünümü: {quote.index_symbol} {quote.index_price} "
+            f"VİOP piyasa görünümü: {quote.index_symbol} {quote.index_price} "
             f"({quote.index_change}). Teminat stresi: {stress.level}.\n"
             f"{settings.site_url}/rapor/{slug}\n#VİOP #BIST100",
             image_path=card_path,
@@ -298,7 +319,7 @@ Gün içi endeks yönü için küresel risk iştahı ve yabancı takas hareketle
     slug = draft.resolved_slug()
     if publish_social:
         SocialPublisher().broadcast(
-            f"🔔 BIST açılış: {bist.index} {bist.price} ({bist.change})\n"
+            f"BIST açılış: {bist.index} {bist.price} ({bist.change})\n"
             f"{settings.site_url}/rapor/{slug} #BIST100",
             image_path=card_path,
         )
@@ -349,13 +370,19 @@ yarınki açılış beklentilerini şekillendirecek."""
     slug = draft.resolved_slug()
     if publish_social:
         SocialPublisher().broadcast(
-            f"🔚 Kapanış: BIST {bist.index} {bist.price} ({bist.change})\n"
-            f"📊 Hacim: {bist.volume}\n"
-            f"📐 VİOP {quote.index_symbol}: {quote.index_price} ({quote.index_change})\n"
+            f"Kapanış: BIST {bist.index} {bist.price} ({bist.change})\n"
+            f"Hacim: {bist.volume} | VİOP {quote.index_symbol}: {quote.index_price} ({quote.index_change})\n"
             f"{settings.site_url}/rapor/{slug} #BIST100 #Borsa",
             image_path=card_path,
         )
     _cleanup(card_path)
+
+    # Kapanışta da ticker JSON'u güncelle — günün son canlı fiyatları.
+    try:
+        update_ticker_data()
+    except Exception as exc:
+        log.warning("Ticker JSON güncellenemedi (kapanış): %s", exc)
+
     return slug
 
 
@@ -414,7 +441,7 @@ def run_gundem_report(
 
     if publish_social:
         SocialPublisher().broadcast(
-            f"🗞️ {headline}\n{settings.site_url}/rapor/{slug}\n#Gündem #BIST",
+            f"{headline}\n{settings.site_url}/rapor/{slug}\n#Gündem #BIST",
             image_path=card_path,
         )
     _cleanup(card_path)
@@ -469,7 +496,7 @@ liderler orta vadeli momentum açısından izlenmeye değer."""
     slug = draft.resolved_slug()
     if publish_social:
         SocialPublisher().broadcast(
-            f"📊 Haftalık sektör rotasyonu yayında. Güçlü: {leaders}.\n"
+            f"Haftalık sektör rotasyonu yayında. Güçlü: {leaders}.\n"
             f"{settings.site_url}/rapor/{slug} #BIST #Sektör",
             image_path=card_path,
         )
@@ -625,15 +652,33 @@ def run_news_report(
         summary = title_line
         category = event.category
         emoji = event.emoji
-        kicker = "Küresel Piyasalar" if event.kind == "SON_DAKIKA" else event.kind.replace("_", " ").title()
+        _KICKER_MAP = {
+            "SON_DAKIKA": "Küresel Piyasalar",
+            "HISSE_HAREKET": "Hisse Alarmı",
+            "BIST_HAREKET": "BIST Endeksi",
+            "SEKTÖR_HAREKET": "Sektör Hareketi",
+            "MAKRO_HAREKET": "Makro Piyasalar",
+            "KRIPTO_HAREKET": "Kripto",
+        }
+        kicker = _KICKER_MAP.get(event.kind, event.kind.replace("_", " ").title())
         tags = event.tags or ["Makro", "Piyasa"]
         card_kicker = "SON DAKİKA" if event.kind == "SON_DAKIKA" else event.label
         card_headline = title_line[:120] if event.kind == "SON_DAKIKA" else event.headline[:120]
         card_ticker_val = "" if event.kind == "SON_DAKIKA" else event.label
 
-        if event.kind == "SON_DAKIKA":
-            body = f"## {title_line}\n\nBu gelişme küresel haber ajanslarından anlık olarak aktarılmıştır.\n\n{event.headline}"
-            tweet_text = f"{emoji} {title_line} #SonDakika #Borsa #KüreselPiyasalar"
+        if event.kind in ("SON_DAKIKA", "HISSE_HAREKET"):
+            # AI ile tweet metni + kısa analiz gövdesi üret
+            tweet_text, ai_body = analyzer.generate_breaking_news_tweet(
+                headline=title_line,
+                macro_context=macro_context,
+            )
+            if event.kind == "SON_DAKIKA" and "Kaynak" in event.headline:
+                kaynak = event.headline.split("Kaynak")[1].strip()
+                body = f"{ai_body}\n\n> Kaynak:{kaynak}"
+            elif event.kind == "HISSE_HAREKET":
+                body = f"{ai_body}\n\n> Kaynak: Yahoo Finance / BIST"
+            else:
+                body = f"{ai_body}\n\n> Kaynak: Küresel haber ajansları"
         else:
             body, summary, tweet_text = analyzer.generate_news_analysis(
                 title=event.headline,
@@ -662,6 +707,22 @@ def run_news_report(
             from .sources.bist import BistSource
             symbol = "XU100.IS" if event.kind == "BIST_HAREKET" else f"{event.label}.IS"
             sparkline = BistSource(symbol).fetch_closes()
+        elif event.kind == "HISSE_HAREKET":
+            from .sources.bist import BistSource
+            from .sources.watchlist import WATCHLIST
+            yf_symbol = next((s for s, t in WATCHLIST if t == event.label), f"{event.label}.IS")
+            sparkline = BistSource(yf_symbol).fetch_closes()
+
+    # Genel haber/gündem/kripto/teknoloji kartları için Pexels fotoğrafı çek.
+    # KAP bildirimleri için fotoğraf kullanılmaz (veri kartı kalır).
+    # BIST/VİOP fiyat hareketleri için de fotoğraf gerekmez (sparkline var).
+    _USE_PHOTO_CATEGORIES = {"gundem", "global", "kripto", "teknoloji"}
+    photo_path = None
+    if category in _USE_PHOTO_CATEGORIES and not sparkline:
+        try:
+            photo_path = _PhotoSource().fetch_photo(title, category)
+        except Exception as exc:
+            log.debug("Fotoğraf çekilemedi (%s); görselsiz devam.", exc)
 
     card_path = _render_card(
         CardSpec(
@@ -671,6 +732,7 @@ def run_news_report(
             ticker=card_ticker_val,
             template=category,
             sparkline=sparkline,
+            photo_path=photo_path,
         )
     )
 
@@ -694,8 +756,10 @@ def run_news_report(
     if publish_social:
         link = f"{settings.site_url}/rapor/{slug}"
         hashtags = " ".join(f"#{t.replace(' ', '')}" for t in tags[:3])
+        # Tweet metni: AI analizi + link + etiketler. Emoji yok.
+        # tweet_text zaten AI tarafından üretilmiş, zengin içerikli metin.
         SocialPublisher().broadcast(
-            f"{emoji} {tweet_text}\n{link}\n{hashtags}",
+            f"{tweet_text}\n\n{link}\n{hashtags}",
             image_path=card_path,
         )
 
@@ -820,7 +884,7 @@ Bülten şu bölümleri içersin:
 
     if publish_social:
         SocialPublisher().broadcast(
-            f"📅 Haftalık piyasa özeti yayında. "
+            f"Haftalık piyasa özeti yayında. "
             f"BIST {bist.change} | Güçlü: {leaders}\n"
             f"{settings.site_url}/rapor/{slug}\n"
             f"#BIST100 #HaftalıkÖzet #Borsa",
