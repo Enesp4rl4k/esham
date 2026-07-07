@@ -120,11 +120,13 @@ export async function TickerBand() {
 
   // Fallback: kategori linkleri (eski davranış)
   const catColors: Record<CategorySlug, string> = {
-    bist:   "text-sky-400",
-    global: "text-violet-400",
-    ipo:    "text-emerald-400",
-    viop:   "text-orange-400",
-    gundem: "text-amber-400",
+    bist:      "text-sky-400",
+    global:    "text-violet-400",
+    ipo:       "text-emerald-400",
+    viop:      "text-orange-400",
+    gundem:    "text-amber-400",
+    kripto:    "text-orange-300",
+    teknoloji: "text-pink-400",
   };
 
   return (
