@@ -787,8 +787,32 @@ def run_news_report(
     if publish_social:
         link = f"{settings.site_url}/rapor/{slug}"
         hashtags = " ".join(f"#{t.replace(' ', '')}" for t in tags[:3])
-        # Tweet metni: AI analizi + link + etiketler. Emoji yok.
-        # tweet_text zaten AI tarafından üretilmiş, zengin içerikli metin.
+
+        # Tweet kalite kontrolü: boş, çok kısa veya şablon fallback formatında mı?
+        # Şablon fallback: "📰 ŞİRKET (TİCKER): Başlık" formatı — AI üretemediğinde oluşur.
+        def _is_weak_tweet(t: str, ref_title: str) -> bool:
+            if not t or len(t.strip()) < 30:
+                return True
+            t_stripped = t.strip()
+            # Şablon fallback tespiti: emoji ile başlıyor VE başlığı neredeyse birebir içeriyor
+            is_template = (
+                t_stripped.startswith(("📰", "🚨"))
+                and ref_title.strip().lower() in t_stripped.lower()
+            )
+            if is_template:
+                return True
+            return False
+
+        if _is_weak_tweet(tweet_text, title):
+            # TweetComposer ile summary'den kaliteli tweet üret (ucuz model)
+            from .ai.tweet_composer import TweetComposer
+            tweet_text = TweetComposer().compose(
+                summary or title,
+                category=category,
+                emoji="🚨" if (disclosure and disclosure.is_insider) else "📰",
+            )
+            log.info("Zayıf tweet tespit edildi; TweetComposer ile yeniden üretildi.")
+
         SocialPublisher().broadcast(
             f"{tweet_text}\n\n{link}\n{hashtags}",
             image_path=card_path,

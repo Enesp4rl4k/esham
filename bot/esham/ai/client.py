@@ -1,34 +1,30 @@
 """Ortak LLM istemcisi — görev bazlı provider seçimi.
 
-Öncelik sırası (task_type'a göre):
-- "analysis" / "tweet": Gemini primary → Groq fallback
-  (Gemini 1500 req/gün; Groq çok kısıtlı günlük kota)
-- "filter": Groq fast primary → Gemini fallback
-  (binary kararlar — Groq ucuz/hızlı modeli uygundur)
-- "json" / "default": Groq primary → Gemini fallback
+Öncelik sırası (tüm task_type'lar için): Groq primary → Gemini fallback.
 
+- "filter": Groq fast (llama-3.1-8b-instant) → Groq default → Gemini fallback
+- diğer tüm ("analysis", "tweet", "json", "default"):
+    Groq default (llama-3.3-70b-versatile) → Gemini fallback
+
+Groq'un ücretsiz kotası dakikada 30 istek — Gemini'den çok daha cömert.
+Gemini yalnızca Groq rate-limit (429) veya hata verince devreye girer.
 Her ikisi de yoksa None döner, pipeline şablona düşer.
 
 Groq OpenAI-uyumlu API kullandığı için `groq` paketi gerekir:
     pip install groq==0.13.1
 
 Rate-limit (429) yönetimi:
-- Her provider kendi retry'ını yönetir
-- Primary başarısız olursa fallback'e düşer
+- Groq 429 alırsa Gemini'ye düşer
 - Her ikisi de başarısız olursa None döner
 """
 from __future__ import annotations
 
 import json
 import re
-import time
 
 from ..config import get_logger, settings
 
 log = get_logger(__name__)
-
-_RATE_LIMIT_MAX_RETRIES = 3
-_RATE_LIMIT_BASE_WAIT = 10  # Groq rate-limit genelde 5-10sn; Gemini için 30sn kullanılır
 
 
 # ── Groq backend ──────────────────────────────────────────────────────────────
@@ -69,9 +65,9 @@ class _GroqBackend:
             is_rate = "429" in msg or "rate_limit" in msg.lower() or "rate limit" in msg.lower()
             is_too_large = "413" in msg or "payload too large" in msg.lower()
             if is_rate:
-                log.warning("Groq rate-limit; Gemini fallback'e geçiliyor.")
+                log.warning("Groq rate-limit (429); Gemini fallback'e geçiliyor.")
             elif is_too_large:
-                # Prompt çok büyük — kısaltarak tekrar dene
+                # Prompt çok büyük — kısaltarak tek seferlik tekrar dene
                 if len(prompt) > 12000:
                     log.warning("Groq 413: prompt çok büyük (%d karakter); kısaltılıyor.", len(prompt))
                     try:
@@ -120,17 +116,6 @@ class _GeminiBackend:
             kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
         return types.GenerateContentConfig(**kwargs)
 
-    @staticmethod
-    def _parse_retry_delay(exc: Exception) -> float | None:
-        msg = str(exc)
-        m = re.search(r"retry(?:Delay)?['\"\s:]+(\d+(?:\.\d+)?)\s*s", msg, re.IGNORECASE)
-        if m:
-            return float(m.group(1))
-        m = re.search(r"retry in (\d+(?:\.\d+)?)", msg, re.IGNORECASE)
-        if m:
-            return float(m.group(1))
-        return None
-
     def generate(self, prompt: str, *, disable_thinking: bool = False,
                  max_tokens: int = 8192) -> str | None:
         if not self._client:
@@ -146,7 +131,7 @@ class _GeminiBackend:
             msg = str(exc)
             is_rate = "429" in msg or "RESOURCE_EXHAUSTED" in msg
             if is_rate:
-                log.warning("Gemini rate-limit; şablona düşülüyor.")
+                log.warning("Gemini rate-limit (429); Groq fallback'e geçiliyor.")
             else:
                 log.error("Gemini üretim hatası: %s", exc)
             return None
@@ -166,19 +151,20 @@ TASK_MODEL_MAP: dict[str, str] = {
 }
 
 
-# "analysis" ve "tweet" görevlerinde Gemini primary — daha cömert günlük kota
-_GEMINI_PRIMARY_TASKS = frozenset({"analysis", "tweet"})
+# Groq primary tüm görevler için — dakikada 30 req ücretsiz kota, Gemini'den çok cömert.
+# Gemini fallback olarak kalır: Groq rate-limit veya hata verirse devreye girer.
+_GEMINI_PRIMARY_TASKS: frozenset[str] = frozenset()  # artık hiçbir görev için Gemini primary değil
 
 
 class LlmClient:
-    """Görev bazlı provider seçimi: Gemini primary (analysis/tweet) veya Groq primary (filter/json).
+    """Görev bazlı provider seçimi: Groq primary, Gemini fallback (tüm görevler için).
 
     task_type bazlı öncelik:
-    - "analysis" / "tweet": Gemini → Groq fallback
-      (Gemini 1500 req/gün, Groq günlük kota çok kısıtlı)
-    - "filter": Groq fast → Gemini fallback
-    - "json" / "default": Groq → Gemini fallback
-    Her ikisi de yoksa None döner.
+    - "filter": Groq fast (llama-3.1-8b-instant) → Groq default → Gemini fallback
+    - diğer tüm ("analysis", "tweet", "json", "default"): Groq default → Gemini fallback
+
+    Groq rate-limit (429) veya hata verirse Gemini devreye girer.
+    Her ikisi de yoksa None döner, pipeline şablona düşer.
     """
 
     def __init__(
@@ -196,17 +182,18 @@ class LlmClient:
         self._groq_fast = _GroqBackend(settings.groq_tweet_model)  # llama-3.1-8b-instant
         self._gemini = _GeminiBackend(model_name or settings.gemini_model)
 
-        if self._gemini.enabled and self._groq_default.enabled:
+        if self._groq_default.enabled and self._gemini.enabled:
             log.info(
-                "LLM: Gemini primary (analysis/tweet) + Groq primary (filter/json) — çapraz fallback aktif."
+                "LLM: Groq primary (%s) + Gemini fallback (%s) — çapraz fallback aktif.",
+                settings.groq_model, settings.gemini_model,
+            )
+        elif self._groq_default.enabled:
+            log.info(
+                "LLM: Groq only (%s) + fast (%s) — Gemini key yok",
+                settings.groq_model, settings.groq_tweet_model,
             )
         elif self._gemini.enabled:
             log.info("LLM: Gemini only (%s) — Groq key yok", settings.gemini_model)
-        elif self._groq_default.enabled:
-            log.info(
-                "LLM: Groq primary (%s) + fast (%s) — Gemini key yok",
-                settings.groq_model, settings.groq_tweet_model,
-            )
         else:
             log.warning("LLM: API key yok; şablon üretimi kullanılacak.")
 
@@ -225,8 +212,8 @@ class LlmClient:
         """Görev türüne göre provider seçerek üretim yapar.
 
         task_type:
-        - "analysis" / "tweet" → Gemini primary, Groq fallback
-        - "filter" / "json" / "default" → Groq primary, Gemini fallback
+        - "filter" → Groq fast (llama-3.1-8b-instant) primary, Gemini fallback
+        - diğer tüm görevler → Groq default (llama-3.3-70b-versatile) primary, Gemini fallback
         """
         if not self.enabled:
             return None
@@ -243,7 +230,7 @@ class LlmClient:
                     return result
                 log.info("Gemini başarısız/boş [task=%s]; Groq fallback deneniyor.", task_type)
 
-            # Groq fallback
+            # Gemini fallback (artık bu dal hiç çalışmaz çünkü _GEMINI_PRIMARY_TASKS boş)
             groq = self._groq_for_task(task_type)
             if groq.enabled:
                 return groq.generate(
@@ -254,7 +241,7 @@ class LlmClient:
             return None
 
         else:
-            # Groq primary — filter/json/default için
+            # Groq primary — tüm görevler için (analysis, tweet, filter, json, default)
             groq = self._groq_for_task(task_type)
             if groq.enabled:
                 result = groq.generate(
@@ -266,7 +253,7 @@ class LlmClient:
                     return result
                 log.info("Groq başarısız/boş [task=%s]; Gemini fallback deneniyor.", task_type)
 
-            # Gemini fallback
+            # Gemini fallback — Groq rate-limit veya hata verince devreye girer
             if self._gemini.enabled:
                 return self._gemini.generate(
                     prompt,

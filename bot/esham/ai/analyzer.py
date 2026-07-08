@@ -185,9 +185,10 @@ Aşağıdaki 4 perspektiften her birini ayrı paragraf olarak yaz (min 3 cümle/
 Bu bildirimi güncel küresel makro tablo (faiz oranları, kur hareketleri, risk iştahı) ve Türkiye ekonomisindeki gelişmelerle ilişkilendir. Şirketin bu konjonktürdeki stratejik pozisyonunu 3-4 cümleyle yorumla. Veri yoksa bu bölümü atla.
 
 ## TWEET
+⚠️ BU BÖLÜMÜ MUTLAKA DOLDUR — boş bırakma, başlığı olduğu gibi tekrar etme.
 280 karakter sınırını verimli kullanan, bilgi yoğun bir tweet:
 - İlk cümle: çarpıcı "hook" — tek başına paylaşılabilir. Format: "[Şirket] [ne yaptı/ne açıkladı] — bu [etki/önemi] demek."
-- Rakam/oran/tutar MUTLAKA ekle (varsa).
+- Rakam/oran/tutar MUTLAKA ekle (varsa); yoksa gelişmenin piyasa/sektör etkisini belirt.
 - Sadece ne olduğunu değil, NEDEN önemli olduğunu ver.
 - İçsel işlemse: alım/satım yönü + tutar büyüklüğü öne çıksın.
 - Son cümle soru olsun (etkileşim için). Örnek: "Bu gelişme [sektör] için nasıl yorumlanmalı?"
@@ -215,7 +216,35 @@ Bu bildirimi güncel küresel makro tablo (faiz oranları, kur hareketleri, risk
             return m.group(1).strip() if m else ""
 
         summary = _extract("ÖZET") or f"{company} ({ticker}): {title[:100]}"
-        tweet = _extract("TWEET") or f"{'🚨' if is_insider else '📰'} {title[:200]}"
+        tweet_raw = _extract("TWEET")
+
+        # Tweet kalite kontrolü: boşsa veya çok kısaysa summary'den türet.
+        # Sadece uzunluk ve boşluk kontrolü yapılır — AI ürettiği tweet şirket
+        # adını/konuyu tekrarlayabilir, bu normaldir ve "zayıf" sayılmaz.
+        def _is_weak_tweet(t: str) -> bool:
+            if not t or len(t.strip()) < 30:
+                return True
+            # Tamamen başlıkla özdeşse (boşluk/büyük-küçük harf farkı hariç) zayıf say
+            if t.strip().lower() == title.strip().lower():
+                return True
+            # Sadece "📰 Şirket (TİCKER): Başlık" formatındaysa zayıf — şablon fallback'i
+            # Bu _template_news_analysis'in ürettiği format: emoji + prefix + başlık
+            if t.strip().startswith(("📰", "🚨")) and title[:40].lower() in t.lower():
+                return True
+            return False
+
+        if _is_weak_tweet(tweet_raw):
+            # Summary'den türet: şirket + ticker + özet
+            # AI summary varsa ve sadece başlık değilse onu kullan
+            default_summary = f"{company} ({ticker}): {title[:100]}"
+            base = summary if summary and summary.strip() != default_summary.strip() else title
+            tweet = f"{company} ({ticker}) — {base}"
+            # 240 karakterde kes, soru ekle
+            if len(tweet) > 220:
+                tweet = tweet[:220].rsplit(" ", 1)[0] + "…"
+            tweet = tweet + " Bu gelişme nasıl yorumlanmalı?"
+        else:
+            tweet = tweet_raw
 
         # Body: ÖZET ve TWEET bölümleri dışındaki her şeyi al; yoksa tamamı
         body_sections = []

@@ -139,15 +139,21 @@ class Settings:
         default_factory=lambda: int(os.getenv("ESHAM_NEWS_SCAN_INTERVAL", "300"))
     )
     news_publish_interval: int = field(
-        default_factory=lambda: int(os.getenv("ESHAM_NEWS_PUBLISH_INTERVAL", "90"))
+        # 600 saniye = 10 dakikada bir yayın — dakikada max 6 AI isteği, kota koruma.
+        # Yoğun KAP günlerinde (130+ bildirim) Groq/Gemini 429 riskini minimize eder.
+        default_factory=lambda: int(os.getenv("ESHAM_NEWS_PUBLISH_INTERVAL", "600"))
     )
     news_queue_max: int = field(
         default_factory=lambda: int(os.getenv("ESHAM_NEWS_QUEUE_MAX", "200"))
     )
     # Genel KAP akışı için önem eşiği (insider/IPO bu filtreyi atlar, her zaman
     # önemli sayılır). Yükseltmek daha az/daha seçici paylaşım demektir.
+    # 4: yüksek önem sinyalli bildirimler (temettü, birleşme, iflas, dava+iştirak vb.)
+    #    Tek başına orta sinyaller (ihale=2, tahvil ihracı=2) geçemez; önem birikimleri geçer.
+    # 3: daha geniş kapsam — yüksek 429 riski
+    # 5: çok seçici — bazı gerçek önemli bildirimler kaçabilir
     kap_min_importance: int = field(
-        default_factory=lambda: int(os.getenv("ESHAM_KAP_MIN_IMPORTANCE", "3"))
+        default_factory=lambda: int(os.getenv("ESHAM_KAP_MIN_IMPORTANCE", "4"))
     )
 
     state_file: Path = field(default_factory=_default_state_file)

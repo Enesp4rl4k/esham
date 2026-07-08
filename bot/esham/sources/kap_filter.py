@@ -25,46 +25,52 @@ from ..turkish import tr_fold
 MATERIAL_KEYWORDS: dict[str, int] = {
     # Kök kullanılır (tam kelime değil) — Türkçe eklemeli dil olduğu için
     # "devral" hem "devralma" hem "devraldı" hem "devralınmasına" ile eşleşir.
-    "birleş": 3, "devral": 3, "satın al": 3, "iştirak": 2,
-    "kâr payı": 3, "kar payı": 3, "temettü": 3,
-    "sermaye artır": 3, "bedelli": 2, "bedelsiz": 2,
-    "pay geri alım": 2, "geri alım program": 2,
+    # Birincil sinyal — tek başına eşiği geçer (≥4)
+    "birleş": 4, "devral": 4, "satın al": 4, "iştirak": 3,
+    "kâr payı": 4, "kar payı": 4, "temettü": 4,
+    "sermaye artır": 4, "bedelli": 3, "bedelsiz": 3,
+    "iflas": 4, "konkordato": 4, "tasfiye": 4,
+    "faaliyet durdur": 4, "üretim durdur": 3,
+    "tahvil ihrac": 3, "temerrüt": 4,
+    "halka arz": 4, "fiyat tespit": 4, "izahname": 3,
+    "hisse devri": 3, "blok satış": 3,
+    "kredi notu": 4,  # downgrade/upgrade — tek başına önemli
+
+    # İkincil sinyal — birleşince eşiği geçer (2-3)
+    "pay geri alım": 2, "geri alım program": 3,
     "kredi derecelendirme": 2, "not tespit": 2,
     "yönetim kurulu üye": 2, "genel müdür": 2, "ceo": 2,
-    "iflas": 3, "konkordato": 3, "tasfiye": 3,
-    "dava": 2, "ceza": 2, "idari para cezası": 2,
+    "dava": 2, "ceza": 2, "idari para cezası": 3,
     "ihale": 2, "önemli sözleşme": 3, "sözleşme imza": 2,
     "kapasite artır": 2, "ihracat anlaşma": 2,
     "ruhsat": 1, "patent": 1, "lisans anlaşma": 2,
-    "grev": 2, "üretim durdur": 2, "faaliyet durdur": 3,
-    "tahvil ihrac": 2, "temerrüt": 3, "teminat mektubu": 1,
-    "halka arz": 3, "fiyat tespit": 3, "izahname": 2,
-    "kâr tahmin": 2, "kar tahmin": 2, "beklenti revizyon": 2,
-    "hisse devri": 2, "blok satış": 2,
+    "grev": 2,
+    "teminat mektubu": 1,
+    "kâr tahmin": 2, "kar tahmin": 2, "beklenti revizyon": 3,
 
     # ── Makroekonomik ve para politikası sinyalleri ────────────────────────
-    # TCMB & para politikası
+    # TCMB & para politikası — yüksek etki, tek başına geçer
     "faiz karar": 4, "faiz artır": 4, "faiz indir": 4,
-    "para politikası": 3, "ppk karar": 4, "merkez bankası karar": 4,
-    "tcmb": 3, "rezerv": 2, "swap": 2, "zorunlu karşılık": 3,
-    "enflasyon hedef": 3, "enflasyon raporu": 3,
+    "para politikası": 4, "ppk karar": 4, "merkez bankası karar": 4,
+    "tcmb": 3, "rezerv": 2, "swap": 2, "zorunlu karşılık": 4,
+    "enflasyon hedef": 4, "enflasyon raporu": 4,
 
     # Hazine & kamu maliyesi
-    "hazine ihale": 3, "tahvil ihale": 3, "bono ihale": 3,
-    "bütçe açık": 3, "bütçe fazla": 3, "cari açık": 3, "cari denge": 2,
-    "eurobond": 3, "dış borç": 2,
+    "hazine ihale": 4, "tahvil ihale": 4, "bono ihale": 3,
+    "bütçe açık": 4, "bütçe fazla": 4, "cari açık": 4, "cari denge": 3,
+    "eurobond": 4, "dış borç": 2,
 
-    # Makro veri açıklamaları
-    "enflasyon": 2, "tüfe": 3, "üfe": 3, "gsyh": 3, "büyüme": 2,
-    "işsizlik": 2, "istihdam": 2, "ihracat": 1, "ithalat": 1,
+    # Makro veri açıklamaları — önemli veriler tek başına geçmeli
+    "enflasyon": 2, "tüfe": 4, "üfe": 4, "gsyh": 4, "büyüme": 3,
+    "işsizlik": 3, "istihdam": 2, "ihracat": 1, "ithalat": 1,
     "dış ticaret": 2, "sanayi üretim": 2, "kapasite kullanım": 1,
 
     # SPK & düzenleyici
-    "spk karar": 3, "bddk karar": 3, "düzenleyici karar": 2,
+    "spk karar": 4, "bddk karar": 4, "düzenleyici karar": 3,
     "muafiyet": 2, "onay": 1, "ret": 1,
 
     # Uluslararası piyasa & kredi
-    "imf": 2, "dünya bankası": 2, "kredi notu": 3, "görünüm": 1,
+    "imf": 2, "dünya bankası": 2, "görünüm": 1,
     "yabancı yatırımcı": 2, "portföy akış": 2,
     "kur": 2, "dolar": 1, "euro": 1, "sterlin": 1,
 }
@@ -79,6 +85,41 @@ ROUTINE_KEYWORDS: dict[str, int] = {
     "finansal rapor gönder": -1, "faaliyet raporu yayım": -1,
     "pay sahipleri": -1, "iç kaynaklardan": -1,
     "ortaklığın adres": -3, "unvan değişikliği": -1,
+
+    # ── Gerçek KAP başlık formatları (keyword match'i tutturmak için) ──────────
+    # KAP'ın ürettiği gerçek başlık kalıplarına göre eşleştirildi.
+    # tr_fold() hem keyword'leri hem metni dönüştürür; ASCII yazım tutarlıdır.
+    "bagimsiz denetim kurulusunun belirlenmesi": -3,   # "Bağımsız Denetim Kuruluşunun Belirlenmesi"
+    "bagimsiz denetim kurulusu bildirimi": -3,          # "Bağımsız Denetim Kuruluşu Bildirimi"
+    "bagimsiz denetim secimi": -3,                      # alternatif başlık formu
+
+    # Rutin tescil bildirimleri — sadece "...tescili" ile biten başlıklar
+    # DİKKAT: "tescili hakkında" çok geniş — SPK başvurusu gibi önemli bildirimler
+    # de "...tescil" içerebilir. Sadece kesin bağımsız denetim tescilini yakala.
+    "denetim sirketi seciminin tescili": -3,            # "Bağımsız Denetim Şirketi Seçiminin Tesceli"
+    "denetim kurulusu seciminin tesceli": -3,           # alternatif yazım
+
+    # Vekâlet bildirimleri — spesifik, "vekalet" tek başına çok geniş
+    "vekaletname": -3,
+    "vekaleten katilim": -2,                            # "vekaleten katılım" zaten yukarıda var ama ASCII form
+
+    # Kurumsal yönetim derecelendirme bildirimleri — not değişmemişse değersiz
+    # Not: "kredi derecelendirme" zaten MATERIAL_KEYWORDS'de +2 puan alıyor.
+    # KY uyum notu bildirimleri (rutin periyodik güncelleme) -2 ile dengelenir → net 0, eşik 3 → filtre.
+    "kurumsal yonetim ilkelerine uyum derecelendirmesi": -2,
+    "kurumsal yonetim derecelendirme not bildirimi": -2,
+
+    # Rutin YK/atama bildirimleri — tek başına "atama" ya da "istifa" anlamsız;
+    # önemli YK değişiklikleri genellikle "genel müdür", "CEO" gibi keyword'lerle
+    # MATERIAL_KEYWORDS'den pozitif puan zaten alır.
+    "yonetim kurulu uyesi atamasi hakkinda": -1,        # rutin atama bildirimi
+    "yonetim kurulu uyesi istifasi": -1,                # tek başına rutin istifa
+
+    # Rutin tarihli pay geri alım raporları — "X Tarihli Pay Geri Alım İşlemleri"
+    # MATERIAL_KEYWORDS'deki "pay geri alım: +2" bu başlığa da uygulanır;
+    # -2 ile dengelenir → net 0 → filtre (eşik 3).
+    "tarihli pay geri alim": -2,
+
     # ── Post-arz bildirimleri (tamamlanmış halka arzlara ait rutin açıklamalar) ──
     # Bunlar yatırımcıya yeni bilgi taşımaz; eski arzların kapanış işlemleridir.
     "fiyat tespit raporuna iliskin": -5,   # analist raporu — eski arz
