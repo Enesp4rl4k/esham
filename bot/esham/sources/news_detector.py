@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Literal
 
 from ..config import get_logger
@@ -110,6 +111,21 @@ def _direction(pct: float) -> str:
     return "yükseldi" if pct >= 0 else "geriledi"
 
 
+def _dedup_key(prefix: str, label: str, pct: float) -> str:
+    """Aynı enstrüman için günde bir kez tetikleme anahtarı.
+
+    Önceden anahtar `pct:.2f` içeriyordu; hareket her tarama turunda birkaç
+    baz puan kayınca (ör. %2,91 -> %2,97) anahtar değişip aynı olay tekrar
+    "yeni" sayılıyor, bu da 10 dakikada bir neredeyse aynı tweet'in
+    atılmasına yol açıyordu. Gün + yön (artı/eksi) bazlı anahtar, aynı
+    enstrüman aynı yönde hareket ettiği sürece günde bir kez tetiklenmesini
+    sağlar; yön değişirse (ör. sektör düşüşe geçerse) yeniden tetiklenir.
+    """
+    day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    direction = "up" if pct >= 0 else "down"
+    return f"{prefix}:{label}:{day}:{direction}"
+
+
 # ---- olay oluşturucular ---------------------------------------------------------
 
 def _macro_event(ticker: MacroTicker) -> MarketEvent:
@@ -153,7 +169,7 @@ def _macro_event(ticker: MacroTicker) -> MarketEvent:
         value_str=ticker.value_str,
         change_str=ticker.change_str,
         headline=headline,
-        key=f"macro:{ticker.label}:{ticker.change_pct:.2f}",
+        key=_dedup_key("macro", ticker.label, ticker.change_pct),
         tags=tags,
     )
 
@@ -173,7 +189,7 @@ def _sector_event(move: SectorMove) -> MarketEvent:
         value_str=move.change_str,
         change_str=move.change_str,
         headline=headline,
-        key=f"sector:{move.code}:{move.change_pct:.2f}",
+        key=_dedup_key("sector", move.code, move.change_pct),
         tags=tags,
     )
 
@@ -191,10 +207,13 @@ class NewsDetector:
     """
 
     def __init__(self) -> None:
-        self._seen_keys: set[str] = set()  # makro/sektör/bist — bellekte
-        # SON_DAKIKA haberleri için kalıcı seen set (state.py üzerinden)
         from ..state import get_state
         self._state = get_state()
+        # Makro/sektör/bist/hisse olayları — artık diske kalıcı (1 günlük TTL).
+        # Bellekte tutulduğunda GitHub Actions her çalıştırmasında sıfırlanıyor ve
+        # aynı sektör/makro olay günde onlarca kez paylaşılıyordu.
+        self._seen_keys: set[str] = self._state.load_seen_market_events()
+        # SON_DAKIKA haberleri için kalıcı seen set (24 saatlik TTL)
         self._seen_news_keys: set[str] = self._state.load_seen_news()
 
         self._macro_src = GlobalMacroSource()
@@ -248,6 +267,7 @@ class NewsDetector:
             if event.key in self._seen_keys:
                 continue
             self._seen_keys.add(event.key)
+            self._state.save_seen_market_events(self._seen_keys)
             events.append(event)
             log.info(
                 "Makro olay tespit edildi: %s %s (eşik: ±%.2f%%)",
@@ -288,10 +308,11 @@ class NewsDetector:
             + (f", hacim: {summary.volume}" if summary.volume else "")
             + "."
         )
-        key = f"bist:{summary.index}:{pct:.2f}"
+        key = _dedup_key("bist", summary.index, pct)
         if key in self._seen_keys:
             return events
         self._seen_keys.add(key)
+        self._state.save_seen_market_events(self._seen_keys)
 
         event = MarketEvent(
             kind="BIST_HAREKET",
@@ -330,10 +351,11 @@ class NewsDetector:
                 + (f", hacim: {move.volume}" if move.volume else "")
                 + "."
             )
-            key = f"hisse:{move.ticker}:{move.change_pct:.2f}"
+            key = _dedup_key("hisse", move.ticker, move.change_pct)
             if key in self._seen_keys:
                 continue
             self._seen_keys.add(key)
+            self._state.save_seen_market_events(self._seen_keys)
 
             event = MarketEvent(
                 kind="HISSE_HAREKET",
@@ -370,6 +392,7 @@ class NewsDetector:
             if event.key in self._seen_keys:
                 continue
             self._seen_keys.add(event.key)
+            self._state.save_seen_market_events(self._seen_keys)
             events.append(event)
             log.info(
                 "Sektör olayı tespit edildi: %s %s (eşik: ±%.2f%%)",
@@ -453,10 +476,11 @@ class NewsDetector:
                 f"{ticker.label} {_fmt_pct(ticker.change_pct)} ile {strength} {direction}. "
                 f"Güncel fiyat: ${ticker.price:,.0f}"
             )
-            key = f"crypto:{ticker.symbol}:{ticker.change_pct:.2f}"
+            key = _dedup_key("crypto", ticker.symbol, ticker.change_pct)
             if key in self._seen_keys:
                 continue
             self._seen_keys.add(key)
+            self._state.save_seen_market_events(self._seen_keys)
 
             event = MarketEvent(
                 kind="KRIPTO_HAREKET",
@@ -593,4 +617,5 @@ class NewsDetector:
         """Görülmüş anahtarları sıfırlar — test veya günlük reset için."""
         self._seen_keys.clear()
         self._seen_news_keys.clear()
+        self._state.save_seen_market_events(set())
         self._state.save_seen_news(set())

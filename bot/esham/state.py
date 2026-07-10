@@ -26,6 +26,7 @@ from .config import get_logger, settings
 log = get_logger(__name__)
 
 _SEEN_RETENTION_SECONDS = 14 * 24 * 3600  # 14 gün — bu süreden eski kayıtlar silinir
+_SEEN_MARKET_RETENTION_SECONDS = 24 * 3600  # 1 gün — makro/sektör/bist olaylar
 
 
 class StateStore:
@@ -97,6 +98,26 @@ class StateStore:
         merged = {k: existing.get(k, now) for k in keys}
         pruned = {k: ts for k, ts in merged.items() if ts >= cutoff}
         self._data["seen_news"] = pruned
+        self._save()
+
+    # ---- makro/sektör/bist olay seen set (1 günlük TTL) -------------------------
+    # Bellekte tutulduğunda GitHub Actions her çalıştırmasında sıfırlanıyor ve
+    # aynı sektör/makro olayı günde onlarca kez paylaşılıyor. Diske yazılarak
+    # restart/redeploy'dan sonra da tekrar tetikleme engellenir.
+
+    def load_seen_market_events(self) -> set[str]:
+        seen: dict[str, float] = self._data.get("seen_market_events", {})
+        now = time.time()
+        cutoff = now - _SEEN_MARKET_RETENTION_SECONDS
+        return {k for k, ts in seen.items() if ts >= cutoff}
+
+    def save_seen_market_events(self, keys: set[str]) -> None:
+        existing: dict[str, float] = self._data.get("seen_market_events", {})
+        now = time.time()
+        cutoff = now - _SEEN_MARKET_RETENTION_SECONDS
+        merged = {k: existing.get(k, now) for k in keys}
+        pruned = {k: ts for k, ts in merged.items() if ts >= cutoff}
+        self._data["seen_market_events"] = pruned
         self._save()
 
     # ---- margin-call önceki değer -----------------------------------------------
