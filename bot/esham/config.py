@@ -55,7 +55,17 @@ class Settings:
         default_factory=lambda: os.getenv("ESHAM_TWEET_MODEL", "gemini-2.5-flash-lite")
     )
 
-    # Groq — primary AI provider (cok daha yuksek ucretsiz kota: dakikada 30 istek)
+    # DeepSeek — primary AI provider (ucuz + yuksek kalite, OpenAI uyumlu API)
+    # platform.deepseek.com → API Keys
+    # Modeller: deepseek-chat (V3, hizli/ucuz), deepseek-reasoner (R1, derin analiz)
+    deepseek_api_key: str | None = field(default_factory=lambda: os.getenv("DEEPSEEK_API_KEY"))
+    deepseek_model: str = field(
+        default_factory=lambda: os.getenv("ESHAM_DEEPSEEK_MODEL", "deepseek-chat")
+    )
+    # deepseek-chat : hizli, ucuz, genel analiz + tweet icin ideal
+    # deepseek-reasoner: R1 modeli, derin akil yurutme, uzun rapor analizi icin
+
+    # Groq — ikinci fallback (ucretsiz tier: dakikada 30 istek)
     # console.groq.com → API Keys → ucretsiz kayit
     groq_api_key: str | None = field(default_factory=lambda: os.getenv("GROQ_API_KEY"))
     # Groq modeli — llama-3.3-70b-versatile kaliteli ve hizli, ücretsiz tier dahil
@@ -172,7 +182,11 @@ class Settings:
 
     @property
     def ai_enabled(self) -> bool:
-        return bool(self.groq_api_key or self.gemini_api_key)
+        return bool(self.deepseek_api_key or self.groq_api_key or self.gemini_api_key)
+
+    @property
+    def deepseek_enabled(self) -> bool:
+        return bool(self.deepseek_api_key)
 
     @property
     def groq_enabled(self) -> bool:

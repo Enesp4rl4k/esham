@@ -1,21 +1,24 @@
 """Ortak LLM istemcisi — görev bazlı provider seçimi.
 
-Öncelik sırası (tüm task_type'lar için): Groq primary → Gemini fallback.
+Öncelik sırası: DeepSeek primary → Groq fallback → Gemini son fallback.
 
-- "filter": Groq fast (llama-3.1-8b-instant) → Groq default → Gemini fallback
-- diğer tüm ("analysis", "tweet", "json", "default"):
-    Groq default (llama-3.3-70b-versatile) → Gemini fallback
+- DeepSeek (api.deepseek.com): primary provider — ucuz, yüksek kalite, OpenAI uyumlu
+  deepseek-chat  : hızlı/ucuz, genel analiz + tweet
+  deepseek-reasoner: R1 modeli, derin akıl yürütme (ESHAM_DEEPSEEK_MODEL ile seçilir)
+- Groq: ikinci fallback — ücretsiz tier (dakikada 30 req), llama-3.3-70b-versatile
+- Gemini: son fallback — her ikisi de başarısız/yoksa devreye girer
 
-Groq'un ücretsiz kotası dakikada 30 istek — Gemini'den çok daha cömert.
-Gemini yalnızca Groq rate-limit (429) veya hata verince devreye girer.
-Her ikisi de yoksa None döner, pipeline şablona düşer.
+DeepSeek key yoksa Groq primary olur (eski davranış korunur).
+Her üçü de yoksa None döner, pipeline şablona düşer.
 
-Groq OpenAI-uyumlu API kullandığı için `groq` paketi gerekir:
-    pip install groq==0.13.1
+Bağımlılıklar:
+    pip install openai>=1.0.0   # DeepSeek OpenAI-uyumlu SDK kullanır
+    pip install groq==0.13.1    # Groq için
 
 Rate-limit (429) yönetimi:
-- Groq 429 alırsa Gemini'ye düşer
-- Her ikisi de başarısız olursa None döner
+- DeepSeek 429 → Groq fallback
+- Groq 429 → Gemini fallback
+- Hepsi başarısız → None
 """
 from __future__ import annotations
 
@@ -25,6 +28,52 @@ import re
 from ..config import get_logger, settings
 
 log = get_logger(__name__)
+
+
+# ── DeepSeek backend ──────────────────────────────────────────────────────────
+
+class _DeepSeekBackend:
+    """DeepSeek API wrapper — OpenAI-uyumlu, api.deepseek.com."""
+
+    def __init__(self, model: str) -> None:
+        self.model = model
+        self._client = None
+        if not settings.deepseek_api_key:
+            return
+        try:
+            from openai import OpenAI
+            self._client = OpenAI(
+                api_key=settings.deepseek_api_key,
+                base_url="https://api.deepseek.com",
+            )
+            log.info("DeepSeek istemcisi hazır (model: %s).", model)
+        except Exception as exc:
+            log.warning("DeepSeek istemcisi kurulamadı (%s).", exc)
+
+    @property
+    def enabled(self) -> bool:
+        return self._client is not None
+
+    def generate(self, prompt: str, *, max_tokens: int = 8192, temperature: float = 0.4) -> str | None:
+        if not self._client:
+            return None
+        try:
+            resp = self._client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
+            text = resp.choices[0].message.content or ""
+            return text.strip() or None
+        except Exception as exc:
+            msg = str(exc)
+            is_rate = "429" in msg or "rate_limit" in msg.lower() or "rate limit" in msg.lower()
+            if is_rate:
+                log.warning("DeepSeek rate-limit (429); Groq fallback'e geçiliyor.")
+            else:
+                log.error("DeepSeek üretim hatası: %s", exc)
+            return None
 
 
 # ── Groq backend ──────────────────────────────────────────────────────────────
@@ -157,14 +206,14 @@ _GEMINI_PRIMARY_TASKS: frozenset[str] = frozenset()  # artık hiçbir görev iç
 
 
 class LlmClient:
-    """Görev bazlı provider seçimi: Groq primary, Gemini fallback (tüm görevler için).
+    """Görev bazlı provider seçimi: DeepSeek primary → Groq fallback → Gemini son fallback.
 
     task_type bazlı öncelik:
-    - "filter": Groq fast (llama-3.1-8b-instant) → Groq default → Gemini fallback
-    - diğer tüm ("analysis", "tweet", "json", "default"): Groq default → Gemini fallback
+    - "filter": DeepSeek → Groq fast (llama-3.1-8b-instant) → Groq default → Gemini
+    - diğer tüm görevler: DeepSeek → Groq default → Gemini
 
-    Groq rate-limit (429) veya hata verirse Gemini devreye girer.
-    Her ikisi de yoksa None döner, pipeline şablona düşer.
+    DeepSeek key yoksa Groq primary olur (eski davranış).
+    Her üçü de başarısız/yoksa None döner, pipeline şablona düşer.
     """
 
     def __init__(
@@ -176,24 +225,25 @@ class LlmClient:
     ) -> None:
         self.max_output_tokens = max_output_tokens
         self.temperature = temperature
-        self.model_name = model_name or settings.groq_model
+        self.model_name = model_name or settings.deepseek_model
 
+        self._deepseek = _DeepSeekBackend(settings.deepseek_model)
         self._groq_default = _GroqBackend(settings.groq_model)
-        self._groq_fast = _GroqBackend(settings.groq_tweet_model)  # llama-3.1-8b-instant
+        self._groq_fast = _GroqBackend(settings.groq_tweet_model)
         self._gemini = _GeminiBackend(model_name or settings.gemini_model)
 
-        if self._groq_default.enabled and self._gemini.enabled:
+        if self._deepseek.enabled:
             log.info(
-                "LLM: Groq primary (%s) + Gemini fallback (%s) — çapraz fallback aktif.",
-                settings.groq_model, settings.gemini_model,
+                "LLM: DeepSeek primary (%s) + Groq fallback (%s) + Gemini son fallback.",
+                settings.deepseek_model, settings.groq_model,
             )
         elif self._groq_default.enabled:
             log.info(
-                "LLM: Groq only (%s) + fast (%s) — Gemini key yok",
-                settings.groq_model, settings.groq_tweet_model,
+                "LLM: Groq primary (%s) + Gemini fallback (%s) — DeepSeek key yok.",
+                settings.groq_model, settings.gemini_model,
             )
         elif self._gemini.enabled:
-            log.info("LLM: Gemini only (%s) — Groq key yok", settings.gemini_model)
+            log.info("LLM: Gemini only (%s) — DeepSeek ve Groq key yok.", settings.gemini_model)
         else:
             log.warning("LLM: API key yok; şablon üretimi kullanılacak.")
 
@@ -205,62 +255,50 @@ class LlmClient:
 
     @property
     def enabled(self) -> bool:
-        return self._groq_default.enabled or self._gemini.enabled
+        return self._deepseek.enabled or self._groq_default.enabled or self._gemini.enabled
 
     def generate(self, prompt: str, *, disable_thinking: bool = False,
                  task_type: str = "default") -> str | None:
-        """Görev türüne göre provider seçerek üretim yapar.
+        """Provider zinciriyle üretim: DeepSeek → Groq → Gemini.
 
         task_type:
-        - "filter" → Groq fast (llama-3.1-8b-instant) primary, Gemini fallback
-        - diğer tüm görevler → Groq default (llama-3.3-70b-versatile) primary, Gemini fallback
+        - "filter" → DeepSeek → Groq fast → Groq default → Gemini
+        - diğer tüm → DeepSeek → Groq default → Gemini
         """
         if not self.enabled:
             return None
 
-        if task_type in _GEMINI_PRIMARY_TASKS:
-            # Gemini primary — analysis/tweet için daha cömert kota
-            if self._gemini.enabled:
-                result = self._gemini.generate(
-                    prompt,
-                    disable_thinking=disable_thinking,
-                    max_tokens=self.max_output_tokens,
-                )
-                if result:
-                    return result
-                log.info("Gemini başarısız/boş [task=%s]; Groq fallback deneniyor.", task_type)
+        # 1. DeepSeek primary
+        if self._deepseek.enabled:
+            result = self._deepseek.generate(
+                prompt,
+                max_tokens=self.max_output_tokens,
+                temperature=self.temperature,
+            )
+            if result:
+                return result
+            log.info("DeepSeek başarısız/boş [task=%s]; Groq fallback deneniyor.", task_type)
 
-            # Gemini fallback (artık bu dal hiç çalışmaz çünkü _GEMINI_PRIMARY_TASKS boş)
-            groq = self._groq_for_task(task_type)
-            if groq.enabled:
-                return groq.generate(
-                    prompt,
-                    max_tokens=self.max_output_tokens,
-                    temperature=self.temperature,
-                )
-            return None
+        # 2. Groq fallback
+        groq = self._groq_for_task(task_type)
+        if groq.enabled:
+            result = groq.generate(
+                prompt,
+                max_tokens=self.max_output_tokens,
+                temperature=self.temperature,
+            )
+            if result:
+                return result
+            log.info("Groq başarısız/boş [task=%s]; Gemini fallback deneniyor.", task_type)
 
-        else:
-            # Groq primary — tüm görevler için (analysis, tweet, filter, json, default)
-            groq = self._groq_for_task(task_type)
-            if groq.enabled:
-                result = groq.generate(
-                    prompt,
-                    max_tokens=self.max_output_tokens,
-                    temperature=self.temperature,
-                )
-                if result:
-                    return result
-                log.info("Groq başarısız/boş [task=%s]; Gemini fallback deneniyor.", task_type)
-
-            # Gemini fallback — Groq rate-limit veya hata verince devreye girer
-            if self._gemini.enabled:
-                return self._gemini.generate(
-                    prompt,
-                    disable_thinking=disable_thinking,
-                    max_tokens=self.max_output_tokens,
-                )
-            return None
+        # 3. Gemini son fallback
+        if self._gemini.enabled:
+            return self._gemini.generate(
+                prompt,
+                disable_thinking=disable_thinking,
+                max_tokens=self.max_output_tokens,
+            )
+        return None
 
     def generate_json(self, prompt: str) -> dict | None:
         """JSON üretim — Groq önce (text modu), sonra Gemini (native JSON)."""
