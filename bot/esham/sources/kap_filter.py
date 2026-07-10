@@ -99,6 +99,26 @@ ROUTINE_KEYWORDS: dict[str, int] = {
     "denetim sirketi seciminin tescili": -3,            # "Bağımsız Denetim Şirketi Seçiminin Tesceli"
     "denetim kurulusu seciminin tesceli": -3,           # alternatif yazım
 
+    # ── Şirket adresi / unvan / tescil bildirimleri ──────────────────────────
+    # "Şirket Merkez Adresinin Tescili", "Merkez Adresi Değişikliği" gibi
+    # bildirimlerin yatırımcıya hiçbir yeni bilgi katmaz.
+    "merkez adresinin tescili": -5,
+    "merkez adresi degisikligi": -5,
+    "merkez adresi tescili": -5,
+    "sirket merkez adresi": -4,
+    "adres degisikligi tescil": -4,
+    "esas sozlesme tadil": -2,              # esas sözleşme tadili genellikle rutin
+    "unvan degisikligi tescil": -4,
+    "ticaret sicil tescil": -4,             # rutin ticaret sicil bildirimleri
+    "tescil ve ilan": -3,
+
+    # ── Rutin kurumsal bildirimler ────────────────────────────────────────────
+    "ozel hesap donem": -2,                 # özel hesap dönemi bildirimleri
+    "kurucu pay": -2,                       # kurucu pay bildirimleri
+    "nakdi sermaye artirimi tamamlandi": -1, # tamamlandı bildirimi (SPK başvurusu daha önemli)
+    "bilgi formu guncelleme": -3,           # kurumsal yönetim bilgi formu güncellemesi
+    "kurumsal yonetim bilgi formu": -3,
+
     # Vekâlet bildirimleri — spesifik, "vekalet" tek başına çok geniş
     "vekaletname": -3,
     "vekaleten katilim": -2,                            # "vekaleten katılım" zaten yukarıda var ama ASCII form
@@ -134,7 +154,9 @@ ROUTINE_KEYWORDS: dict[str, int] = {
 
 # Genel/kategorisiz KAP akışı için varsayılan eşik. Insider/IPO bu filtreyi
 # atladığı için etkilenmez.
-DEFAULT_THRESHOLD = 1
+# 1 → 3: tek bir ikincil sinyal (ör. "ruhsat", "onay") artık eşiği geçemiyor;
+# en az bir birincil sinyal veya birden fazla ikincil sinyal gerekiyor.
+DEFAULT_THRESHOLD = 3
 
 
 def score(d: Disclosure) -> int:
