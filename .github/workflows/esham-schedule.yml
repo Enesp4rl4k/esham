@@ -67,6 +67,7 @@ jobs:
         working-directory: bot
         timeout-minutes: 12
         env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           # dry_run=true ise Twitter/Telegram keys boş geçilir → social.py dry-run moda girer
@@ -79,7 +80,7 @@ jobs:
           ESHAM_TAKASBANK_VIOP_URL: ${{ secrets.ESHAM_TAKASBANK_VIOP_URL }}
           ESHAM_SITE_URL: https://esham.pages.dev
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
-          ESHAM_KAP_MIN_IMPORTANCE: "1"
+          ESHAM_KAP_MIN_IMPORTANCE: "3"
         run: |
           case "${{ github.event.schedule }}" in
             "30 5 * * 1-5")              CMD="morning-report" ;;
