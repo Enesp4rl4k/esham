@@ -1,0 +1,19 @@
+.github/workflows/esham-schedule.yml
+  s_056918304b16a9::t_9943776325e589 70,83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "53ce0ed97fbc5d86eeb65cb78bd4de616203cd9b",
+  "prompts": {},
+  "sessions": {
+    "s_056918304b16a9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3b61649a-451d-49a0-89b3-ee31fb49dbf6",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Enes Parlak <eparlak996@gmail.com>"
+    }
+  }
+}
