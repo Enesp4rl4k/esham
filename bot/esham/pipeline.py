@@ -788,33 +788,27 @@ def run_news_report(
         link = f"{settings.site_url}/rapor/{slug}"
         hashtags = " ".join(f"#{t.replace(' ', '')}" for t in tags[:3])
 
-        # Tweet kalite kontrolü: boş, çok kısa veya şablon fallback formatında mı?
-        # Şablon fallback: "📰 ŞİRKET (TİCKER): Başlık" formatı — AI üretemediğinde oluşur.
-        def _is_weak_tweet(t: str, ref_title: str) -> bool:
-            if not t or len(t.strip()) < 30:
-                return True
-            t_stripped = t.strip()
-            # Şablon fallback tespiti: emoji ile başlıyor VE başlığı neredeyse birebir içeriyor
-            is_template = (
-                t_stripped.startswith(("📰", "🚨"))
-                and ref_title.strip().lower() in t_stripped.lower()
-            )
-            if is_template:
-                return True
-            return False
+        # Tweet kalite kontrolü: sadece gerçekten boş veya çok kısa olanları yakala.
+        # Önceki "emoji + başlık" kontrolü AI'nın ürettiği iyi tweetleri de yanlışlıkla
+        # "zayıf" sayıp TweetComposer'a gönderiyordu — bu kaldırıldı.
+        def _is_weak_tweet(t: str) -> bool:
+            return not t or len(t.strip()) < 30
 
-        if _is_weak_tweet(tweet_text, title):
-            # TweetComposer ile summary'den kaliteli tweet üret (ucuz model)
-            from .ai.tweet_composer import TweetComposer
-            tweet_text = TweetComposer().compose(
-                summary or title,
-                category=category,
-                emoji="🚨" if (disclosure and disclosure.is_insider) else "📰",
-            )
-            log.info("Zayıf tweet tespit edildi; TweetComposer ile yeniden üretildi.")
+        if _is_weak_tweet(tweet_text):
+            # AI tweet üretemedi — summary'den direkt oluştur, yorum cümlesi ekle.
+            base = summary or title
+            tweet_text = base if len(base) <= 240 else base[:240].rsplit(" ", 1)[0].rstrip(" ,.;:") + "…"
+            log.info("Boş/kısa tweet; summary'den oluşturuldu.")
+
+        # Link suffix için yer ayır: ~45 karakter link + ~30 karakter hashtag
+        link_suffix = f"\n\n{link}\n{hashtags}"
+        max_body = 280 - len(link_suffix)
+        tweet_body = tweet_text.strip()
+        if len(tweet_body) > max_body:
+            tweet_body = tweet_body[:max_body].rsplit(" ", 1)[0].rstrip(" ,.;:") + "…"
 
         SocialPublisher().broadcast(
-            f"{tweet_text}\n\n{link}\n{hashtags}",
+            f"{tweet_body}{link_suffix}",
             image_path=card_path,
         )
 

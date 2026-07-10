@@ -219,30 +219,26 @@ Bu bildirimi güncel küresel makro tablo (faiz oranları, kur hareketleri, risk
         tweet_raw = _extract("TWEET")
 
         # Tweet kalite kontrolü: boşsa veya çok kısaysa summary'den türet.
-        # Sadece uzunluk ve boşluk kontrolü yapılır — AI ürettiği tweet şirket
-        # adını/konuyu tekrarlayabilir, bu normaldir ve "zayıf" sayılmaz.
         def _is_weak_tweet(t: str) -> bool:
             if not t or len(t.strip()) < 30:
                 return True
             # Tamamen başlıkla özdeşse (boşluk/büyük-küçük harf farkı hariç) zayıf say
             if t.strip().lower() == title.strip().lower():
                 return True
-            # Sadece "📰 Şirket (TİCKER): Başlık" formatındaysa zayıf — şablon fallback'i
-            # Bu _template_news_analysis'in ürettiği format: emoji + prefix + başlık
-            if t.strip().startswith(("📰", "🚨")) and title[:40].lower() in t.lower():
-                return True
             return False
 
         if _is_weak_tweet(tweet_raw):
-            # Summary'den türet: şirket + ticker + özet
-            # AI summary varsa ve sadece başlık değilse onu kullan
+            # AI tweet üretemedi ya da çok zayıf — summary'i yoruma dönüştür.
+            # Summary genellikle "Şirket (TİCKER): Kısa açıklama" formatında gelir;
+            # bunu tek cümlelik çarpıcı tweet'e çevirmek için summary'i olduğu gibi
+            # kullan, başa şirket + ticker ekle, sonuna piyasa etkisi sorusu ekle.
             default_summary = f"{company} ({ticker}): {title[:100]}"
-            base = summary if summary and summary.strip() != default_summary.strip() else title
-            tweet = f"{company} ({ticker}) — {base}"
-            # 240 karakterde kes, soru ekle
-            if len(tweet) > 220:
-                tweet = tweet[:220].rsplit(" ", 1)[0] + "…"
-            tweet = tweet + " Bu gelişme nasıl yorumlanmalı?"
+            # AI summary varsa ve başlıktan farklıysa tercih et (daha bilgi yoğun)
+            base = summary if (summary and len(summary) > 40
+                               and summary.strip().lower() != title.strip().lower()) else title
+            tweet = base
+            if len(tweet) > 230:
+                tweet = tweet[:230].rsplit(" ", 1)[0].rstrip(" ,.;:") + "…"
         else:
             tweet = tweet_raw
 
