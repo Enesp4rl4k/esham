@@ -1,0 +1,19 @@
+bot/.env.example
+  s_b7cb606ebae6b4::t_6e2f1bf0e15ea3 11,13-15,17-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "0f232df2a7c2a1fd57ca35944b02a33f967c5e93",
+  "prompts": {},
+  "sessions": {
+    "s_b7cb606ebae6b4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fe5e74e5-6680-46b0-9962-25664b84c699",
+        "model": "unknown"
+      },
+      "human_author": "Enes Parlak <eparlak996@gmail.com>"
+    }
+  }
+}
