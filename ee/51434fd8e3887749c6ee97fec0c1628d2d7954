@@ -1,0 +1,29 @@
+bot/esham/ai/analyzer.py
+  s_e9bf4fa074745c::t_b94cc67d239271 231-234,236-241
+bot/esham/pipeline.py
+  s_b7cb606ebae6b4::t_ca4a5a73cbb09a 791-808,811
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "ee51434fd8e3887749c6ee97fec0c1628d2d7954",
+  "prompts": {},
+  "sessions": {
+    "s_b7cb606ebae6b4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fe5e74e5-6680-46b0-9962-25664b84c699",
+        "model": "unknown"
+      },
+      "human_author": "Enes Parlak <eparlak996@gmail.com>"
+    },
+    "s_e9bf4fa074745c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ef903c90-4044-4cf9-bbe4-58fc947dd84c",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Enes Parlak <eparlak996@gmail.com>"
+    }
+  }
+}
