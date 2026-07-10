@@ -1,0 +1,23 @@
+bot/.env.example
+  s_b7cb606ebae6b4::t_316cf4ba92de3d 2-9,11
+bot/esham/ai/client.py
+  s_b7cb606ebae6b4::t_adb666e58be48b 3,5-9,11-12,14-16,19-21,33-78,209,212-213,215-216,228,230,232,235,237-238,242-243,246,258,262,265-266,271-301
+bot/esham/config.py
+  s_b7cb606ebae6b4::t_ae3bd81cf7a9bc 58-68,185-189
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "4894663a30b26ef09d79c1a53378cfa7874a4813",
+  "prompts": {},
+  "sessions": {
+    "s_b7cb606ebae6b4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fe5e74e5-6680-46b0-9962-25664b84c699",
+        "model": "unknown"
+      },
+      "human_author": "Enes Parlak <eparlak996@gmail.com>"
+    }
+  }
+}
