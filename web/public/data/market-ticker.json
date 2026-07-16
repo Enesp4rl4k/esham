@@ -1,10 +1,10 @@
 {
-  "updatedAt": "2026-07-16T13:30:08+03:00",
+  "updatedAt": "2026-07-16T15:04:38+03:00",
   "tickers": [
     {
       "label": "XU100",
-      "value": "14.179,10",
-      "change": "+0,70%",
+      "value": "14.213,83",
+      "change": "+0,95%",
       "up": true
     },
     {
@@ -21,8 +21,8 @@
     },
     {
       "label": "DAX",
-      "value": "24.847,54",
-      "change": "-0,61%",
+      "value": "24.769,84",
+      "change": "-0,92%",
       "up": false
     },
     {
@@ -40,104 +40,80 @@
     {
       "label": "EUR/USD",
       "value": "1,15",
-      "change": "+0,01%",
+      "change": "+0,04%",
       "up": true
     },
     {
       "label": "USD/TRY",
-      "value": "₺47,05",
-      "change": "+0,06%",
-      "up": true
+      "value": "₺46,98",
+      "change": "-0,10%",
+      "up": false
     },
     {
       "label": "ALTIN",
-      "value": "$4.037",
-      "change": "-0,36%",
+      "value": "$4.045",
+      "change": "-0,17%",
       "up": false
     },
     {
       "label": "VIX",
-      "value": "15,94",
-      "change": "+1,72%",
+      "value": "16,13",
+      "change": "+2,94%",
       "up": true
     },
     {
       "label": "BRENT",
-      "value": "$84,61",
-      "change": "-0,40%",
-      "up": false
-    },
-    {
-      "label": "THYAO",
-      "value": "₺332.00",
-      "change": "+1.76%",
+      "value": "$84,96",
+      "change": "+0,01%",
       "up": true
     },
     {
-      "label": "SAHOL",
-      "value": "₺90.15",
-      "change": "+0.84%",
+      "label": "THYAO",
+      "value": "₺331.75",
+      "change": "+1.69%",
       "up": true
     },
     {
       "label": "BIMAS",
-      "value": "₺393.25",
-      "change": "+2.41%",
+      "value": "₺396.00",
+      "change": "+3.12%",
       "up": true
     },
     {
-      "label": "KCHOL",
-      "value": "₺195.10",
-      "change": "+2.09%",
+      "label": "EREGL",
+      "value": "₺43.92",
+      "change": "+4.77%",
+      "up": true
+    },
+    {
+      "label": "SAHOL",
+      "value": "₺90.10",
+      "change": "+0.78%",
       "up": true
     },
     {
       "label": "AKBNK",
-      "value": "₺67.55",
-      "change": "-2.38%",
+      "value": "₺67.70",
+      "change": "-2.17%",
       "up": false
     },
     {
-      "label": "EREGL",
-      "value": "₺43.88",
-      "change": "+4.68%",
+      "label": "ASELS",
+      "value": "₺359.25",
+      "change": "+3.31%",
       "up": true
     },
     {
-      "label": "ASELS",
-      "value": "₺356.00",
-      "change": "+2.37%",
+      "label": "KCHOL",
+      "value": "₺195.40",
+      "change": "+2.25%",
       "up": true
     },
     {
       "label": "GARAN",
-      "value": "₺127.30",
-      "change": "-1.09%",
+      "value": "₺127.50",
+      "change": "-0.93%",
       "up": false
-    },
-    {
-      "label": "YKBNK",
-      "value": "₺33.38",
-      "change": "-1.77%",
-      "up": false
-    },
-    {
-      "label": "TUPRS",
-      "value": "₺275.50",
-      "change": "+1.75%",
-      "up": true
-    },
-    {
-      "label": "TOASO",
-      "value": "₺301.75",
-      "change": "+2.37%",
-      "up": true
-    },
-    {
-      "label": "PGSUS",
-      "value": "₺168.40",
-      "change": "+1.45%",
-      "up": true
     },
     {
       "label": "SISE",
@@ -146,15 +122,39 @@
       "up": true
     },
     {
+      "label": "YKBNK",
+      "value": "₺33.30",
+      "change": "-2.00%",
+      "up": false
+    },
+    {
       "label": "FROTO",
-      "value": "₺84.15",
-      "change": "+3.82%",
+      "value": "₺84.30",
+      "change": "+4.01%",
+      "up": true
+    },
+    {
+      "label": "TUPRS",
+      "value": "₺277.25",
+      "change": "+2.40%",
+      "up": true
+    },
+    {
+      "label": "PGSUS",
+      "value": "₺168.60",
+      "change": "+1.57%",
       "up": true
     },
     {
       "label": "TCELL",
-      "value": "₺111.60",
-      "change": "+1.64%",
+      "value": "₺111.90",
+      "change": "+1.91%",
+      "up": true
+    },
+    {
+      "label": "TOASO",
+      "value": "₺300.25",
+      "change": "+1.87%",
       "up": true
     }
   ]
