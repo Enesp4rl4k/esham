@@ -1,10 +1,10 @@
 {
-  "updatedAt": "2026-08-24T12:00:51+03:00",
+  "updatedAt": "2026-08-24T12:54:41+03:00",
   "tickers": [
     {
       "label": "XU100",
-      "value": "14.557,75",
-      "change": "+0,30%",
+      "value": "14.536,45",
+      "change": "+0,15%",
       "up": true
     },
     {
@@ -21,9 +21,9 @@
     },
     {
       "label": "DAX",
-      "value": "26.147,37",
-      "change": "+0,04%",
-      "up": true
+      "value": "26.136,06",
+      "change": "-0,00%",
+      "up": false
     },
     {
       "label": "ŞANGHAY",
@@ -40,7 +40,7 @@
     {
       "label": "EUR/USD",
       "value": "1,17",
-      "change": "-0,09%",
+      "change": "-0,08%",
       "up": false
     },
     {
@@ -51,63 +51,21 @@
     },
     {
       "label": "ALTIN",
-      "value": "$4.700",
-      "change": "+0,41%",
+      "value": "$4.694",
+      "change": "+0,29%",
       "up": true
     },
     {
       "label": "VIX",
-      "value": "15,87",
-      "change": "+4,89%",
+      "value": "15,89",
+      "change": "+5,02%",
       "up": true
     },
     {
       "label": "BRENT",
-      "value": "$92,83",
-      "change": "-1,65%",
+      "value": "$92,96",
+      "change": "-1,51%",
       "up": false
-    },
-    {
-      "label": "BIMAS",
-      "value": "₺412.25",
-      "change": "-0.72%",
-      "up": false
-    },
-    {
-      "label": "SAHOL",
-      "value": "₺94.40",
-      "change": "+2.16%",
-      "up": true
-    },
-    {
-      "label": "ASELS",
-      "value": "₺402.25",
-      "change": "-0.31%",
-      "up": false
-    },
-    {
-      "label": "AKBNK",
-      "value": "₺72.75",
-      "change": "+4.60%",
-      "up": true
-    },
-    {
-      "label": "EREGL",
-      "value": "₺38.56",
-      "change": "+1.00%",
-      "up": true
-    },
-    {
-      "label": "GARAN",
-      "value": "₺133.70",
-      "change": "+2.93%",
-      "up": true
-    },
-    {
-      "label": "KCHOL",
-      "value": "₺223.80",
-      "change": "+0.67%",
-      "up": true
     },
     {
       "label": "THYAO",
@@ -116,46 +74,88 @@
       "up": true
     },
     {
-      "label": "SISE",
-      "value": "₺40.20",
-      "change": "+0.95%",
-      "up": true
-    },
-    {
-      "label": "TOASO",
-      "value": "₺279.75",
-      "change": "-0.44%",
+      "label": "ASELS",
+      "value": "₺397.25",
+      "change": "-1.55%",
       "up": false
     },
     {
-      "label": "TCELL",
-      "value": "₺104.70",
-      "change": "+0.38%",
+      "label": "KCHOL",
+      "value": "₺223.80",
+      "change": "+0.67%",
       "up": true
     },
     {
-      "label": "PGSUS",
-      "value": "₺150.70",
-      "change": "+0.80%",
+      "label": "GARAN",
+      "value": "₺133.60",
+      "change": "+2.85%",
       "up": true
     },
     {
-      "label": "FROTO",
-      "value": "₺80.80",
-      "change": "+0.69%",
+      "label": "SAHOL",
+      "value": "₺94.65",
+      "change": "+2.44%",
+      "up": true
+    },
+    {
+      "label": "EREGL",
+      "value": "₺38.64",
+      "change": "+1.20%",
+      "up": true
+    },
+    {
+      "label": "BIMAS",
+      "value": "₺410.50",
+      "change": "-1.14%",
+      "up": false
+    },
+    {
+      "label": "AKBNK",
+      "value": "₺72.90",
+      "change": "+4.82%",
+      "up": true
+    },
+    {
+      "label": "SISE",
+      "value": "₺40.22",
+      "change": "+1.00%",
       "up": true
     },
     {
       "label": "YKBNK",
-      "value": "₺36.54",
-      "change": "+4.16%",
+      "value": "₺36.52",
+      "change": "+4.10%",
       "up": true
     },
     {
       "label": "TUPRS",
-      "value": "₺401.00",
-      "change": "-1.23%",
+      "value": "₺402.50",
+      "change": "-0.86%",
       "up": false
+    },
+    {
+      "label": "FROTO",
+      "value": "₺80.90",
+      "change": "+0.81%",
+      "up": true
+    },
+    {
+      "label": "TCELL",
+      "value": "₺104.00",
+      "change": "-0.29%",
+      "up": false
+    },
+    {
+      "label": "TOASO",
+      "value": "₺283.25",
+      "change": "+0.80%",
+      "up": true
+    },
+    {
+      "label": "PGSUS",
+      "value": "₺150.60",
+      "change": "+0.74%",
+      "up": true
     }
   ]
 }
