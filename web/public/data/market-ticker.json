@@ -1,11 +1,11 @@
 {
-  "updatedAt": "2026-08-29T03:00:23+03:00",
+  "updatedAt": "2026-08-31T14:46:49+03:00",
   "tickers": [
     {
       "label": "XU100",
-      "value": "14.641,56",
-      "change": "+0,45%",
-      "up": true
+      "value": "14.454,53",
+      "change": "-1,28%",
+      "up": false
     },
     {
       "label": "S&P 500",
@@ -21,14 +21,14 @@
     },
     {
       "label": "DAX",
-      "value": "26.569,99",
-      "change": "+0,77%",
-      "up": true
+      "value": "26.400,09",
+      "change": "-0,64%",
+      "up": false
     },
     {
       "label": "ŞANGHAY",
-      "value": "3.952,18",
-      "change": "+1,01%",
+      "value": "3.986,30",
+      "change": "+0,86%",
       "up": true
     },
     {
@@ -40,121 +40,121 @@
     {
       "label": "EUR/USD",
       "value": "1,16",
-      "change": "-0,62%",
-      "up": false
+      "change": "+0,15%",
+      "up": true
     },
     {
       "label": "USD/TRY",
-      "value": "₺48,23",
-      "change": "+0,47%",
+      "value": "₺48,26",
+      "change": "+0,05%",
       "up": true
     },
     {
       "label": "ALTIN",
-      "value": "$4.504",
-      "change": "-3,43%",
+      "value": "$4.509",
+      "change": "-0,46%",
       "up": false
     },
     {
       "label": "VIX",
-      "value": "14,43",
-      "change": "-0,55%",
-      "up": false
+      "value": "15,21",
+      "change": "+5,41%",
+      "up": true
     },
     {
       "label": "BRENT",
-      "value": "$88,29",
-      "change": "-0,26%",
-      "up": false
-    },
-    {
-      "label": "THYAO",
-      "value": "₺307.50",
-      "change": "+0.24%",
-      "up": true
-    },
-    {
-      "label": "KCHOL",
-      "value": "₺214.00",
-      "change": "-0.37%",
-      "up": false
-    },
-    {
-      "label": "AKBNK",
-      "value": "₺73.20",
-      "change": "+0.41%",
-      "up": true
-    },
-    {
-      "label": "ASELS",
-      "value": "₺404.00",
-      "change": "-0.19%",
-      "up": false
-    },
-    {
-      "label": "GARAN",
-      "value": "₺133.80",
-      "change": "+0.75%",
+      "value": "$88,88",
+      "change": "+3,20%",
       "up": true
     },
     {
       "label": "BIMAS",
-      "value": "₺415.50",
-      "change": "+0.30%",
+      "value": "₺407.75",
+      "change": "-1.69%",
+      "up": false
+    },
+    {
+      "label": "GARAN",
+      "value": "₺131.70",
+      "change": "-1.50%",
+      "up": false
+    },
+    {
+      "label": "ASELS",
+      "value": "₺389.25",
+      "change": "-3.59%",
+      "up": false
+    },
+    {
+      "label": "KCHOL",
+      "value": "₺215.90",
+      "change": "+0.89%",
+      "up": true
+    },
+    {
+      "label": "AKBNK",
+      "value": "₺72.65",
+      "change": "-0.62%",
+      "up": false
+    },
+    {
+      "label": "SAHOL",
+      "value": "₺94.35",
+      "change": "+0.86%",
       "up": true
     },
     {
       "label": "EREGL",
-      "value": "₺39.16",
-      "change": "+1.56%",
-      "up": true
-    },
-    {
-      "label": "SAHOL",
-      "value": "₺93.65",
-      "change": "-0.11%",
+      "value": "₺39.04",
+      "change": "-0.05%",
       "up": false
     },
     {
-      "label": "YKBNK",
-      "value": "₺37.22",
-      "change": "+0.98%",
-      "up": true
+      "label": "THYAO",
+      "value": "₺303.50",
+      "change": "-1.14%",
+      "up": false
     },
     {
       "label": "SISE",
-      "value": "₺40.14",
-      "change": "+0.35%",
-      "up": true
-    },
-    {
-      "label": "TUPRS",
-      "value": "₺396.00",
-      "change": "+3.80%",
-      "up": true
-    },
-    {
-      "label": "FROTO",
-      "value": "₺78.40",
-      "change": "-0.00%",
+      "value": "₺39.84",
+      "change": "-0.55%",
       "up": false
     },
     {
+      "label": "TUPRS",
+      "value": "₺400.00",
+      "change": "+1.27%",
+      "up": true
+    },
+    {
       "label": "PGSUS",
-      "value": "₺150.80",
-      "change": "-0.26%",
+      "value": "₺148.70",
+      "change": "-1.20%",
       "up": false
     },
     {
       "label": "TCELL",
-      "value": "₺103.50",
-      "change": "+0.68%",
-      "up": true
+      "value": "₺97.90",
+      "change": "-5.32%",
+      "up": false
+    },
+    {
+      "label": "YKBNK",
+      "value": "₺36.86",
+      "change": "-0.81%",
+      "up": false
+    },
+    {
+      "label": "FROTO",
+      "value": "₺77.45",
+      "change": "-1.09%",
+      "up": false
     },
     {
       "label": "TOASO",
-      "value": "₺272.00",
-      "change": "-0.55%",
+      "value": "₺271.25",
+      "change": "-0.28%",
       "up": false
     }
   ]
