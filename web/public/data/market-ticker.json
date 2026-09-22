@@ -1,10 +1,10 @@
 {
-  "updatedAt": "2026-09-22T13:14:47+03:00",
+  "updatedAt": "2026-09-22T14:16:32+03:00",
   "tickers": [
     {
       "label": "XU100",
-      "value": "13.318,47",
-      "change": "-0,14%",
+      "value": "13.196,77",
+      "change": "-1,06%",
       "up": false
     },
     {
@@ -21,8 +21,8 @@
     },
     {
       "label": "DAX",
-      "value": "25.717,26",
-      "change": "+0,56%",
+      "value": "25.712,46",
+      "change": "+0,54%",
       "up": true
     },
     {
@@ -40,62 +40,32 @@
     {
       "label": "EUR/USD",
       "value": "1,15",
-      "change": "-0,02%",
+      "change": "-0,03%",
       "up": false
     },
     {
       "label": "USD/TRY",
-      "value": "₺48,81",
-      "change": "-0,00%",
+      "value": "₺48,80",
+      "change": "-0,01%",
       "up": false
     },
     {
       "label": "ALTIN",
-      "value": "$4.374",
-      "change": "-0,22%",
+      "value": "$4.356",
+      "change": "-0,64%",
       "up": false
     },
     {
       "label": "VIX",
-      "value": "14,80",
-      "change": "-0,47%",
+      "value": "14,79",
+      "change": "-0,54%",
       "up": false
     },
     {
       "label": "BRENT",
-      "value": "$97,80",
-      "change": "-2,53%",
+      "value": "$98,18",
+      "change": "-2,15%",
       "up": false
-    },
-    {
-      "label": "BIMAS",
-      "value": "₺436.25",
-      "change": "+0.93%",
-      "up": true
-    },
-    {
-      "label": "AKBNK",
-      "value": "₺73.10",
-      "change": "+0.97%",
-      "up": true
-    },
-    {
-      "label": "KCHOL",
-      "value": "₺223.70",
-      "change": "+0.86%",
-      "up": true
-    },
-    {
-      "label": "ASELS",
-      "value": "₺378.75",
-      "change": "+0.33%",
-      "up": true
-    },
-    {
-      "label": "GARAN",
-      "value": "₺134.10",
-      "change": "+0.90%",
-      "up": true
     },
     {
       "label": "THYAO",
@@ -105,39 +75,57 @@
     },
     {
       "label": "SAHOL",
-      "value": "₺91.00",
-      "change": "+0.55%",
+      "value": "₺90.95",
+      "change": "+0.50%",
+      "up": true
+    },
+    {
+      "label": "BIMAS",
+      "value": "₺431.00",
+      "change": "-0.29%",
+      "up": false
+    },
+    {
+      "label": "KCHOL",
+      "value": "₺221.00",
+      "change": "-0.36%",
+      "up": false
+    },
+    {
+      "label": "ASELS",
+      "value": "₺375.75",
+      "change": "-0.46%",
+      "up": false
+    },
+    {
+      "label": "GARAN",
+      "value": "₺134.30",
+      "change": "+1.05%",
+      "up": true
+    },
+    {
+      "label": "AKBNK",
+      "value": "₺73.15",
+      "change": "+1.04%",
       "up": true
     },
     {
       "label": "EREGL",
-      "value": "₺37.78",
-      "change": "+1.29%",
+      "value": "₺37.68",
+      "change": "+1.02%",
+      "up": true
+    },
+    {
+      "label": "SISE",
+      "value": "₺40.48",
+      "change": "+0.50%",
       "up": true
     },
     {
       "label": "YKBNK",
-      "value": "₺36.78",
-      "change": "+0.66%",
+      "value": "₺36.82",
+      "change": "+0.77%",
       "up": true
-    },
-    {
-      "label": "PGSUS",
-      "value": "₺152.60",
-      "change": "+1.06%",
-      "up": true
-    },
-    {
-      "label": "FROTO",
-      "value": "₺79.35",
-      "change": "+2.26%",
-      "up": true
-    },
-    {
-      "label": "TUPRS",
-      "value": "₺410.00",
-      "change": "-0.43%",
-      "up": false
     },
     {
       "label": "TCELL",
@@ -146,15 +134,27 @@
       "up": true
     },
     {
-      "label": "SISE",
-      "value": "₺40.52",
-      "change": "+0.60%",
+      "label": "TUPRS",
+      "value": "₺394.25",
+      "change": "-4.25%",
+      "up": false
+    },
+    {
+      "label": "PGSUS",
+      "value": "₺152.20",
+      "change": "+0.79%",
       "up": true
     },
     {
       "label": "TOASO",
-      "value": "₺289.50",
-      "change": "+1.49%",
+      "value": "₺286.00",
+      "change": "+0.26%",
+      "up": true
+    },
+    {
+      "label": "FROTO",
+      "value": "₺79.00",
+      "change": "+1.80%",
       "up": true
     }
   ]
