@@ -1,10 +1,10 @@
 {
-  "updatedAt": "2026-09-30T14:18:53+03:00",
+  "updatedAt": "2026-09-30T15:14:12+03:00",
   "tickers": [
     {
       "label": "XU100",
-      "value": "12.090,01",
-      "change": "-1,63%",
+      "value": "12.070,66",
+      "change": "-1,79%",
       "up": false
     },
     {
@@ -21,8 +21,8 @@
     },
     {
       "label": "DAX",
-      "value": "25.343,65",
-      "change": "-0,22%",
+      "value": "25.321,50",
+      "change": "-0,31%",
       "up": false
     },
     {
@@ -40,25 +40,25 @@
     {
       "label": "EUR/USD",
       "value": "1,14",
-      "change": "+0,09%",
+      "change": "+0,11%",
       "up": true
     },
     {
       "label": "USD/TRY",
       "value": "₺49,01",
-      "change": "+0,03%",
+      "change": "+0,02%",
       "up": true
     },
     {
       "label": "ALTIN",
-      "value": "$4.212",
-      "change": "+0,78%",
+      "value": "$4.220",
+      "change": "+0,96%",
       "up": true
     },
     {
       "label": "VIX",
-      "value": "16,16",
-      "change": "+0,75%",
+      "value": "16,13",
+      "change": "+0,56%",
       "up": true
     },
     {
@@ -69,92 +69,92 @@
     },
     {
       "label": "SAHOL",
-      "value": "₺85.95",
-      "change": "-1.09%",
-      "up": false
-    },
-    {
-      "label": "THYAO",
-      "value": "₺287.00",
-      "change": "-1.71%",
-      "up": false
-    },
-    {
-      "label": "BIMAS",
-      "value": "₺422.00",
-      "change": "+0.06%",
-      "up": true
-    },
-    {
-      "label": "ASELS",
-      "value": "₺344.75",
-      "change": "+1.70%",
-      "up": true
-    },
-    {
-      "label": "EREGL",
-      "value": "₺36.12",
-      "change": "-1.74%",
-      "up": false
-    },
-    {
-      "label": "GARAN",
-      "value": "₺125.70",
-      "change": "-2.71%",
+      "value": "₺85.65",
+      "change": "-1.44%",
       "up": false
     },
     {
       "label": "AKBNK",
-      "value": "₺67.70",
-      "change": "-3.29%",
+      "value": "₺67.50",
+      "change": "-3.57%",
       "up": false
     },
     {
       "label": "KCHOL",
-      "value": "₺211.20",
-      "change": "-1.26%",
+      "value": "₺211.60",
+      "change": "-1.08%",
+      "up": false
+    },
+    {
+      "label": "GARAN",
+      "value": "₺125.80",
+      "change": "-2.63%",
+      "up": false
+    },
+    {
+      "label": "EREGL",
+      "value": "₺36.30",
+      "change": "-1.25%",
+      "up": false
+    },
+    {
+      "label": "ASELS",
+      "value": "₺343.75",
+      "change": "+1.40%",
+      "up": true
+    },
+    {
+      "label": "BIMAS",
+      "value": "₺421.75",
+      "change": "+0.00%",
+      "up": true
+    },
+    {
+      "label": "THYAO",
+      "value": "₺286.75",
+      "change": "-1.80%",
       "up": false
     },
     {
       "label": "SISE",
-      "value": "₺37.18",
-      "change": "-2.77%",
-      "up": false
-    },
-    {
-      "label": "TUPRS",
-      "value": "₺380.75",
-      "change": "-0.85%",
-      "up": false
-    },
-    {
-      "label": "PGSUS",
-      "value": "₺140.10",
-      "change": "-1.41%",
+      "value": "₺37.16",
+      "change": "-2.82%",
       "up": false
     },
     {
       "label": "YKBNK",
-      "value": "₺34.58",
-      "change": "-4.05%",
+      "value": "₺34.36",
+      "change": "-4.66%",
       "up": false
     },
     {
-      "label": "TCELL",
-      "value": "₺97.05",
-      "change": "-0.97%",
-      "up": false
-    },
-    {
-      "label": "TOASO",
-      "value": "₺271.75",
-      "change": "-1.81%",
+      "label": "TUPRS",
+      "value": "₺376.75",
+      "change": "-1.89%",
       "up": false
     },
     {
       "label": "FROTO",
-      "value": "₺73.75",
-      "change": "-1.01%",
+      "value": "₺74.35",
+      "change": "-0.20%",
+      "up": false
+    },
+    {
+      "label": "TCELL",
+      "value": "₺96.55",
+      "change": "-1.48%",
+      "up": false
+    },
+    {
+      "label": "TOASO",
+      "value": "₺268.50",
+      "change": "-2.98%",
+      "up": false
+    },
+    {
+      "label": "PGSUS",
+      "value": "₺139.60",
+      "change": "-1.76%",
       "up": false
     }
   ]
