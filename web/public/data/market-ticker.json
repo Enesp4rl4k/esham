@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-16T18:21:30+03:00",
+  "updatedAt": "2026-10-16T21:46:36+03:00",
   "tickers": [
     {
       "label": "XU100",
@@ -9,20 +9,20 @@
     },
     {
       "label": "S&P 500",
-      "value": "7.720,17",
-      "change": "-0,31%",
+      "value": "7.650,74",
+      "change": "-1,21%",
       "up": false
     },
     {
       "label": "NASDAQ",
-      "value": "26.411,45",
-      "change": "-1,13%",
+      "value": "26.117,61",
+      "change": "-2,23%",
       "up": false
     },
     {
       "label": "DAX",
-      "value": "25.655,79",
-      "change": "+1,08%",
+      "value": "25.622,61",
+      "change": "+0,95%",
       "up": true
     },
     {
@@ -33,63 +33,45 @@
     },
     {
       "label": "ABD 10Y",
-      "value": "5,08%",
-      "change": "-0,20%",
-      "up": false
+      "value": "5,11%",
+      "change": "+0,41%",
+      "up": true
     },
     {
       "label": "EUR/USD",
-      "value": "1,13",
-      "change": "+0,29%",
+      "value": "1,12",
+      "change": "+0,13%",
       "up": true
     },
     {
       "label": "USD/TRY",
-      "value": "₺49,52",
-      "change": "+0,11%",
+      "value": "₺49,51",
+      "change": "+0,09%",
       "up": true
     },
     {
       "label": "ALTIN",
-      "value": "$4.206",
-      "change": "+0,86%",
+      "value": "$4.179",
+      "change": "+0,21%",
       "up": true
     },
     {
       "label": "VIX",
-      "value": "16,01",
-      "change": "-2,73%",
-      "up": false
+      "value": "21,50",
+      "change": "+30,62%",
+      "up": true
     },
     {
       "label": "BRENT",
-      "value": "$106",
-      "change": "-0,14%",
-      "up": false
-    },
-    {
-      "label": "THYAO",
-      "value": "₺273.50",
-      "change": "-1.26%",
-      "up": false
-    },
-    {
-      "label": "GARAN",
-      "value": "₺131.50",
-      "change": "-1.28%",
-      "up": false
+      "value": "$110",
+      "change": "+3,73%",
+      "up": true
     },
     {
       "label": "SAHOL",
       "value": "₺85.30",
       "change": "+0.41%",
       "up": true
-    },
-    {
-      "label": "ASELS",
-      "value": "₺340.25",
-      "change": "-3.06%",
-      "up": false
     },
     {
       "label": "BIMAS",
@@ -110,9 +92,15 @@
       "up": false
     },
     {
-      "label": "AKBNK",
-      "value": "₺66.85",
-      "change": "-1.55%",
+      "label": "GARAN",
+      "value": "₺131.50",
+      "change": "-1.28%",
+      "up": false
+    },
+    {
+      "label": "ASELS",
+      "value": "₺340.25",
+      "change": "-3.06%",
       "up": false
     },
     {
@@ -122,15 +110,9 @@
       "up": false
     },
     {
-      "label": "TUPRS",
-      "value": "₺375.50",
-      "change": "-2.02%",
-      "up": false
-    },
-    {
-      "label": "TCELL",
-      "value": "₺96.80",
-      "change": "-0.87%",
+      "label": "AKBNK",
+      "value": "₺66.85",
+      "change": "-1.55%",
       "up": false
     },
     {
@@ -140,15 +122,27 @@
       "up": false
     },
     {
-      "label": "PGSUS",
-      "value": "₺127.70",
-      "change": "-1.31%",
+      "label": "TCELL",
+      "value": "₺96.80",
+      "change": "-0.87%",
+      "up": false
+    },
+    {
+      "label": "TUPRS",
+      "value": "₺375.50",
+      "change": "-2.02%",
       "up": false
     },
     {
       "label": "FROTO",
       "value": "₺69.30",
       "change": "-2.19%",
+      "up": false
+    },
+    {
+      "label": "PGSUS",
+      "value": "₺127.70",
+      "change": "-1.31%",
       "up": false
     },
     {
