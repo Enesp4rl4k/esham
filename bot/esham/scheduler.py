@@ -29,12 +29,15 @@ from .pipeline import (
     run_global_report,
     run_morning_report,
     run_opening_report,
+    run_peer_report,
     run_sector_report,
     run_viop_report,
     run_weekly_summary,
 )
 from .jobs.publish_heatmap import run_heatmap
+from .newsletter import run_newsletter
 from .publishing.social import SocialPublisher
+from .sources.peer import sector_for_today
 from .sources.viop import ViopSource, assess_margin_stress
 from .state import get_state
 
@@ -224,6 +227,8 @@ def build_default_scheduler(
 
     # Sabit saatli (TR)
     sched.add_daily("gunluk-bulten", "08:30", lambda: run_morning_report())
+    # E-posta özeti — sabah bülteni hemen ardından (SMTP yoksa dry-run, zarif bozulma)
+    sched.add_daily("bulten-gonder", "08:40", lambda: run_newsletter())
     sched.add_daily("kuresel-makro", "08:45", lambda: run_global_report())
     sched.add_daily("viop-acilis", "09:30", lambda: run_viop_report(publish=True))
     sched.add_daily("bist-acilis", "10:00", lambda: run_opening_report(publish_social=True))
@@ -233,6 +238,8 @@ def build_default_scheduler(
 
     # Haftalık (Pazartesi)
     sched.add_daily("haftalik-sektor", "09:00", lambda: run_sector_report(), days={0})
+    # Haftalık peer kıyası — sektör haftaya göre döner (09:15, sektör rotasyonunun hemen sonrası)
+    sched.add_daily("haftalik-peer", "09:15", lambda: run_peer_report(sector_for_today()), days={0})
 
     # Haftalık özet (Cuma kapanış sonrası 18:30 TR)
     sched.add_daily("haftalik-ozet", "18:30", lambda: run_weekly_summary(), days={4})

@@ -262,7 +262,12 @@ class NewsStream:
         )
         try:
             result = analyze_ipo_document(
-                source, company=company, ticker=ticker, publish=True, make_pdf=True
+                source,
+                company=company,
+                ticker=ticker,
+                publish=True,
+                make_pdf=True,
+                disclosure_date=item.date,
             )
         except Exception as exc:
             log.error("Halka arz otomatik analizi başarısız (%s); haber raporuna düşülüyor.", exc)

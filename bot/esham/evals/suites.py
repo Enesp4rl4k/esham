@@ -15,7 +15,8 @@ from .checks import (
     check_predicate,
     contains_investment_advice,
 )
-from .harness import EvalCase, SuiteResult, run_suite
+from .harness import CheckResult, EvalCase, SuiteResult, run_suite
+from .judge import AnalysisJudge, JudgeResult
 
 TWEET_NEWS = [
     ("X Holding Avrupa'da 50 milyon euroluk ihale kazandığını duyurdu.", "bist", "📰"),
@@ -159,5 +160,102 @@ def kap_filter_suite() -> SuiteResult:
     return run_suite("KAP önem filtresi (spam önleme)", cases)
 
 
+def judge_suite() -> SuiteResult:
+    """LLM-as-judge: analiz kalitesini dört eksenli rubrikle puanlar.
+
+    - Anahtar varsa: kaliteli (grounded) analiz geçerli bir puan almalı; kaynakta
+      olmayan sayılarla dolu (halüsinasyonlu) analizin "kaynakta dayanak" puanı
+      düşük çıkmalı — judge gerçekten ayırt edebiliyor mu, bunu ölçer.
+    - Anahtar yoksa: vaka "atlandı" olarak işaretlenir ve süit geçer
+      (CI anahtarsız da yeşil kalmalı — repo'nun zarif bozulma ilkesi).
+
+    Puanlar vaka adında yazdırılır (harness yalnızca başarısız check'leri basar).
+    """
+    judge = AnalysisJudge()
+
+    if not judge.enabled:
+        return run_suite(
+            "LLM-as-judge (analiz kalitesi)",
+            [
+                EvalCase(
+                    name="judge atlandı — LLM anahtarı yok (zarif bozulma)",
+                    produce=lambda: JudgeResult(skipped=True),
+                    checks=[
+                        check_predicate(
+                            "atlandı olarak işaretlendi",
+                            lambda o: o.skipped is True,
+                            "atlanmaması gerekiyordu",
+                        )
+                    ],
+                    note=lambda o: "LLM anahtarı yok — puanlama yapılmadı, süit yeşil kalır.",
+                )
+            ],
+        )
+
+    doc = fixtures.IZAHNAME_TEXT
+
+    def analyze(payload: dict) -> IpoAnalysis:
+        analyzer = IpoProspectusAnalyzer()
+        analyzer.client = _StubClient(payload)  # type: ignore[assignment]
+        return analyzer.analyze(doc, "TechYazılım A.Ş.", "TCHYZ")
+
+    # Puanı check adına yazdır ki her koşuda görünür olsun.
+    def score_check(threshold: float, dim: str | None = None, *, at_most: bool = False):
+        label = "genel puan" if dim is None else f"{dim} puanı"
+
+        def run(o: JudgeResult) -> CheckResult:  # type: ignore[name-defined]
+            if o.skipped or not o.ok:
+                return CheckResult(label, False, "judge sonucu üretilemedi")
+            if dim is None:
+                value = o.overall
+                name = f"{label} ≥ {threshold:.1f} (={value:.1f})"
+                ok = value >= threshold
+            else:
+                value = float(o.scores.get(dim, -1))
+                op = "≤" if at_most else "≥"
+                name = f"{label} {op} {threshold:.1f} (={value:.0f})"
+                ok = value <= threshold if at_most else value >= threshold
+            return CheckResult(name, ok, o.summary())
+
+        return run
+
+    return run_suite(
+        "LLM-as-judge (analiz kalitesi)",
+        [
+            EvalCase(
+                name="grounded analiz geçerli puan alır",
+                produce=lambda: judge.judge(doc, analyze(fixtures.GROUNDED_JSON)),
+                checks=[
+                    score_check(judge.threshold),
+                    score_check(5.0, "grounding"),
+                    check_predicate(
+                        "4 eksen puanlandı",
+                        lambda o: len(o.scores) == 4,
+                        "eksik eksen var",
+                    ),
+                ],
+                cost_text=doc,
+                note=lambda o: f"judge puanı: {o.summary()}",
+            ),
+            EvalCase(
+                name="halüsinasyonlu analiz düşük dayanak puanı alır",
+                produce=lambda: judge.judge(doc, analyze(fixtures.HALLUCINATED_JSON)),
+                checks=[
+                    # Kaynakta olmayan sayılar judge'ın "dayanak" eksenini düşürmeli.
+                    score_check(2.0, "grounding", at_most=True),
+                ],
+                cost_text=doc,
+                note=lambda o: f"judge puanı: {o.summary()}",
+            ),
+        ],
+    )
+
+
 def all_suites() -> list[SuiteResult]:
-    return [tweet_suite(), safety_suite(), ipo_grounding_suite(), kap_filter_suite()]
+    return [
+        tweet_suite(),
+        safety_suite(),
+        ipo_grounding_suite(),
+        kap_filter_suite(),
+        judge_suite(),
+    ]

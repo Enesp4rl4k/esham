@@ -5,6 +5,29 @@
 
 export type CategorySlug = "bist" | "global" | "ipo" | "viop" | "gundem" | "kripto" | "teknoloji";
 
+/**
+ * Halka arz için yapılandırılmış meta — bot `ReportDraft.ipo` alanından yazar
+ * (`bot/esham/ai/ipo_analyzer.py::IpoAnalysis.to_meta` ile alan adları senkron).
+ * Eski raporlarda bu alan yoktur; tüketiciler her zaman yedeğe (regex/boş) düşmelidir.
+ */
+export interface IpoMeta {
+  company: string;
+  ticker: string;
+  /** KAP bildirim tarihi, `YYYY-MM-DD`. */
+  disclosureDate?: string;
+  price?: string;
+  discountRate?: string;
+  /** Sayısal iskonto (%22,5 → 22.5) — sıralama/renk için. */
+  discountPct?: number;
+  offerSize?: string;
+  netMargin?: string;
+  valuation?: Record<string, string>;
+  fundUsage?: string[];
+  risks?: string[];
+  verdict?: string;
+  confidence?: string;
+}
+
 export interface Report {
   slug: string;
   title: string;
@@ -21,6 +44,8 @@ export interface Report {
   tags: string[];
   /** Bot tarafından üretilen marka kartı (aynı görsel tweet'te de kullanılır). */
   image?: string;
+  /** Halka arz raporlarında yapılandırılmış meta (eski raporlarda yoktur). */
+  ipo?: IpoMeta;
 }
 
 export interface CategoryMeta {

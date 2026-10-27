@@ -15,6 +15,7 @@ name: Esham Yayın Döngüsü
 on:
   schedule:
     - cron: "30 5 * * 1-5"    # günlük bülten          08:30 TR
+    - cron: "40 5 * * 1-5"    # e-posta bülteni (SMTP) 08:40 TR
     - cron: "45 5 * * 1-5"    # küresel makro raporu    08:45 TR
     - cron: "30 6 * * 1-5"    # VİOP açılış             09:30 TR
     - cron: "0 7 * * 1-5"     # BIST açılış             10:00 TR
@@ -22,6 +23,7 @@ on:
     - cron: "15 15 * * 1-5"   # kapanış                 18:15 TR
     - cron: "30 15 * * 1-4"   # akşam ısı haritası      18:30 TR (Pzt-Per)
     - cron: "0 6 * * 1"       # haftalık sektör          09:00 TR (Pazartesi)
+    - cron: "15 6 * * 1"      # haftalık peer kıyas      09:15 TR (Pazartesi)
     - cron: "30 15 * * 5"     # haftalık özet            18:30 TR (Cuma)
     - cron: "5,20,35,50 6-15 * * 1-5"  # haber/KAP+makro tarama (seans içi)
   workflow_dispatch:
@@ -38,6 +40,8 @@ on:
           - closing
           - heatmap
           - sector
+          - peer
+          - newsletter
           - weekly-summary
           - news-stream
       dry_run:
@@ -81,9 +85,18 @@ jobs:
           ESHAM_SITE_URL: https://esham.pages.dev
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
           ESHAM_KAP_MIN_IMPORTANCE: "3"
+          # E-posta bülteni — tanımlı değilse gönderim dry-run olur (güvenli)
+          ESHAM_SMTP_HOST: ${{ secrets.ESHAM_SMTP_HOST }}
+          ESHAM_SMTP_PORT: ${{ secrets.ESHAM_SMTP_PORT }}
+          ESHAM_SMTP_USER: ${{ secrets.ESHAM_SMTP_USER }}
+          ESHAM_SMTP_PASSWORD: ${{ secrets.ESHAM_SMTP_PASSWORD }}
+          ESHAM_SMTP_SSL: ${{ secrets.ESHAM_SMTP_SSL }}
+          ESHAM_EMAIL_FROM: ${{ secrets.ESHAM_EMAIL_FROM }}
+          ESHAM_UNSUBSCRIBE_SECRET: ${{ secrets.ESHAM_UNSUBSCRIBE_SECRET }}
         run: |
           case "${{ github.event.schedule }}" in
             "30 5 * * 1-5")              CMD="morning-report" ;;
+            "40 5 * * 1-5")              CMD="newsletter" ;;
             "45 5 * * 1-5")              CMD="global-report" ;;
             "30 6 * * 1-5")              CMD="viop --publish" ;;
             "0 7 * * 1-5")               CMD="opening" ;;
@@ -91,6 +104,12 @@ jobs:
             "15 15 * * 1-5")             CMD="closing" ;;
             "30 15 * * 1-4")             CMD="heatmap" ;;
             "0 6 * * 1")                 CMD="sector" ;;
+            "15 6 * * 1")
+              # Haftalık peer kıyası — sektör ISO haftasına göre döner
+              # (aynı sektör her hafta tekrarlanmasın, örneklem zenginleşsin)
+              SEC=$(python -c "from esham.sources.peer import sector_for_today; print(sector_for_today())")
+              CMD="peer --sector $SEC"
+              ;;
             "30 15 * * 5")               CMD="weekly-summary" ;;
             "5,20,35,50 6-15 * * 1-5")  CMD="news-stream --once --max-publish 5" ;;
             *)
@@ -128,6 +147,8 @@ jobs:
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # Abonelik formu bot'un /subscribe ucuna yazar (yoksa Formspree yedeği)
+          NEXT_PUBLIC_ESHAM_BOT_URL: ${{ secrets.ESHAM_BOT_URL }}
         run: |
           npm ci
           npm run build

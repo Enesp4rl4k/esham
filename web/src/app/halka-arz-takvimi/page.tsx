@@ -22,6 +22,18 @@ function extractIpoMeta(report: Report): {
   discount: string;
   verdict: string;
 } {
+  // Yapılandırılmış alan öncelikli (bot `ipo` bloğunu yazar); eski raporlarda
+  // bu alan yok → body markdown'inden regex ile sökülür (yedek yol).
+  const ipo = report.ipo;
+  if (ipo) {
+    return {
+      ticker: ipo.ticker || "—",
+      price: ipo.price ?? "—",
+      discount: ipo.discountRate ?? "—",
+      verdict: ipo.verdict ?? "",
+    };
+  }
+
   // Bot JSON alanları: tags içinde ticker, body içinde fiyat/iskonto
   const ticker = report.tags.find((t) => /^[A-Z]{3,6}$/.test(t)) ?? "—";
 
@@ -59,6 +71,8 @@ function discountColor(discount: string): string {
 function IpoCard({ report }: { report: Report }) {
   const { ticker, price, discount, verdict } = extractIpoMeta(report);
   const dcColor = discountColor(discount);
+  // Takvim için KAP bildirim tarihi esas (yoksa rapor yayın tarihi).
+  const eventDate = report.ipo?.disclosureDate ?? report.publishedAt;
 
   return (
     <Link
@@ -73,7 +87,7 @@ function IpoCard({ report }: { report: Report }) {
             <span className="text-[10px] font-bold tracking-widest uppercase text-emerald-400 border border-emerald-900/50 rounded px-2 py-0.5">
               {ticker}
             </span>
-            <span className="text-[10px] text-zinc-500">{formatDate(report.publishedAt)}</span>
+            <span className="text-[10px] text-zinc-500">{formatDate(eventDate)}</span>
           </div>
           <h3 className="text-sm font-semibold leading-snug text-zinc-100 group-hover:text-white transition-colors line-clamp-2">
             {report.title}
@@ -138,8 +152,12 @@ export default function HalkaArzTakvimiPage() {
   const allReports = getAllReports();
   const ipoReports = allReports.filter((r) => r.category === "ipo");
 
-  // Tarihe göre sırala (en yeni önce) — getAllReports zaten sıralı geliyor
-  const recent = ipoReports.slice(0, 30);
+  // KAP bildirim tarihine göre sırala (yoksa yayın tarihi) — en yeni önce
+  const eventTime = (r: Report) =>
+    new Date(r.ipo?.disclosureDate ?? r.publishedAt).getTime() || 0;
+  const sorted = [...ipoReports].sort((a, b) => eventTime(b) - eventTime(a));
+
+  const recent = sorted.slice(0, 30);
 
   return (
     <div className="container mx-auto px-6 py-12 max-w-5xl">

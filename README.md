@@ -23,6 +23,11 @@ Python `ReportDraft.to_document()` ↔ TypeScript `Report` arayüzü
 (`web/src/lib/content.ts`). Hacim büyüyünce bu köprü bir veritabanına (Supabase/
 Postgres) taşınabilir; iki tarafın da geri kalanı değişmeden kalır.
 
+Rapor JSON'unda opsiyonel alanlar da vardır: `image` (marka kartı) ve `ipo`
+(yapılandırılmış halka arz meta verisi — fiyat/iskonto/KAP tarihi/çarpanlar;
+`ReportDraft.ipo` ↔ `Report.ipo` / `IpoMeta`). Alan yoksa okuyucu yedeğine
+(eski regex/boş durum) düşer — şema geriye dönük uyumlu.
+
 ## bot/ — içerik motoru
 
 `esham` Python paketi:
@@ -35,10 +40,12 @@ Postgres) taşınabilir; iki tarafın da geri kalanı değişmeden kalır.
 | `sources/calendar` | TradingView ekonomik takvim API — günlük veri açıklamaları |
 | `sources/viop` | VİOP kotasyonu (TradingView) + Takasbank teminat agregatı + stres |
 | `sources/kap_filter` | KAP önem filtresi — rutin/idari bildirimleri eler (spam önleme) |
+| `sources/sector` | Yahoo BIST sektör endeksleri — haftalık rotasyon |
+| `sources/peer` | **Peer/değer kıyası** — sektördeki çarpanlar (F/K, PD/DD, FD/FAVÖK, temettü) + medyan, Yahoo quoteSummary (cookie+crumb) + chart API |
 | `turkish` | Türkçe-doğru büyük harf + aksan-toleranslı eşleştirme (tek kaynak) |
 | `state` | Kalıcı durum (seen-set, margin önceki değer, günlük sayaç, iş sağlığı) |
 | `risk/margin` | Hesap bazlı teminat izleme & margin-call motoru (deterministik) |
-| `evals/` | AI çıktı kalite/güvenlik kapısı — tavsiye dedektörü, grounding, biçim |
+| `evals/` | AI çıktı kalite/güvenlik kapısı — tavsiye dedektörü, grounding, biçim + **LLM-as-judge** (`judge.py`) |
 | `publishing/cards` | Marka kartı üreticisi (PIL) — TEK görsel hem tweet'e hem web hero/OG'ye |
 | `documents/` | PDF metin çıkarma + ilgili bölüm ayıklama (maliyet kontrolü) |
 | `ai/client` | Ortak LLM istemcisi (JSON çıktı, anahtarsız `None`) |
@@ -49,6 +56,7 @@ Postgres) taşınabilir; iki tarafın da geri kalanı değişmeden kalır.
 | `publishing/content_store` | **Web köprüsü** — JSON rapor yazar |
 | `publishing/ipo_pdf` | Halka arz analiz PDF/HTML raporu |
 | `publishing/social` | Twitter/X ve Telegram paylaşımı |
+| `newsletter` | **Abone deposu + SMTP bülteni** (doğrulama, imzalı çıkış, dry-run) |
 | `pipeline` | Sabah raporu orkestrasyonu |
 | `news_stream` | Anlık KAP/insider haber akışı (öncelikli kuyruk + drip) |
 
@@ -71,6 +79,14 @@ py -m esham.main analyze-company <kaynak> --company "TechYazılım A.Ş." --peri
 # VİOP: piyasa + marketwide teminat stresi + hesap margin-call kontrolü
 py -m esham.main viop
 py -m esham.main viop --positions hesap.json --prior-pct 0.30 --publish
+
+# Peer/değer kıyası — sektör çarpanlarının medyanına göre göreli değerleme
+py -m esham.main peer --list-sectors
+py -m esham.main peer --sector bankacilik
+
+# E-posta bülteni — abonelere son rapor özeti (SMTP yoksa dry-run)
+py -m esham.main newsletter --dry-run
+py -m esham.main newsletter --test-to ben@ornek.com
 ```
 
 ### VİOP & margin-call
@@ -147,16 +163,25 @@ PDF'ini besler.
 ### Evals — kalite/güvenlik kapısı
 
 `py -m esham.main evals` AI çıktılarını ölçer ve başarısızsa **exit 1** döner (CI kapısı,
-`.github/workflows/evals.yml`). Üç eksen:
+`.github/workflows/evals.yml`). Dört eksen:
 
 - **Güvenlik:** çıktıda örtük/açık yatırım tavsiyesi kalıbı var mı (finansal içerikte yasak)
 - **Grounding:** analizdeki sayısal değerler kaynak belgede geçiyor mu (halüsinasyon önler)
 - **Biçim & metrik:** tweet ≤280, alan tamlığı; ayrıca gecikme ve tahmini maliyet
+- **LLM-as-judge (kalite puanı):** analiz dört eksenli rubrikle 0-5 puanlanır —
+  dayanak, tam kapsamlılık, nesnellik, açıklık; her puan gerekçelidir
 
 Check'ler saf ve yeniden kullanılabilir — aynılar yayın öncesi **guardrail** olarak da
 takılıdır (`guardrails.py`): ihlal içeren rapor/tweet `ESHAM_GUARDRAILS=enforce`
 modunda hiç yayınlanmaz/gönderilmez. Anahtarsız da çalışır (fallback çıktı +
 dedektör/grounding testleri).
+
+**Judge nasıl çalışır:** `evals/judge.py::AnalysisJudge` gerçek (grounded) analize
+yüksek, kaynakta olmayan sayılarla dolu (halüsinasyonlu) analize düşük "dayanak"
+puanı **verebiliyor mu** — bunu ölçen iki vaka süitede. Anlık puanlama
+`score_analysis(kaynak_metni, analiz)` ile çağrılabilir (yayın hattına skor olarak
+eklenebilir). LLM anahtarı **yoksa** judge devre dışıdır: vaka "atlandı" olarak
+işaretlenir, `evals` yine yeşildir (CI anahtarsız da çalışır).
 
 ### Marka kartları — tweet görselleri ve web hero/OG
 
@@ -292,11 +317,24 @@ Her rapor ve site genelinde SPK uyumlu yasal uyarı gösterilir.
       var olmayan/kaldırılmış bir yoldu (WAF sessizce yutuyordu, bu yüzden hep
       timeout alıyorduk). Gerçek uç noktalar bulundu, doğrulandı, canlı veriyle
       uçtan uca test edildi (bkz. "KAP entegrasyonu" bölümü)
-- [ ] Deploy: Cloudflare Pages + Render (bot) canlıya alma, domain bağlama
-- [ ] LLM-as-judge ile analiz kalitesi puanı
+- [x] **Halka arz takvimi sayfası** — `/halka-arz-takvimi` nav + sitemap'e eklendi;
+      bot artık rapor JSON'una yapılandırılmış `ipo` bloğu yazıyor (fiyat, iskonto,
+      KAP bildirim tarihi, çarpanlar) — sayfa body markdown'ini regex ile sömmek
+      zorunda değil (eski raporlar için regex yedeği duruyor)
+- [x] **E-posta bülteni / abonelik** — `newsletter.py` (abone deposu, imzalı çıkış,
+      HTML+text digest, SMTP dry-run), Render `/subscribe` + `/unsubscribe` uçları,
+      web formu (`NEXT_PUBLIC_ESHAM_BOT_URL` yoksa Formspree yedeği),
+      `/abonelik/cikis` sayfası, 08:40 günlük gönderim işi
+- [x] **Peer/sektör karşılaştırması** — `sources/peer.py` sektör çarpanları
+      (F/K, PD/DD, FD/FAVÖK, temettü, FÖK) + medyan ve göreli konumlanma;
+      `py -m esham.main peer`; haftalık iş sektör ISO haftasına göre döner
+- [x] **LLM-as-judge ile analiz kalitesi puanı** — `evals/judge.py` dört eksenli
+      rubrik (dayanak, tam kapsamlılık, nesnellik, açıklık, 0-5); grounded vs
+      halüsinasyonlu analizi ayırt ettiği eval ile ölçülür; anahtar yoksa süit
+      "atlandı" olarak yeşil kalır (CI kırmaz)
+- [x] **Deploy rehberi** — `DEPLOY.md`: Cloudflare Pages + Render + GitHub Secrets
+      tam liste, domain bağlama, doğrulama checklist'i, sır rotasyonu uyarısı
+      (canlıya alma adımları hesap tarafında tamamlanacak)
 - [ ] Takasbank per-kontrat SPAN parametrelerinin canlı entegrasyonu (captcha/WAF engeli)
 - [ ] KAP eklerinden (fiyat tespit PDF'i) otomatik dosya çözümü
-- [ ] Peer/sektör karşılaştırması ile değerleme (çarpan kıyası)
-- [ ] E-posta bülteni / abonelik
-- [ ] Halka arz takvimi sayfası
 - [ ] İçerik köprüsünün veritabanına taşınması (anlık güncelleme, arama)

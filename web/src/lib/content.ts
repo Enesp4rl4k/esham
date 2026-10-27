@@ -15,6 +15,7 @@ export type {
   Report,
   CategoryMeta,
   Accent,
+  IpoMeta,
 } from "./content-utils";
 
 export {
@@ -26,13 +27,61 @@ export {
   getReportImageUrl,
 } from "./content-utils";
 
-import type { CategorySlug, Report } from "./content-utils";
+import type { CategorySlug, IpoMeta, Report } from "./content-utils";
 import { CATEGORIES } from "./content-utils";
 
 const REPORTS_DIR = path.join(process.cwd(), "content", "reports");
 
 function isCategory(value: unknown): value is CategorySlug {
   return typeof value === "string" && value in CATEGORIES;
+}
+
+/**
+ * `ipo` yapısını toleranslıca ayrıştırır. Alanlar tek tek doğrulanır — bozuk/
+ * eksik bir alan tüm raporu düşürmesin; `ipo` hiç yoksa `undefined` döner.
+ */
+function parseIpoMeta(raw: unknown): IpoMeta | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const m = raw as Record<string, unknown>;
+  if (typeof m.company !== "string" || typeof m.ticker !== "string") return undefined;
+
+  const str = (v: unknown): string | undefined =>
+    typeof v === "string" && v.trim() ? v : undefined;
+  const list = (v: unknown): string[] | undefined =>
+    Array.isArray(v) && v.length ? v.map(String).filter(Boolean) : undefined;
+  const obj = (v: unknown): Record<string, string> | undefined => {
+    if (!v || typeof v !== "object" || Array.isArray(v)) return undefined;
+    const entries = Object.entries(v as Record<string, unknown>)
+      .filter(([, val]) => val !== null && val !== undefined && String(val).trim())
+      .map(([k, val]) => [k, String(val)] as const);
+    return entries.length ? Object.fromEntries(entries) : undefined;
+  };
+
+  const meta: IpoMeta = { company: m.company, ticker: m.ticker };
+  const discountPct = typeof m.discountPct === "number" ? m.discountPct : undefined;
+  const disclosureDate = str(m.disclosureDate);
+  const price = str(m.price);
+  const discountRate = str(m.discountRate);
+  const offerSize = str(m.offerSize);
+  const netMargin = str(m.netMargin);
+  const verdict = str(m.verdict);
+  const confidence = str(m.confidence);
+  const valuation = obj(m.valuation);
+  const fundUsage = list(m.fundUsage);
+  const risks = list(m.risks);
+
+  if (disclosureDate) meta.disclosureDate = disclosureDate;
+  if (price) meta.price = price;
+  if (discountRate) meta.discountRate = discountRate;
+  if (discountPct !== undefined) meta.discountPct = discountPct;
+  if (offerSize) meta.offerSize = offerSize;
+  if (netMargin) meta.netMargin = netMargin;
+  if (valuation) meta.valuation = valuation;
+  if (fundUsage) meta.fundUsage = fundUsage;
+  if (risks) meta.risks = risks;
+  if (verdict) meta.verdict = verdict;
+  if (confidence) meta.confidence = confidence;
+  return meta;
 }
 
 function parseReport(raw: unknown, file: string): Report | null {
@@ -59,6 +108,7 @@ function parseReport(raw: unknown, file: string): Report | null {
     sources: Array.isArray(r.sources) ? r.sources.map(String) : [],
     tags: Array.isArray(r.tags) ? r.tags.map(String) : [],
     image: typeof r.image === "string" ? r.image : undefined,
+    ipo: parseIpoMeta(r.ipo),
   };
 }
 

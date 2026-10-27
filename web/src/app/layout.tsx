@@ -44,6 +44,7 @@ const navItems: { href: string; label: string }[] = [
     href: `/kategori/${slug}`,
     label: CATEGORIES[slug].label,
   })),
+  { href: "/halka-arz-takvimi", label: "Halka Arz Takvimi" },
   { href: "/arsiv", label: "Arşiv" },
 ];
 

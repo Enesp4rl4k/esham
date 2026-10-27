@@ -21,11 +21,19 @@ GROQ_API_KEY=gsk_xxxxxxxxxxxxx
 # veya
 GEMINI_API_KEY=AIzaSyxxxxxxxxx
 
-# === ZORUNLU: Twitter (paylaşım için) ===
-TWITTER_API_KEY=ZbwQbXNxRIu8B9bOTWBrC79V7
-TWITTER_API_SECRET=yBlVZoiat0wtgMNyfH8kEiEHpLmOsgcH2yYQffe65FT0RV6vWK
-TWITTER_ACCESS_TOKEN=2073728398958968832-l9RfEgUCI5YGqE8Kgc0JTEj81QtgOI
-TWITTER_ACCESS_SECRET=HGleUUYtfJEgPDcnc91NkVkhKcAqk5xu33L95wPKLtbw2
+# === SIR DEĞERLERİ: KODA/YAZIYA ASLA GERÇEK ANAHTAR YAZMA ===
+# Aşağıdakiler PLACEHOLDER'dır. Gerçek anahtarlar yalnızca platformun
+# (Render/GitHub) secret alanında tutulur.
+#
+# ⚠️ GÜVENLİK: Bu dosyada geçmişte gerçek Twitter API ve Unsplash anahtarları
+#    düz metin olarak bulunmuştu ve depo genelinde COMMIT edilmişti. Bu değerler
+#    artık geçersizleştirilmeli (aşağıdaki adımlar) — bkz. "Güvenlik Rotasyonu".
+#
+# === Twitter (X) — paylaşımlar şu an Telegram'a gidiyor, anahtarlar opsiyonel ===
+TWITTER_API_KEY=PUT_YOUR_KEY_HERE
+TWITTER_API_SECRET=PUT_YOUR_SECRET_HERE
+TWITTER_ACCESS_TOKEN=PUT_YOUR_TOKEN_HERE
+TWITTER_ACCESS_SECRET=PUT_YOUR_TOKEN_SECRET_HERE
 
 # === ZORUNLU: Git Push (web güncellemesi için) ===
 GIT_AUTO_PUSH=true
@@ -35,10 +43,26 @@ GIT_REPO_URL=https://github.com/Enesp4rl4k/esham.git
 # === Opsiyonel ===
 TELEGRAM_BOT_TOKEN=
 TELEGRAM_CHAT_ID=
-UNSPLASH_ACCESS_KEY=EwDeC1ibKQ6f3OKVs5GZTKiUnxukAZP2zXBvbC0epva2ti73JKyNbEVm
+UNSPLASH_ACCESS_KEY=PUT_YOUR_UNPLASH_KEY_HERE
 ESHAM_SITE_URL=https://esham.pages.dev
 ESHAM_KAP_MIN_IMPORTANCE=1
 ```
+
+### 🔄 Güvenlik Rotasyonu (ÖNCE BUNU YAP)
+
+Depo genelinde düz metin görünen anahtarlar **herkes tarafından görülebilir**
+(araçlar/loglar dahil). Şunları sırayla yap:
+
+1. **Twitter/X anahtarlarını iptal et:** https://developer.x.com/en/portal/dashboard
+   → App → Keys and tokens → Regenerate. Eski anahtarlar geçersiz kalsın.
+2. **Unsplash anahtarını iptal et:** https://unsplash.com/developers →
+   anahtarını yenile.
+3. **Depo geçmişinden temizle (opsiyonel ama önerilir):**
+   `git filter-repo --invert-paths --path RENDER_KURULUM.md` yerine daha doğrusu
+   metin geçmişi kazımaktır; pratikte anahtarları **döndürmek (1-2) yeterlidir** —
+   geçmişte kalan eski anahtar zaten çalışmayacaktır.
+4. Bundan sonra gerçek değerleri **yalnızca** Render Environment Variables ve
+   GitHub Secrets'a gir; dosyalara yazma.
 
 ### 2. GitHub Personal Access Token Oluşturma
 

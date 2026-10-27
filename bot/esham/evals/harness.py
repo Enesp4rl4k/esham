@@ -33,6 +33,8 @@ class CaseResult:
     latency_ms: float = 0.0
     est_tokens: int = 0
     error: str = ""
+    # Üretici çıktısından türetilen ek bilgi (ör. judge puanı) — raporda yazdırılır.
+    note: str = ""
 
     @property
     def passed(self) -> bool:
@@ -50,6 +52,8 @@ class EvalCase:
     checks: list[Callable[[Any], CheckResult]]
     # Maliyet tahmini için girdi metni (opsiyonel).
     cost_text: str = ""
+    # Çıktıdan insan-okunur not üreten fonksiyon (opsiyonel) — rapora yazdırılır.
+    note: Callable[[Any], str] | None = None
 
 
 @dataclass
@@ -88,7 +92,13 @@ def run_case(case: EvalCase) -> CaseResult:
 
     checks = [chk(output) for chk in case.checks]
     est_tokens = (len(case.cost_text) + len(str(output))) // _CHARS_PER_TOKEN
-    return CaseResult(case.name, checks, latency, est_tokens)
+    note = ""
+    if case.note:
+        try:
+            note = case.note(output)
+        except Exception as exc:  # not üretememek vakayı düşürmez
+            log.debug("Vaka notu üretilemedi: %s", exc)
+    return CaseResult(case.name, checks, latency, est_tokens, note=note)
 
 
 def run_suite(name: str, cases: list[EvalCase]) -> SuiteResult:
@@ -103,6 +113,8 @@ def print_report(suites: list[SuiteResult]) -> bool:
         for case in suite.cases:
             mark = "✓" if case.passed else "✗"
             print(f"  {mark} {case.name}  [{case.latency_ms:.0f}ms]")
+            if case.note:
+                print(f"      → {case.note}")
             if case.error:
                 print(f"      HATA: {case.error}")
             for chk in case.checks:

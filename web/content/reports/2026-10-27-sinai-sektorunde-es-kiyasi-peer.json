@@ -1,0 +1,20 @@
+{
+  "slug": "sinai-sektorunde-es-kiyasi-peer-2026-10-27",
+  "title": "Sınai Sektöründe Eş Kıyası (Peer)",
+  "category": "bist",
+  "summary": "Sınai eş kıyası: medyan F/K 10,08, medyan PD/DD 0,60. En ucuz: SISE.",
+  "publishedAt": "2026-10-27T02:13:01.921261Z",
+  "author": "Esham AI",
+  "aiGenerated": false,
+  "sources": [
+    "Yahoo Finance"
+  ],
+  "tags": [
+    "Peer",
+    "Çarpan",
+    "Sınai",
+    "BIST"
+  ],
+  "body": "## Sınai — Eş Kıyası\n\n| Hisse | Fiyat | Günlük | F/K | PD/DD | FD/FAVÖK | Temettü % | FÖK % |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| EREGL | 30,86 | -2,34% | 26,83 | 0,65 | 12,22 | %1.6 | %2.7 |\n| SISE | 34,40 | +1,53% | 8,37 | 0,31 | 21,19 | %1.7 | %3.2 |\n| ARCLK | 69,20 | -3,01% | — | 0,60 | 14,20 | — | — |\n| PETKM | 17,72 | -1,88% | — | 0,60 | — | — | — |\n| TUPRS | 364,50 | +1,04% | 10,08 | 1,54 | 5,30 | %3.7 | %17.6 |\n| **Medyan** | — | — | **10,08** | **0,60** | **13,21** | **%1.7** | — |\n\n## Medyana Göre Konumlanma\n\n- **En düşük F/K:** SISE (Şişecam) — 8,37 · sektör medyanının %17 altında\n- **En yüksek F/K:** EREGL (Ereğli Demir Çelik) — 26,83 · sektör medyanının %166 üzerinde\n\n## Değerlendirme\n\n- Sektör medyanı, bu örneklemden hesaplanır ve gün içi fiyatlarla değişir.\n- F/K medyanına **yakın** hisseler iskonto primi olmadan işlem görür; medyanın\n  belirgin **altında** kalanlar için temel/neden, **üstünde** kalanlar için prim\n  gerekçesi aranır (bilanço kalitesi, büyüme, temettü politikası).\n\n\n*Çarpanlar Yahoo Finance özet verisinden alınır; yatırıma yönlendirici değildir.*",
+  "image": "/cards/sinai-sektorunde-es-kiyasi-peer-2026-10-27.png"
+}

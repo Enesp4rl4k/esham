@@ -23,6 +23,7 @@ from .pipeline import (
     run_morning_report,
     run_news_report,
     run_opening_report,
+    run_peer_report,
     run_sector_report,
     run_viop_report,
     run_weekly_summary,
@@ -30,6 +31,7 @@ from .pipeline import (
 from .scheduler import build_default_scheduler
 from .publishing.ipo_pdf import IpoPdfGenerator
 from .risk.margin import MarginMonitor, default_parameters, load_parameters_file, load_positions_file
+from .sources.peer import available_groups
 from .sources.viop import ViopSource, assess_margin_stress
 
 log = get_logger(__name__)
@@ -153,6 +155,17 @@ def _cmd_sector(_: argparse.Namespace) -> None:
     run_sector_report()
 
 
+def _cmd_peer(args: argparse.Namespace) -> None:
+    if args.list_sectors:
+        print("Kullanılabilir sektörler:")
+        for key in available_groups():
+            print(f"  - {key}")
+        return
+    slug = run_peer_report(args.sector, publish_social=not args.no_social)
+    if slug:
+        print(f"Peer kıyas raporu yayınlandı: /rapor/{slug}")
+
+
 def _cmd_global(_: argparse.Namespace) -> None:
     run_global_report()
 
@@ -161,6 +174,18 @@ def _cmd_weekly_summary(args: argparse.Namespace) -> None:
     slug = run_weekly_summary(publish_social=not args.no_social)
     if slug:
         print(f"Haftalık özet yayınlandı: /rapor/{slug}")
+
+
+def _cmd_newsletter(args: argparse.Namespace) -> None:
+    from .newsletter import run_newsletter
+
+    sent = run_newsletter(limit=args.limit, test_to=args.test_to, dry_run=args.dry_run)
+    if sent:
+        print(f"Bülten gönderildi: {sent} alıcı")
+    else:
+        print(
+            "Bülten gönderilmedi (abone yok / rapor yok / SMTP yapılandırılmamış / dry-run)."
+        )
 
 
 def _cmd_evals(_: argparse.Namespace) -> None:
@@ -253,6 +278,20 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("opening", help="BIST açılış notu yayınla").set_defaults(func=_cmd_opening)
     sub.add_parser("closing", help="Kapanış bülteni yayınla").set_defaults(func=_cmd_closing)
     sub.add_parser("sector", help="Haftalık sektör rotasyonu yayınla").set_defaults(func=_cmd_sector)
+
+    pr = sub.add_parser("peer", help="Sektör içi eş/değer kıyası (F/K, PD/DD medyanı) yayınla")
+    pr.add_argument(
+        "--sector",
+        default="bankacilik",
+        choices=available_groups(),
+        help="Kıyaslama sektörü (varsayılan: bankacilik)",
+    )
+    pr.add_argument("--list-sectors", action="store_true", help="Sektör listesini bas ve çık")
+    pr.add_argument("--no-social", action="store_true", help="Sosyal medya paylaşımını atla")
+    pr.set_defaults(func=_cmd_peer)
+
+    fg = sub.add_parser("fear-greed", help="Korku & Açgözlülük endeksi raporu yayınla")
+    fg.set_defaults(func=_cmd_fear_greed)
     sub.add_parser("global-report", help="Küresel makro raporu yayınla").set_defaults(func=_cmd_global)
     sub.add_parser("heatmap", help="BIST30 Piyasa Isı Haritası üret ve yayınla").set_defaults(func=_cmd_heatmap)
 
@@ -268,6 +307,13 @@ def build_parser() -> argparse.ArgumentParser:
     gn.add_argument("--no-social", action="store_true", help="Sosyal medya paylaşımını atla")
     gn.set_defaults(func=_cmd_gundem)
     sub.add_parser("evals", help="AI çıktı kalitesi/güvenlik eval'lerini çalıştır").set_defaults(func=_cmd_evals)
+
+    nl = sub.add_parser("newsletter", help="Bülten abonelerine e-posta özeti gönder")
+    nl.add_argument("--limit", type=int, default=None, help="Kaç rapor kapsansın (varsayılan: 6)")
+    nl.add_argument("--test-to", default=None, metavar="EMAIL",
+                    help="Yalnızca bu adrese gönder (liste abonelerine dokunulmaz)")
+    nl.add_argument("--dry-run", action="store_true", help="Göndermeden üret ve logla")
+    nl.set_defaults(func=_cmd_newsletter)
 
     ip = sub.add_parser("ipo-pdf", help="Örnek halka arz raporu üret")
     ip.set_defaults(func=_cmd_ipo_pdf)

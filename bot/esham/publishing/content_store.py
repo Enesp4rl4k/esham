@@ -49,6 +49,10 @@ class ReportDraft:
     slug: str | None = None
     # Aynı görsel hem tweet'e hem web hero/OG'ye gider — tek üretim, tek kaynak.
     image_path: Path | None = None
+    # Yapılandırılmış ek alan (şu an sadece halka arz meta verisi). Web tarafındaki
+    # `Report.ipo` ile senkron: takvim/istatistik sayfaları body markdown'ini regex ile
+    # sömmek zorunda kalmasın. None ise JSON'a hiç yazılmaz (eski raporlar değişmez).
+    ipo: dict | None = None
 
     def resolved_slug(self) -> str:
         base = self.slug or slugify(self.title)
@@ -75,6 +79,8 @@ class ReportDraft:
         }
         if image_rel_url:
             doc["image"] = image_rel_url
+        if self.ipo:
+            doc["ipo"] = self.ipo
         return doc
 
 

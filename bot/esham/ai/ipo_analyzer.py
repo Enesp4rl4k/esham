@@ -57,6 +57,39 @@ class IpoAnalysis:
             return ""
         return " · ".join(items)
 
+    def to_meta(self, disclosure_date: str = "") -> dict:
+        """Web köprüsü için yapılandırılmış meta (takvim/istatistik sayfaları için).
+
+        `web/src/lib/content-utils.ts` içindeki `IpoMeta` ile alan adları senkron
+        tutulmalı. Boş değerler yazılmaz — eski/eksik alanlar JSON'da görünmez.
+        """
+        meta: dict = {
+            "company": self.company,
+            "ticker": self.ticker,
+            "verdict": self.verdict,
+            "confidence": self.confidence,
+        }
+        if disclosure_date:
+            meta["disclosureDate"] = disclosure_date
+        if self.price:
+            meta["price"] = self.price
+        if self.discount_rate:
+            meta["discountRate"] = self.discount_rate
+            pct = self.discount_pct_float()
+            if pct:
+                meta["discountPct"] = pct
+        if self.offer_size:
+            meta["offerSize"] = self.offer_size
+        if self.net_margin:
+            meta["netMargin"] = self.net_margin
+        if self.valuation:
+            meta["valuation"] = dict(self.valuation)
+        if self.fund_usage:
+            meta["fundUsage"] = list(self.fund_usage)
+        if self.risks:
+            meta["risks"] = list(self.risks)
+        return meta
+
     def to_markdown(self) -> str:
         def bullets(items: list[str]) -> str:
             return "\n".join(f"- {i}" for i in items) if items else "- Belirtilmemiş"

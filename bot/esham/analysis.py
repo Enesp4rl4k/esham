@@ -97,8 +97,13 @@ def analyze_ipo_document(
     *,
     publish: bool = True,
     make_pdf: bool = True,
+    disclosure_date: str = "",
 ) -> IpoResult:
-    """`source`: PDF yolu/URL, KAP linki veya ham metin."""
+    """`source`: PDF yolu/URL, KAP linki veya ham metin.
+
+    `disclosure_date`: KAP bildirim tarihi (`YYYY-MM-DD`) — rapor JSON'undaki
+    `ipo.disclosureDate` alanına yazılır, halka arz takvimi sayfası bunu kullanır.
+    """
     log.info("Halka arz analizi başlıyor: %s (%s)", company, ticker)
     text = load_document_text(source)
     if not text:
@@ -119,6 +124,7 @@ def analyze_ipo_document(
             tags=[ticker, "Halka Arz"],
             ai_generated=analysis.ai_generated,
             image_path=result.image_path,
+            ipo=analysis.to_meta(disclosure_date),
         )
         result.report_path = ContentStore().publish(draft)
         # Yayın guardrail'a takıldıysa slug atama — var olmayan rapora link verilmesin.

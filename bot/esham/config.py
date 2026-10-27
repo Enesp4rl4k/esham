@@ -43,6 +43,14 @@ def _default_state_file() -> Path:
     return PROJECT_ROOT / "bot" / "state" / "esham_state.json"
 
 
+def _default_subscriber_file() -> Path:
+    """Bülten aboneleri — JSON listesi (eposta + katılım tarihi)."""
+    override = os.getenv("ESHAM_SUBSCRIBER_FILE")
+    if override:
+        return Path(override)
+    return PROJECT_ROOT / "bot" / "state" / "esham_subscribers.json"
+
+
 @dataclass(frozen=True)
 class Settings:
     gemini_api_key: str | None = field(default_factory=lambda: os.getenv("GEMINI_API_KEY"))
@@ -168,6 +176,32 @@ class Settings:
 
     state_file: Path = field(default_factory=_default_state_file)
 
+    # ---- E-posta bülteni / abonelik ---------------------------------------
+    # SMTP kimlik bilgileri verilmezse gönderim DRY-RUN olur (kayıt tutulur,
+    # e-posta gitmez) — repo'nun zarif bozulma ilkesine uyar.
+    smtp_host: str | None = field(default_factory=lambda: os.getenv("ESHAM_SMTP_HOST"))
+    smtp_port: int = field(default_factory=lambda: int(os.getenv("ESHAM_SMTP_PORT", "587")))
+    smtp_user: str | None = field(default_factory=lambda: os.getenv("ESHAM_SMTP_USER"))
+    smtp_password: str | None = field(default_factory=lambda: os.getenv("ESHAM_SMTP_PASSWORD"))
+    # 465 → implicit TLS (SSL), diğerleri → STARTTLS
+    smtp_use_ssl: bool = field(
+        default_factory=lambda: os.getenv("ESHAM_SMTP_SSL", "false").lower() in ("1", "true", "yes")
+    )
+    email_from: str = field(
+        default_factory=lambda: os.getenv("ESHAM_EMAIL_FROM", "Esham <bulten@esham.pages.dev>")
+    )
+    # Abone deposu (kalıcı) — Render disk kalıcı değilse en kötü durumda liste sıfırlanır.
+    subscriber_file: Path = field(default_factory=_default_subscriber_file)
+    # Abonelikten çıkış bağlantılarındaki imza tuzu (e-posta sızsa bile imzasız
+    # çıkış yapılamaz). Verilmezse zayıf ama işleyen bir varsayılan kullanılır.
+    unsubscribe_secret: str = field(
+        default_factory=lambda: os.getenv("ESHAM_UNSUBSCRIBE_SECRET", "esham-default-secret")
+    )
+    # Tek bülten kaç rapor kapsın
+    newsletter_limit: int = field(default_factory=lambda: int(os.getenv("ESHAM_NEWSLETTER_LIMIT", "6")))
+    # Abone sayısı tavanı (spam/kötü niyetli doldurma koruması)
+    subscribers_max: int = field(default_factory=lambda: int(os.getenv("ESHAM_SUBSCRIBERS_MAX", "5000")))
+
     # Acil durdurma: true ise hiçbir sosyal paylaşım/rapor yayını yapılmaz (dry-run
     # gibi davranır). Redeploy/restart ile değişir — anlık bir "panic switch" değil,
     # ama tek bir ortam değişkeniyle tüm otomasyonu durdurmaya yeter.
@@ -191,6 +225,11 @@ class Settings:
     @property
     def groq_enabled(self) -> bool:
         return bool(self.groq_api_key)
+
+    @property
+    def smtp_enabled(self) -> bool:
+        """SMTP yapılandırmışsa gerçek gönderim; yoksa dry-run."""
+        return bool(self.smtp_host and self.smtp_user and self.smtp_password)
 
 
 settings = Settings()

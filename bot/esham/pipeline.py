@@ -28,6 +28,7 @@ from .sources.calendar import EconomicCalendarSource
 from .sources.global_macro import GlobalMacroSource
 from .sources.kap import KapSource
 from .sources.news_detector import MarketEvent
+from .sources.peer import PeerSource
 from .sources.sector import SectorSource
 from .sources.viop import ViopSource, assess_margin_stress
 
@@ -533,6 +534,129 @@ liderler orta vadeli momentum açısından izlenmeye değer."""
         )
     _cleanup(card_path)
     return slug
+
+
+def run_peer_report(sector_key: str = "bankacilik", publish_social: bool = True) -> str | None:
+    """Sektör içi eş/değer kıyası raporu (peer multiples).
+
+    `sources/peer.py` çarpanları (F/K, PD/DD, FD/FAVÖK) medyanıyla hangi hissenin
+    sektör medyanına göre ucuz/pahalı olduğunu gösterir. Veri kaynağından bağımsız
+    çalışır: crumb yoksa fiyat performansıyla, o da yoksa örnek veriyle devam eder.
+    """
+    snap = PeerSource().snapshot(sector_key)
+
+    rows = "\n".join(
+        f"| {p.ticker} | {p.price_str} | {p.change_str} | "
+        f"{_fmt_mult(p.pe)} | {_fmt_mult(p.pb)} | {_fmt_mult(p.ev_ebitda)} | "
+        f"{_fmt_mult(p.dividend_yield, pct=True)} | {_fmt_mult(p.roe, pct=True)} |"
+        for p in snap.peers
+    )
+    median_line = (
+        f"| **Medyan** | — | — | **{_fmt_mult(snap.median_pe)}** | "
+        f"**{_fmt_mult(snap.median_pb)}** | **{_fmt_mult(snap.median_ev_ebitda)}** | "
+        f"**{_fmt_mult(snap.median_dividend_yield, pct=True)}** | — |"
+    )
+
+    # F/K medyanına göre en ucuz / en pahalı iki hisse (varsa)
+    ranked = sorted(
+        (p for p in snap.peers if p.pe is not None), key=lambda p: p.pe
+    )
+    cheapest = ranked[0] if ranked else None
+    priciest = ranked[-1] if ranked and len(ranked) > 1 else None
+
+    cheap_line = (
+        f"- **En düşük F/K:** {cheapest.ticker} ({cheapest.name}) — "
+        f"{_fmt_mult(cheapest.pe)} · {snap.stance('pe', cheapest.pe)}"
+        if cheapest else "- F/K verisi alınamadı; kıyas fiyat performansına dayanıyor."
+    )
+    pricy_line = (
+        f"- **En yüksek F/K:** {priciest.ticker} ({priciest.name}) — "
+        f"{_fmt_mult(priciest.pe)} · {snap.stance('pe', priciest.pe)}"
+        if priciest else ""
+    )
+    notes = "\n".join(f"- {n}" for n in snap.notes)
+    caveat = (
+        "\n> **Not:** Veriler örnek amaçlıdır; gerçek kaynaklara erişilemedi."
+        if snap.sample
+        else ""
+    )
+
+    body = f"""## {snap.sector_name} — Eş Kıyası
+
+| Hisse | Fiyat | Günlük | F/K | PD/DD | FD/FAVÖK | Temettü % | FÖK % |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+{rows}
+{median_line}
+
+## Medyana Göre Konumlanma
+
+{cheap_line}
+{pricy_line}
+
+## Değerlendirme
+
+- Sektör medyanı, bu örneklemden hesaplanır ve gün içi fiyatlarla değişir.
+- F/K medyanına **yakın** hisseler iskonto primi olmadan işlem görür; medyanın
+  belirgin **altında** kalanlar için temel/neden, **üstünde** kalanlar için prim
+  gerekçesi aranır (bilanço kalitesi, büyüme, temettü politikası).
+{notes}{caveat}
+
+*Çarpanlar Yahoo Finance özet verisinden alınır; yatırıma yönlendirici değildir.*"""
+
+    cheapest_p = cheapest.ticker if cheapest else "—"
+    summary = (
+        f"{snap.sector_name} eş kıyası: medyan F/K {_fmt_mult(snap.median_pe)}, "
+        f"medyan PD/DD {_fmt_mult(snap.median_pb)}. En ucuz: {cheapest_p}."
+    )
+
+    card_path = _render_card(
+        CardSpec(
+            category="bist",
+            kicker=f"{snap.sector_name} — Eş Kıyası",
+            headline=f"Medyan F/K {_fmt_mult(snap.median_pe)} · PD/DD {_fmt_mult(snap.median_pb)}",
+            metrics=[
+                ("Medyan F/K", _fmt_mult(snap.median_pe)),
+                ("Medyan PD/DD", _fmt_mult(snap.median_pb)),
+                ("Temettü", _fmt_mult(snap.median_dividend_yield, pct=True)),
+                ("Örneklem", str(len(snap.peers))),
+            ],
+            bars=[(p.ticker, p.change_pct) for p in snap.peers if p.change_pct is not None][:6],
+            template="bist",
+        )
+    )
+
+    draft = ReportDraft(
+        title=f"{snap.sector_name} Sektöründe Eş Kıyası (Peer)",
+        category="bist",
+        summary=summary[:200],
+        body=body,
+        sources=["Yahoo Finance"],
+        tags=["Peer", "Çarpan", snap.sector_name, "BIST"],
+        ai_generated=False,
+        image_path=card_path,
+    )
+    if ContentStore().publish(draft) is None:
+        log.error("Peer raporu guardrail'a takıldı; iptal.")
+        _cleanup(card_path)
+        return None
+    slug = draft.resolved_slug()
+    if publish_social:
+        SocialPublisher().broadcast(
+            f"{snap.sector_name} eş kıyası yayında: medyan F/K "
+            f"{_fmt_mult(snap.median_pe)}.\n{settings.site_url}/rapor/{slug} #BIST #Çarpan",
+            image_path=card_path,
+        )
+    _cleanup(card_path)
+    return slug
+
+
+def _fmt_mult(value: float | None, *, pct: bool = False) -> str:
+    """Çarpan/çeyrek değeri kısa biçimde yazar (yoksa tire)."""
+    if value is None:
+        return "—"
+    if pct:
+        return f"%{value:.1f}"
+    return f"{value:.2f}".replace(".", ",")
 
 
 def run_global_report(publish_social: bool = True) -> str | None:
