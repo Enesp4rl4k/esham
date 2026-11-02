@@ -1,17 +1,18 @@
 name: Esham Yayın Döngüsü
 
 # Stateless dağıtım: her iş kendi cron'unda çalışır, üretilen raporu commit'ler;
-# web platformu (Vercel vb.) commit ile otomatik yeniden derlenir.
+# web platformu (Cloudflare Pages) sadece içerik değiştiğinde derlenip yayınlanır.
 # Saatler UTC'dir; TR = UTC+3 (DST yok).
 #   05:30 UTC = 08:30 TR  günlük bülten
+#   04:40 UTC = 08:40 TR  e-posta bülteni (SMTP)
+#   05:45 UTC = 08:45 TR  küresel makro raporu
 #   06:30 UTC = 09:30 TR  VİOP açılış
 #   07:00 UTC = 10:00 TR  BIST açılış
+#   10:00 UTC = 13:00 TR  öğle ısı haritası
 #   15:15 UTC = 18:15 TR  kapanış
+#   15:30 UTC = 18:30 TR  akşam ısı haritası / haftalık özet
 #   Pzt 06:00 UTC = 09:00 TR  haftalık sektör
 #   Her 15 dk (hafta içi seans): KAP/haber taraması (tek tur)
-#
-# Sürekli akış + durum-bağımlı margin-call izleyici için uzun-ömürlü süreç tercih
-# edilir: bir VPS'te `py -m esham.main run`. Bu workflow stateless alternatiftir.
 on:
   schedule:
     - cron: "30 5 * * 1-5"    # günlük bülten          08:30 TR
@@ -44,8 +45,13 @@ on:
           - newsletter
           - weekly-summary
           - news-stream
+          - publish-turib
       dry_run:
         description: "Twitter/Telegram'a GERÇEK gönderi YAPMA (test modu)"
+        type: boolean
+        default: false
+      force_build:
+        description: "Değişiklik olmasa bile Web sitesini yeniden derle ve Cloudflare'e gönder"
         type: boolean
         default: false
 
@@ -60,9 +66,15 @@ jobs:
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: bot/requirements.txt
+
       - name: Bağımlılıklar
         working-directory: bot
         run: pip install -r requirements.txt
@@ -106,7 +118,6 @@ jobs:
             "0 6 * * 1")                 CMD="sector" ;;
             "15 6 * * 1")
               # Haftalık peer kıyası — sektör ISO haftasına göre döner
-              # (aynı sektör her hafta tekrarlanmasın, örneklem zenginleşsin)
               SEC=$(python -c "from esham.sources.peer import sector_for_today; print(sector_for_today())")
               CMD="peer --sector $SEC"
               ;;
@@ -114,7 +125,6 @@ jobs:
             "5,20,35,50 6-15 * * 1-5")  CMD="news-stream --once --max-publish 5" ;;
             *)
               _RAW="${{ github.event.inputs.command || 'morning-report' }}"
-              # news-stream manuel dispatch'te de --once ile çalışsın (Actions timeout'u aşmaz)
               if [ "$_RAW" = "news-stream" ]; then
                 CMD="news-stream --once --max-publish 10"
               else
@@ -125,29 +135,39 @@ jobs:
           echo "Çalıştırılıyor: $CMD"
           python -m esham.main $CMD
 
-      - name: Yeni raporları commit'le
+      - name: Yeni raporları ve durumu commit'le
+        id: commit_step
         run: |
           git config user.name "esham-bot"
           git config user.email "bot@esham.local"
           git add web/content/reports web/public/cards web/public/data
           [ -d web/public/reports ] && git add web/public/reports || true
-          git diff --staged --quiet || git commit -m "content: otomatik yayın (${{ github.event.schedule }})"
-          git push
+          [ -f bot/state/esham_state.json ] && git add bot/state/esham_state.json || true
+          if git diff --staged --quiet; then
+            echo "Herhangi bir yeni içerik veya durum değişikliği yok."
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            git commit -m "content: otomatik yayın (${{ github.event.schedule || github.event.inputs.command }}) [skip ci]"
+            git pull --rebase origin master || true
+            git push
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Node.js Kurulumu (Web Build için)
+        if: steps.commit_step.outputs.has_changes == 'true' || github.event.inputs.force_build == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: web/package-lock.json
 
       - name: Web Sitesini Derle ve Cloudflare'e Gönder
+        if: steps.commit_step.outputs.has_changes == 'true' || github.event.inputs.force_build == 'true'
         working-directory: web
         continue-on-error: true
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          # Abonelik formu bot'un /subscribe ucuna yazar (yoksa Formspree yedeği)
           NEXT_PUBLIC_ESHAM_BOT_URL: ${{ secrets.ESHAM_BOT_URL }}
         run: |
           npm ci
@@ -157,4 +177,3 @@ jobs:
           else
             echo "Cloudflare secrets eksik — deploy atlanıyor (build başarılı)."
           fi
-

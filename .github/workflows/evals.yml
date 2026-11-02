@@ -19,6 +19,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: bot/requirements.txt
       - name: Bağımlılıklar
         working-directory: bot
         run: pip install -r requirements.txt
