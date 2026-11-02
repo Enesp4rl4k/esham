@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from .global_macro import GlobalMacroSnapshot
     from .sector import SectorMove
     from .viop import ViopQuote, ViopMarginSnapshot
+    from .turib import TuribSnapshot
 
 
 @dataclass
@@ -50,13 +51,14 @@ class MarketSnapshot:
     """Sabah raporunun beslendiği toplu veri paketi.
 
     Alanlar:
-        bist      — BIST endeks özeti (fiyat, değişim, hacim)
+        bist        — BIST endeks özeti (fiyat, değişim, hacim)
         disclosures — KAP bildirimleri (son N adet)
-        calendar  — Ekonomik takvim olayları (bugün)
-        macro     — Küresel makro: ABD 10Y, EUR/USD, Altın, VIX, Brent
+        calendar    — Ekonomik takvim olayları (bugün)
+        macro       — Küresel makro: ABD 10Y, EUR/USD, Altın, VIX, Brent
         viop_quote  — VİOP endeks/vadeli fiyat ve değişimi
         viop_margin — Takasbank marketwide teminat snapshot'ı
-        sector    — Sektör rotasyonu hareketleri (haftalık)
+        sector      — Sektör rotasyonu hareketleri (haftalık)
+        turib       — TÜRİB ELÜS tarımsal emtia ve hububat endeks özeti
     """
 
     bist: MarketSummary | None = None
@@ -66,3 +68,4 @@ class MarketSnapshot:
     viop_quote: "ViopQuote | None" = None
     viop_margin: "ViopMarginSnapshot | None" = None
     sector: "list[SectorMove]" = field(default_factory=list)
+    turib: "TuribSnapshot | None" = None

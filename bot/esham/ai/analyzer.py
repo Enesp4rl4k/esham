@@ -416,6 +416,11 @@ TWEET 6: [metin]
             for t in snapshot.macro.tickers[:3]:
                 macro_bits.append(f"{t.label}: {t.value_str}")
             tweets.append("Küresel piyasalar: " + " | ".join(macro_bits))
+        if snapshot.turib and snapshot.turib.hububat_index:
+            h = snapshot.turib.hububat_index
+            sign = "+" if h.change_pct >= 0 else ""
+            tweets.append(f"TÜRİB Hububat: {h.price} ({sign}{h.change_pct}%). Tarımsal emtia özeti bültende.")
+
         if snapshot.sector:
             top = sorted(snapshot.sector, key=lambda s: abs(float(s.change_pct or 0)), reverse=True)[:2]
             sector_bits = [f"{s.name} {s.change_pct:+.1f}%" for s in top if hasattr(s, "change_pct")]
@@ -537,6 +542,17 @@ Veri: {financial_data_text}
             lines.append("Güçlü: " + ", ".join(f"{s.name} ({s.change_str})" for s in leaders))
             lines.append("Zayıf: " + ", ".join(f"{s.name} ({s.change_str})" for s in laggards))
 
+        # TÜRİB ELÜS (Tarımsal Emtia & Hububat)
+        if snapshot.turib:
+            t = snapshot.turib
+            lines.append("\n### TÜRİB ELÜS (Tarımsal Emtia)")
+            if t.hububat_index:
+                sign = "+" if t.hububat_index.change_pct >= 0 else ""
+                lines.append(f"- TÜRİB Hububat Endeksi (TRBHUB): {t.hububat_index.price} ({sign}{t.hububat_index.change_pct}%)")
+            for p in t.products:
+                sign = "+" if p.change_pct >= 0 else ""
+                lines.append(f"- {p.product}: {p.avg_price_tl_kg} TL/kg ({sign}{p.change_pct}%), hacim: {p.volume_kg/1000.0:.1f} Ton")
+
         # Ekonomik takvim (en fazla 5 kritik olay)
         if snapshot.calendar:
             lines.append("\n### Ekonomik Takvim")
@@ -581,6 +597,11 @@ Veri: {financial_data_text}
         else:
             cal += "Bugün için öne çıkan veri bulunmuyor.\n\n"
 
+        # TÜRİB ELÜS Tarımsal Emtia bölümü
+        turib_sec = ""
+        if snapshot.turib and snapshot.turib.summary_text:
+            turib_sec = f"## TÜRİB ELÜS Tarımsal Emtia\n\n{snapshot.turib.summary_text}\n\n"
+
         # VİOP bölümü
         viop_sec = ""
         if snapshot.viop_quote:
@@ -621,4 +642,4 @@ Veri: {financial_data_text}
             "rotasyonu ve yurt içi veri akışı gün içi yönü belirleyecek başlıklar "
             "olmayı sürdürüyor."
         )
-        return header + macro_sec + cal + viop_sec + sector_sec + kap + footer
+        return header + macro_sec + turib_sec + cal + viop_sec + sector_sec + kap + footer

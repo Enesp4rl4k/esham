@@ -81,6 +81,45 @@ def _cmd_analyze_company(args: argparse.Namespace) -> None:
     )
 
 
+def _cmd_turib(args: argparse.Namespace) -> None:
+    from .sources.turib import TuribSource
+    src = TuribSource()
+    snap = src.snapshot()
+    print("\n=== TÜRİB ELÜS Tarımsal Emtia Piyasası ===")
+    print(snap.summary_text)
+    if snap.indices:
+        print("\n--- TÜRİB Endeksleri ---")
+        for idx in snap.indices:
+            sign = "+" if idx.change_pct >= 0 else ""
+            print(f"  {idx.name} ({idx.code}): {idx.price} ({sign}{idx.change_pct}%) [Hacim: {idx.volume:,.0f}]")
+    if snap.products:
+        print("\n--- Emtia Fiyatları (TL/kg) ---")
+        for p in snap.products:
+            sign = "+" if p.change_pct >= 0 else ""
+            print(f"  {p.product}: Ort {p.avg_price_tl_kg:.2f} TL/kg (Son: {p.price_tl_kg:.2f}, {sign}{p.change_pct}%) | Hacim: {p.volume_kg/1000.0:,.1f} Ton")
+
+
+def _cmd_agri_bist(args: argparse.Namespace) -> None:
+    from .sources.agri_bist import AgriBistAnalyzer
+    analyzer = AgriBistAnalyzer()
+    rep = analyzer.analyze()
+    print("\n=== BIST & TÜRİB Çapraz Piyasa Analizi (Agri-BIST) ===")
+    print(f"  BIST Gıda Endeksi (XGIDA): {rep.xgida_price} ({rep.xgida_change})")
+    print(f"  TÜRİB Hububat Endeksi (TRBHUB): {rep.turib_hububat_index} ({rep.turib_hububat_change})")
+    print("\n--- Şirket Bazlı Girdi & Kârlılık Duyarlılığı ---")
+    for c in rep.company_impacts:
+        print(f"  [{c.ticker}] {c.company_name}: Hisse {c.stock_price} ({c.stock_change})")
+        print(f"    -> Girdi: {c.commodity} ({c.commodity_price} TL/kg, %{c.commodity_change}) | Marj: {c.margin_pressure}")
+        print(f"    -> Not: {c.commentary}")
+    print(f"\nMakro Değerlendirme: {rep.macro_takeaway}")
+
+
+def _cmd_mcp(args: argparse.Namespace) -> None:
+    from .mcp.server import run_server
+    print("Esham BIST + TÜRİB MCP Sunucusu başlatılıyor (stdio)...")
+    run_server()
+
+
 def _cmd_viop(args: argparse.Namespace) -> None:
     src = ViopSource()
     quote = src.market_quote()
@@ -294,6 +333,15 @@ def build_parser() -> argparse.ArgumentParser:
     fg.set_defaults(func=_cmd_fear_greed)
     sub.add_parser("global-report", help="Küresel makro raporu yayınla").set_defaults(func=_cmd_global)
     sub.add_parser("heatmap", help="BIST30 Piyasa Isı Haritası üret ve yayınla").set_defaults(func=_cmd_heatmap)
+
+    tb = sub.add_parser("turib", help="TÜRİB ELÜS tarımsal emtia piyasası özeti")
+    tb.set_defaults(func=_cmd_turib)
+
+    ab = sub.add_parser("agri-bist", help="BIST Gıda & TÜRİB ELÜS çapraz kârlılık analizi")
+    ab.set_defaults(func=_cmd_agri_bist)
+
+    mc = sub.add_parser("mcp", help="Esham BIST + TÜRİB Unified MCP Sunucusunu çalıştır (stdio)")
+    mc.set_defaults(func=_cmd_mcp)
 
     ws = sub.add_parser("weekly-summary", help="Haftalık piyasa özeti üret ve yayınla")
     ws.add_argument("--no-social", action="store_true", help="Sosyal medya paylaşımını atla")

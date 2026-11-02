@@ -41,6 +41,9 @@ Rapor JSON'unda opsiyonel alanlar da vardır: `image` (marka kartı) ve `ipo`
 | `sources/viop` | VİOP kotasyonu (TradingView) + Takasbank teminat agregatı + stres |
 | `sources/kap_filter` | KAP önem filtresi — rutin/idari bildirimleri eler (spam önleme) |
 | `sources/sector` | Yahoo BIST sektör endeksleri — haftalık rotasyon |
+| `sources/turib` | **TÜRİB ELÜS veri kaynağı** — Hububat endeksleri (TRBHUB, TRBBGD, TRBMSR), buğday/mısır/arpa fiyat serileri ve günlük bülten |
+| `sources/agri_bist` | **BIST x TÜRİB çapraz analizi** — Gıda hisseleri (ULUUN, BANVT, TATGD) ile tarımsal emtia marj duyarlılığı |
+| `mcp/server` | **Unified MCP Sunucusu** — BIST ve TÜRİB piyasalarını LLM/Claude/Cursor ortamına açan model context protocol motoru |
 | `sources/peer` | **Peer/değer kıyası** — sektördeki çarpanlar (F/K, PD/DD, FD/FAVÖK, temettü) + medyan, Yahoo quoteSummary (cookie+crumb) + chart API |
 | `turkish` | Türkçe-doğru büyük harf + aksan-toleranslı eşleştirme (tek kaynak) |
 | `state` | Kalıcı durum (seen-set, margin önceki değer, günlük sayaç, iş sağlığı) |
@@ -75,6 +78,15 @@ py -m esham.main ipo-pdf                 # örnek halka arz raporu
 # Belge analizi (PDF yolu/URL, KAP linki veya ham metin kabul eder)
 py -m esham.main analyze-ipo <kaynak> --company "TechYazılım A.Ş." --ticker TCHYZ
 py -m esham.main analyze-company <kaynak> --company "TechYazılım A.Ş." --period 2025/Q1
+
+# TÜRİB & ELÜS: Hububat endeksleri ve tarımsal emtia fiyatları
+py -m esham.main turib
+
+# Agri-BIST: BIST gıda şirketleri ve TÜRİB tarım emtiası çapraz marj analizi
+py -m esham.main agri-bist
+
+# Esham BIST + TÜRİB Unified MCP Sunucusu (Claude / Cursor stdio)
+py -m esham.main mcp
 
 # VİOP: piyasa + marketwide teminat stresi + hesap margin-call kontrolü
 py -m esham.main viop
