@@ -155,43 +155,31 @@ Haber Başlığı: {news_title}
         else:
             insider_prompt_extra = ""
 
-        prompt = f"""Sen deneyimli bir Türk sermaye piyasaları analistisin. Kurumsal kalitede, \
-derinlemesine analiz yap. Türkçe yaz. Yatırım tavsiyesi verme.
+        prompt = f"""Sen deneyimli bir Türk sermaye piyasaları analistisin. Az, öz, doğrudan sonuca odaklı hap bilgi kalitesinde analiz yap. Boş laf, uzun giriş cümleleri ve dolgu paragraflar YAZMA. Türkçe yaz. Yatırım tavsiyesi verme.
 {insider_prompt_extra}
 Şirket: {company} ({ticker})
 Bildirim türü: {disclosure_type}
 Başlık: {title}
-Bildirim içeriği (tam metin):
+Bildirim içeriği:
 {raw_text or title}
 {macro_block}{sector_block}
 
-Şu formatta yanıt ver (başlıkları aynen koru, her bölümü eksiksiz doldur):
+Şu formatta yanıt ver (uzun paragraflar yazma, doğrudan net ve somut maddeler ver):
 
 ## ÖZET
-Tek cümle (max 160 karakter). Sayısal veri varsa (fiyat, tutar, oran, lot, yüzde) mutlaka dahil et.
+Tek cümle (max 140 karakter). Varsa sayısal veriyi (tutar, oran, lot, yüzde) dahil et.
 
 ## ANALİZ
-Aşağıdaki 4 perspektiften her birini ayrı paragraf olarak yaz (min 3 cümle/paragraf):
+**Finansal Sinyal:** 🟢 Pozitif / 🟡 Nötr / 🔴 Negatif (hangisi uygunsa birini seç)
 
-1. **Bildirimin özü**: Haberin tam olarak ne anlama geldiğini, neden açıklandığını ve şirket yönetiminin bunu neden şu an duyurduğunu açıkla. Sayısal detayları (tutar, oran, tarih, lot) yorumla.
-
-2. **Finansal/operasyonel etki**: Bu gelişmenin şirketin gelir, kâr marjı, nakit akışı veya bilanço yapısı üzerindeki olası etkisini somut gerekçelerle tartış. Sektör ortalamaları veya geçmiş dönem verileriyle karşılaştır.
-
-3. **Rekabetçi ve sektörel boyut**: Bu bildirimi sektördeki rakiplerle, sektör trendleriyle ve BIST sektör rotasyonuyla ilişkilendir. Sektörde bu tür gelişmeler genellikle ne anlama gelir?
-
-4. **Risk ve fırsatlar**: Bu haberin yatırımcı açısından yaratabileceği riskleri (olumsuz senaryo) ve fırsatları (olumlu senaryo) dengeli biçimde değerlendir. Hangi koşullarda olumlu, hangi koşullarda olumsuz etki beklenebilir?
-
-## BAĞLAM
-Bu bildirimi güncel küresel makro tablo (faiz oranları, kur hareketleri, risk iştahı) ve Türkiye ekonomisindeki gelişmelerle ilişkilendir. Şirketin bu konjonktürdeki stratejik pozisyonunu 3-4 cümleyle yorumla. Veri yoksa bu bölümü atla.
+- **Gelişmenin Özü:** Haberin şirket için ne anlama geldiği (1 net cümle).
+- **Finansal & Bilanço Etkisi:** Gelir, ciro, kâr marjı veya nakit akışına somut etkisi (1 net cümle).
+- **Piyasa & Hisse Yansıması:** Hisse fiyatlaması veya yatırımcı açısından oluşturduğu katalizör (1 net cümle).
 
 ## TWEET
-⚠️ BU BÖLÜMÜ MUTLAKA DOLDUR — boş bırakma, başlığı olduğu gibi tekrar etme.
-280 karakter sınırını verimli kullanan, bilgi yoğun bir tweet:
-- İlk cümle: çarpıcı "hook" — tek başına paylaşılabilir. Format: "[Şirket] [ne yaptı/ne açıkladı] — bu [etki/önemi] demek."
-- Rakam/oran/tutar MUTLAKA ekle (varsa); yoksa gelişmenin piyasa/sektör etkisini belirt.
-- Sadece ne olduğunu değil, NEDEN önemli olduğunu ver.
-- İçsel işlemse: alım/satım yönü + tutar büyüklüğü öne çıksın.
-- Son cümle soru olsun (etkileşim için). Örnek: "Bu gelişme [sektör] için nasıl yorumlanmalı?"
+280 karakter sınırını aşmayan, bilgi yoğun tek bir tweet.
+- Format: [Şirket] [ne yaptı] — bu [önemi/etkisi] demek.
+- Varsa rakam/tutar ekle.
 - EMOJİ KULLANMA. Hashtag EKLEME.
 """
         raw = self.client.generate(prompt, disable_thinking=True, task_type="analysis")
@@ -242,114 +230,80 @@ Bu bildirimi güncel küresel makro tablo (faiz oranları, kur hareketleri, risk
         else:
             tweet = tweet_raw
 
-        # Body: ÖZET ve TWEET bölümleri dışındaki her şeyi al; yoksa tamamı
-        body_sections = []
-        for sec in ("ANALİZ", "BAĞLAM"):
-            content = _extract(sec)
-            if content:
-                body_sections.append(f"## {sec.title()}\n\n{content}")
-        body = "\n\n".join(body_sections) if body_sections else raw
-
-        # Özet satırı başa ekle
-        body = f"**{summary}**\n\n{body}"
+        # Body: Az ve öz, doğrudan sonuca odaklı yapı
+        analiz = _extract("ANALİZ") or _extract("ANALIZ")
+        if analiz:
+            body = f"### ⚡ Hızlı Bakış\n{summary}\n\n### 🎯 Finansal Sinyal & Analiz\n{analiz}"
+        else:
+            body = f"### ⚡ Hızlı Bakış\n{summary}\n\n{raw}"
         return body, summary, tweet
 
     @staticmethod
     def _template_news_analysis(
         title: str, disclosure_type: str, company: str, ticker: str, is_insider: bool, raw_text: str = ""
     ) -> tuple[str, str, str]:
-        """AI provider'ları kullanılamadığında kurumsal düzeyde 4 bölümlü zengin finansal araştırma notu üretir."""
+        """AI yokken az ve öz, doğrudan sonuca odaklı hap finansal analiz üretir."""
         import re
         from ..turkish import tr_fold
         
         full_text = f"{title} {disclosure_type} {raw_text}"
         norm_title = tr_fold(full_text)
         
-        # Sayısal veriler, oranlar ve tutarların tespiti
         amounts = re.findall(r"(\d+(?:[.,]\d+)?\s*(?:milyon|milyar|bin|TL|USD|EUR|adet|lot|%))", full_text, re.IGNORECASE)
-        amounts_str = ", ".join(amounts[:3]) if amounts else "Şirket açıklamasında yer alan resmi takvim/tutar"
+        amounts_str = ", ".join(amounts[:2]) if amounts else None
 
-        # Finansal işlem kategorisi tespiti
         is_order = any(k in norm_title for k in ("yeni is iliskisi", "siparis", "sozlesme", "ihale", "proje", "is iliskisi"))
         is_buyback = any(k in norm_title for k in ("pay geri alim", "geri alim", "pay alim"))
         is_capital = any(k in norm_title for k in ("sermaye artir", "bedelli", "bedelsiz", "tahsisli"))
         is_dividend = any(k in norm_title for k in ("kar payi", "temettu"))
         is_acquisition = any(k in norm_title for k in ("birles", "devral", "satin al", "istirak"))
 
-        emoji = "🚨" if is_insider else "📊"
-        summary = f"{company} ({ticker}): {title[:130]}"
-
-        # 1. Bölüm: Bildirimin Özü & Mahiyeti
-        sec_ozet = (
-            f"**{company}** ({ticker}) tarafından Kamuyu Aydınlatma Platformu'na (KAP) sunulan "
-            f"*{disclosure_type}* konulu açıklamada, **{title}** kamuoyuna duyurulmuştur. "
-            f"Açıklama kapsamında bildirilen öne çıkan büyüklükler: `{amounts_str}` olarak kaydedilmiştir. "
-            f"Şirket yönetimi bu adımla operasyonel ve stratejik hedeflerine yönelik piyasaya resmi bilgilendirme sağlamıştır."
-        )
-
-        # 2. Bölüm: Finansal ve Operasyonel Yansımalar
         if is_order:
-            sec_finans = (
-                f"Söz konusu yeni iş ve sipariş anlaşması, şirketin ciro büyümesini ve kapasite kullanımını doğrudan destekleyecek potansiyele sahiptir. "
-                f"Özellikle sipariş teslim takvimine bağlı olarak hasılat artışı, birim sabit maliyetleri düşürerek operasyonel kaldıraç sağlayabilir "
-                f"ve FAVÖK marjı üzerinde pozitif etki yaratabilir. Nakit akışı takvimi ve hammadde işletme sermayesi ihtiyacının yönetimi kârlılıkta belirleyici olacaktır."
-            )
+            signal = "🟢 Pozitif (Yeni Sipariş / İş Anlaşması)"
+            bilanço = f"Alınan sipariş/ihale{f' (`{amounts_str}`)' if amounts_str else ''}, şirketin bakiye iş hacmini ve gelecek dönem cirosunu destekler."
+            sektor = "Sektördeki pazar payını ve operasyonel kapasite kullanımını güçlendirir."
+            piyasa = "Hisse üzerinde kısa vadede pozitif haber akışı etkisi yaratması beklenir."
         elif is_buyback:
-            sec_finans = (
-                f"Pay geri alım işlemleri, şirket yönetiminin mevcut hisse fiyatlamasını şirket içsel değerinin altında gördüğüne dair kuvvetli bir güven sinyalidir. "
-                f"Dolaşımdaki pay adedinin azalması, hisse başına kâr (HBK) rasyosunu matematiksel olarak artırır. "
-                f"Ayrıca hissede piyasa oynaklığını dengeleyici bir taban fiyat desteği oluşturması ve özkaynak kârlılığı algısını güçlendirmesi beklenir."
-            )
-        elif is_capital:
-            sec_finans = (
-                f"Sermaye artırımı kararı, şirketin bilançosundaki özkaynak yapısını güçlendirmeyi ve finansal borçluluk rasyolarını dengelemeyi amaçlamaktadır. "
-                f"Elde edilecek fonların yatırımlara, borç kapamaya veya işletme sermayesine yönlendirilmesi, yüksek faiz ortamında finansman gideri baskısını hafifletecektir. "
-                f"Mevcut ortakların rüçhan hakları ve hisse sulanma dengesi kısa vadeli fiyatlamada yakından takip edilmelidir."
-            )
+            signal = "🟢 Pozitif (Pay Geri Alımı / Güven Sinyali)"
+            bilanço = f"Geri alım programı{f' (`{amounts_str}`)' if amounts_str else ''}, hisse başına kârı matematiksel olarak destekler."
+            sektor = "Şirket yönetiminin mevcut piyasa değerlemesini ucuz bulduğuna işaret eder."
+            piyasa = "Fiyat oynaklığını azaltıcı taban desteği oluşturur."
         elif is_dividend:
-            sec_finans = (
-                f"Kâr payı (temettü) dağıtımı, şirketin nakit yaratma kabiliyetinin ve hissedar dostu kâr dağıtım politikasının istikrarını yansıtır. "
-                f"Temettü verimi, faiz getirileri karşısında uzun vadeli kurumsal ve bireysel yatırımcı ilgisini destekleyen kritik bir çıpadır. "
-                f"Nakit çıkışının şirketin yatırım bütçesiyle uyumu bilançoyu desteklemeye devam edecektir."
-            )
+            signal = "🟢 Pozitif (Temettü / Nakit Dağıtımı)"
+            bilanço = f"Kâr payı dağıtımı{f' (`{amounts_str}`)' if amounts_str else ''}, şirketin güçlü nakit yaratma kabiliyetini teyit eder."
+            sektor = "BIST genelinde temettü verimi odaklı kurumsal ilgiyi canlı tutar."
+            piyasa = "Hissede temettü takvimine doğru pozitif fiyatlama eğilimini destekler."
         elif is_acquisition:
-            sec_finans = (
-                f"Şirket satın alma ve iştirak edinimi adımı, inorganik büyüme stratejisinin somut bir parçasıdır. "
-                f"Satın alınan varlığın konsolide ciroya ve kârlılığa katkısı, yaratılacak operasyonel sinerjiler ve pazar payı genişlemesi "
-                f"orta vadeli şirket değerlemesinde çarpan genişlemesine (multiple expansion) zemin hazırlayabilir."
-            )
+            signal = "🟡 Stratejik / Nötr-Pozitif (İnorganik Büyüme)"
+            bilanço = f"Satın alma/iştirak adımı{f' (`{amounts_str}`)' if amounts_str else ''}, konsolide hasılata doğrudan katkı sunar."
+            sektor = "Pazardaki rekabet gücünü ve operasyonel sinerjiyi artırır."
+            piyasa = "Entegrasyon süreci ve yatırım geri dönüş süresi piyasa tarafından takip edilir."
+        elif is_capital:
+            signal = "🟡 Nötr / Bilanço Güçlendirme (Sermaye Artırımı)"
+            bilanço = f"Sermaye artırımı{f' (`{amounts_str}`)' if amounts_str else ''}, özkaynakları güçlendirerek finansman maliyetini dengeler."
+            sektor = "Şirketin borçluluk rasyolarını iyileştirir."
+            piyasa = "Sermaye türüne (bedelli/bedelsiz) bağlı olarak likidite etkisi fiyatlanır."
         elif is_insider:
-            sec_finans = (
-                f"İçeriden öğrenenler ve şirket ilişkili taraflarınca gerçekleştirilen pay işlemleri, kurumsal yatırımcılar nezdinde "
-                f"yönetimin şirket geleceğine dair beklentilerine ışık tutan önemli bir göstergedir. "
-                f"Alım yönlü işlemler güven tazelerken, satış yönlü işlemlerde ortaklığın fonlama amacı ve serbest dolaşım oranındaki değişim piyasada fiyatlanır."
-            )
+            signal = "🚨 İçsel İşlem / Yakın Takip"
+            bilanço = f"İlişkili taraf pay işlemi{f' (`{amounts_str}`)' if amounts_str else ''}, kurumsal şeffaflık kapsamında bildirilmiştir."
+            sektor = "Yönetim/ortaklık pay hareketleri kurumsal yatırımcılar tarafından yakından izlenir."
+            piyasa = "İşlemin alış veya satış yönlü oluşu kısa vadeli fiyat algısını etkileyebilir."
         else:
-            sec_finans = (
-                f"Açıklanan gelişmenin şirketin operasyonel süreçleri, kurumsal yönetimi ve mali tabloları üzerindeki etkileri dönemsel faaliyet raporlarında netleşecektir. "
-                f"BIST değerleme çarpanları açısından şirketin sektör ortalamalarına göre iskontosu veya primi, bu tür kurumsal bildirimlerin ardından "
-                f"piyasa yapıcılar tarafından yeniden test edilmektedir."
-            )
+            signal = "🟡 Bilgilendirme / Nötr"
+            bilanço = f"Bildirilen kurumsal gelişme{f' (`{amounts_str}`)' if amounts_str else ''}, olağan faaliyet takvimi çerçevesindedir."
+            sektor = "Operasyonel süreçlerin planlandığı şekilde ilerlediğine işaret eder."
+            piyasa = "Doğrudan sert bir fiyatlama etkisi beklenmemektedir."
 
-        # 3. Bölüm: Sektörel Boyut ve BIST Konjonktürü
-        sec_sektor = (
-            f"{company}, Borsa İstanbul bünyesinde faaliyet gösterdiği sektörün genel trendleri ve makroekonomik dinamikleriyle doğrudan etkileşim halindedir. "
-            f"TCMB para politikası, kredi piyasasındaki sıkılık ve sektörel talep koşulları hisse performansında belirleyici olmaktadır. "
-            f"Benzer ölçekteki sektör emsalleriyle kıyaslandığında bu bildirimin yaratacağı rekabet avantajı ve pazar dinamikleri yatırımcıların odağında yer alacaktır."
-        )
-
-        # 4. Bölüm: Risk ve Fırsatlar
-        sec_risk = (
-            f"- **Fırsatlar:** Bildirimin operasyonel hedefler doğrultusunda gerçekleşmesi, nakit akışını ve kurumsal algıyı güçlendirebilir.\n"
-            f"- **Riskler:** Genel piyasa oynaklığı, makro konjonktürdeki faiz/kur dalgalanmaları ve taahhütlerin takviminde yaşanabilecek olası gecikmeler fiyatlama üzerinde baskı yaratabilir."
-        )
+        emoji = "🚨" if is_insider else "📊"
+        summary = f"{company} ({ticker}): {title[:110]}"
 
         body = (
-            f"**{summary}**\n\n"
-            f"## Gelişmenin Özeti & Mahiyeti\n\n{sec_ozet}\n\n"
-            f"## Finansal & Bilanço Yansıması\n\n{sec_finans}\n\n"
-            f"## Sektörel Boyut & BIST Rotasyonu\n\n{sec_sektor}\n\n"
-            f"## Riskler & Fırsatlar\n\n{sec_risk}"
+            f"### ⚡ Hızlı Bakış\n"
+            f"**{company}** ({ticker}), Kamuyu Aydınlatma Platformu'nda `{title}` başlıklı açıklamada bulundu.\n\n"
+            f"### 🎯 Finansal Sinyal: {signal}\n"
+            f"- **Bilanço & Ciro:** {bilanço}\n"
+            f"- **Sektörel Konum:** {sektor}\n"
+            f"- **Piyasa Yansıması:** {piyasa}"
         )
 
         _prefix = f"{emoji} ${ticker} ({company}): "
@@ -361,47 +315,24 @@ Bu bildirimi güncel küresel makro tablo (faiz oranları, kur hareketleri, risk
     def generate_sector_movement_analysis(
         sector_name: str, change_pct: float, headline: str, macro_context: str = ""
     ) -> tuple[str, str, str]:
-        """BIST sektör rotasyonları ve güçlü hareketler için derinlemesine finansal analiz üretir."""
-        direction = "yükseliş" if change_pct >= 0 else "gerileme"
+        """BIST sektör hareketleri için az, öz ve vurucu analiz üretir."""
+        direction = "yükseliş" if change_pct >= 0 else "kâr satışı"
         sign = "+" if change_pct >= 0 else ""
-        flow = "güçlü para girişi ve alım iştahı" if change_pct >= 0 else "kâr satışı ve para çıkışı"
+        signal = f"🟢 Pozitif (%{sign}{change_pct:.2f})" if change_pct >= 0 else f"🔴 Negatif (%{sign}{change_pct:.2f})"
+        flow = "güçlü para girişi" if change_pct >= 0 else "kâr realizasyonu ve para çıkışı"
         
-        summary = f"BIST {sector_name} Sektörü: {headline}"
-        
-        sec_ozet = (
-            f"Borsa İstanbul seansında **BIST {sector_name} Endeksi**, günlük bazda **%{sign}{change_pct:.2f}** "
-            f"seviyesinde {direction} kaydederek piyasa genelinden belirgin şekilde ayrışmıştır. "
-            f"Sektör endeksindeki bu fiyatlama, gün içi seans akışında {flow} ile desteklenmektedir."
-        )
-        
-        sec_rotasyon = (
-            f"Sektörel rotasyon analizinde, yatırımcıların getiri arayışı doğrultusunda fonlarını belirli sektörlerden çıkarıp "
-            f"{sector_name} sektörüne yönlendirdiği izlenmektedir. "
-            f"Endeksin ağırlığı yüksek lokomotif şirketlerindeki hacim artışı, hareketin tabana yayılma hızını artırmaktadır. "
-            f"Özellikle vadeli taraftaki (VİOP) açık pozisyon değişimleri ve spot piyasadaki blok işlemler sektörün yönünde teyit üretmektedir."
-        )
-        
-        sec_makro = (
-            f"Güncel makroekonomik görünümde faiz patikası, enflasyon beklentileri ve döviz kuru dengeleri {sector_name} sektörü kârlılığı açısından "
-            f"kritik bir zemin oluşturmaktadır. "
-            f"{'Finansman maliyetlerindeki dengelenme ve iç talep dinamikleri sektör marjlarını destekleme potansiyeline sahiptir.' if change_pct >= 0 else 'Sektör genelinde kâr realizasyonları ve maliyet baskıları kısa vadeli konsolidasyon ihtiyacına işaret etmektedir.'}"
-        )
-        
-        sec_risk = (
-            f"- **Teknik & Temel Değerlendirme:** Sektör endeksinin kısa vadeli hareketli ortalamalarına göre konumu, aşırı alım/satım (RSI) "
-            f"seviyeleri ve BIST100'e göre göreceli güç (relative strength) göstergeleri rotasyonun kalıcılığı açısından izlenmelidir.\n"
-            f"- **Yatırımcı Perspektifi:** Sektör içi hisse bazlı ayrışmalar ve sektör öncülerinin bilanço dönemlerindeki kârlılık projeksiyonları yakından takip edilmelidir."
-        )
+        summary = f"BIST {sector_name}: %{sign}{change_pct:.2f} ile {direction} kaydetti."
         
         body = (
-            f"**{summary}**\n\n"
-            f"## Sektör Hareketi & Piyasa Dinamiği\n\n{sec_ozet}\n\n"
-            f"## Para Akışı & Sektör Rotasyonu\n\n{sec_rotasyon}\n\n"
-            f"## Makroekonomik Konjonktür & Marj Etkisi\n\n{sec_makro}\n\n"
-            f"## Değerlendirme & İzlenecek Seviyeler\n\n{sec_risk}"
+            f"### ⚡ Piyasa Nabzı\n"
+            f"Borsa İstanbul'da **BIST {sector_name} Endeksi**, seans genelinde **%{sign}{change_pct:.2f}** değişerek piyasadan ayrıştı.\n\n"
+            f"### 🎯 Sinyal & Rotasyon: {signal}\n"
+            f"- **Para Akışı:** Sektör bileşenlerinde gün içi {flow} izlendi; lokomotif hisseler harekete öncülük etti.\n"
+            f"- **Sektör Rotasyonu:** Yatırımcı ilgisinin getiri arayışıyla {sector_name} tarafında yoğunlaştığı gözleniyor.\n"
+            f"- **Kritik Eşik:** Kısa vadeli hareketli ortalamalar ve göreceli güç (RSI) seviyeleri takip edilmeli."
         )
         
-        tweet = f"📊 BIST {sector_name} sektörü %{sign}{change_pct:.2f} {direction} ile ayrışıyor. Para akışı ve sektör rotasyonu detayları raporda:"
+        tweet = f"📊 BIST {sector_name} sektörü %{sign}{change_pct:.2f} {direction} ile ayrışıyor. Para akışı ve sektör rotasyonu özeti raporda:"
         return body, summary, tweet
 
     def generate_morning_report_and_thread(
