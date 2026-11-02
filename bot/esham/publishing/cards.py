@@ -37,6 +37,7 @@ COLORS: dict[str, str] = {
     "zinc-500": "#71717a",
     "zinc-400": "#a1a1aa",
     "zinc-300": "#d4d4d8",
+    "zinc-200": "#e4e4e7",
     "zinc-100": "#f4f4f5",
     "white": "#ffffff",
     "positive": "#34d399",  # emerald-400
@@ -58,6 +59,9 @@ CATEGORY_ACCENT: dict[str, str] = {
     "viop": "violet",
     "gundem": "amber",
     "insider": "amber",
+    "turib": "emerald",
+    "emtia": "amber",
+    "tarim": "emerald",
 }
 
 CATEGORY_LABEL: dict[str, str] = {
@@ -67,6 +71,9 @@ CATEGORY_LABEL: dict[str, str] = {
     "viop": "VİOP & TÜREV",
     "gundem": "GÜNDEM",
     "insider": "İÇERİDEN İŞLEM",
+    "turib": "TÜRİB & ELÜS",
+    "emtia": "TARIMSAL EMTİA",
+    "tarim": "TÜRİB & TARIM",
 }
 
 
@@ -194,14 +201,12 @@ class CardGenerator:
         """Kart arka planını üretir.
 
         photo_path verilirse Unsplash fotoğrafını kart boyutuna sığdırır,
-        üzerine koyu gradient overlay + accent glow ekler. Bu sayede fotoğraf
-        hem görünür hem de metin okunabilirliği korunur.
-        Foto yoksa standart siyah + glow arka planı kullanılır.
+        üzerine pürüzsüz koyu gradient overlay + accent glow ekler.
+        Foto yoksa derin terminal zemin (#07090e) + dot-grid + çift odaklı ambient glow kullanılır.
         """
         if photo_path and photo_path.exists():
             try:
                 photo = Image.open(photo_path).convert("RGB")
-                # Kart boyutuna cover (kırp + genişlet)
                 photo_ratio = photo.width / photo.height
                 card_ratio = w / h
                 if photo_ratio > card_ratio:
@@ -215,51 +220,75 @@ class CardGenerator:
                 top = (new_h - h) // 2
                 photo = photo.crop((left, top, left + w, top + h))
 
-                # Koyu overlay — fotoğrafı okurken metin kaybolmasın
-                # Sol %60 çok karanlık (metin alanı), sağ %40 biraz daha açık
+                # Pürüzsüz lineer gradient overlay
                 overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
                 odraw = ImageDraw.Draw(overlay)
-                # Gradient efekti için bölgeler
-                odraw.rectangle([0, 0, int(w * 0.65), h], fill=(0, 0, 0, 185))
-                odraw.rectangle([int(w * 0.65), 0, w, h], fill=(0, 0, 0, 155))
+                for gx in range(w):
+                    alpha = int(175 + 50 * (1.0 - (gx / max(w - 1, 1))))
+                    odraw.line([(gx, 0), (gx, h)], fill=(0, 0, 0, alpha))
                 img = photo.convert("RGBA")
                 img = Image.alpha_composite(img, overlay).convert("RGB")
 
-                # Accent glow — sağ üst köşe
                 glow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
                 gdraw = ImageDraw.Draw(glow)
                 r, g, b = _hex(accent_hex)
                 gdraw.ellipse(
                     [w - int(w * 0.52), -int(h * 0.67), w + int(w * 0.32), int(h * 0.76)],
-                    fill=(r, g, b, 40),
+                    fill=(r, g, b, 50),
                 )
-                glow = glow.filter(ImageFilter.GaussianBlur(120))
+                glow = glow.filter(ImageFilter.GaussianBlur(130))
                 img_rgba = img.convert("RGBA")
                 img_rgba = Image.alpha_composite(img_rgba, glow)
                 return img_rgba.convert("RGB")
             except Exception as exc:
                 log.warning("Unsplash foto arka plana yerleştirilemedi (%s); standart arka plan.", exc)
 
-        # Standart arka plan — siyah + accent glow
-        img = Image.new("RGB", (w, h), _hex(COLORS["black"]))
+        # Standart derin terminal zemin: #07090e
+        img = Image.new("RGB", (w, h), (7, 9, 14))
+
+        # 1. Finansal Dot-Grid deseni (Hafif ve zarif terminal ızgarası)
+        grid_overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        gdraw = ImageDraw.Draw(grid_overlay)
+        grid_step = 36
+        for gx in range(PAD // 2, w - PAD // 2, grid_step):
+            for gy in range(PAD // 2, h - PAD // 2, grid_step):
+                gdraw.rectangle([gx, gy, gx + 1, gy + 1], fill=(255, 255, 255, 12))
+        img = Image.alpha_composite(img.convert("RGBA"), grid_overlay).convert("RGB")
+
+        # 2. Çift odaklı atmosfer glow'u
         glow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
         gdraw = ImageDraw.Draw(glow)
         r, g, b = _hex(accent_hex)
+
+        # Sağ-üst ana vurgu glow'u
         gdraw.ellipse(
             [w - int(w * 0.52), -int(h * 0.67), w + int(w * 0.32), int(h * 0.76)],
             fill=(r, g, b, 70),
         )
-        glow = glow.filter(ImageFilter.GaussianBlur(120))
+        # Sol-alt ikincil derin atmosfer glow'u
+        gdraw.ellipse(
+            [-int(w * 0.25), h - int(h * 0.55), int(w * 0.45), h + int(h * 0.35)],
+            fill=(max(0, r - 35), max(0, g - 25), max(0, b - 15), 32),
+        )
+        glow = glow.filter(ImageFilter.GaussianBlur(130))
         img.paste(glow, (0, 0), glow)
+
+        # 3. Üst kenar parıltı çizgisi (Accent highlight rim)
+        rim = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        rdraw = ImageDraw.Draw(rim)
+        rdraw.line([(0, 0), (w, 0)], fill=(r, g, b, 120), width=2)
+        rdraw.line([(0, 1), (w, 1)], fill=(r, g, b, 40), width=1)
+        img = Image.alpha_composite(img.convert("RGBA"), rim).convert("RGB")
         return img
 
-    # ---- mini sparkline -----------------------------------------------------
+    # ---- mini sparkline (TradingView stili gradyanlı dolgu + pulse dot) ------
 
     def _draw_sparkline(
         self, img: Image.Image, box: tuple[int, int, int, int], values: list[float], accent_hex: str
     ) -> None:
         if len(values) < 2:
             return
+        from PIL import ImageChops
         x0, y0, x1, y1 = box
         w, h = x1 - x0, y1 - y0
         lo, hi = min(values), max(values)
@@ -267,20 +296,59 @@ class CardGenerator:
 
         def point(i: int, v: float) -> tuple[float, float]:
             x = x0 + (i / (len(values) - 1)) * w
-            y = y1 - ((v - lo) / span) * h
+            y = y1 - ((v - lo) / span) * (h - 18) - 10
             return x, y
 
         pts = [point(i, v) for i, v in enumerate(values)]
+        r, g, b = _hex(accent_hex)
 
+        # 1. Zarif yatay referans kılavuz çizgileri
         overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
         odraw = ImageDraw.Draw(overlay)
-        r, g, b = _hex(accent_hex)
-        fill_poly = [*pts, (x1, y1), (x0, y1)]
-        odraw.polygon(fill_poly, fill=(r, g, b, 40))
-        odraw.line(pts, fill=(r, g, b, 255), width=4, joint="curve")
-        img.alpha_composite(overlay.convert("RGBA")) if img.mode == "RGBA" else img.paste(
-            overlay, (0, 0), overlay
-        )
+        for pct in (0.25, 0.50, 0.75):
+            gy = int(y1 - pct * (h - 18) - 10)
+            for gx in range(x0, x1, 12):
+                odraw.line([(gx, gy), (min(gx + 6, x1), gy)], fill=(255, 255, 255, 14), width=1)
+
+        # 2. TradingView-stili dikey gradyan dolgusu (Yukarıdan aşağıya sönen alpha)
+        grad = Image.new("L", (w, h))
+        for gy in range(h):
+            alpha = int(60 * max(0.0, 1.0 - (gy / max(h - 1, 1)) ** 0.85))
+            grad.paste(alpha, (0, gy, w, gy + 1))
+
+        poly_mask = Image.new("L", (w, h), 0)
+        pdraw = ImageDraw.Draw(poly_mask)
+        local_pts = [(x - x0, y - y0) for (x, y) in pts]
+        pdraw.polygon([*local_pts, (w, h), (0, h)], fill=255)
+        combined_alpha = ImageChops.multiply(grad, poly_mask)
+
+        tint = Image.new("RGBA", (w, h), (r, g, b, 255))
+        tint.putalpha(combined_alpha)
+        img.paste(tint, (x0, y0), tint)
+
+        # 3. Çift katmanlı neon fiyat çizgisi
+        odraw.line(pts, fill=(r, g, b, 60), width=7, joint="curve")
+        odraw.line(pts, fill=(r, g, b, 245), width=3, joint="curve")
+
+        # 4. Canlı fiyat noktası (Pulse Dot)
+        lx, ly = pts[-1]
+        odraw.ellipse([lx - 9, ly - 9, lx + 9, ly + 9], fill=(r, g, b, 45))
+        odraw.ellipse([lx - 5, ly - 5, lx + 5, ly + 5], fill=(r, g, b, 175))
+        odraw.ellipse([lx - 2.5, ly - 2.5, lx + 2.5, ly + 2.5], fill=(255, 255, 255, 255))
+
+        # 5. Min ve Max seviye etiketleri
+        lbl_font = self.inter(14, bold=True)
+        hi_str = f"{hi:,.1f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        lo_str = f"{lo:,.1f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+        hi_tw = odraw.textbbox((0, 0), hi_str, font=lbl_font)[2]
+        odraw.text((x1 - hi_tw, y0 - 18), hi_str, font=lbl_font, fill=(r, g, b, 190))
+
+        lo_tw = odraw.textbbox((0, 0), lo_str, font=lbl_font)[2]
+        odraw.text((x1 - lo_tw, y1 + 4), lo_str, font=lbl_font, fill=_hex(COLORS["zinc-500"]))
+
+        img_rgba = Image.alpha_composite(img.convert("RGBA"), overlay)
+        img.paste(img_rgba.convert("RGB"), (0, 0))
 
     # ---- sol kolon (kicker/stat/headline/metrics) ----------------------------
 
@@ -316,9 +384,19 @@ class CardGenerator:
             if spec.stat_change:
                 is_positive = spec.stat_change.strip().startswith("+")
                 change_color = COLORS["positive"] if is_positive else COLORS["negative"]
-                change_font = self.inter(32, bold=True)
-                text((PAD, cursor_y), spec.stat_change, change_font, _hex(change_color))
-                cursor_y += self._line_h(change_font) + 18
+                change_font = self.inter(26, bold=True)
+                cw = draw.textbbox((0, 0), spec.stat_change, font=change_font)[2]
+                cr, cg, cb = _hex(change_color)
+                pill_h = 40
+                rrect(
+                    [PAD, cursor_y, PAD + cw + 24, cursor_y + pill_h],
+                    radius=10,
+                    fill=(cr, cg, cb, 28),
+                    outline=(cr, cg, cb, 180),
+                    width=1,
+                )
+                text((PAD + 12, cursor_y + 7), spec.stat_change, change_font, _hex(change_color))
+                cursor_y += pill_h + 16
             else:
                 cursor_y += 16
 
@@ -326,8 +404,6 @@ class CardGenerator:
             headline_font = self.outfit(34 if spec.stat_value else 50)
             line_h = self._line_h(headline_font)
             desired_lines = 3 if spec.stat_value else 4
-            # Kalan dikey alana göre kaç satır GERÇEKTEN sığar hesapla; _wrap'a bunu
-            # ver ki taşan satır sessizce kaybolmasın, düzgün "…" ile ayarlansın.
             available = content_bottom - 8 - cursor_y
             fit_lines = max(1, min(desired_lines, available // line_h))
             lines = self._wrap(draw, spec.headline, headline_font, left_w, fit_lines)
@@ -336,47 +412,47 @@ class CardGenerator:
                 cursor_y += line_h
 
         if spec.metrics:
-            cursor_y += 22
+            cursor_y += 20
             chip_x = PAD
-            chip_font = self.inter(21, bold=True)
+            chip_lbl_font = self.inter(20, bold=False)
+            chip_val_font = self.inter(20, bold=True)
             chip_h = 46
             for label, value in spec.metrics:
-                # AI bazen kısa bir oran ("12,3") yerine tam bir cümle döndürebilir
-                # (ör. bir varsayımı açıklayan metin) — chip bunun için tasarlanmadı,
-                # kırpmazsak kart kenarından taşar. Değeri karakter bazında sınırla.
                 value_str = str(value)
                 if len(value_str) > 48:
                     value_str = value_str[:47].rsplit(" ", 1)[0].rstrip(",.;:") + "…"
-                item = f"{label}: {value_str}"
-                tw = draw.textbbox((0, 0), item, font=chip_font)[2]
-                # Tek başına satırı bile aşan bir chip varsa (ilk chip dahil) yine de
-                # satır genişliğini kesin olarak aşmasın diye ikinci bir güvenlik payı.
+                lbl_part = f"{label}: "
+                val_part = f"{value_str}"
+
+                lw = draw.textbbox((0, 0), lbl_part, font=chip_lbl_font)[2]
+                vw = draw.textbbox((0, 0), val_part, font=chip_val_font)[2]
+                tw = lw + vw
+
                 max_w = left_w - 8
                 if tw > max_w:
-                    while tw > max_w and len(value_str) > 4:
-                        value_str = value_str[:-2].rstrip(",.;: ") + "…"
-                        item = f"{label}: {value_str}"
-                        tw = draw.textbbox((0, 0), item, font=chip_font)[2]
+                    while (lw + vw) > max_w and len(val_part) > 3:
+                        val_part = val_part[:-2].rstrip(",.;: ") + "…"
+                        vw = draw.textbbox((0, 0), val_part, font=chip_val_font)[2]
+                    tw = lw + vw
+
                 if chip_x != PAD and chip_x + tw + 36 > left_w + PAD:
                     chip_x = PAD
                     cursor_y += chip_h + 12
                 if cursor_y + chip_h > content_bottom:
                     break
+
+                # Glassmorphic chip: yarı saydam zemin + ışıklı kenarlık
                 rrect(
                     [chip_x, cursor_y, chip_x + tw + 32, cursor_y + chip_h],
-                    radius=10,
-                    fill=_hex(COLORS["zinc-900"]),
-                    outline=_hex(COLORS["zinc-800"]),
+                    radius=12,
+                    fill=(20, 24, 34, 210),
+                    outline=(255, 255, 255, 24),
                     width=1,
                 )
-                text_h = draw.textbbox((0, 0), item, font=chip_font)[3]
-                text(
-                    (chip_x + 16, cursor_y + (chip_h - text_h) // 2 - 2),
-                    item,
-                    chip_font,
-                    _hex(COLORS["zinc-100"]),
-                )
-                chip_x += tw + 32 + 16
+                text_y = cursor_y + 11
+                text((chip_x + 16, text_y), lbl_part, chip_lbl_font, _hex(COLORS["zinc-400"]))
+                text((chip_x + 16 + lw, text_y), val_part, chip_val_font, _hex(COLORS["white"]))
+                chip_x += tw + 32 + 14
             cursor_y += chip_h
 
         return cursor_y
@@ -404,29 +480,37 @@ class CardGenerator:
     ) -> None:
         """Sağ üstte kategori rozeti. `filled=True` haber şablonunda daha vurgulu/dolu."""
         badge_font = self.inter(20, bold=True)
-        bw = draw.textbbox((0, 0), text, font=badge_font)[2]
+        display_text = f"●  {text}"
+        bw = draw.textbbox((0, 0), display_text, font=badge_font)[2]
         bx1 = card_w - PAD
-        bx0 = bx1 - bw - 40
-        by0, by1 = PAD - 4, PAD + 40
+        bx0 = bx1 - bw - 36
+        by0, by1 = PAD - 4, PAD + 42
+        r, g, b = _hex(accent_hex)
         if filled:
-            draw.rounded_rectangle([bx0, by0, bx1, by1], radius=18, fill=_hex(accent_hex))
-            draw.text((bx0 + 20, by0 + 8), text, font=badge_font, fill=_hex(COLORS["black"]))
+            draw.rounded_rectangle([bx0, by0, bx1, by1], radius=21, fill=_hex(accent_hex))
+            draw.text((bx0 + 18, by0 + 8), display_text, font=badge_font, fill=_hex(COLORS["black"]))
         else:
-            draw.rounded_rectangle([bx0, by0, bx1, by1], radius=18, outline=_hex(accent_hex), width=2)
-            draw.text((bx0 + 20, by0 + 8), text, font=badge_font, fill=_hex(accent_hex))
+            draw.rounded_rectangle([bx0, by0, bx1, by1], radius=21, fill=(r, g, b, 28), outline=(r, g, b, 170), width=1)
+            draw.text((bx0 + 18, by0 + 8), display_text, font=badge_font, fill=_hex(accent_hex))
 
     def _draw_footer(self, draw: ImageDraw.ImageDraw, content_bottom: int, card_w: int = CARD_W) -> None:
-        draw.line([(PAD, content_bottom), (card_w - PAD, content_bottom)], fill=_hex(COLORS["zinc-800"]), width=1)
-        draw.text(
-            (PAD, content_bottom + 24), settings.display_domain, font=self.inter(22, bold=True), fill=_hex(COLORS["zinc-300"])
-        )
+        draw.line([(PAD, content_bottom), (card_w - PAD, content_bottom)], fill=(255, 255, 255, 22), width=1)
+        domain_text = settings.display_domain
+        domain_font = self.inter(21, bold=True)
+        draw.text((PAD, content_bottom + 22), domain_text, font=domain_font, fill=_hex(COLORS["zinc-200"]))
+
+        dw = draw.textbbox((0, 0), domain_text, font=domain_font)[2]
+        tag_font = self.inter(16, bold=False)
+        draw.text((PAD + dw + 14, content_bottom + 25), "•  BIST • KAP • TÜRİB", font=tag_font, fill=_hex(COLORS["zinc-500"]))
+
         disclaimer = "Yatırım tavsiyesi değildir"
-        dw = draw.textbbox((0, 0), disclaimer, font=self.inter(18))[2]
+        disclaimer_font = self.inter(17)
+        disw = draw.textbbox((0, 0), disclaimer, font=disclaimer_font)[2]
         draw.text(
-            (card_w - PAD - dw, content_bottom + 26),
+            (card_w - PAD - disw, content_bottom + 24),
             disclaimer,
-            font=self.inter(18),
-            fill=_hex(COLORS["zinc-600"]),
+            font=disclaimer_font,
+            fill=_hex(COLORS["zinc-500"]),
         )
 
     def _save(self, img: Image.Image, out_path: Path | None) -> Path:
