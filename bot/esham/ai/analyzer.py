@@ -553,6 +553,14 @@ Veri: {financial_data_text}
                 sign = "+" if p.change_pct >= 0 else ""
                 lines.append(f"- {p.product}: {p.avg_price_tl_kg} TL/kg ({sign}{p.change_pct}%), hacim: {p.volume_kg/1000.0:.1f} Ton")
 
+        # Et-Yem Paritesi ve Et TÜFE Enflasyonu
+        if snapshot.meat_feed:
+            mf = snapshot.meat_feed
+            lines.append("\n### Et-Yem Paritesi & Et TÜFE")
+            lines.append(f"- Yıllık Et TÜFE Enflasyonu: %{mf.et_enflasyonu_yillik_pct:.1f} (Manşet TÜFE: %{mf.manset_enflasyon_yillik_pct:.1f}, Prim: %{mf.et_enflasyon_primi_pct:+.1f})")
+            for p in mf.pariteler:
+                lines.append(f"- {p.kategori}: Karkas={p.karkas_fiyati_tl_kg:.1f} TL, Yem={p.yem_fiyati_tl_kg:.1f} TL -> Parite={p.parite_orani:.1f} ({p.kar_marji_durumu})")
+
         # Ekonomik takvim (en fazla 5 kritik olay)
         if snapshot.calendar:
             lines.append("\n### Ekonomik Takvim")
@@ -602,6 +610,17 @@ Veri: {financial_data_text}
         if snapshot.turib and snapshot.turib.summary_text:
             turib_sec = f"## TÜRİB ELÜS Tarımsal Emtia\n\n{snapshot.turib.summary_text}\n\n"
 
+        # Et-Yem Paritesi & Et TÜFE bölümü
+        meat_sec = ""
+        if snapshot.meat_feed:
+            mf = snapshot.meat_feed
+            meat_sec = (
+                "## Et-Yem Paritesi & Et TÜFE Enflasyonu\n\n"
+                f"- **Yıllık Et TÜFE Enflasyonu:** %{mf.et_enflasyonu_yillik_pct:.1f} (Manşet TÜFE: %{mf.manset_enflasyon_yillik_pct:.1f})\n"
+                f"- **Dana Karkas / Besi Yemi Paritesi:** {mf.pariteler[0].parite_orani if mf.pariteler else '—'} ({mf.pariteler[0].kar_marji_durumu if mf.pariteler else ''})\n"
+                f"- **BIST Yansıması:** {mf.bist_etkisi_ozeti}\n\n"
+            )
+
         # VİOP bölümü
         viop_sec = ""
         if snapshot.viop_quote:
@@ -642,4 +661,4 @@ Veri: {financial_data_text}
             "rotasyonu ve yurt içi veri akışı gün içi yönü belirleyecek başlıklar "
             "olmayı sürdürüyor."
         )
-        return header + macro_sec + turib_sec + cal + viop_sec + sector_sec + kap + footer
+        return header + macro_sec + turib_sec + meat_sec + cal + viop_sec + sector_sec + kap + footer

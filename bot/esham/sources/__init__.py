@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from .sector import SectorMove
     from .viop import ViopQuote, ViopMarginSnapshot
     from .turib import TuribSnapshot
+    from .meat_feed_index import MeatCpiReport
 
 
 @dataclass
@@ -59,6 +60,7 @@ class MarketSnapshot:
         viop_margin — Takasbank marketwide teminat snapshot'ı
         sector      — Sektör rotasyonu hareketleri (haftalık)
         turib       — TÜRİB ELÜS tarımsal emtia ve hububat endeks özeti
+        meat_feed   — Et-Yem Paritesi ve Et TÜFE Enflasyon analizi
     """
 
     bist: MarketSummary | None = None
@@ -69,3 +71,4 @@ class MarketSnapshot:
     viop_margin: "ViopMarginSnapshot | None" = None
     sector: "list[SectorMove]" = field(default_factory=list)
     turib: "TuribSnapshot | None" = None
+    meat_feed: "MeatCpiReport | None" = None

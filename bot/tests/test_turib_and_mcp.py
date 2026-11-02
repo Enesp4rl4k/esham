@@ -1,11 +1,11 @@
-"""TÜRİB & ELÜS Kaynağı, Agri-BIST Çapraz Analiz ve Katman 1 MCP Araçları Testleri."""
+"""TÜRİB & ELÜS Kaynağı, Agri-BIST Çapraz Analiz, Et-Yem Paritesi ve MCP Araçları Testleri."""
 import pytest
 from esham.sources.turib import TuribSource, TuribIndexValue, TuribProductPrice, TuribSnapshot
 from esham.sources.agri_bist import AgriBistAnalyzer
 from esham.sources.tmo import TmoSource
 from esham.sources.real_returns import RealReturnsCalculator, get_anchor
 from esham.sources.storage_backtest import StorageStrategyBacktester
-from esham.sources.regional_arbitrage import RegionalArbitrageScanner
+from esham.sources.meat_feed_index import MeatFeedIndexAnalyzer
 from esham.mcp.server import mcp
 
 
@@ -58,7 +58,6 @@ def test_agri_bist_margin_sensitivity():
 
 def test_tmo_comparison():
     tmo = TmoSource()
-    # 2026 Ekmeklik Buğday: Alım = 13.50 TL/kg
     rep = tmo.compare("BUĞDAY EKMEKLİK", manuel_fiyat=18.00, referans_yili=2026)
     assert rep.tmo_alim_fiyati == 13.50
     assert rep.alim_farki_tl == 4.50
@@ -77,8 +76,6 @@ def test_real_returns_anchor():
 
 
 def test_storage_backtest_math():
-    bt = StorageStrategyBacktester()
-    # Mock seri verisi yerine fonksiyon mantığı
     spot = 10.0
     satis_6ay = 13.0
     faiz = 20.0  # %20 faiz
@@ -96,6 +93,20 @@ def test_storage_backtest_math():
     assert round(finansman, 2) == 0.99
     assert round(fire_maliyeti, 3) == 0.075
     assert net_kar > 0  # 3.0 - 1.97 = 1.03 TL kâr
+
+
+def test_meat_feed_parity_and_cpi():
+    mf = MeatFeedIndexAnalyzer()
+    rep = mf.analyze()
+    assert rep.et_tufe_endeks > 0
+    assert rep.manset_tufe_endeks > 0
+    assert len(rep.pariteler) >= 2
+
+    dana = next((p for p in rep.pariteler if "Dana" in p.kategori), None)
+    assert dana is not None
+    assert dana.parite_orani > 0
+    assert dana.karkas_fiyati_tl_kg > 0
+    assert dana.yem_fiyati_tl_kg > 0
 
 
 @pytest.mark.asyncio
@@ -121,7 +132,10 @@ async def test_mcp_all_tools_registered():
     assert "bist_viop_durum" in tool_names
     assert "bist_sektor_rotasyonu" in tool_names
     
-    # Çapraz Piyasa (1 Araç)
+    # Çapraz Piyasa & Et-Yem Araçları (4 Araç)
     assert "agri_bist_korelasyon" in tool_names
+    assert "et_yem_paritesi" in tool_names
+    assert "et_tufe_endeksi" in tool_names
+    assert "et_sektoru_bist_etkisi" in tool_names
     
-    assert len(tool_names) == 15
+    assert len(tool_names) == 18
