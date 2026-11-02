@@ -257,7 +257,12 @@ def run_viop_report(
     src = ViopSource()
     quote = src.market_quote()
     snap = src.margin_snapshot()
+    if prior_pct is None:
+        from .state import get_state
+        prior_pct = get_state().get_margin_prev_pct() or 0.45
     stress = assess_margin_stress(snap.margin_call_to_required_pct, prior_pct)
+    from .state import get_state
+    get_state().set_margin_prev_pct(snap.margin_call_to_required_pct)
 
     futures_line = (
         f"| Vadeli {quote.futures_symbol} | {quote.futures_price} | {quote.futures_change} |\n"
@@ -869,7 +874,8 @@ def run_news_report(
             "BIST_HAREKET": "BIST Endeksi",
             "SEKTÖR_HAREKET": "Sektör Hareketi",
             "MAKRO_HAREKET": "Makro Piyasalar",
-            "KRIPTO_HAREKET": "Kripto",
+            "KRIPTO_HAREKET": "Kripto Piyasası",
+            "TEKNOLOJI_HAREKET": "Teknoloji & AI",
         }
         kicker = _KICKER_MAP.get(event.kind, event.kind.replace("_", " ").title())
         tags = event.tags or ["Makro", "Piyasa"]
@@ -877,17 +883,21 @@ def run_news_report(
         card_headline = title_line[:120] if event.kind == "SON_DAKIKA" else event.headline[:120]
         card_ticker_val = "" if event.kind == "SON_DAKIKA" else event.label
 
-        if event.kind in ("SON_DAKIKA", "HISSE_HAREKET"):
+        if event.kind in ("SON_DAKIKA", "HISSE_HAREKET", "TEKNOLOJI_HAREKET", "KRIPTO_HAREKET"):
             # AI ile tweet metni + kısa analiz gövdesi üret
             tweet_text, ai_body = analyzer.generate_breaking_news_tweet(
                 headline=title_line,
                 macro_context=macro_context,
             )
-            if event.kind == "SON_DAKIKA" and "Kaynak" in event.headline:
+            if "Kaynak" in event.headline:
                 kaynak = event.headline.split("Kaynak")[1].strip()
                 body = f"{ai_body}\n\n> Kaynak:{kaynak}"
             elif event.kind == "HISSE_HAREKET":
                 body = f"{ai_body}\n\n> Kaynak: Yahoo Finance / BIST"
+            elif event.kind == "KRIPTO_HAREKET":
+                body = f"{ai_body}\n\n> Kaynak: CoinDesk / CoinTelegraph / Yahoo Finance"
+            elif event.kind == "TEKNOLOJI_HAREKET":
+                body = f"{ai_body}\n\n> Kaynak: TechCrunch / The Verge / Ars Technica"
             else:
                 body = f"{ai_body}\n\n> Kaynak: Küresel haber ajansları"
         elif event.kind == "SEKTÖR_HAREKET":
@@ -933,9 +943,8 @@ def run_news_report(
                 sparkline = GlobalMacroSource().fetch_closes(symbol)
         elif event.kind == "KRIPTO_HAREKET":
             from .sources.crypto import CryptoSource, CRYPTO_TICKERS
-            symbol = next((s for s, l in CRYPTO_TICKERS if l == event.label), None)
-            if symbol:
-                sparkline = CryptoSource().fetch_closes(symbol)
+            symbol = next((s for s, l in CRYPTO_TICKERS if l.lower() in event.label.lower() or l.lower() in event.headline.lower()), "BTC-USD")
+            sparkline = CryptoSource().fetch_closes(symbol)
         elif event.kind in ("BIST_HAREKET", "SEKTÖR_HAREKET"):
             from .sources.bist import BistSource
             symbol = "XU100.IS" if event.kind == "BIST_HAREKET" else f"{event.label}.IS"

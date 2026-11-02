@@ -33,6 +33,7 @@ from .publishing.ipo_pdf import IpoPdfGenerator
 from .risk.margin import MarginMonitor, default_parameters, load_parameters_file, load_positions_file
 from .sources.peer import available_groups
 from .sources.viop import ViopSource, assess_margin_stress
+from .state import get_state
 
 log = get_logger(__name__)
 
@@ -209,7 +210,8 @@ def _cmd_viop(args: argparse.Namespace) -> None:
         )
 
     snap = src.margin_snapshot()
-    stress = assess_margin_stress(snap.margin_call_to_required_pct, args.prior_pct)
+    prior = args.prior_pct if args.prior_pct is not None else get_state().get_margin_prev_pct()
+    stress = assess_margin_stress(snap.margin_call_to_required_pct, prior)
     print("\n=== VİOP Marketwide Teminat (Takasbank) ===")
     print(f"  Teminatlı hesap: {snap.margined_account_count:,}")
     print(f"  Margin-call toplam: {snap.margin_call_pretty()}")
@@ -234,7 +236,7 @@ def _cmd_viop(args: argparse.Namespace) -> None:
 
     if args.publish:
         slug = run_viop_report(
-            prior_pct=args.prior_pct, publish=True, publish_social=not args.no_social
+            prior_pct=prior, publish=True, publish_social=not args.no_social
         )
         print(f"\n  Web raporu yayınlandı: /rapor/{slug}")
 

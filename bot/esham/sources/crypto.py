@@ -22,6 +22,8 @@ CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
 CRYPTO_TICKERS: list[tuple[str, str]] = [
     ("BTC-USD", "Bitcoin"),
     ("ETH-USD", "Ethereum"),
+    ("SOL-USD", "Solana"),
+    ("XRP-USD", "Ripple"),
 ]
 
 

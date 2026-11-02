@@ -85,27 +85,29 @@ RSS_SOURCES: list[RssSource] = [
         url="https://www.forexlive.com/feed/news",
         max_items=10,
     ),
-    # ── Teknoloji & Yapay Zeka ─────────────────────────────────────────────
-    # Ekonomiyi doğrudan etkileyen teknoloji haberleri (AI/donanım/büyük şirket)
+]
+
+# ── Teknoloji & Yapay Zeka (Ayrı Kaynak Listesi) ──────────────────────
+TECH_NEWS_SOURCES: list[RssSource] = [
     RssSource(
         name="TechCrunch",
         url="https://techcrunch.com/feed/",
-        max_items=8,
+        max_items=10,
     ),
     RssSource(
         name="The Verge",
         url="https://www.theverge.com/rss/index.xml",
-        max_items=8,
+        max_items=10,
     ),
     RssSource(
         name="Ars Technica",
         url="https://feeds.arstechnica.com/arstechnica/index",
-        max_items=8,
+        max_items=10,
     ),
     RssSource(
         name="VentureBeat AI",
         url="https://venturebeat.com/ai/feed/",
-        max_items=8,
+        max_items=10,
     ),
 ]
 
@@ -192,6 +194,10 @@ class GlobalNewsSource:
     def fetch_crypto_news(self) -> list[GlobalNewsItem]:
         """Kripto haber kaynaklarını çeker (CoinDesk, CoinTelegraph, Decrypt)."""
         return self._fetch_and_dedup(CRYPTO_NEWS_SOURCES)
+
+    def fetch_tech_news(self) -> list[GlobalNewsItem]:
+        """Teknoloji & AI haber kaynaklarını çeker (TechCrunch, The Verge, Ars Technica, VentureBeat AI)."""
+        return self._fetch_and_dedup(TECH_NEWS_SOURCES)
 
     def _fetch_and_dedup(self, sources: list[RssSource]) -> list[GlobalNewsItem]:
         """Verilen kaynak listesini paralel çeker, deduplike eder ve döner."""

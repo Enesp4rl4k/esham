@@ -43,8 +43,10 @@ THRESHOLDS: dict[str, float] = {
     "ALTIN":    _env_float("ESHAM_THRESH_ALTIN",     0.80),   # %0.80
     "VIX":      _env_float("ESHAM_THRESH_VIX",       5.00),   # %5.00 (VIX oynak)
     "BRENT":    _env_float("ESHAM_THRESH_BRENT",     1.00),   # %1.00
-    "Bitcoin":  _env_float("ESHAM_THRESH_BTC",       3.00),   # %3.00
-    "Ethereum": _env_float("ESHAM_THRESH_ETH",       4.00),   # %4.00
+    "Bitcoin":  _env_float("ESHAM_THRESH_BTC",       1.50),   # %1.50
+    "Ethereum": _env_float("ESHAM_THRESH_ETH",       2.00),   # %2.00
+    "Solana":   _env_float("ESHAM_THRESH_SOL",       2.50),   # %2.50
+    "Ripple":   _env_float("ESHAM_THRESH_XRP",       3.00),   # %3.00
 }
 
 # Sektör endeksi eşiği
@@ -52,7 +54,7 @@ SECTOR_THRESHOLD: float = _env_float("ESHAM_THRESH_SECTOR", 2.0)   # %2.0
 # BIST XU100 endeks günlük hareket eşiği
 BIST_THRESHOLD: float = _env_float("ESHAM_THRESH_BIST", 1.5)       # %1.5
 
-EventKind = Literal["MAKRO_HAREKET", "SEKTÖR_HAREKET", "BIST_HAREKET", "SON_DAKIKA", "KRIPTO_HAREKET"]
+EventKind = Literal["MAKRO_HAREKET", "SEKTÖR_HAREKET", "BIST_HAREKET", "SON_DAKIKA", "KRIPTO_HAREKET", "TEKNOLOJI_HAREKET"]
 
 
 @dataclass
@@ -81,6 +83,8 @@ class MarketEvent:
     def emoji(self) -> str:
         if self.kind == "SON_DAKIKA":
             return "🚨"
+        if self.kind == "TEKNOLOJI_HAREKET":
+            return "⚡"
         if self.kind == "KRIPTO_HAREKET":
             return "🪙"
         if self.kind == "MAKRO_HAREKET":
@@ -91,12 +95,14 @@ class MarketEvent:
 
     @property
     def category(self) -> str:
-        if self.kind == "SON_DAKIKA":
-            return "gundem"
+        if self.kind == "TEKNOLOJI_HAREKET":
+            return "teknoloji"
         if self.kind == "KRIPTO_HAREKET":
             return "kripto"
         if self.kind in ("SEKTÖR_HAREKET", "BIST_HAREKET", "HISSE_HAREKET"):
             return "bist"
+        if self.kind == "SON_DAKIKA":
+            return "gundem"
         return "global"
 
 
@@ -526,7 +532,16 @@ class NewsDetector:
             # AI ile önem filtresi — sadece piyasayı etkileyen haberler geçer
             translated = self._ai.analyze_global_breaking_news(item.title)
             if not translated:
-                continue
+                t_lower = item.title.lower()
+                is_major = any(k in t_lower for k in (
+                    "bitcoin", "btc", "ethereum", "eth", "solana", "sol", "crypto", "sec",
+                    "etf", "binance", "coinbase", "tether", "stablecoin", "fed", "rate",
+                    "rally", "crash", "ath", "record", "hack", "whale", "halving", "inflow",
+                ))
+                if is_major:
+                    translated = f"SON DAKİKA: {item.title}"
+                else:
+                    continue
 
             source_label = f" ({item.source})" if item.source else ""
             headline = f"{translated}\n\nKaynak{source_label}: {item.link}"
@@ -538,7 +553,7 @@ class NewsDetector:
                 change_str="",
                 headline=headline,
                 key=key,
-                tags=["Kripto", "SonDakika"],
+                tags=["Kripto", "DijitalVarlıklar"],
             )
             events.append(event)
             log.info(
@@ -561,17 +576,9 @@ class NewsDetector:
         """
         events: list[MarketEvent] = []
 
-        # Teknoloji haberleri ana RSS_SOURCES'ta (TechCrunch, Verge, Ars, VentureBeat)
-        # fetch_latest() çağrısıyla zaten çekiliyor ama ayrı filtre uyguluyoruz.
-        # Burada sadece teknoloji kaynaklarını seçip filtreleyelim.
         try:
-            from .global_news import RSS_SOURCES
-            tech_sources = [s for s in RSS_SOURCES if s.name in (
-                "TechCrunch", "The Verge", "Ars Technica", "VentureBeat AI"
-            )]
-            if not tech_sources:
-                return events
-            tech_items = self._global_news_src._fetch_and_dedup(tech_sources)
+            from .global_news import TECH_NEWS_SOURCES
+            tech_items = self._global_news_src._fetch_and_dedup(TECH_NEWS_SOURCES)
         except Exception as exc:
             log.warning("Teknoloji haber tarama hatası: %s", exc)
             return events
@@ -590,19 +597,29 @@ class NewsDetector:
             # AI filtresi: sadece ekonomi/piyasa etkisi olan teknoloji haberlerini geçir
             translated = self._ai.analyze_global_breaking_news(item.title)
             if not translated:
-                continue
+                t_lower = item.title.lower()
+                is_major_tech = any(k in t_lower for k in (
+                    "ai", "artificial intelligence", "model", "openai", "chatgpt", "gemini",
+                    "claude", "anthropic", "nvidia", "gpu", "chip", "semiconductor", "tsmc",
+                    "intel", "amd", "apple", "microsoft", "google", "meta", "blackwell",
+                    "acquisition", "buys", "deal", "billion", "data center", "robot",
+                ))
+                if is_major_tech:
+                    translated = f"SON DAKİKA: {item.title}"
+                else:
+                    continue
 
             source_label = f" ({item.source})" if item.source else ""
             headline = f"{translated}\n\nKaynak{source_label}: {item.link}"
             event = MarketEvent(
-                kind="SON_DAKIKA",
-                label="Teknoloji",
+                kind="TEKNOLOJI_HAREKET",
+                label="Teknoloji & AI",
                 change_pct=0.0,
                 value_str="",
                 change_str="",
                 headline=headline,
                 key=key,
-                tags=["Teknoloji", "YapayZeka", "SonDakika"],
+                tags=["Teknoloji", "YapayZeka", "AI"],
             )
             events.append(event)
             log.info(
