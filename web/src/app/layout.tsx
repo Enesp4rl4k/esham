@@ -25,14 +25,14 @@ export const metadata: Metadata = {
     template: "%s — Esham",
   },
   description:
-    "BIST, küresel makro veriler ve KAP halka arz raporları her gün yapay zeka tarafından analiz edilir.",
+    "BIST, küresel makro veriler, TÜRİB tarımsal emtia endeksleri ve KAP halka arz raporları her gün yapay zeka tarafından analiz edilir.",
   alternates: {
     types: { "application/rss+xml": "/feed.xml" },
   },
   openGraph: {
     title: "Esham — Yapay Zeka Destekli Piyasa Analizi",
     description:
-      "BIST, küresel makro ve halka arz raporları her gün yapay zeka ile analiz edilir.",
+      "BIST, küresel makro, TÜRİB emtia ve halka arz raporları her gün yapay zeka ile analiz edilir.",
     type: "website",
     locale: "tr_TR",
   },
@@ -40,6 +40,7 @@ export const metadata: Metadata = {
 
 const navItems: { href: string; label: string }[] = [
   { href: "/", label: "Ana Sayfa" },
+  { href: "/tarim-emtia", label: "Tarımsal Emtia & Et-Yem" },
   ...(Object.keys(CATEGORIES) as CategorySlug[]).map((slug) => ({
     href: `/kategori/${slug}`,
     label: CATEGORIES[slug].label,
@@ -71,7 +72,7 @@ export default function RootLayout({
             {/* Wordmark */}
             <Link
               href="/"
-              className="font-display font-bold text-lg tracking-tight flex items-center"
+              className="font-display font-bold text-lg tracking-tight flex items-center shrink-0 mr-4"
               style={{ color: "var(--text-primary)" }}
             >
               <span style={{ color: "var(--accent)" }}>Es</span>ham
@@ -127,8 +128,15 @@ export default function RootLayout({
                   className="text-[10px] font-bold tracking-[0.15em] uppercase self-center mr-2"
                   style={{ color: "var(--text-muted)" }}
                 >
-                  Kategoriler
+                  Piyasalar & Veri
                 </span>
+                <Link
+                  href="/tarim-emtia"
+                  className="text-sm font-semibold transition-opacity hover:opacity-70"
+                  style={{ color: "var(--accent)" }}
+                >
+                  Tarımsal Emtia & Et-Yem (TÜRİB)
+                </Link>
                 {(Object.keys(CATEGORIES) as CategorySlug[]).map((slug) => (
                   <Link
                     key={slug}
@@ -139,6 +147,13 @@ export default function RootLayout({
                     {CATEGORIES[slug].label}
                   </Link>
                 ))}
+                <Link
+                  href="/halka-arz-takvimi"
+                  className="text-sm transition-opacity hover:opacity-70"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Halka Arz Takvimi
+                </Link>
                 <Link
                   href="/arsiv"
                   className="text-sm transition-opacity hover:opacity-70"

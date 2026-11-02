@@ -11,7 +11,7 @@ export function DesktopNav({
   const pathname = usePathname();
 
   return (
-    <nav className="hidden md:flex items-center gap-6 text-sm">
+    <nav className="hidden lg:flex items-center gap-4 xl:gap-5 text-xs xl:text-sm whitespace-nowrap">
       {navItems.map((item) => {
         const isActive =
           item.href === "/"

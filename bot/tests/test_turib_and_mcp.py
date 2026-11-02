@@ -139,3 +139,20 @@ async def test_mcp_all_tools_registered():
     assert "et_sektoru_bist_etkisi" in tool_names
     
     assert len(tool_names) == 18
+
+
+def test_turib_market_data_publishing():
+    from esham.publishing.turib_data import update_turib_market_data, TURIB_JSON
+    import json
+    ok = update_turib_market_data()
+    assert ok is True
+    assert TURIB_JSON.exists()
+    data = json.loads(TURIB_JSON.read_text(encoding="utf-8"))
+    assert "indices" in data
+    assert "spotCommodities" in data
+    assert "meatFeed" in data
+    assert "tmoComparison" in data
+    assert "storageBacktest" in data
+    assert "regionalArbitrage" in data
+    assert "agriBist" in data
+    assert len(data["indices"]) > 0

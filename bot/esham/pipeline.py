@@ -21,6 +21,7 @@ from .publishing.social import SocialPublisher
 from .publishing.pdf_report import generate_pdf
 from .publishing.stock_data import write_stock_json
 from .publishing.ticker_data import update_ticker_data
+from .publishing.turib_data import update_turib_market_data
 from .sources import Disclosure, MarketSnapshot
 from .sources.unsplash import PexelsSource as _PhotoSource
 from .sources.bist import BistSource
@@ -224,6 +225,11 @@ def run_morning_report(publish_social: bool = True) -> str | None:
     except Exception as exc:
         log.warning("Ticker JSON güncellenemedi (sabah raporu): %s", exc)
 
+    try:
+        update_turib_market_data()
+    except Exception as exc:
+        log.warning("TÜRİB Piyasa JSON güncellenemedi: %s", exc)
+
     log.info("=== Süreç tamamlandı: %s ===", slug)
     return slug
 
@@ -418,6 +424,11 @@ yarınki açılış beklentilerini şekillendirecek."""
         update_ticker_data()
     except Exception as exc:
         log.warning("Ticker JSON güncellenemedi (kapanış): %s", exc)
+
+    try:
+        update_turib_market_data()
+    except Exception as exc:
+        log.warning("TÜRİB Piyasa JSON güncellenemedi: %s", exc)
 
     return slug
 

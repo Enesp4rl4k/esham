@@ -312,6 +312,16 @@ def _cmd_evals(_: argparse.Namespace) -> None:
     sys.exit(0 if ok else 1)
 
 
+def _cmd_publish_turib(_: argparse.Namespace) -> None:
+    from .publishing.turib_data import update_turib_market_data
+    ok = update_turib_market_data()
+    if ok:
+        print("TÜRİB & Tarımsal Emtia verileri başarıyla web/public/data/turib-market.json dosyasına yazıldı.")
+    else:
+        print("Hata: TÜRİB verisi yazılamadı.")
+        sys.exit(1)
+
+
 def _cmd_ipo_pdf(_: argparse.Namespace) -> None:
     generator = IpoPdfGenerator()
     generator.create(
@@ -468,6 +478,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     ip = sub.add_parser("ipo-pdf", help="Örnek halka arz raporu üret")
     ip.set_defaults(func=_cmd_ipo_pdf)
+
+    pt = sub.add_parser("publish-turib", help="TÜRİB & Et-yem verilerini web JSON'a yaz")
+    pt.set_defaults(func=_cmd_publish_turib)
 
     return parser
 

@@ -1,5 +1,16 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { promises as fs } from "fs";
+import path from "path";
+import {
+  ArrowUpRight,
+  Wheat,
+  Beef,
+  TrendingUp,
+  TrendingDown,
+  Warehouse,
+  ArrowRight,
+  Database,
+} from "lucide-react";
 import {
   getAllReports,
   formatDate,
@@ -21,11 +32,31 @@ const catColors: Record<CategorySlug, string> = {
   teknoloji: "text-pink-400   border-pink-400/30   bg-pink-400/8",
 };
 
+async function loadTuribSnapshot() {
+  try {
+    const filePath = path.join(process.cwd(), "public", "data", "turib-market.json");
+    const raw = await fs.readFile(filePath, "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 export default async function Home() {
   const reports = getAllReports();
   const latest = reports.slice(0, 6);
   const featured = reports[0];
   const secondary = reports.slice(1, 4);
+  const turibData = await loadTuribSnapshot();
+
+  const trbHub = turibData?.indices?.find((i: any) => i.code === "TRBHUB");
+  const bugdaySpot = turibData?.spotCommodities?.find((p: any) =>
+    p.name.includes("BUĞDAY")
+  );
+  const danaYem = turibData?.meatFeed?.parities?.find((p: any) =>
+    p.title?.includes("Dana")
+  );
+  const meatCpiPct = turibData?.meatFeed?.meatCpiAnnualPct;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -157,6 +188,115 @@ export default async function Home() {
               </p>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* ── TÜRİB ELÜS & Tarımsal Emtia Vitrini ─────────────────────── */}
+      <section className="py-12 border-b" style={{ borderColor: "var(--border)", background: "rgba(232, 160, 48, 0.02)" }}>
+        <div className="container mx-auto px-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span
+                  className="text-[10px] font-bold tracking-[0.15em] uppercase px-2 py-0.5 rounded border"
+                  style={{ color: "var(--accent)", borderColor: "var(--accent-dim)", background: "var(--accent-glow)" }}
+                >
+                  <Database className="w-3 h-3 inline mr-1" />
+                  Piyasa Veri Seti
+                </span>
+                <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  TÜRİB + LİDAŞ + TÜİK + TMO
+                </span>
+              </div>
+              <h2 className="text-xl md:text-2xl font-display font-bold">
+                Tarımsal Emtia, TÜRİB & Et-Yem Terminali
+              </h2>
+            </div>
+
+            <Link
+              href="/tarim-emtia"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border transition-all hover:scale-[1.02] self-start md:self-auto"
+              style={{
+                borderColor: "var(--accent)",
+                color: "var(--accent)",
+                background: "var(--accent-glow)",
+              }}
+            >
+              Tüm Veri Terminalini İncele <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* TRBHUB */}
+            <Link
+              href="/tarim-emtia"
+              className="p-5 rounded-xl border transition-all hover:border-[var(--accent)] group"
+              style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-mono font-bold text-amber-400">TRBHUB</span>
+                <span className="text-xs font-semibold text-emerald-400 flex items-center gap-0.5">
+                  <TrendingUp className="w-3 h-3" />
+                  {trbHub?.changeStr || "+2,12%"}
+                </span>
+              </div>
+              <p className="text-2xl font-bold font-display">{trbHub?.valueStr || "7.910,25"}</p>
+              <p className="text-[11px] mt-1 text-zinc-500">TÜRİB Hububat Endeksi</p>
+            </Link>
+
+            {/* Buğday Spot */}
+            <Link
+              href="/tarim-emtia"
+              className="p-5 rounded-xl border transition-all hover:border-[var(--accent)] group"
+              style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-zinc-300">Buğday Ekmeklik</span>
+                <span className="text-xs font-semibold text-emerald-400 flex items-center gap-0.5">
+                  <TrendingUp className="w-3 h-3" />
+                  {bugdaySpot?.changeStr || "+5,40%"}
+                </span>
+              </div>
+              <p className="text-2xl font-bold font-display" style={{ color: "var(--accent)" }}>
+                {bugdaySpot?.avgPriceStr || "18,19 ₺/kg"}
+              </p>
+              <p className="text-[11px] mt-1 text-zinc-500">Lisanslı Depo (ELÜS) Spot</p>
+            </Link>
+
+            {/* Dana Besi / Yem */}
+            <Link
+              href="/tarim-emtia"
+              className="p-5 rounded-xl border transition-all hover:border-[var(--accent)] group"
+              style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-zinc-300">Dana Besi / Yem</span>
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  {danaYem?.status || "KÂRLI BESI"}
+                </span>
+              </div>
+              <p className="text-2xl font-bold font-display text-emerald-400">
+                {danaYem?.ratio ? `${danaYem.ratio.toFixed(1)}x` : "28.2x"}
+              </p>
+              <p className="text-[11px] mt-1 text-zinc-500">1 kg et = 28.2 kg yem (Eşik: 20)</p>
+            </Link>
+
+            {/* Et TÜFE */}
+            <Link
+              href="/tarim-emtia"
+              className="p-5 rounded-xl border transition-all hover:border-[var(--accent)] group"
+              style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-rose-400">Et TÜFE (Yıllık)</span>
+                <span className="text-xs text-zinc-400">Manşet: %31.5</span>
+              </div>
+              <p className="text-2xl font-bold font-display">
+                %{meatCpiPct ? meatCpiPct.toFixed(1) : "30.5"}
+              </p>
+              <p className="text-[11px] mt-1 text-zinc-500">Enflasyon Primi: -1.0 puan</p>
+            </Link>
+          </div>
         </div>
       </section>
 

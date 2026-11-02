@@ -14,7 +14,7 @@ export function MobileMenu({
   const pathname = usePathname();
 
   return (
-    <div className="md:hidden">
+    <div className="lg:hidden">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="p-2 text-zinc-400 hover:text-white transition-colors"
@@ -24,7 +24,7 @@ export function MobileMenu({
       </button>
 
       {isOpen && (
-        <div className="absolute top-16 left-0 w-full bg-zinc-950 border-b border-zinc-900 shadow-xl py-4 flex flex-col px-6 gap-4">
+        <div className="absolute top-14 left-0 w-full bg-zinc-950 border-b border-zinc-900 shadow-2xl py-4 flex flex-col px-6 gap-3 z-50 max-h-[80vh] overflow-y-auto">
           {navItems.map((item) => {
             const isActive =
               item.href === "/"
@@ -35,10 +35,10 @@ export function MobileMenu({
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsOpen(false)}
-                className={`text-lg font-medium transition-colors py-2 border-b border-zinc-900/50 ${
+                className={`text-base font-medium transition-colors py-2 border-b border-zinc-900/50 ${
                   isActive
-                    ? "text-cyan-400"
-                    : "text-zinc-300 hover:text-cyan-400"
+                    ? "text-amber-400"
+                    : "text-zinc-300 hover:text-amber-400"
                 }`}
               >
                 {item.label}

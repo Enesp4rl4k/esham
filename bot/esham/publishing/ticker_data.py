@@ -62,6 +62,43 @@ def update_ticker_data() -> bool:
     except Exception as exc:
         log.warning("Ticker JSON — makro alınamadı: %s", exc)
 
+    # TÜRİB ELÜS & Et-Yem Endeksleri
+    try:
+        from ..sources.turib import TuribSource
+        tsnap = TuribSource().snapshot()
+        for idx in tsnap.indices:
+            if idx.code in ("TRBHUB", "TRBBGD"):
+                tickers.append({
+                    "label": idx.code,
+                    "value": f"{idx.price:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
+                    "change": f"{idx.change_pct:+.2f}%".replace(".", ","),
+                    "up": idx.change_pct >= 0,
+                })
+        for prod in tsnap.products:
+            if "EKMEKLIK" in prod.product.upper():
+                tickers.append({
+                    "label": "ELÜS BUĞDAY",
+                    "value": f"{prod.avg_price_tl_kg:.2f} ₺",
+                    "change": f"{prod.change_pct:+.2f}%".replace(".", ","),
+                    "up": prod.change_pct >= 0,
+                })
+    except Exception as exc:
+        log.warning("Ticker JSON — TÜRİB alınamadı: %s", exc)
+
+    try:
+        from ..sources.meat_feed_index import MeatFeedIndexAnalyzer
+        mrep = MeatFeedIndexAnalyzer().analyze()
+        for p in mrep.pariteler:
+            if "Dana" in p.kategori:
+                tickers.append({
+                    "label": "DANA/YEM",
+                    "value": f"{p.parite_orani:.1f}x",
+                    "change": f"Eşik:{p.esik_basabasi:.0f}",
+                    "up": p.parite_orani >= p.esik_basabasi,
+                })
+    except Exception as exc:
+        log.warning("Ticker JSON — Et/Yem alınamadı: %s", exc)
+
     # BIST-30 watchlist hisseleri
     try:
         from concurrent.futures import ThreadPoolExecutor, as_completed as _as_completed
