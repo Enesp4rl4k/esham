@@ -809,6 +809,13 @@ def run_news_report(
                 raw = f"{raw}\n\nDetay:\n{detail}"
         is_insider = disclosure.is_insider
 
+        # Tier-1 / Mega İş Anlaşması tespiti
+        from .turkish import tr_fold
+        norm_disc = tr_fold(f"{title} {raw}")
+        is_order = any(k in norm_disc for k in ("yeni is iliskisi", "siparis", "sozlesme", "ihale", "proje"))
+        has_mega_amount = any(k in norm_disc for k in ("milyar", "500 milyon", "600 milyon", "700 milyon", "800 milyon", "900 milyon"))
+        is_mega_deal = is_order and has_mega_amount
+
         body, summary, tweet_text = analyzer.generate_news_analysis(
             title=title,
             disclosure_type=disc_type,
@@ -819,16 +826,34 @@ def run_news_report(
             macro_context=macro_context,
         )
         category = "insider" if is_insider else "bist"
-        emoji = "🚨" if is_insider else "📰"
-        kicker = "İçsel İşlem" if is_insider else disc_type or "KAP Bildirimi"
-        tags = (
-            ["İçsel İşlem", ticker, "KAP"]
-            if is_insider
-            else [ticker, "KAP", "BIST"]
-        )
-        card_kicker = kicker
+        emoji = "🔥" if is_mega_deal else ("🚨" if is_insider else "📰")
+        
+        if is_mega_deal:
+            kicker = "Mega İş Anlaşması"
+            card_kicker = "🔥 MEGA İŞ ANLAŞMASI"
+        elif is_insider:
+            kicker = "İçsel İşlem"
+            card_kicker = "İÇSEL İŞLEM"
+        else:
+            kicker = disc_type or "KAP Bildirimi"
+            card_kicker = kicker
+
+        tags = [ticker, "KAP", "BIST"]
+        if is_mega_deal:
+            tags.insert(0, "Mega Sözleşme")
+        if is_insider:
+            tags.insert(0, "İçsel İşlem")
+
         card_headline = title[:120]
         card_ticker_val = ticker
+
+        # Teknik analiz snapshot'ı (Fiyat, RSI, 20G HO, Destek/Direnç)
+        from .sources.bist import BistSource
+        tech_snapshot = BistSource.fetch_technical_snapshot(ticker)
+        if tech_snapshot:
+            body = f"{body}\n\n> {tech_snapshot.format_line()}"
+            if is_mega_deal:
+                summary = f"🔥 MEGA SÖZLEŞME | {summary}"
 
     # ---- Makro/sektör olay modu --------------------------------------------------
     else:
@@ -885,6 +910,21 @@ def run_news_report(
 
     # ---- kart ve rapor -----------------------------------------------------------
     sparkline = None
+    card_metrics = []
+    card_stat_value = ""
+    card_stat_change = ""
+
+    if disclosure is not None and tech_snapshot:
+        sparkline = tech_snapshot.closes
+        card_stat_value = f"{tech_snapshot.last_price:.2f} TL"
+        sign = "+" if tech_snapshot.change_pct >= 0 else ""
+        card_stat_change = f"{sign}{tech_snapshot.change_pct:.2f}%"
+        card_metrics = [
+            ("RSI", f"{tech_snapshot.rsi_14:.0f}"),
+            ("20G HO", f"{tech_snapshot.sma_20:.1f}"),
+            ("Destek", f"{tech_snapshot.support:.1f}"),
+        ]
+
     if event is not None:
         if event.kind == "MAKRO_HAREKET":
             from .sources.global_macro import GlobalMacroSource, MACRO_TICKERS
@@ -922,8 +962,11 @@ def run_news_report(
             category=category,
             kicker=card_kicker,
             headline=card_headline,
+            stat_value=card_stat_value,
+            stat_change=card_stat_change,
+            metrics=card_metrics,
             ticker=card_ticker_val,
-            template=category,
+            template="bist" if (disclosure and tech_snapshot) else category,
             sparkline=sparkline,
             photo_path=photo_path,
         )

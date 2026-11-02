@@ -20,7 +20,9 @@ on:
     - cron: "45 5 * * 1-5"    # küresel makro raporu    08:45 TR
     - cron: "30 6 * * 1-5"    # VİOP açılış             09:30 TR
     - cron: "0 7 * * 1-5"     # BIST açılış             10:00 TR
+    - cron: "15 8 * * 1-5"    # TÜRİB piyasa verisi     11:15 TR
     - cron: "0 10 * * 1-5"    # öğle ısı haritası       13:00 TR
+    - cron: "30 13 * * 1-5"   # TÜRİB kapanış bülteni   16:30 TR
     - cron: "15 15 * * 1-5"   # kapanış                 18:15 TR
     - cron: "30 15 * * 1-4"   # akşam ısı haritası      18:30 TR (Pzt-Per)
     - cron: "0 6 * * 1"       # haftalık sektör          09:00 TR (Pazartesi)
@@ -112,7 +114,9 @@ jobs:
             "45 5 * * 1-5")              CMD="global-report" ;;
             "30 6 * * 1-5")              CMD="viop --publish" ;;
             "0 7 * * 1-5")               CMD="opening" ;;
+            "15 8 * * 1-5")              CMD="publish-turib" ;;
             "0 10 * * 1-5")              CMD="heatmap" ;;
+            "30 13 * * 1-5")             CMD="publish-turib" ;;
             "15 15 * * 1-5")             CMD="closing" ;;
             "30 15 * * 1-4")             CMD="heatmap" ;;
             "0 6 * * 1")                 CMD="sector" ;;

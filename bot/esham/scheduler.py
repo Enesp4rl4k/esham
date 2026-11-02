@@ -36,6 +36,7 @@ from .pipeline import (
 )
 from .jobs.publish_heatmap import run_heatmap
 from .newsletter import run_newsletter
+from .publishing.turib_data import update_turib_market_data
 from .publishing.social import SocialPublisher
 from .sources.peer import sector_for_today
 from .sources.viop import ViopSource, assess_margin_stress
@@ -232,7 +233,9 @@ def build_default_scheduler(
     sched.add_daily("kuresel-makro", "08:45", lambda: run_global_report())
     sched.add_daily("viop-acilis", "09:30", lambda: run_viop_report(publish=True))
     sched.add_daily("bist-acilis", "10:00", lambda: run_opening_report(publish_social=True))
+    sched.add_daily("turib-seans-ortasi", "11:15", lambda: update_turib_market_data())
     sched.add_daily("heatmap-ogle", "13:00", lambda: run_heatmap())
+    sched.add_daily("turib-kapanis", "16:30", lambda: update_turib_market_data())
     sched.add_daily("kapanis", "18:15", lambda: run_closing_report())
     sched.add_daily("heatmap-aksam", "18:30", lambda: run_heatmap())
 
