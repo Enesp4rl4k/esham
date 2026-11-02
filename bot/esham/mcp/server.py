@@ -20,6 +20,10 @@ from ..sources.sector import SectorSource
 from ..sources.peer import PeerSource
 from ..sources.turib import TuribSource, ENDEKS_KODLARI, VARSAYILAN_URUNLER
 from ..sources.agri_bist import AgriBistAnalyzer
+from ..sources.tmo import TmoSource
+from ..sources.real_returns import RealReturnsCalculator
+from ..sources.storage_backtest import StorageStrategyBacktester
+from ..sources.regional_arbitrage import RegionalArbitrageScanner
 
 # MCP Sunucusunu Başlat
 mcp = MCPServer(
@@ -114,6 +118,188 @@ def turib_endeks_serisi(endeks_kodu: str = "TRBHUB", bar_sayisi: int = 30) -> li
     source = TuribSource()
     candles = source.fetch_index_series(endeks_kodu.upper())
     return candles[-bar_sayisi:] if candles else []
+
+
+@mcp.tool()
+def turib_tmo_karsilastir(urun_grubu: str = "BUĞDAY EKMEKLİK", referans_yili: int = 2026) -> dict[str, Any]:
+    """TÜRİB serbest borsa fiyatını Toprak Mahsulleri Ofisi (TMO) müdahale alım/satış fiyatlarıyla kıyaslar.
+    
+    TMO taban çıpasını, çiftçi prim desteğini ve serbest piyasanın TMO'ya göre prim/iskonto durumunu döner.
+    """
+    tmo = TmoSource()
+    rep = tmo.compare(urun_grubu, referans_yili=referans_yili)
+    return {
+        "urun_grubu": rep.urun_grubu,
+        "serbest_piyasa_fiyati_tl_kg": rep.serbest_piyasa_fiyati,
+        "tarih": rep.tarih,
+        "tmo_referans": {
+            "yil": rep.tmo_yil,
+            "urun_adi": rep.tmo_urun_adi,
+            "tmo_alim_taban_tl_kg": rep.tmo_alim_fiyati,
+            "bakanlik_prim_destegi_tl_kg": rep.bakanlik_destegi,
+            "toplam_uretici_fiyati_tl_kg": rep.toplam_uretici_fiyati,
+            "tmo_satis_fiyati_tl_kg": rep.tmo_satis_fiyati,
+        },
+        "analiz": {
+            "tmo_alima_gore_fark_tl": rep.alim_farki_tl,
+            "tmo_alima_gore_prim_yuzde": rep.alim_prim_yuzde,
+            "tmo_toplama_gore_fark_tl": rep.toplam_fark_tl,
+            "tmo_toplama_gore_prim_yuzde": rep.toplam_prim_yuzde,
+            "tmo_satisa_gore_fark_tl": rep.satis_farki_tl,
+            "piyasa_durumu": rep.piyasa_durumu,
+            "piyasa_yorumu": rep.piyasa_yorumu,
+        },
+    }
+
+
+@mcp.tool()
+def turib_tmo_fiyat_listesi(yil: int | None = 2026, kategori: str | None = None) -> list[dict[str, Any]]:
+    """Resmî TMO müdahale alım ve prim fiyatları arşiv listesi (2021-2026)."""
+    tmo = TmoSource()
+    kayitlar = tmo.list_records(yil=yil, kategori=kategori)
+    return [
+        {
+            "yil": k.yil,
+            "kategori": k.kategori,
+            "urun_adi": k.urun_adi,
+            "alim_fiyati_tl_kg": k.alim_fiyati_tl_kg,
+            "bakanlik_destegi_tl_kg": k.bakanlik_destegi_tl_kg,
+            "toplam_uretici_fiyati_tl_kg": k.toplam_uretici_fiyati_tl_kg,
+            "tmo_satis_fiyati_tl_kg": k.satis_fiyati_tl_kg,
+            "notlar": k.notlar,
+        }
+        for k in kayitlar
+    ]
+
+
+@mcp.tool()
+def turib_reel_getiri(
+    urun_grubu: str = "BUĞDAY EKMEKLİK",
+    baslangic_tarihi: str | None = "2022-01-01",
+    bitis_tarihi: str | None = None,
+) -> dict[str, Any]:
+    """TÜRİB tarım emtiasının TCMB kurları (USD, EUR) ve TÜİK TÜFE enflasyonundan arındırılmış reel getiri analizi.
+    
+    Nominal TL getirisinin gerçek satın alma gücünü koruyup korumadığını hesaplar.
+    """
+    calc = RealReturnsCalculator()
+    rep = calc.calculate(urun_grubu, baslangic=baslangic_tarihi, bitis=bitis_tarihi)
+    return {
+        "urun_grubu": rep.urun_grubu,
+        "donem": {
+            "baslangic": rep.baslangic_tarihi,
+            "bitis": rep.bitis_tarihi,
+            "islem_gun_sayisi": rep.islem_gun_sayisi,
+        },
+        "fiyatlar": {
+            "ilk_fiyat_tl": rep.ilk_fiyat_tl,
+            "son_fiyat_tl": rep.son_fiyat_tl,
+            "ilk_fiyat_usd": rep.ilk_fiyat_usd,
+            "son_fiyat_usd": rep.son_fiyat_usd,
+            "ilk_fiyat_eur": rep.ilk_fiyat_eur,
+            "son_fiyat_eur": rep.son_fiyat_eur,
+        },
+        "getiriler": {
+            "nominal_tl_getiri_yuzde": rep.nominal_tl_getiri_pct,
+            "dolar_usd_getiri_yuzde": rep.usd_getiri_pct,
+            "euro_eur_getiri_yuzde": rep.eur_getiri_pct,
+            "enflasyondan_arindirilmis_reel_getiri_yuzde": rep.reel_enflasyon_getiri_pct,
+        },
+        "analiz_yorumu": rep.analiz_yorumu,
+    }
+
+
+@mcp.tool()
+def turib_depolama_backtest(
+    urun_grubu: str = "BUĞDAY EKMEKLİK",
+    yillik_faiz_yuzde: float = 45.0,
+) -> dict[str, Any]:
+    """Tarımsal depolama stratejisi simülatörü (2020-2026 backtest).
+    
+    'Hasatta Spot Sat' vs '3 Ay Depola' vs '6 Ay Depola' vs '9 Ay Depola' stratejilerini
+    resmî lisanslı depo kirası, yasal fire ve finansman maliyetiyle test eder.
+    """
+    bt = StorageStrategyBacktester()
+    rep = bt.run_backtest(urun_grubu, yillik_faiz_pct=yillik_faiz_yuzde)
+    return {
+        "urun_grubu": rep.urun_grubu,
+        "test_edilen_sezon_sayisi": rep.test_edilen_sezon_sayisi,
+        "varsayimlar": {
+            "yillik_finansman_faizi_yuzde": rep.yillik_faiz_pct,
+            "depolama_kaynagi": "Resmî LİDAŞ kira tarifesi (günlük ~0.005 TL/kg)",
+            "yasal_fire_orani": "Uygulandı (%0.35 - %1.15)",
+        },
+        "istatistikler": {
+            "strateji_3ay_kazanma_orani_yuzde": rep.strateji_3ay_kazanma_orani_pct,
+            "strateji_6ay_kazanma_orani_yuzde": rep.strateji_6ay_kazanma_orani_pct,
+            "strateji_9ay_kazanma_orani_yuzde": rep.strateji_9ay_kazanma_orani_pct,
+            "ortalama_6ay_net_getiri_yuzde": rep.ortalama_6ay_net_getiri_pct,
+            "en_basarili_strateji": rep.en_basarili_strateji,
+        },
+        "sezon_detaylari": [
+            {
+                "sezon": s.sezon_yili,
+                "spot_hasat_fiyati": s.hasat_spot_fiyati,
+                "kazanan": s.kazanan_strateji,
+                "strateji_sonuclari": [
+                    {
+                        "vade": x.strateji_adi,
+                        "satis_fiyati": x.satis_fiyati,
+                        "toplam_maliyet_tl_kg": x.toplam_maliyet_tl_kg,
+                        "net_kar_tl_kg": x.net_kar_zarar_tl_kg,
+                        "net_getiri_yuzde": x.net_getiri_pct,
+                        "spotu_gecti_mi": x.spotu_gecti_mi,
+                    }
+                    for x in s.stratejiler
+                ],
+            }
+            for s in rep.sezon_sonuclari
+        ],
+        "stratejik_tavsiye": rep.stratejik_tavsiye,
+    }
+
+
+@mcp.tool()
+def turib_bolgesel_arbitraj(
+    urun: str = "BUĞDAY",
+    tahmini_nakliye_maliyeti_tl_kg: float = 0.50,
+) -> dict[str, Any]:
+    """TÜRİB günlük bülteninde iller ve lisanslı depolar (LİDAŞ) arasındaki fiyat makasını tarar.
+    
+    Nakliye maliyetini düşerek risksiz net arbitraj potansiyeli olan rotaları tespit eder.
+    """
+    scanner = RegionalArbitrageScanner()
+    rep = scanner.scan(urun=urun, nakliye_maliyeti_tl_kg=tahmini_nakliye_maliyeti_tl_kg)
+    return {
+        "bulten_tarihi": rep.tarih,
+        "urun": rep.urun_filtresi,
+        "taranan_islem_adedi": rep.taranan_islem_sayisi,
+        "genel_degerlendirme": rep.genel_degerlendirme,
+        "en_iyi_arbitraj_rotalari": [
+            {
+                "alim_yapilacak_depo": f"{f.ucuz_il} ({f.ucuz_lidas})",
+                "alim_fiyati": f.ucuz_fiyat,
+                "satis_yapilacak_depo": f"{f.pahali_il} ({f.pahali_lidas})",
+                "satis_fiyati": f.pahali_fiyat,
+                "brut_fark_tl_kg": f.brut_makas_tl_kg,
+                "nakliye_maliyeti_tl_kg": f.tahmini_nakliye_tl_kg,
+                "net_arbitraj_tl_kg": f.net_arbitraj_tl_kg,
+                "net_kar_marji_yuzde": f.net_arbitraj_pct,
+                "firsat_seviyesi": f.firsat_seviyesi,
+                "not": f.aciklama,
+            }
+            for f in rep.en_iyi_firsatlar
+        ],
+        "bolgesel_fiyat_tablosu": [
+            {
+                "il": b.il,
+                "lidas": b.lidas_adi,
+                "fiyat_tl_kg": b.agirlikli_ortalama_fiyat,
+                "miktar_ton": round(b.toplam_miktar_kg / 1000.0, 1),
+            }
+            for b in rep.bolgesel_fiyatlar[:8]
+        ],
+    }
 
 
 # ============================================================================

@@ -227,14 +227,13 @@ class TuribSource:
         try:
             resp = requests.post(url, data=data, headers=self.headers, timeout=settings.http_timeout)
             resp.raise_for_status()
-            html = resp.content.decode("utf-8-sig", errors="ignore")
-            return self._parse_bulletin_html(html, date_str)
+            return self._parse_bulletin_html(resp.content, date_str)
         except Exception as exc:
             log.warning("TÜRİB günlük bülten (%s) alınamadı: %s", date_str, exc)
             return []
 
-    def _parse_bulletin_html(self, html: str, date_str: str) -> list[dict[str, Any]]:
-        """Bülten HTML tablosunu ayrıştırır."""
+    def _parse_bulletin_html(self, html: str | bytes, date_str: str) -> list[dict[str, Any]]:
+        """Bülten HTML tablosunu ayrıştırır (15 sütunlu gerçek senet işlemleri tablosunu alır)."""
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(html, "html.parser")
         tables = soup.find_all("table")
@@ -243,14 +242,19 @@ class TuribSource:
             rows = table.find_all("tr")
             if not rows:
                 continue
-            headers = [th.get_text(strip=True).lower().replace(" ", "") for th in rows[0].find_all(["th", "td"])]
-            # İşlem tablosu mu kontrol et (içinde isin veya miktar barındırır)
-            if any("isin" in h for h in headers) or any("miktar" in h for h in headers):
+            th_cells = rows[0].find_all(["th", "td"])
+            # Sadece 14+ sütunlu işlem tablosunu al (Endeks=9, Girişler=8 sütun)
+            if len(th_cells) >= 12:
                 for row in rows[1:]:
                     cols = [td.get_text(strip=True) for td in row.find_all("td")]
-                    if len(cols) >= 6:
+                    if len(cols) >= 12:
+                        isin = cols[1]
+                        sinif = cols[2]
+                        # 6: Ağırlıklı Ortalama, 7: Kapanış, 9: Miktar [KG], 10: Hacim [TL], 11: LİDAŞ, 12: İl
                         trades.append({
                             "date": date_str,
+                            "isin": isin,
+                            "sinif": sinif,
                             "raw_cols": cols,
                         })
         return trades

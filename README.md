@@ -41,6 +41,10 @@ Rapor JSON'unda opsiyonel alanlar da vardır: `image` (marka kartı) ve `ipo`
 | `sources/viop` | VİOP kotasyonu (TradingView) + Takasbank teminat agregatı + stres |
 | `sources/kap_filter` | KAP önem filtresi — rutin/idari bildirimleri eler (spam önleme) |
 | `sources/sector` | Yahoo BIST sektör endeksleri — haftalık rotasyon |
+| `sources/tmo` | **TMO müdahale fiyatları arşivi & analizi** — 2021-2026 resmî alım/satış/prim taban çıpası ve serbest piyasa prim spreadi |
+| `sources/real_returns` | **TÜFE & Döviz bazlı reel getiri** — Nominal TL artışlarını TCMB kurları (USD/EUR) ve TÜİK enflasyonu ile arındırılmış satın alma gücü getirisini hesaplar |
+| `sources/storage_backtest` | **Tarımsal depolama stratejisi simülatörü** — 2020-2026 gerçek TÜRİB serileri üzerinde spot vs 3/6/9 ay depolama backtest'i (faiz, LİDAŞ kirası, fire) |
+| `sources/regional_arbitrage` | **Bölgesel LİDAŞ arbitraj tarayıcısı** — Günlük bültende iller ve depolar arası brüt/net makas ve lojistik arbitraj fırsatları |
 | `sources/turib` | **TÜRİB ELÜS veri kaynağı** — Hububat endeksleri (TRBHUB, TRBBGD, TRBMSR), buğday/mısır/arpa fiyat serileri ve günlük bülten |
 | `sources/agri_bist` | **BIST x TÜRİB çapraz analizi** — Gıda hisseleri (ULUUN, BANVT, TATGD) ile tarımsal emtia marj duyarlılığı |
 | `mcp/server` | **Unified MCP Sunucusu** — BIST ve TÜRİB piyasalarını LLM/Claude/Cursor ortamına açan model context protocol motoru |
@@ -85,8 +89,21 @@ py -m esham.main turib
 # Agri-BIST: BIST gıda şirketleri ve TÜRİB tarım emtiası çapraz marj analizi
 py -m esham.main agri-bist
 
-# Esham BIST + TÜRİB Unified MCP Sunucusu (Claude / Cursor stdio)
+# Esham BIST + TÜRİB Unified MCP Sunucusu (Claude / Cursor stdio - 15 Araç)
 py -m esham.main mcp
+
+# TMO Müdahale alım fiyatları arşivi & TÜRİB serbest piyasa karşılaştırması
+py -m esham.main tmo --product "BUĞDAY EKMEKLİK"
+py -m esham.main tmo --list
+
+# TÜFE enflasyonu ve TCMB kurları (USD/EUR) bazlı reel getiri analizi
+py -m esham.main real-return --product "BUĞDAY EKMEKLİK" --start 2022-01-01
+
+# Tarımsal emtia depolama stratejisi backtest motoru (2020-2026 sezonları)
+py -m esham.main backtest --product "BUĞDAY EKMEKLİK" --interest 45.0
+
+# LİDAŞ depoları arası bölgesel arbitraj taraması
+py -m esham.main arbitrage --product "BUĞDAY" --freight 0.50
 
 # VİOP: piyasa + marketwide teminat stresi + hesap margin-call kontrolü
 py -m esham.main viop

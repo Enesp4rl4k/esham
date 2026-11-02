@@ -114,6 +114,66 @@ def _cmd_agri_bist(args: argparse.Namespace) -> None:
     print(f"\nMakro Değerlendirme: {rep.macro_takeaway}")
 
 
+def _cmd_tmo(args: argparse.Namespace) -> None:
+    from .sources.tmo import TmoSource
+    tmo = TmoSource()
+    if args.list:
+        kayitlar = tmo.list_records(yil=args.year, kategori=args.category)
+        print(f"\n=== TMO Müdahale Fiyatları Arşivi ({len(kayitlar)} Kayıt) ===")
+        for k in kayitlar:
+            satis = f"{k.satis_fiyati_tl_kg:.2f}" if k.satis_fiyati_tl_kg else "—"
+            print(f"  [{k.yil}] {k.urun_adi} ({k.kategori}): Alım={k.alim_fiyati_tl_kg:.2f} TL/kg | Prim={k.bakanlik_destegi_tl_kg:.2f} TL | Toplam={k.toplam_uretici_fiyati_tl_kg:.2f} TL | Satış={satis} TL")
+    else:
+        rep = tmo.compare(args.product, referans_yili=args.year)
+        print(f"\n=== TMO vs TÜRİB Fiyat Karşılaştırması ({rep.tmo_yil}) ===")
+        print(f"  Ürün: {rep.urun_grubu} (TMO: {rep.tmo_urun_adi})")
+        print(f"  TÜRİB Serbest Piyasa: {rep.serbest_piyasa_fiyati:.2f} TL/kg")
+        print(f"  TMO Alım Tabanı: {rep.tmo_alim_fiyati:.2f} TL/kg (Bakanlık Primi: {rep.bakanlik_destegi:.2f} TL/kg)")
+        print(f"  TMO Alıma Göre Prim: %{rep.alim_prim_yuzde:+.1f} ({rep.alim_farki_tl:+.2f} TL/kg)")
+        print(f"  Piyasa Durumu: {rep.piyasa_durumu}")
+        print(f"  Yorum: {rep.piyasa_yorumu}")
+
+
+def _cmd_real_return(args: argparse.Namespace) -> None:
+    from .sources.real_returns import RealReturnsCalculator
+    calc = RealReturnsCalculator()
+    rep = calc.calculate(args.product, baslangic=args.start, bitis=args.end)
+    print(f"\n=== TÜRİB Reel Getiri Analizi (TÜFE & Döviz) ===")
+    print(f"  Ürün: {rep.urun_grubu} | Dönem: {rep.baslangic_tarihi} - {rep.bitis_tarihi} ({rep.islem_gun_sayisi} işlem günü)")
+    print(f"  TL Fiyatı: {rep.ilk_fiyat_tl:.2f} TL -> {rep.son_fiyat_tl:.2f} TL (Nominal Getiri: %{rep.nominal_tl_getiri_pct:+.1f})")
+    print(f"  USD Fiyatı: ${rep.ilk_fiyat_usd:.3f} -> ${rep.son_fiyat_usd:.3f} (Dolar Getirisi: %{rep.usd_getiri_pct:+.1f})")
+    print(f"  EUR Fiyatı: €{rep.ilk_fiyat_eur:.3f} -> €{rep.son_fiyat_eur:.3f} (Euro Getirisi: %{rep.eur_getiri_pct:+.1f})")
+    print(f"  TÜFE Enflasyonundan Arındırılmış Reel Getiri: %{rep.reel_enflasyon_getiri_pct:+.1f}")
+    print(f"  Değerlendirme: {rep.analiz_yorumu}")
+
+
+def _cmd_storage_backtest(args: argparse.Namespace) -> None:
+    from .sources.storage_backtest import StorageStrategyBacktester
+    bt = StorageStrategyBacktester()
+    rep = bt.run_backtest(args.product, yillik_faiz_pct=args.interest)
+    print(f"\n=== Tarımsal Emtia Depolama Stratejisi Backtest'i ===")
+    print(f"  Ürün: {rep.urun_grubu} ({rep.test_edilen_sezon_sayisi} Sezon, Yıllık Finansman Faizi: %{rep.yillik_faiz_pct:.0f})")
+    print(f"  3 Ay Depolama Başarı Oranı: %{rep.strateji_3ay_kazanma_orani_pct:.1f}")
+    print(f"  6 Ay Depolama Başarı Oranı: %{rep.strateji_6ay_kazanma_orani_pct:.1f} (Ortalama Net Getiri: %{rep.ortalama_6ay_net_getiri_pct:+.1f})")
+    print(f"  9 Ay Depolama Başarı Oranı: %{rep.strateji_9ay_kazanma_orani_pct:.1f}")
+    print(f"  Tarihsel En Başarılı Strateji: {rep.en_basarili_strateji}")
+    print(f"  Stratejik Tavsiye: {rep.stratejik_tavsiye}")
+
+
+def _cmd_arbitrage(args: argparse.Namespace) -> None:
+    from .sources.regional_arbitrage import RegionalArbitrageScanner
+    scanner = RegionalArbitrageScanner()
+    rep = scanner.scan(urun=args.product, nakliye_maliyeti_tl_kg=args.freight)
+    print(f"\n=== TÜRİB Lisanslı Depolar Bölgesel Arbitraj Taraması ===")
+    print(f"  Tarih: {rep.tarih} | Ürün: {rep.urun_filtresi} | Taranan İşlem: {rep.taranan_islem_sayisi}")
+    print(f"  Genel Durum: {rep.genel_degerlendirme}")
+    if rep.en_iyi_firsatlar:
+        print("\n--- Tespit Edilen Arbitraj Fırsatları ---")
+        for f in rep.en_iyi_firsatlar:
+            print(f"  [{f.firsat_seviyesi}] {f.ucuz_il} ({f.ucuz_fiyat:.2f} TL) -> {f.pahali_il} ({f.pahali_fiyat:.2f} TL)")
+            print(f"    -> Brüt Makas: {f.brut_makas_tl_kg:.2f} TL | Nakliye: {f.tahmini_nakliye_tl_kg:.2f} TL | Net Kâr: {f.net_arbitraj_tl_kg:+.2f} TL/kg (%{f.net_arbitraj_pct:+.1f})")
+
+
 def _cmd_mcp(args: argparse.Namespace) -> None:
     from .mcp.server import run_server
     print("Esham BIST + TÜRİB MCP Sunucusu başlatılıyor (stdio)...")
@@ -342,6 +402,29 @@ def build_parser() -> argparse.ArgumentParser:
 
     mc = sub.add_parser("mcp", help="Esham BIST + TÜRİB Unified MCP Sunucusunu çalıştır (stdio)")
     mc.set_defaults(func=_cmd_mcp)
+
+    tm = sub.add_parser("tmo", help="TMO müdahale fiyatları arşivi ve TÜRİB karşılaştırması")
+    tm.add_argument("--product", default="BUĞDAY EKMEKLİK", help="Ürün adı (varsayılan: BUĞDAY EKMEKLİK)")
+    tm.add_argument("--year", type=int, default=2026, help="Referans yılı (varsayılan: 2026)")
+    tm.add_argument("--category", default=None, help="Kategori filtresi (ör. Buğday, Arpa, Mısır)")
+    tm.add_argument("--list", action="store_true", help="Tüm TMO arşiv kayıtlarını listele")
+    tm.set_defaults(func=_cmd_tmo)
+
+    rr = sub.add_parser("real-return", help="TÜRİB enflasyondan ve dövizden arındırılmış reel getiri")
+    rr.add_argument("--product", default="BUĞDAY EKMEKLİK", help="Ürün adı (varsayılan: BUĞDAY EKMEKLİK)")
+    rr.add_argument("--start", default="2022-01-01", help="Başlangıç tarihi (YYYY-AA-GG)")
+    rr.add_argument("--end", default=None, help="Bitiş tarihi (YYYY-AA-GG)")
+    rr.set_defaults(func=_cmd_real_return)
+
+    bt = sub.add_parser("backtest", help="Tarımsal depolama stratejisi simülatörü")
+    bt.add_argument("--product", default="BUĞDAY EKMEKLİK", help="Ürün adı (varsayılan: BUĞDAY EKMEKLİK)")
+    bt.add_argument("--interest", type=float, default=45.0, help="Yıllık alternatif faiz (yüzde, varsayılan: 45)")
+    bt.set_defaults(func=_cmd_storage_backtest)
+
+    ar = sub.add_parser("arbitrage", help="LİDAŞ depoları arası bölgesel arbitraj taraması")
+    ar.add_argument("--product", default="BUĞDAY", help="Ürün filtresi (varsayılan: BUĞDAY)")
+    ar.add_argument("--freight", type=float, default=0.50, help="Tahmini nakliye maliyeti TL/kg (varsayılan: 0.50)")
+    ar.set_defaults(func=_cmd_arbitrage)
 
     ws = sub.add_parser("weekly-summary", help="Haftalık piyasa özeti üret ve yayınla")
     ws.add_argument("--no-social", action="store_true", help="Sosyal medya paylaşımını atla")
