@@ -12,7 +12,7 @@ from __future__ import annotations
 _UPPER_MAP = str.maketrans({"i": "İ", "ı": "I"})
 _FOLD_MAP = str.maketrans(
     {
-        "İ": "i", "I": "ı", "ş": "s", "Ş": "s", "ğ": "g", "Ğ": "g",
+        "İ": "i", "I": "i", "ı": "i", "ş": "s", "Ş": "s", "ğ": "g", "Ğ": "g",
         "ü": "u", "Ü": "u", "ö": "o", "Ö": "o", "ç": "c", "Ç": "c",
     }
 )

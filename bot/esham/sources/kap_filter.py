@@ -17,6 +17,7 @@ gecikme/maliyet eklemez. Ağırlıklar tunable; `score()` şeffaflık için ayr�
 dışa açık.
 """
 from __future__ import annotations
+import re
 
 from . import Disclosure
 from ..turkish import tr_fold
@@ -41,7 +42,8 @@ MATERIAL_KEYWORDS: dict[str, int] = {
     "kredi derecelendirme": 2, "not tespit": 2,
     "yönetim kurulu üye": 2, "genel müdür": 2, "ceo": 2,
     "dava": 2, "ceza": 2, "idari para cezası": 3,
-    "ihale": 2, "önemli sözleşme": 3, "sözleşme imza": 2,
+    "ihale": 3, "önemli sözleşme": 3, "sözleşme imza": 3,
+    "yeni iş ilişkisi": 4, "yeni sipariş": 3, "sipariş": 2,
     "kapasite artır": 2, "ihracat anlaşma": 2,
     "ruhsat": 1, "patent": 1, "lisans anlaşma": 2,
     "grev": 2,
@@ -67,12 +69,12 @@ MATERIAL_KEYWORDS: dict[str, int] = {
 
     # SPK & düzenleyici
     "spk karar": 4, "bddk karar": 4, "düzenleyici karar": 3,
-    "muafiyet": 2, "onay": 1, "ret": 1,
+    "muafiyet": 2, "spk onay": 3, "spk ret": 3,
 
     # Uluslararası piyasa & kredi
     "imf": 2, "dünya bankası": 2, "görünüm": 1,
     "yabancı yatırımcı": 2, "portföy akış": 2,
-    "kur": 2, "dolar": 1, "euro": 1, "sterlin": 1,
+    "döviz kuru": 2, "dolar": 1, "euro": 1, "sterlin": 1,
 }
 
 # Rutin/idari bildirimler (negatif ağırlık) — tek başına paylaşıma değmez.
@@ -138,7 +140,23 @@ ROUTINE_KEYWORDS: dict[str, int] = {
     # Rutin tarihli pay geri alım raporları — "X Tarihli Pay Geri Alım İşlemleri"
     # MATERIAL_KEYWORDS'deki "pay geri alım: +2" bu başlığa da uygulanır;
     # -2 ile dengelenir → net 0 → filtre (eşik 3).
-    "tarihli pay geri alim": -2,
+        # ── Rutin seans içi tarihli pay geri alım bildirimleri (Spam Kalkanı) ──────
+    # Günlük 100 lotluk seans içi rutin geri alımlar analize değmez.
+    # Program başlangıcı veya iptali değil, sadece günlük seans listeleridir.
+    "tarihli pay geri alim": -6,
+    "tarihli geri alim": -6,
+    "tarihinde gerceklestirilen pay geri alim": -6,
+    "pay geri alim islemleri hakkinda": -4,
+    "pay geri alim programi kapsaminda gerceklestirilen": -4,
+
+    # ── Rutin bürokrasi / YK / Denetim / Şube / Yetki ────────────────────────
+    "yonetim kurulu gorev dagilimi": -4,
+    "yonetim kurulu komiteleri": -4,
+    "yetki devri": -4,
+    "imza sirkuleri": -5,
+    "sube acilisi": -3,
+    "sube kapanisi": -3,
+
 
     # ── Post-arz bildirimleri (tamamlanmış halka arzlara ait rutin açıklamalar) ──
     # Bunlar yatırımcıya yeni bilgi taşımaz; eski arzların kapanış işlemleridir.
@@ -159,8 +177,23 @@ ROUTINE_KEYWORDS: dict[str, int] = {
 DEFAULT_THRESHOLD = 3
 
 
+def is_routine_daily_buyback(title: str, text: str) -> bool:
+    """Günlük seans içi rutin pay geri alım bildirimini tespit eder."""
+    norm = tr_fold(f"{title} {text}")
+    # Örn: 02.11.2026 Tarihli Pay Geri Alım İşlemleri veya 2 Kasım tarihli geri alım
+    if re.search(r"(\d{1,2}[./]\d{1,2}[./]\d{2,4}|\d{1,2}\s+[a-zçğıöşü]+\s+\d{2,4}).*?(geri\s+al[ıi]m)", norm):
+        return True
+    if "tarihli" in norm and ("geri al" in norm or "pay alim" in norm):
+        return True
+    return False
+
+
 def score(d: Disclosure) -> int:
     """Bildirimin önem skoru. Pozitif = önemli sinyal ağır basıyor."""
+    # Rutin seans içi geri alım ise doğrudan negatif skor vererek ele
+    if is_routine_daily_buyback(d.title, d.raw_text):
+        return -5
+
     text = tr_fold(f"{d.disclosure_type} {d.title} {d.raw_text}")
     total = 0
     for kw, weight in MATERIAL_KEYWORDS.items():

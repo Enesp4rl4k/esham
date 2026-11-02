@@ -74,9 +74,25 @@ def gather_snapshot() -> MarketSnapshot:
     snapshot = MarketSnapshot()
 
     def _filtered_disclosures() -> list:
+        from .sources.kap_filter import score as _kap_score
         raw = KapSource().latest_disclosures()
-        filtered = [d for d in raw if _kap_significant(d)]
-        log.info("KAP filtre: %d / %d bildirim önemli sayıldı.", len(filtered), len(raw))
+        
+        # 1. Filtre: Sadece önemli eşiği geçenleri al
+        candidates = [d for d in raw if _kap_significant(d)]
+        
+        # 2. Şirket kotası: Aynı şirketten sadece en yüksek skorlu 1 bildirimi al
+        by_company = {}
+        for d in candidates:
+            sc = _kap_score(d)
+            comp_key = (d.ticker or d.company).strip().upper()
+            if comp_key not in by_company or sc > by_company[comp_key][0]:
+                by_company[comp_key] = (sc, d)
+                
+        # 3. Sıralama ve Tavan Kotası: En yüksek skorlu ilk 8 bildirimi seç
+        sorted_pairs = sorted(by_company.values(), key=lambda x: x[0], reverse=True)
+        filtered = [pair[1] for pair in sorted_pairs[:8]]
+        
+        log.info("KAP filtre: %d / %d bildirim filtrelendi, tekilleştirilmiş en önemli %d bildirim seçildi.", len(candidates), len(raw), len(filtered))
         return filtered
 
     # Her kaynak: (snapshot_alanı, callable)
