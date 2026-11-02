@@ -68,6 +68,10 @@ class _DeepSeekBackend:
             return text.strip() or None
         except Exception as exc:
             msg = str(exc)
+            if "402" in msg or "insufficient_balance" in msg.lower():
+                log.warning("DeepSeek bakiyesi bitti (402); DeepSeek devre dışı bırakılıyor, fallback'e geçiliyor.")
+                self._client = None
+                return None
             is_rate = "429" in msg or "rate_limit" in msg.lower() or "rate limit" in msg.lower()
             if is_rate:
                 log.warning("DeepSeek rate-limit (429); Groq fallback'e geçiliyor.")
@@ -169,21 +173,30 @@ class _GeminiBackend:
                  max_tokens: int = 8192) -> str | None:
         if not self._client:
             return None
-        try:
-            resp = self._client.models.generate_content(
-                model=self.model,
-                contents=prompt,
-                config=self._config(disable_thinking=disable_thinking),
-            )
-            return (resp.text or "").strip() or None
-        except Exception as exc:
-            msg = str(exc)
-            is_rate = "429" in msg or "RESOURCE_EXHAUSTED" in msg
-            if is_rate:
-                log.warning("Gemini rate-limit (429); Groq fallback'e geçiliyor.")
-            else:
-                log.error("Gemini üretim hatası: %s", exc)
-            return None
+        # Model deneme listesi: önce yapılandırılan model, gerekirse gemini-2.0-flash / gemini-1.5-flash
+        models_to_try = [self.model]
+        for fallback_m in ("gemini-2.0-flash", "gemini-1.5-flash"):
+            if fallback_m not in models_to_try:
+                models_to_try.append(fallback_m)
+
+        for m in models_to_try:
+            try:
+                resp = self._client.models.generate_content(
+                    model=m,
+                    contents=prompt,
+                    config=self._config(disable_thinking=disable_thinking),
+                )
+                text = (resp.text or "").strip()
+                if text:
+                    return text
+            except Exception as exc:
+                msg = str(exc)
+                is_rate = "429" in msg or "RESOURCE_EXHAUSTED" in msg
+                if is_rate:
+                    log.warning("Gemini (%s) rate-limit (429); sonraki model veya fallback deneniyor.", m)
+                else:
+                    log.warning("Gemini (%s) üretim hatası (%s); yedek model deneniyor.", m, exc)
+        return None
 
 
 # ── Ana LlmClient ─────────────────────────────────────────────────────────────

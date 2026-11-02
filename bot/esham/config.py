@@ -63,11 +63,11 @@ class Settings:
     gemini_api_key: str | None = field(default_factory=lambda: os.getenv("GEMINI_API_KEY"))
     # Derin analiz/sabah raporu modeli.
     gemini_model: str = field(
-        default_factory=lambda: os.getenv("ESHAM_GEMINI_MODEL", "gemini-2.5-flash")
+        default_factory=lambda: os.getenv("ESHAM_GEMINI_MODEL", "gemini-2.0-flash")
     )
     # Anlık tweet özetleri için ucuz/hızlı model.
     tweet_model: str = field(
-        default_factory=lambda: os.getenv("ESHAM_TWEET_MODEL", "gemini-2.5-flash-lite")
+        default_factory=lambda: os.getenv("ESHAM_TWEET_MODEL", "gemini-2.0-flash")
     )
 
     # DeepSeek — primary AI provider (ucuz + yuksek kalite, OpenAI uyumlu API)

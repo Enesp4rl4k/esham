@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-02T19:49:29+03:00",
+  "updatedAt": "2026-11-02T21:24:57+03:00",
   "date": "2026-11-02",
   "indices": [
     {
@@ -664,6 +664,19 @@
     ]
   },
   "realReturns": [
+    {
+      "commodityGroup": "BUĞDAY EKMEKLİK",
+      "startDate": "2019-07-26",
+      "endDate": "2026-11-02",
+      "tradingDays": 1802,
+      "startPriceTl": 1.26,
+      "endPriceTl": 18.19,
+      "nominalReturnPct": 1337.98,
+      "usdReturnPct": 101.3,
+      "eurReturnPct": 106.58,
+      "realInflationReturnPct": 8.94,
+      "commentary": "'BUĞDAY EKMEKLİK' 2019-07-26 - 2026-11-02 döneminde nominal TL bazında %1338.0 yükselirken, birikimli TÜFE enflasyonunu aşarak reel alım gücünü %8.9 artırdı. Dolar bazlı getiri %101.3 olarak gerçekleşti; emtia enflasyona karşı koruma sağladı."
+    },
     {
       "commodityGroup": "BUĞDAY MAKARNALIK",
       "startDate": "2019-07-29",

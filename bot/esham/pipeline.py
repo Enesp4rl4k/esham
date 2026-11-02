@@ -865,6 +865,13 @@ def run_news_report(
                 body = f"{ai_body}\n\n> Kaynak: Yahoo Finance / BIST"
             else:
                 body = f"{ai_body}\n\n> Kaynak: Küresel haber ajansları"
+        elif event.kind == "SEKTÖR_HAREKET":
+            body, summary, tweet_text = analyzer.generate_sector_movement_analysis(
+                sector_name=event.label,
+                change_pct=event.change_pct,
+                headline=event.headline,
+                macro_context=macro_context,
+            )
         else:
             body, summary, tweet_text = analyzer.generate_news_analysis(
                 title=event.headline,
