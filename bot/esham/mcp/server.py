@@ -398,6 +398,31 @@ def bist_sektor_rotasyonu() -> list[dict[str, Any]]:
     ]
 
 
+@mcp.tool()
+def bist_key_levels(ticker: str) -> dict[str, Any]:
+    """Borsa İstanbul hissesi için Pivot noktaları, R1-R2 dirençleri, S1-S2 destekleri,
+    Fibonacci seviyeleri (%38.2, %50, %61.8), 14G RSI, 20G/50G HO ve 52 haftalık zirve/dip seviyelerini hesaplar."""
+    from ..sources.bist_quant import BistQuantAnalyzer
+    analyzer = BistQuantAnalyzer()
+    res = analyzer.get_key_levels(ticker)
+    if not res:
+        return {"hata": f"{ticker} için teknik seviyeler hesaplanamadı."}
+    return res.to_dict()
+
+
+@mcp.tool()
+def bist_temel_analiz(ticker: str, sozlesme_tutari_tl: float | None = None) -> dict[str, Any]:
+    """Borsa İstanbul şirketinin temel analiz çarpanlarını (Piyasa Değeri, F/K, PD/DD, FD/FAVÖK,
+    yıllık hasılat, net kâr marjı, ROE) çeker. İsteğe bağlı olarak verilen sözleşme tutarının (TL)
+    yıllık ciroya oranını (Ciro Etki Çarpanı) hesaplar."""
+    from ..sources.bist_quant import BistQuantAnalyzer
+    analyzer = BistQuantAnalyzer()
+    res = analyzer.get_fundamental_metrics(ticker, contract_amount_try=sozlesme_tutari_tl)
+    if not res:
+        return {"hata": f"{ticker} için temel analiz verileri alınamadı."}
+    return res.to_dict()
+
+
 # ============================================================================
 # ÇAPRAZ PİYASA (BIST x TÜRİB) ARAÇLARI
 # ============================================================================

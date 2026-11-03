@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-03T02:06:03+03:00",
+  "updatedAt": "2026-11-03T10:26:37+03:00",
   "date": "2026-11-03",
   "indices": [
     {
@@ -59,49 +59,49 @@
     {
       "name": "BUĞDAY EKMEKLİK",
       "code": "BUĞDAY EKMEKLİK",
-      "avgPrice": 18.19,
-      "avgPriceStr": "18,19 ₺/kg",
-      "minPrice": 14.8,
+      "avgPrice": 18.35,
+      "avgPriceStr": "18,35 ₺/kg",
+      "minPrice": 16.75,
       "maxPrice": 18.5,
-      "changePct": 5.4,
-      "changeStr": "+5,40%",
-      "volumeTon": 76381.3,
-      "volumeStr": "76.381,3 Ton",
-      "volumeTl": 1389407015.27,
-      "volumeTlStr": "1.389.407.015 ₺"
+      "changePct": 0.87,
+      "changeStr": "+0,87%",
+      "volumeTon": 162367.0,
+      "volumeStr": "162.367,0 Ton",
+      "volumeTl": 2979110206.81,
+      "volumeTlStr": "2.979.110.207 ₺"
     },
     {
       "name": "BUĞDAY MAKARNALIK",
       "code": "BUĞDAY MAKARNALIK",
-      "avgPrice": 18.48,
-      "avgPriceStr": "18,48 ₺/kg",
-      "minPrice": 12.4,
+      "avgPrice": 18.5,
+      "avgPriceStr": "18,50 ₺/kg",
+      "minPrice": 18.5,
       "maxPrice": 18.5,
-      "changePct": 19.52,
-      "changeStr": "+19,52%",
-      "volumeTon": 548639.8,
-      "volumeStr": "548.639,8 Ton",
-      "volumeTl": 10136394708.04,
-      "volumeTlStr": "10.136.394.708 ₺"
+      "changePct": 0.13,
+      "changeStr": "+0,13%",
+      "volumeTon": 92500.0,
+      "volumeStr": "92.500,0 Ton",
+      "volumeTl": 1711250000.0,
+      "volumeTlStr": "1.711.250.000 ₺"
     }
   ],
   "bulletinSummary": {
-    "totalVolumeTon": 625021.1383,
-    "totalVolumeTonStr": "625.021,1 Ton",
-    "totalValueTl": 11525801723.310001,
-    "totalValueTlStr": "11.525.801.723 ₺",
+    "totalVolumeTon": 254867.02680000002,
+    "totalVolumeTonStr": "254.867,0 Ton",
+    "totalValueTl": 4690360206.809999,
+    "totalValueTlStr": "4.690.360.207 ₺",
     "hububatIndex": 7910.25,
-    "summaryText": "TÜRİB Hububat Endeksi (TRBHUB): 7.910,25 (+2,12%)\nBUĞDAY EKMEKLİK: 18,19 TL/kg (+5,40%) | BUĞDAY MAKARNALIK: 18,48 TL/kg (+19,52%)\nİşlem Hacmi: 625.021,1 Ton (11,5 Milyar TL)"
+    "summaryText": "TÜRİB Hububat Endeksi (TRBHUB): 7.910,25 (+2,12%)\nBUĞDAY EKMEKLİK: 18,35 TL/kg (+0,87%) | BUĞDAY MAKARNALIK: 18,50 TL/kg (+0,13%)\nİşlem Hacmi: 254.867,0 Ton (4,7 Milyar TL)"
   },
   "meatFeed": {
-    "cpiDate": "2026-11-02",
+    "cpiDate": "2026-11-03",
     "meatCpi": 1540.0,
     "headlineCpi": 1210.0,
     "meatCpiAnnualPct": 30.51,
     "headlineCpiAnnualPct": 31.52,
     "meatInflationSpread": -1.01,
     "macroCommentary": "Yıllık Et TÜFE Enflasyonu %30.5 seviyesinde gerçekleşerek, manşet TÜFE'nin (%31.5) -1.0 puan altında seyretti. TÜRİB yem hammaddeleri (Arpa: 11.50 TL, Mısır: 12.00 TL) ile Dana Karkas/Yem paritesi (28.2), önümüzdeki çeyrek et enflasyonu için belirleyici öncü sinyal olmaya devam ediyor.",
-    "bistSectorImpact": "BIST Et & Gıda Hisseleri: BANVT 108,60 (-0,18%) tavuk/yem paritesinden doğrudan etkilenirken; PETUN 8,75 (+1,04%) karkas et ve un maliyet artışını şarküteri ürünlerine fiyatlama gücüyle dengeliyor. BIMAS, MGROS ve SOKM gibi perakendecilerde Et TÜFE artışı sepet büyüklüğünü artırırken brüt kâr marjını hassas tutuyor.",
+    "bistSectorImpact": "BIST Et & Gıda Hisseleri: BANVT 108,20 (-0,37%) tavuk/yem paritesinden doğrudan etkilenirken; PETUN 8,72 (-0,34%) karkas et ve un maliyet artışını şarküteri ürünlerine fiyatlama gücüyle dengeliyor. BIMAS, MGROS ve SOKM gibi perakendecilerde Et TÜFE artışı sepet büyüklüğünü artırırken brüt kâr marjını hassas tutuyor.",
     "parities": [
       {
         "title": "Dana Besi Karkas",
@@ -143,6 +143,21 @@
   },
   "tmoComparison": [
     {
+      "commodity": "BUĞDAY EKMEKLİK",
+      "tmoProductName": "Ekmeklik Buğday (2. Grup)",
+      "year": 2026,
+      "tmoPurchasePrice": 13.5,
+      "farmerPremium": 1.75,
+      "totalFarmerIncome": 15.25,
+      "tmoSalesPrice": 16.0,
+      "turibFreePrice": 18.35,
+      "spreadTl": 4.85,
+      "spreadPct": 35.93,
+      "totalSpreadPct": 20.33,
+      "status": "TMO_USTUNDE_PRIMLI",
+      "commentary": "Serbest piyasa fiyatı (18.35 TL/kg), TMO alım tabanının (13.50 TL/kg) %35.9 üzerinde primli seyrediyor. Özel sektör talebi canlı, üretici ürününü TMO yerine ELÜS borsasında satmayı tercih ediyor."
+    },
+    {
       "commodity": "BUĞDAY MAKARNALIK",
       "tmoProductName": "Makarnalık Buğday (2. Grup)",
       "year": 2026,
@@ -150,12 +165,12 @@
       "farmerPremium": 1.75,
       "totalFarmerIncome": 16.25,
       "tmoSalesPrice": 17.2,
-      "turibFreePrice": 18.48,
-      "spreadTl": 3.98,
-      "spreadPct": 27.45,
-      "totalSpreadPct": 13.72,
+      "turibFreePrice": 18.5,
+      "spreadTl": 4.0,
+      "spreadPct": 27.59,
+      "totalSpreadPct": 13.85,
       "status": "TMO_USTUNDE_PRIMLI",
-      "commentary": "Serbest piyasa fiyatı (18.48 TL/kg), TMO alım tabanının (14.50 TL/kg) %27.4 üzerinde primli seyrediyor. Özel sektör talebi canlı, üretici ürününü TMO yerine ELÜS borsasında satmayı tercih ediyor."
+      "commentary": "Serbest piyasa fiyatı (18.50 TL/kg), TMO alım tabanının (14.50 TL/kg) %27.6 üzerinde primli seyrediyor. Özel sektör talebi canlı, üretici ürününü TMO yerine ELÜS borsasında satmayı tercih ediyor."
     },
     {
       "commodity": "MISIR",
@@ -188,7 +203,319 @@
       "commentary": "Serbest piyasa fiyatı (11.50 TL/kg), TMO alım tabanının (10.75 TL/kg) %7.0 üzerinde primli seyrediyor. Özel sektör talebi canlı, üretici ürününü TMO yerine ELÜS borsasında satmayı tercih ediyor."
     }
   ],
-  "storageBacktest": {},
+  "storageBacktest": {
+    "productGroup": "BUĞDAY EKMEKLİK",
+    "testedSeasonsCount": 6,
+    "annualInterestPct": 50.0,
+    "winRate3mPct": 16.7,
+    "winRate6mPct": 16.7,
+    "winRate9mPct": 16.7,
+    "avgNetReturn6mPct": -20.83,
+    "bestStrategy": "Hasatta Spot Satış (Yüksek faiz ortamında depolama riskli)",
+    "strategicAdvice": "Tarihsel 6 hasat sezonunda, yıllık %50 alternatif finansman faizi ve resmî LİDAŞ kirası/fire düşüldüğünde; en yüksek kârlılık 'Hasatta Spot Satış (Yüksek faiz ortamında depolama riskli)' stratejisinde elde edildi. 6 aylık depolama stratejisinin hasat spot satışını geçme başarı oranı %17 ve ortalama net getirisi %-20.8 oldu.",
+    "seasons": [
+      {
+        "seasonYear": 2020,
+        "harvestMonth": 7,
+        "harvestSpotPrice": 1.69,
+        "winningStrategy": "Hasatta Spot Satış (Maliyetleri Karşılamadı)",
+        "strategies": [
+          {
+            "strategyName": "3 Ay Depolama Sonrası Satış",
+            "termMonths": 3,
+            "saleMonth": 10,
+            "salePrice": 2.05,
+            "grossSpread": 0.36,
+            "storageCost": 0.45,
+            "interestCost": 0.21,
+            "shrinkageCost": 0.01,
+            "totalCost": 0.66,
+            "netProfitTl": -0.3,
+            "netReturnPct": -17.98,
+            "beatSpot": false
+          },
+          {
+            "strategyName": "6 Ay Depolama Sonrası Satış",
+            "termMonths": 6,
+            "saleMonth": 1,
+            "salePrice": 2.07,
+            "grossSpread": 0.38,
+            "storageCost": 0.9,
+            "interestCost": 0.42,
+            "shrinkageCost": 0.01,
+            "totalCost": 1.33,
+            "netProfitTl": -0.95,
+            "netReturnPct": -56.34,
+            "beatSpot": false
+          },
+          {
+            "strategyName": "9 Ay Depolama Sonrası Satış",
+            "termMonths": 9,
+            "saleMonth": 4,
+            "salePrice": 2.04,
+            "grossSpread": 0.35,
+            "storageCost": 1.35,
+            "interestCost": 0.63,
+            "shrinkageCost": 0.02,
+            "totalCost": 2.0,
+            "netProfitTl": -1.65,
+            "netReturnPct": -97.38,
+            "beatSpot": false
+          }
+        ]
+      },
+      {
+        "seasonYear": 2021,
+        "harvestMonth": 7,
+        "harvestSpotPrice": 2.37,
+        "winningStrategy": "9 Ay Depolama Sonrası Satış",
+        "strategies": [
+          {
+            "strategyName": "3 Ay Depolama Sonrası Satış",
+            "termMonths": 3,
+            "saleMonth": 10,
+            "salePrice": 2.86,
+            "grossSpread": 0.49,
+            "storageCost": 0.45,
+            "interestCost": 0.29,
+            "shrinkageCost": 0.01,
+            "totalCost": 0.75,
+            "netProfitTl": -0.26,
+            "netReturnPct": -10.87,
+            "beatSpot": false
+          },
+          {
+            "strategyName": "6 Ay Depolama Sonrası Satış",
+            "termMonths": 6,
+            "saleMonth": 1,
+            "salePrice": 4.15,
+            "grossSpread": 1.79,
+            "storageCost": 0.9,
+            "interestCost": 0.58,
+            "shrinkageCost": 0.02,
+            "totalCost": 1.5,
+            "netProfitTl": 0.28,
+            "netReturnPct": 12.03,
+            "beatSpot": true
+          },
+          {
+            "strategyName": "9 Ay Depolama Sonrası Satış",
+            "termMonths": 9,
+            "saleMonth": 4,
+            "salePrice": 5.25,
+            "grossSpread": 2.88,
+            "storageCost": 1.35,
+            "interestCost": 0.88,
+            "shrinkageCost": 0.03,
+            "totalCost": 2.25,
+            "netProfitTl": 0.63,
+            "netReturnPct": 26.64,
+            "beatSpot": true
+          }
+        ]
+      },
+      {
+        "seasonYear": 2022,
+        "harvestMonth": 7,
+        "harvestSpotPrice": 6.85,
+        "winningStrategy": "Hasatta Spot Satış (Maliyetleri Karşılamadı)",
+        "strategies": [
+          {
+            "strategyName": "3 Ay Depolama Sonrası Satış",
+            "termMonths": 3,
+            "saleMonth": 10,
+            "salePrice": 6.8,
+            "grossSpread": -0.05,
+            "storageCost": 0.45,
+            "interestCost": 0.84,
+            "shrinkageCost": 0.02,
+            "totalCost": 1.32,
+            "netProfitTl": -1.37,
+            "netReturnPct": -19.94,
+            "beatSpot": false
+          },
+          {
+            "strategyName": "6 Ay Depolama Sonrası Satış",
+            "termMonths": 6,
+            "saleMonth": 1,
+            "salePrice": 6.57,
+            "grossSpread": -0.28,
+            "storageCost": 0.9,
+            "interestCost": 1.69,
+            "shrinkageCost": 0.05,
+            "totalCost": 2.64,
+            "netProfitTl": -2.92,
+            "netReturnPct": -42.59,
+            "beatSpot": false
+          },
+          {
+            "strategyName": "9 Ay Depolama Sonrası Satış",
+            "termMonths": 9,
+            "saleMonth": 4,
+            "salePrice": 6.25,
+            "grossSpread": -0.6,
+            "storageCost": 1.35,
+            "interestCost": 2.53,
+            "shrinkageCost": 0.08,
+            "totalCost": 3.96,
+            "netProfitTl": -4.56,
+            "netReturnPct": -66.62,
+            "beatSpot": false
+          }
+        ]
+      },
+      {
+        "seasonYear": 2023,
+        "harvestMonth": 7,
+        "harvestSpotPrice": 6.85,
+        "winningStrategy": "Hasatta Spot Satış (Maliyetleri Karşılamadı)",
+        "strategies": [
+          {
+            "strategyName": "3 Ay Depolama Sonrası Satış",
+            "termMonths": 3,
+            "saleMonth": 10,
+            "salePrice": 7.41,
+            "grossSpread": 0.56,
+            "storageCost": 0.45,
+            "interestCost": 0.84,
+            "shrinkageCost": 0.02,
+            "totalCost": 1.32,
+            "netProfitTl": -0.76,
+            "netReturnPct": -11.07,
+            "beatSpot": false
+          },
+          {
+            "strategyName": "6 Ay Depolama Sonrası Satış",
+            "termMonths": 6,
+            "saleMonth": 1,
+            "salePrice": 8.84,
+            "grossSpread": 1.98,
+            "storageCost": 0.9,
+            "interestCost": 1.69,
+            "shrinkageCost": 0.05,
+            "totalCost": 2.64,
+            "netProfitTl": -0.66,
+            "netReturnPct": -9.61,
+            "beatSpot": false
+          },
+          {
+            "strategyName": "9 Ay Depolama Sonrası Satış",
+            "termMonths": 9,
+            "saleMonth": 4,
+            "salePrice": 9.04,
+            "grossSpread": 2.18,
+            "storageCost": 1.35,
+            "interestCost": 2.53,
+            "shrinkageCost": 0.08,
+            "totalCost": 3.96,
+            "netProfitTl": -1.78,
+            "netReturnPct": -25.96,
+            "beatSpot": false
+          }
+        ]
+      },
+      {
+        "seasonYear": 2024,
+        "harvestMonth": 7,
+        "harvestSpotPrice": 8.74,
+        "winningStrategy": "3 Ay Depolama Sonrası Satış",
+        "strategies": [
+          {
+            "strategyName": "3 Ay Depolama Sonrası Satış",
+            "termMonths": 3,
+            "saleMonth": 10,
+            "salePrice": 10.52,
+            "grossSpread": 1.77,
+            "storageCost": 0.45,
+            "interestCost": 1.08,
+            "shrinkageCost": 0.03,
+            "totalCost": 1.56,
+            "netProfitTl": 0.21,
+            "netReturnPct": 2.46,
+            "beatSpot": true
+          },
+          {
+            "strategyName": "6 Ay Depolama Sonrası Satış",
+            "termMonths": 6,
+            "saleMonth": 1,
+            "salePrice": 11.5,
+            "grossSpread": 2.76,
+            "storageCost": 0.9,
+            "interestCost": 2.16,
+            "shrinkageCost": 0.07,
+            "totalCost": 3.12,
+            "netProfitTl": -0.36,
+            "netReturnPct": -4.13,
+            "beatSpot": false
+          },
+          {
+            "strategyName": "9 Ay Depolama Sonrası Satış",
+            "termMonths": 9,
+            "saleMonth": 4,
+            "salePrice": 11.85,
+            "grossSpread": 3.11,
+            "storageCost": 1.35,
+            "interestCost": 3.23,
+            "shrinkageCost": 0.1,
+            "totalCost": 4.68,
+            "netProfitTl": -1.58,
+            "netReturnPct": -18.06,
+            "beatSpot": false
+          }
+        ]
+      },
+      {
+        "seasonYear": 2025,
+        "harvestMonth": 7,
+        "harvestSpotPrice": 12.71,
+        "winningStrategy": "Hasatta Spot Satış (Maliyetleri Karşılamadı)",
+        "strategies": [
+          {
+            "strategyName": "3 Ay Depolama Sonrası Satış",
+            "termMonths": 3,
+            "saleMonth": 10,
+            "salePrice": 13.82,
+            "grossSpread": 1.11,
+            "storageCost": 0.45,
+            "interestCost": 1.57,
+            "shrinkageCost": 0.04,
+            "totalCost": 2.06,
+            "netProfitTl": -0.95,
+            "netReturnPct": -7.46,
+            "beatSpot": false
+          },
+          {
+            "strategyName": "6 Ay Depolama Sonrası Satış",
+            "termMonths": 6,
+            "saleMonth": 1,
+            "salePrice": 13.74,
+            "grossSpread": 1.04,
+            "storageCost": 0.9,
+            "interestCost": 3.13,
+            "shrinkageCost": 0.1,
+            "totalCost": 4.13,
+            "netProfitTl": -3.09,
+            "netReturnPct": -24.33,
+            "beatSpot": false
+          },
+          {
+            "strategyName": "9 Ay Depolama Sonrası Satış",
+            "termMonths": 9,
+            "saleMonth": 4,
+            "salePrice": 13.7,
+            "grossSpread": 1.0,
+            "storageCost": 1.35,
+            "interestCost": 4.7,
+            "shrinkageCost": 0.15,
+            "totalCost": 6.2,
+            "netProfitTl": -5.2,
+            "netReturnPct": -40.92,
+            "beatSpot": false
+          }
+        ]
+      }
+    ]
+  },
   "regionalArbitrage": {
     "date": "2026-11-02",
     "totalScannedTrades": 76,
@@ -272,40 +599,40 @@
     ]
   },
   "agriBist": {
-    "date": "2026-11-02",
-    "xgidaPrice": "10.882,21",
-    "xgidaChange": "+2,59%",
+    "date": "2026-11-03",
+    "xgidaPrice": "10.844,81",
+    "xgidaChange": "-0,34%",
     "turibHububatIndex": "7.910,25",
     "turibHububatChange": "+2,12%",
-    "macroTakeaway": "BIST Gıda Endeksi (XGIDA) +2,59% hareket ederken, TÜRİB Hububat Endeksi +2,12% seviyesinde. Tarımsal emtia fiyatlarındaki yön, BIST gıda şirketlerinin 1-2 çeyrek sonraki FAVÖK marjlarına doğrudan yansıyacaktır.",
+    "macroTakeaway": "BIST Gıda Endeksi (XGIDA) -0,34% hareket ederken, TÜRİB Hububat Endeksi +2,12% seviyesinde. Tarımsal emtia fiyatlarındaki yön, BIST gıda şirketlerinin 1-2 çeyrek sonraki FAVÖK marjlarına doğrudan yansıyacaktır.",
     "companies": [
       {
         "ticker": "ULUUN",
         "companyName": "Ulusoy Un Sanayi",
-        "stockPrice": "5,88",
-        "stockChange": "+0,17%",
+        "stockPrice": "5,87",
+        "stockChange": "-0,17%",
         "commodity": "BUĞDAY EKMEKLİK",
-        "commodityPrice": 18.19,
-        "commodityChange": 5.4,
-        "marginPressure": "Maliyet & Stok Artışı",
-        "commentary": "TÜRİB BUĞDAY EKMEKLİK fiyatındaki %5,40 yükseliş, hammadde maliyetini artırırken mevcut silo stoklarına kâr yazabilir."
+        "commodityPrice": 18.35,
+        "commodityChange": 0.87,
+        "marginPressure": "Nötr",
+        "commentary": "TÜRİB BUĞDAY EKMEKLİK fiyatı yatay (18.35 TL/kg). Operasyonel marjlar olağan seyrinde."
       },
       {
         "ticker": "PETUN",
         "companyName": "Pınar Et ve Un",
-        "stockPrice": "8,75",
-        "stockChange": "+1,04%",
+        "stockPrice": "8,71",
+        "stockChange": "-0,46%",
         "commodity": "BUĞDAY EKMEKLİK",
-        "commodityPrice": 18.19,
-        "commodityChange": 5.4,
-        "marginPressure": "Maliyet & Stok Artışı",
-        "commentary": "TÜRİB BUĞDAY EKMEKLİK fiyatındaki %5,40 yükseliş, hammadde maliyetini artırırken mevcut silo stoklarına kâr yazabilir."
+        "commodityPrice": 18.35,
+        "commodityChange": 0.87,
+        "marginPressure": "Nötr",
+        "commentary": "TÜRİB BUĞDAY EKMEKLİK fiyatı yatay (18.35 TL/kg). Operasyonel marjlar olağan seyrinde."
       },
       {
         "ticker": "BANVT",
         "companyName": "Banvit",
-        "stockPrice": "108,60",
-        "stockChange": "-0,18%",
+        "stockPrice": "108,20",
+        "stockChange": "-0,37%",
         "commodity": "MISIR",
         "commodityPrice": 0.0,
         "commodityChange": 0.0,
@@ -315,24 +642,24 @@
       {
         "ticker": "TATGD",
         "companyName": "Tat Gıda",
-        "stockPrice": "14,70",
-        "stockChange": "+5,00%",
+        "stockPrice": "14,57",
+        "stockChange": "-0,88%",
         "commodity": "BUĞDAY MAKARNALIK",
-        "commodityPrice": 18.48,
-        "commodityChange": 19.52,
-        "marginPressure": "Maliyet & Stok Artışı",
-        "commentary": "TÜRİB BUĞDAY MAKARNALIK fiyatındaki %19,52 yükseliş, hammadde maliyetini artırırken mevcut silo stoklarına kâr yazabilir."
+        "commodityPrice": 18.5,
+        "commodityChange": 0.13,
+        "marginPressure": "Nötr",
+        "commentary": "TÜRİB BUĞDAY MAKARNALIK fiyatı yatay (18.5 TL/kg). Operasyonel marjlar olağan seyrinde."
       },
       {
         "ticker": "TUKAS",
         "companyName": "Tukaş Gıda",
         "stockPrice": "1,67",
-        "stockChange": "-5,65%",
+        "stockChange": "+0,00%",
         "commodity": "BUĞDAY EKMEKLİK",
-        "commodityPrice": 18.19,
-        "commodityChange": 5.4,
-        "marginPressure": "Maliyet & Stok Artışı",
-        "commentary": "TÜRİB BUĞDAY EKMEKLİK fiyatındaki %5,40 yükseliş, hammadde maliyetini artırırken mevcut silo stoklarına kâr yazabilir."
+        "commodityPrice": 18.35,
+        "commodityChange": 0.87,
+        "marginPressure": "Nötr",
+        "commentary": "TÜRİB BUĞDAY EKMEKLİK fiyatı yatay (18.35 TL/kg). Operasyonel marjlar olağan seyrinde."
       }
     ]
   },
@@ -340,15 +667,28 @@
     {
       "commodityGroup": "BUĞDAY EKMEKLİK",
       "startDate": "2019-07-26",
-      "endDate": "2026-11-02",
-      "tradingDays": 1802,
+      "endDate": "2026-11-03",
+      "tradingDays": 1803,
       "startPriceTl": 1.26,
-      "endPriceTl": 18.19,
-      "nominalReturnPct": 1337.98,
-      "usdReturnPct": 101.3,
-      "eurReturnPct": 106.58,
-      "realInflationReturnPct": 8.94,
-      "commentary": "'BUĞDAY EKMEKLİK' 2019-07-26 - 2026-11-02 döneminde nominal TL bazında %1338.0 yükselirken, birikimli TÜFE enflasyonunu aşarak reel alım gücünü %8.9 artırdı. Dolar bazlı getiri %101.3 olarak gerçekleşti; emtia enflasyona karşı koruma sağladı."
+      "endPriceTl": 18.35,
+      "nominalReturnPct": 1350.43,
+      "usdReturnPct": 103.05,
+      "eurReturnPct": 108.38,
+      "realInflationReturnPct": 9.88,
+      "commentary": "'BUĞDAY EKMEKLİK' 2019-07-26 - 2026-11-03 döneminde nominal TL bazında %1350.4 yükselirken, birikimli TÜFE enflasyonunu aşarak reel alım gücünü %9.9 artırdı. Dolar bazlı getiri %103.0 olarak gerçekleşti; emtia enflasyona karşı koruma sağladı."
+    },
+    {
+      "commodityGroup": "BUĞDAY MAKARNALIK",
+      "startDate": "2019-07-29",
+      "endDate": "2026-11-03",
+      "tradingDays": 1637,
+      "startPriceTl": 1.51,
+      "endPriceTl": 18.5,
+      "nominalReturnPct": 1121.77,
+      "usdReturnPct": 71.02,
+      "eurReturnPct": 75.51,
+      "realInflationReturnPct": -7.44,
+      "commentary": "'BUĞDAY MAKARNALIK' 2019-07-29 - 2026-11-03 döneminde nominal TL bazında %1121.8 prim yapmasına rağmen, TÜFE enflasyonunun gerisinde kalarak reel olarak %7.4 satın alma gücü erimesi yaşadı. Dolar bazlı getiri %71.0 seviyesinde kaldı."
     }
   ]
 }

@@ -855,10 +855,30 @@ def run_news_report(
         # Teknik analiz snapshot'ı (Fiyat, RSI, 20G HO, Destek/Direnç)
         from .sources.bist import BistSource
         tech_snapshot = BistSource.fetch_technical_snapshot(ticker)
-        if tech_snapshot:
-            body = f"{body}\n\n{tech_snapshot.format_table()}"
-            if is_mega_deal:
-                summary = f"🔥 MEGA SÖZLEŞME | {summary}"
+
+        # BIST Quant & Temel Analiz & Key Levels motoru
+        try:
+            from .sources.bist_quant import BistQuantAnalyzer, extract_contract_amount
+            quant = BistQuantAnalyzer()
+            contract_val = extract_contract_amount(f"{title} {raw}")
+            fund_data = quant.get_fundamental_metrics(ticker, contract_amount_try=contract_val)
+            if fund_data:
+                body = f"{body}\n\n{fund_data.format_table()}"
+                if fund_data.contract_analysis and fund_data.contract_analysis.get("is_mega"):
+                    is_mega_deal = True
+
+            key_data = quant.get_key_levels(ticker)
+            if key_data:
+                body = f"{body}\n\n{key_data.format_table()}"
+            elif tech_snapshot:
+                body = f"{body}\n\n{tech_snapshot.format_table()}"
+        except Exception as exc:
+            log.warning("Kantitatif analiz eklenemedi (%s): %s", ticker, exc)
+            if tech_snapshot:
+                body = f"{body}\n\n{tech_snapshot.format_table()}"
+
+        if is_mega_deal and not summary.startswith("🔥 MEGA SÖZLEŞME"):
+            summary = f"🔥 MEGA SÖZLEŞME | {summary}"
 
     # ---- Makro/sektör olay modu --------------------------------------------------
     else:
