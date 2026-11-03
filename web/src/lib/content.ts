@@ -167,28 +167,42 @@ export function getReportsByTicker(ticker: string): Report[] {
   });
 }
 
+const STOP_WORDS = new Set([
+  "KAP", "BIST", "VIOP", "VİOP", "TMO", "TCMB", "SPK", "FED", "ECB", "USD", "EUR", "TRY", "TL",
+  "RAPOR", "OZET", "ÖZET", "ACILIS", "AÇILIŞ", "KAPANIS", "KAPANIŞ", "MAKRO", "GLOBAL",
+  "HALKA", "SEKTOR", "SEKTÖR", "TAKAS", "HABER", "HISSE", "HİSSE", "YATIRIM", "ANALIZ", "ANALİZ",
+  "YAHOO", "FINANCE", "FINANS", "FİNANS", "GOOGLE", "BLOOMBERG", "REUTERS", "DURUM", "GUNDEM", "GÜNDEM",
+  "PIYASA", "PİYASA", "ENDEKS", "TEKNIK", "TEKNİK", "TEMEL", "MODEL", "TABLO", "BULTEN", "BÜLTEN"
+]);
+
 export function getAllTickers(): string[] {
   const set = new Set<string>();
-  const DEFAULT_BIST30 = [
+  const POPULAR_BIST = [
     "THYAO", "ASELS", "GARAN", "EREGL", "KCHOL", "TUPRS", "BIMAS", "AKBNK",
     "ISCTR", "SISE", "SAHOL", "YKBNK", "PGSUS", "FROTO", "TOASO", "ENKAI",
-    "PETKM", "KOZAL", "GUBRF", "TCELL", "TTKOM", "EKGYO", "HEKTS", "SASA"
+    "PETKM", "KOZAL", "GUBRF", "TCELL", "TTKOM", "EKGYO", "HEKTS", "SASA",
+    "ASTOR", "KONTR", "ALARK", "ODAS", "CANTE", "EUPWR", "MGROS", "SOKM",
+    "KRDMD", "DOHOL", "TKFEN", "OYAKC", "CIMSA", "ULKER", "AEFES", "AGHOL",
+    "VESTL", "VESBE", "ARCLK", "BRSAN", "BERA", "TABGD", "REEDR", "MIATK",
+    "ULUUN", "BANVT", "TATGD"
   ];
-  DEFAULT_BIST30.forEach((t) => set.add(t));
+  POPULAR_BIST.forEach((t) => set.add(t));
 
   for (const r of getAllReports()) {
     if (r.ipo?.ticker) {
       const clean = r.ipo.ticker.replace(/^\$/, "").toUpperCase();
-      if (/^[A-Z]{3,6}$/.test(clean)) set.add(clean);
+      if (/^[A-Z]{3,6}$/.test(clean) && !STOP_WORDS.has(clean)) {
+        set.add(clean);
+      }
     }
     for (const tag of r.tags) {
-      const clean = tag.replace(/^\$/, "").toUpperCase();
-      if (/^[A-Z]{3,6}$/.test(clean)) set.add(clean);
-    }
-    for (const src of r.sources) {
-      const clean = src.replace(/^\$/, "").toUpperCase();
-      if (/^[A-Z]{3,6}$/.test(clean)) set.add(clean);
+      if (tag.startsWith("$")) {
+        const clean = tag.replace(/^\$/, "").toUpperCase();
+        if (/^[A-Z]{3,6}$/.test(clean) && !STOP_WORDS.has(clean)) {
+          set.add(clean);
+        }
+      }
     }
   }
-  return Array.from(set);
+  return Array.from(set).slice(0, 75); // Cloudflare Pages 20.000 dosya sınırını aşmamak için en aktif hisseler
 }
