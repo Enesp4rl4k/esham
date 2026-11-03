@@ -22,6 +22,9 @@ import {
   type Report,
 } from "@/lib/content";
 import { ReportCard } from "@/components/ReportCard";
+import { DcfTerminalCard } from "@/components/DcfTerminalCard";
+import { KeyLevelsCard } from "@/components/KeyLevelsCard";
+import { FundamentalMetricsCard } from "@/components/FundamentalMetricsCard";
 
 type Params = { ticker: string };
 
@@ -52,6 +55,16 @@ export async function generateMetadata({
 async function loadMarketTickerData() {
   try {
     const filePath = path.join(process.cwd(), "public", "data", "market-ticker.json");
+    const raw = await fs.readFile(filePath, "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+async function loadQuantValuationData() {
+  try {
+    const filePath = path.join(process.cwd(), "public", "data", "bist-quant-valuation.json");
     const raw = await fs.readFile(filePath, "utf-8");
     return JSON.parse(raw);
   } catch {
@@ -105,6 +118,11 @@ export default async function TickerPage({
 
   const reports = getReportsByTicker(cleanTicker);
   const tickerData = await loadMarketTickerData();
+  const quantData = await loadQuantValuationData();
+  const companyQuant = quantData ? quantData[cleanTicker] : null;
+  const dcfData = companyQuant?.dcf;
+  const keyLevelsData = companyQuant?.key_levels;
+  const fundamentalData = companyQuant?.fundamental;
 
   const liveQuote = tickerData?.tickers?.find(
     (t: any) => t.label.toUpperCase() === cleanTicker
@@ -229,6 +247,21 @@ export default async function TickerPage({
           ))}
         </div>
       </div>
+
+      {/* İndirgenmiş Nakit Akışı (İNA / DCF) Değerleme Modeli */}
+      {dcfData && (
+        <div className="mb-10">
+          <DcfTerminalCard dcf={dcfData} />
+        </div>
+      )}
+
+      {/* Teknik Eşikler & Temel Çarpanlar Grid */}
+      {(keyLevelsData || fundamentalData) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+          {keyLevelsData && <KeyLevelsCard data={keyLevelsData} />}
+          {fundamentalData && <FundamentalMetricsCard data={fundamentalData} />}
+        </div>
+      )}
 
       {/* Şirkete Ait Raporlar & Bildirim Arşivi */}
       <div>

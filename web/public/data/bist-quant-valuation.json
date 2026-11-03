@@ -1,0 +1,2760 @@
+{
+  "THYAO": {
+    "ticker": "THYAO",
+    "key_levels": {
+      "ticker": "THYAO",
+      "son_fiyat": 259.5,
+      "gunluk_degisim_yuzde": 7.14,
+      "pivot_noktasi": 245.63,
+      "direncler": {
+        "r1": 249.07,
+        "r2": 255.93,
+        "direnc_20g": 295.25,
+        "fib_618": 312.22
+      },
+      "destekler": {
+        "s1": 238.77,
+        "s2": 235.33,
+        "destek_20g": 242.2,
+        "fib_382": 285.48
+      },
+      "hareketli_ortalamalar": {
+        "sma_20": 271.46,
+        "sma_50": 285.57
+      },
+      "rsi_14": 33.0,
+      "rsi_bolgesi": "Nötr (Dengeli)",
+      "52h_zirve": 355.5,
+      "52h_dip": 242.2,
+      "zirveye_uzaklik_yuzde": -27.0
+    },
+    "fundamental": {
+      "ticker": "THYAO",
+      "sirket": "TURK HAVA YOLLARI",
+      "sektor": "Industrials",
+      "alt_sektor": "Airlines",
+      "piyasa_degeri_tl": 356107550720.0,
+      "piyasa_degeri_fmt": "356.1 Milyar TL",
+      "fiyat_kazanc_fk": 3.6,
+      "piyasa_defter_pddd": 16.34,
+      "fd_favok": 170.84,
+      "yillik_hasilat_tl": 26350999552.0,
+      "hasilat_fmt": "26.4 Milyar TL",
+      "net_kar_marji_yuzde": 10.2,
+      "ozsermaye_karliligi_roe": 13.1,
+      "sozlesme_ciro_analizi": null
+    },
+    "dcf": {
+      "ticker": "THYAO",
+      "sirket": "TURK HAVA YOLLARI",
+      "para_birimi": "TRY",
+      "finansal_para_birimi": "USD",
+      "guncel_fiyat": 259.5,
+      "hisse_adedi": 1372283353.0,
+      "baz_fcf": 2281000000.0,
+      "baz_fcf_fmt": "2.28 Milyar USD",
+      "varsayimlar": {
+        "wacc_aosm": 0.13,
+        "buyume_orani": 0.08,
+        "uc_buyume_orani": 0.035,
+        "tahmin_yili": 5
+      },
+      "projeksiyonlar": [
+        {
+          "yil": 1,
+          "fcf": 2463480000.0,
+          "pv_fcf": 2180070796.4601774,
+          "buyume": 0.08
+        },
+        {
+          "yil": 2,
+          "fcf": 2640850560.0,
+          "pv_fcf": 2068173357.349832,
+          "buyume": 0.07200000000000001
+        },
+        {
+          "yil": 3,
+          "fcf": 2809864995.84,
+          "pv_fcf": 1947377391.3453288,
+          "buyume": 0.064
+        },
+        {
+          "yil": 4,
+          "fcf": 2967217435.6070404,
+          "pv_fcf": 1819850022.354573,
+          "buyume": 0.055999999999999994
+        },
+        {
+          "yil": 5,
+          "fcf": 3109643872.5161786,
+          "pv_fcf": 1687790109.2279584,
+          "buyume": 0.048
+        }
+      ],
+      "indirgenmis_nakit_akislari_toplami": 9703261676.74,
+      "uc_deger": 33878751663.73,
+      "indirgenmis_uc_deger": 18388029084.75,
+      "firma_degeri_ev": 28091290761.48,
+      "nakit_ve_benzerleri": 6309000192.0,
+      "toplam_borc": 19594000384.0,
+      "net_borc": 13285000192.0,
+      "ozsermaye_degeri": 14806290569.48,
+      "hisse_basina_adil_deger": 10.79,
+      "hisse_basina_adil_deger_try": 369.0,
+      "getiri_potansiyeli_yuzde": 42.2,
+      "degerlendirme": "GÜÇLÜ İSKONTO (CAZİP)",
+      "duyarlilik_matrisi": {
+        "wacc_rates": [
+          0.09,
+          0.11,
+          0.13,
+          0.15,
+          0.17
+        ],
+        "terminal_rates": [
+          0.015,
+          0.025,
+          0.035,
+          0.045,
+          0.055
+        ],
+        "rows": [
+          {
+            "wacc": 0.09,
+            "values": [
+              619.12,
+              731.74,
+              885.31,
+              1107.13,
+              1466.2
+            ]
+          },
+          {
+            "wacc": 0.11,
+            "values": [
+              414.93,
+              478.15,
+              558.23,
+              662.95,
+              811.95
+            ]
+          },
+          {
+            "wacc": 0.13,
+            "values": [
+              281.99,
+              321.35,
+              369.0,
+              427.86,
+              506.66
+            ]
+          },
+          {
+            "wacc": 0.15,
+            "values": [
+              188.61,
+              214.87,
+              245.69,
+              282.39,
+              329.93
+            ]
+          },
+          {
+            "wacc": 0.17,
+            "values": [
+              119.47,
+              137.87,
+              159.0,
+              183.51,
+              214.68
+            ]
+          }
+        ]
+      },
+      "senaryolar": {
+        "bear": {
+          "ad": "Kötümser (Ayı) Senaryo",
+          "wacc": 0.15,
+          "buyume": 0.06,
+          "adil_deger_try": 181.41,
+          "potansiyel_yuzde": -30.1
+        },
+        "base": {
+          "ad": "Baz Senaryo",
+          "wacc": 0.13,
+          "buyume": 0.08,
+          "adil_deger_try": 369.0,
+          "potansiyel_yuzde": 42.2
+        },
+        "bull": {
+          "ad": "İyimser (Boğa) Senaryo",
+          "wacc": 0.11,
+          "buyume": 0.1,
+          "adil_deger_try": 732.4,
+          "potansiyel_yuzde": 182.2
+        }
+      }
+    }
+  },
+  "ASELS": {
+    "ticker": "ASELS",
+    "key_levels": {
+      "ticker": "ASELS",
+      "son_fiyat": 345.0,
+      "gunluk_degisim_yuzde": -0.58,
+      "pivot_noktasi": 347.08,
+      "direncler": {
+        "r1": 357.67,
+        "r2": 368.33,
+        "direnc_20g": 384.25,
+        "fib_618": 399.77
+      },
+      "destekler": {
+        "s1": 336.42,
+        "s2": 325.83,
+        "destek_20g": 318.5,
+        "fib_382": 368.73
+      },
+      "hareketli_ortalamalar": {
+        "sma_20": 347.06,
+        "sma_50": 367.18
+      },
+      "rsi_14": 51.4,
+      "rsi_bolgesi": "Nötr (Dengeli)",
+      "52h_zirve": 450.0,
+      "52h_dip": 171.5,
+      "zirveye_uzaklik_yuzde": -23.33
+    },
+    "fundamental": {
+      "ticker": "ASELS",
+      "sirket": "ASELSAN",
+      "sektor": "Industrials",
+      "alt_sektor": "Aerospace & Defense",
+      "piyasa_degeri_tl": 1573199937536.0,
+      "piyasa_degeri_fmt": "1573.2 Milyar TL",
+      "fiyat_kazanc_fk": 16.53,
+      "piyasa_defter_pddd": 6.28,
+      "fd_favok": 28.48,
+      "yillik_hasilat_tl": 214040756224.0,
+      "hasilat_fmt": "214.0 Milyar TL",
+      "net_kar_marji_yuzde": 19.3,
+      "ozsermaye_karliligi_roe": 15.6,
+      "sozlesme_ciro_analizi": null
+    },
+    "dcf": {
+      "ticker": "ASELS",
+      "sirket": "ASELSAN",
+      "para_birimi": "TRY",
+      "finansal_para_birimi": "TRY",
+      "guncel_fiyat": 345.0,
+      "hisse_adedi": 4560000000.0,
+      "baz_fcf": 10733502000.0,
+      "baz_fcf_fmt": "10.73 Milyar TRY",
+      "varsayimlar": {
+        "wacc_aosm": 0.28,
+        "buyume_orani": 0.25,
+        "uc_buyume_orani": 0.08,
+        "tahmin_yili": 5
+      },
+      "projeksiyonlar": [
+        {
+          "yil": 1,
+          "fcf": 13416877500.0,
+          "pv_fcf": 10481935546.875,
+          "buyume": 0.25
+        },
+        {
+          "yil": 2,
+          "fcf": 16435674937.500002,
+          "pv_fcf": 10031539878.845215,
+          "buyume": 0.225
+        },
+        {
+          "yil": 3,
+          "fcf": 19722809925.0,
+          "pv_fcf": 9404568636.417387,
+          "buyume": 0.2
+        },
+        {
+          "yil": 4,
+          "fcf": 23174301661.875,
+          "pv_fcf": 8633100115.461275,
+          "buyume": 0.175
+        },
+        {
+          "yil": 5,
+          "fcf": 26650446911.156246,
+          "pv_fcf": 7756300884.984736,
+          "buyume": 0.15
+        }
+      ],
+      "indirgenmis_nakit_akislari_toplami": 46307445062.58,
+      "uc_deger": 143912413320.24,
+      "indirgenmis_uc_deger": 41884024778.92,
+      "firma_degeri_ev": 88191469841.5,
+      "nakit_ve_benzerleri": 31845163008.0,
+      "toplam_borc": 87008083968.0,
+      "net_borc": 55162920960.0,
+      "ozsermaye_degeri": 33028548881.5,
+      "hisse_basina_adil_deger": 7.24,
+      "hisse_basina_adil_deger_try": 7.24,
+      "getiri_potansiyeli_yuzde": -97.9,
+      "degerlendirme": "YÜKSEK PRİMLİ",
+      "duyarlilik_matrisi": {
+        "wacc_rates": [
+          0.24,
+          0.26,
+          0.28,
+          0.3,
+          0.32
+        ],
+        "terminal_rates": [
+          0.05,
+          0.065,
+          0.08,
+          0.095,
+          0.11
+        ],
+        "rows": [
+          {
+            "wacc": 0.24,
+            "values": [
+              10.05,
+              11.16,
+              12.49,
+              14.09,
+              16.05
+            ]
+          },
+          {
+            "wacc": 0.26,
+            "values": [
+              7.73,
+              8.58,
+              9.57,
+              10.74,
+              12.15
+            ]
+          },
+          {
+            "wacc": 0.28,
+            "values": [
+              5.82,
+              6.48,
+              7.24,
+              8.13,
+              9.16
+            ]
+          },
+          {
+            "wacc": 0.3,
+            "values": [
+              4.23,
+              4.75,
+              5.35,
+              6.03,
+              6.82
+            ]
+          },
+          {
+            "wacc": 0.32,
+            "values": [
+              2.88,
+              3.3,
+              3.78,
+              4.31,
+              4.92
+            ]
+          }
+        ]
+      },
+      "senaryolar": {
+        "bear": {
+          "ad": "Kötümser (Ayı) Senaryo",
+          "wacc": 0.3,
+          "buyume": 0.188,
+          "adil_deger_try": 2.38,
+          "potansiyel_yuzde": -99.3
+        },
+        "base": {
+          "ad": "Baz Senaryo",
+          "wacc": 0.28,
+          "buyume": 0.25,
+          "adil_deger_try": 7.24,
+          "potansiyel_yuzde": -97.9
+        },
+        "bull": {
+          "ad": "İyimser (Boğa) Senaryo",
+          "wacc": 0.26,
+          "buyume": 0.312,
+          "adil_deger_try": 14.43,
+          "potansiyel_yuzde": -95.8
+        }
+      }
+    }
+  },
+  "TUPRS": {
+    "ticker": "TUPRS",
+    "key_levels": {
+      "ticker": "TUPRS",
+      "son_fiyat": 336.75,
+      "gunluk_degisim_yuzde": -1.97,
+      "pivot_noktasi": 349.08,
+      "direncler": {
+        "r1": 354.92,
+        "r2": 366.33,
+        "direnc_20g": 397.5,
+        "fib_618": 344.35
+      },
+      "destekler": {
+        "s1": 337.67,
+        "s2": 331.83,
+        "destek_20g": 335.25,
+        "fib_382": 295.0
+      },
+      "hareketli_ortalamalar": {
+        "sma_20": 370.12,
+        "sma_50": 387.24
+      },
+      "rsi_14": 24.9,
+      "rsi_bolgesi": "Aşırı Satım (<30)",
+      "52h_zirve": 424.25,
+      "52h_dip": 182.4,
+      "zirveye_uzaklik_yuzde": -20.62
+    },
+    "fundamental": {
+      "ticker": "TUPRS",
+      "sirket": "TUPRAS",
+      "sektor": "Energy",
+      "alt_sektor": "Oil & Gas Refining & Marketing",
+      "piyasa_degeri_tl": 648848408576.0,
+      "piyasa_degeri_fmt": "648.8 Milyar TL",
+      "fiyat_kazanc_fk": 16.24,
+      "piyasa_defter_pddd": 1.42,
+      "fd_favok": 4.82,
+      "yillik_hasilat_tl": 1029024710656.0,
+      "hasilat_fmt": "1029.0 Milyar TL",
+      "net_kar_marji_yuzde": 6.6,
+      "ozsermaye_karliligi_roe": 17.6,
+      "sozlesme_ciro_analizi": null
+    },
+    "dcf": {
+      "ticker": "TUPRS",
+      "sirket": "TUPRAS",
+      "para_birimi": "TRY",
+      "finansal_para_birimi": "TRY",
+      "guncel_fiyat": 336.75,
+      "hisse_adedi": 1926795598.0,
+      "baz_fcf": 30346395000.0,
+      "baz_fcf_fmt": "30.35 Milyar TRY",
+      "varsayimlar": {
+        "wacc_aosm": 0.28,
+        "buyume_orani": 0.25,
+        "uc_buyume_orani": 0.08,
+        "tahmin_yili": 5
+      },
+      "projeksiyonlar": [
+        {
+          "yil": 1,
+          "fcf": 37932993750.0,
+          "pv_fcf": 29635151367.1875,
+          "buyume": 0.25
+        },
+        {
+          "yil": 2,
+          "fcf": 46467917343.75,
+          "pv_fcf": 28361765956.878662,
+          "buyume": 0.225
+        },
+        {
+          "yil": 3,
+          "fcf": 55761500812.5,
+          "pv_fcf": 26589155584.573742,
+          "buyume": 0.2
+        },
+        {
+          "yil": 4,
+          "fcf": 65519763454.6875,
+          "pv_fcf": 24408013915.52668,
+          "buyume": 0.175
+        },
+        {
+          "yil": 5,
+          "fcf": 75347727972.89062,
+          "pv_fcf": 21929075002.231,
+          "buyume": 0.15
+        }
+      ],
+      "indirgenmis_nakit_akislari_toplami": 130923161826.4,
+      "uc_deger": 406877731053.61,
+      "indirgenmis_uc_deger": 118417005012.05,
+      "firma_degeri_ev": 249340166838.45,
+      "nakit_ve_benzerleri": 199109804032.0,
+      "toplam_borc": 68753514496.0,
+      "net_borc": -130356289536.0,
+      "ozsermaye_degeri": 379696456374.45,
+      "hisse_basina_adil_deger": 197.06,
+      "hisse_basina_adil_deger_try": 197.06,
+      "getiri_potansiyeli_yuzde": -41.5,
+      "degerlendirme": "YÜKSEK PRİMLİ",
+      "duyarlilik_matrisi": {
+        "wacc_rates": [
+          0.24,
+          0.26,
+          0.28,
+          0.3,
+          0.32
+        ],
+        "terminal_rates": [
+          0.05,
+          0.065,
+          0.08,
+          0.095,
+          0.11
+        ],
+        "rows": [
+          {
+            "wacc": 0.24,
+            "values": [
+              215.83,
+              223.29,
+              232.16,
+              242.85,
+              256.01
+            ]
+          },
+          {
+            "wacc": 0.26,
+            "values": [
+              200.31,
+              205.99,
+              212.62,
+              220.46,
+              229.86
+            ]
+          },
+          {
+            "wacc": 0.28,
+            "values": [
+              187.56,
+              191.98,
+              197.06,
+              202.97,
+              209.92
+            ]
+          },
+          {
+            "wacc": 0.3,
+            "values": [
+              176.91,
+              180.41,
+              184.38,
+              188.94,
+              194.21
+            ]
+          },
+          {
+            "wacc": 0.32,
+            "values": [
+              167.9,
+              170.71,
+              173.86,
+              177.44,
+              181.53
+            ]
+          }
+        ]
+      },
+      "senaryolar": {
+        "bear": {
+          "ad": "Kötümser (Ayı) Senaryo",
+          "wacc": 0.3,
+          "buyume": 0.188,
+          "adil_deger_try": 164.53,
+          "potansiyel_yuzde": -51.1
+        },
+        "base": {
+          "ad": "Baz Senaryo",
+          "wacc": 0.28,
+          "buyume": 0.25,
+          "adil_deger_try": 197.06,
+          "potansiyel_yuzde": -41.5
+        },
+        "bull": {
+          "ad": "İyimser (Boğa) Senaryo",
+          "wacc": 0.26,
+          "buyume": 0.312,
+          "adil_deger_try": 245.12,
+          "potansiyel_yuzde": -27.2
+        }
+      }
+    }
+  },
+  "BIMAS": {
+    "ticker": "BIMAS",
+    "key_levels": {
+      "ticker": "BIMAS",
+      "son_fiyat": 357.0,
+      "gunluk_degisim_yuzde": 2.73,
+      "pivot_noktasi": 352.42,
+      "direncler": {
+        "r1": 357.58,
+        "r2": 367.67,
+        "direnc_20g": 418.25,
+        "fib_618": 406.58
+      },
+      "destekler": {
+        "s1": 342.33,
+        "s2": 337.17,
+        "destek_20g": 347.25,
+        "fib_382": 383.92
+      },
+      "hareketli_ortalamalar": {
+        "sma_20": 385.49,
+        "sma_50": 405.76
+      },
+      "rsi_14": 35.0,
+      "rsi_bolgesi": "Nötr (Dengeli)",
+      "52h_zirve": 443.25,
+      "52h_dip": 256.0,
+      "zirveye_uzaklik_yuzde": -19.46
+    },
+    "fundamental": {
+      "ticker": "BIMAS",
+      "sirket": "BIM MAGAZALAR",
+      "sektor": "Consumer Defensive",
+      "alt_sektor": "Grocery Stores",
+      "piyasa_degeri_tl": 423323435008.0,
+      "piyasa_degeri_fmt": "423.3 Milyar TL",
+      "fiyat_kazanc_fk": 6.71,
+      "piyasa_defter_pddd": 2.1,
+      "fd_favok": 13.44,
+      "yillik_hasilat_tl": 761454526464.0,
+      "hasilat_fmt": "761.5 Milyar TL",
+      "net_kar_marji_yuzde": 3.4,
+      "ozsermaye_karliligi_roe": 15.6,
+      "sozlesme_ciro_analizi": null
+    },
+    "dcf": {
+      "ticker": "BIMAS",
+      "sirket": "BIM MAGAZALAR",
+      "para_birimi": "TRY",
+      "finansal_para_birimi": "TRY",
+      "guncel_fiyat": 356.75,
+      "hisse_adedi": 1185780000.0,
+      "baz_fcf": 19620346000.0,
+      "baz_fcf_fmt": "19.62 Milyar TRY",
+      "varsayimlar": {
+        "wacc_aosm": 0.28,
+        "buyume_orani": 0.25,
+        "uc_buyume_orani": 0.08,
+        "tahmin_yili": 5
+      },
+      "projeksiyonlar": [
+        {
+          "yil": 1,
+          "fcf": 24525432500.0,
+          "pv_fcf": 19160494140.625,
+          "buyume": 0.25
+        },
+        {
+          "yil": 2,
+          "fcf": 30043654812.500004,
+          "pv_fcf": 18337191658.02002,
+          "buyume": 0.225
+        },
+        {
+          "yil": 3,
+          "fcf": 36052385775.0,
+          "pv_fcf": 17191117179.393764,
+          "buyume": 0.2
+        },
+        {
+          "yil": 4,
+          "fcf": 42361553285.625,
+          "pv_fcf": 15780908348.271624,
+          "buyume": 0.175
+        },
+        {
+          "yil": 5,
+          "fcf": 48715786278.46875,
+          "pv_fcf": 14178159844.150284,
+          "buyume": 0.15
+        }
+      ],
+      "indirgenmis_nakit_akislari_toplami": 84647871170.46,
+      "uc_deger": 263065245903.73,
+      "indirgenmis_uc_deger": 76562063158.41,
+      "firma_degeri_ev": 161209934328.87,
+      "nakit_ve_benzerleri": 30205372416.0,
+      "toplam_borc": 62592512000.0,
+      "net_borc": 32387139584.0,
+      "ozsermaye_degeri": 128822794744.87,
+      "hisse_basina_adil_deger": 108.64,
+      "hisse_basina_adil_deger_try": 108.64,
+      "getiri_potansiyeli_yuzde": -69.5,
+      "degerlendirme": "YÜKSEK PRİMLİ",
+      "duyarlilik_matrisi": {
+        "wacc_rates": [
+          0.24,
+          0.26,
+          0.28,
+          0.3,
+          0.32
+        ],
+        "terminal_rates": [
+          0.05,
+          0.065,
+          0.08,
+          0.095,
+          0.11
+        ],
+        "rows": [
+          {
+            "wacc": 0.24,
+            "values": [
+              128.36,
+              136.2,
+              145.51,
+              156.74,
+              170.57
+            ]
+          },
+          {
+            "wacc": 0.26,
+            "values": [
+              112.05,
+              118.02,
+              124.99,
+              133.22,
+              143.1
+            ]
+          },
+          {
+            "wacc": 0.28,
+            "values": [
+              98.66,
+              103.3,
+              108.64,
+              114.84,
+              122.14
+            ]
+          },
+          {
+            "wacc": 0.3,
+            "values": [
+              87.47,
+              91.15,
+              95.32,
+              100.1,
+              105.64
+            ]
+          },
+          {
+            "wacc": 0.32,
+            "values": [
+              78.0,
+              80.95,
+              84.27,
+              88.03,
+              92.32
+            ]
+          }
+        ]
+      },
+      "senaryolar": {
+        "bear": {
+          "ad": "Kötümser (Ayı) Senaryo",
+          "wacc": 0.3,
+          "buyume": 0.188,
+          "adil_deger_try": 74.47,
+          "potansiyel_yuzde": -79.1
+        },
+        "base": {
+          "ad": "Baz Senaryo",
+          "wacc": 0.28,
+          "buyume": 0.25,
+          "adil_deger_try": 108.64,
+          "potansiyel_yuzde": -69.5
+        },
+        "bull": {
+          "ad": "İyimser (Boğa) Senaryo",
+          "wacc": 0.26,
+          "buyume": 0.312,
+          "adil_deger_try": 159.13,
+          "potansiyel_yuzde": -55.4
+        }
+      }
+    }
+  },
+  "EREGL": {
+    "ticker": "EREGL",
+    "key_levels": {
+      "ticker": "EREGL",
+      "son_fiyat": 30.22,
+      "gunluk_degisim_yuzde": 1.89,
+      "pivot_noktasi": 30.13,
+      "direncler": {
+        "r1": 30.61,
+        "r2": 31.55,
+        "direnc_20g": 38.22,
+        "fib_618": 39.2
+      },
+      "destekler": {
+        "s1": 29.19,
+        "s2": 28.71,
+        "destek_20g": 29.66,
+        "fib_382": 35.56
+      },
+      "hareketli_ortalamalar": {
+        "sma_20": 35.01,
+        "sma_50": 36.69
+      },
+      "rsi_14": 22.5,
+      "rsi_bolgesi": "Aşırı Satım (<30)",
+      "52h_zirve": 45.1,
+      "52h_dip": 23.46,
+      "zirveye_uzaklik_yuzde": -32.99
+    },
+    "fundamental": {
+      "ticker": "EREGL",
+      "sirket": "EREGLI DEMIR CELIK",
+      "sektor": "Basic Materials",
+      "alt_sektor": "Steel",
+      "piyasa_degeri_tl": 203135090688.0,
+      "piyasa_degeri_fmt": "203.1 Milyar TL",
+      "fiyat_kazanc_fk": 4.91,
+      "piyasa_defter_pddd": 0.63,
+      "fd_favok": 10.21,
+      "yillik_hasilat_tl": 256853491712.0,
+      "hasilat_fmt": "256.9 Milyar TL",
+      "net_kar_marji_yuzde": 3.6,
+      "ozsermaye_karliligi_roe": 3.0,
+      "sozlesme_ciro_analizi": null
+    },
+    "dcf": {
+      "ticker": "EREGL",
+      "sirket": "EREGLI DEMIR CELIK",
+      "para_birimi": "TRY",
+      "finansal_para_birimi": "TRY",
+      "guncel_fiyat": 30.22,
+      "hisse_adedi": 6721875999.0,
+      "baz_fcf": 49708932000.0,
+      "baz_fcf_fmt": "49.71 Milyar TRY",
+      "varsayimlar": {
+        "wacc_aosm": 0.28,
+        "buyume_orani": 0.25,
+        "uc_buyume_orani": 0.08,
+        "tahmin_yili": 5
+      },
+      "projeksiyonlar": [
+        {
+          "yil": 1,
+          "fcf": 62136165000.0,
+          "pv_fcf": 48543878906.25,
+          "buyume": 0.25
+        },
+        {
+          "yil": 2,
+          "fcf": 76116802125.0,
+          "pv_fcf": 46458009109.49707,
+          "buyume": 0.225
+        },
+        {
+          "yil": 3,
+          "fcf": 91340162550.0,
+          "pv_fcf": 43554383540.153496,
+          "buyume": 0.2
+        },
+        {
+          "yil": 4,
+          "fcf": 107324690996.25,
+          "pv_fcf": 39981563015.37528,
+          "buyume": 0.175
+        },
+        {
+          "yil": 5,
+          "fcf": 123423394645.68748,
+          "pv_fcf": 35920935521.62622,
+          "buyume": 0.15
+        }
+      ],
+      "indirgenmis_nakit_akislari_toplami": 214458770092.9,
+      "uc_deger": 666486331086.71,
+      "indirgenmis_uc_deger": 193973051816.78,
+      "firma_degeri_ev": 408431821909.68,
+      "nakit_ve_benzerleri": 112407715840.0,
+      "toplam_borc": 162944860160.0,
+      "net_borc": 50537144320.0,
+      "ozsermaye_degeri": 357894677589.68,
+      "hisse_basina_adil_deger": 53.24,
+      "hisse_basina_adil_deger_try": 53.24,
+      "getiri_potansiyeli_yuzde": 76.2,
+      "degerlendirme": "GÜÇLÜ İSKONTO (CAZİP)",
+      "duyarlilik_matrisi": {
+        "wacc_rates": [
+          0.24,
+          0.26,
+          0.28,
+          0.3,
+          0.32
+        ],
+        "terminal_rates": [
+          0.05,
+          0.065,
+          0.08,
+          0.095,
+          0.11
+        ],
+        "rows": [
+          {
+            "wacc": 0.24,
+            "values": [
+              62.06,
+              65.56,
+              69.72,
+              74.74,
+              80.92
+            ]
+          },
+          {
+            "wacc": 0.26,
+            "values": [
+              54.77,
+              57.44,
+              60.55,
+              64.23,
+              68.64
+            ]
+          },
+          {
+            "wacc": 0.28,
+            "values": [
+              48.78,
+              50.86,
+              53.24,
+              56.02,
+              59.28
+            ]
+          },
+          {
+            "wacc": 0.3,
+            "values": [
+              43.78,
+              45.42,
+              47.29,
+              49.43,
+              51.9
+            ]
+          },
+          {
+            "wacc": 0.32,
+            "values": [
+              39.55,
+              40.87,
+              42.35,
+              44.03,
+              45.95
+            ]
+          }
+        ]
+      },
+      "senaryolar": {
+        "bear": {
+          "ad": "Kötümser (Ayı) Senaryo",
+          "wacc": 0.3,
+          "buyume": 0.188,
+          "adil_deger_try": 37.97,
+          "potansiyel_yuzde": 25.6
+        },
+        "base": {
+          "ad": "Baz Senaryo",
+          "wacc": 0.28,
+          "buyume": 0.25,
+          "adil_deger_try": 53.24,
+          "potansiyel_yuzde": 76.2
+        },
+        "bull": {
+          "ad": "İyimser (Boğa) Senaryo",
+          "wacc": 0.26,
+          "buyume": 0.312,
+          "adil_deger_try": 75.81,
+          "potansiyel_yuzde": 150.9
+        }
+      }
+    }
+  },
+  "KCHOL": {
+    "ticker": "KCHOL",
+    "key_levels": {
+      "ticker": "KCHOL",
+      "son_fiyat": 192.7,
+      "gunluk_degisim_yuzde": -0.05,
+      "pivot_noktasi": 195.03,
+      "direncler": {
+        "r1": 197.47,
+        "r2": 202.13,
+        "direnc_20g": 216.8,
+        "fib_618": 211.68
+      },
+      "destekler": {
+        "s1": 190.37,
+        "s2": 187.93,
+        "destek_20g": 188.6,
+        "fib_382": 198.82
+      },
+      "hareketli_ortalamalar": {
+        "sma_20": 204.84,
+        "sma_50": 212.04
+      },
+      "rsi_14": 35.1,
+      "rsi_bolgesi": "Nötr (Dengeli)",
+      "52h_zirve": 232.5,
+      "52h_dip": 159.0,
+      "zirveye_uzaklik_yuzde": -17.12
+    },
+    "fundamental": {
+      "ticker": "KCHOL",
+      "sirket": "KOC HOLDING",
+      "sektor": "Industrials",
+      "alt_sektor": "Conglomerates",
+      "piyasa_degeri_tl": 488495939584.0,
+      "piyasa_degeri_fmt": "488.5 Milyar TL",
+      "fiyat_kazanc_fk": 6.45,
+      "piyasa_defter_pddd": 0.62,
+      "fd_favok": 10.19,
+      "yillik_hasilat_tl": 2895790997504.0,
+      "hasilat_fmt": "2895.8 Milyar TL",
+      "net_kar_marji_yuzde": 1.9,
+      "ozsermaye_karliligi_roe": 6.1,
+      "sozlesme_ciro_analizi": null
+    },
+    "dcf": {
+      "ticker": "KCHOL",
+      "sirket": "KOC HOLDING",
+      "para_birimi": "TRY",
+      "finansal_para_birimi": "TRY",
+      "guncel_fiyat": 192.7,
+      "hisse_adedi": 2535007575.0,
+      "baz_fcf": 172741000000.0,
+      "baz_fcf_fmt": "172.74 Milyar TRY",
+      "varsayimlar": {
+        "wacc_aosm": 0.28,
+        "buyume_orani": 0.25,
+        "uc_buyume_orani": 0.08,
+        "tahmin_yili": 5
+      },
+      "projeksiyonlar": [
+        {
+          "yil": 1,
+          "fcf": 215926250000.0,
+          "pv_fcf": 168692382812.5,
+          "buyume": 0.25
+        },
+        {
+          "yil": 2,
+          "fcf": 264509656250.00003,
+          "pv_fcf": 161443881988.5254,
+          "buyume": 0.225
+        },
+        {
+          "yil": 3,
+          "fcf": 317411587500.0,
+          "pv_fcf": 151353639364.24252,
+          "buyume": 0.2
+        },
+        {
+          "yil": 4,
+          "fcf": 372958615312.5,
+          "pv_fcf": 138937911135.14453,
+          "buyume": 0.175
+        },
+        {
+          "yil": 5,
+          "fcf": 428902407609.37494,
+          "pv_fcf": 124827029535.48138,
+          "buyume": 0.15
+        }
+      ],
+      "indirgenmis_nakit_akislari_toplami": 745254844835.89,
+      "uc_deger": 2316073001090.62,
+      "indirgenmis_uc_deger": 674065959491.6,
+      "firma_degeri_ev": 1419320804327.49,
+      "nakit_ve_benzerleri": 541502996480.0,
+      "toplam_borc": 1589122039808.0,
+      "net_borc": 1047619043328.0,
+      "ozsermaye_degeri": 371701760999.49,
+      "hisse_basina_adil_deger": 146.63,
+      "hisse_basina_adil_deger_try": 146.63,
+      "getiri_potansiyeli_yuzde": -23.9,
+      "degerlendirme": "HAFİF PRİMLİ",
+      "duyarlilik_matrisi": {
+        "wacc_rates": [
+          0.24,
+          0.26,
+          0.28,
+          0.3,
+          0.32
+        ],
+        "terminal_rates": [
+          0.05,
+          0.065,
+          0.08,
+          0.095,
+          0.11
+        ],
+        "rows": [
+          {
+            "wacc": 0.24,
+            "values": [
+              227.84,
+              260.13,
+              298.47,
+              344.74,
+              401.68
+            ]
+          },
+          {
+            "wacc": 0.26,
+            "values": [
+              160.68,
+              185.27,
+              213.96,
+              247.86,
+              288.54
+            ]
+          },
+          {
+            "wacc": 0.28,
+            "values": [
+              105.52,
+              124.64,
+              146.63,
+              172.18,
+              202.24
+            ]
+          },
+          {
+            "wacc": 0.3,
+            "values": [
+              59.46,
+              74.59,
+              91.77,
+              111.48,
+              134.29
+            ]
+          },
+          {
+            "wacc": 0.32,
+            "values": [
+              20.46,
+              32.6,
+              46.26,
+              61.74,
+              79.43
+            ]
+          }
+        ]
+      },
+      "senaryolar": {
+        "bear": {
+          "ad": "Kötümser (Ayı) Senaryo",
+          "wacc": 0.3,
+          "buyume": 0.188,
+          "adil_deger_try": 5.89,
+          "potansiyel_yuzde": -96.9
+        },
+        "base": {
+          "ad": "Baz Senaryo",
+          "wacc": 0.28,
+          "buyume": 0.25,
+          "adil_deger_try": 146.63,
+          "potansiyel_yuzde": -23.9
+        },
+        "bull": {
+          "ad": "İyimser (Boğa) Senaryo",
+          "wacc": 0.26,
+          "buyume": 0.312,
+          "adil_deger_try": 354.58,
+          "potansiyel_yuzde": 84.0
+        }
+      }
+    }
+  },
+  "PGSUS": {
+    "ticker": "PGSUS",
+    "key_levels": {
+      "ticker": "PGSUS",
+      "son_fiyat": 121.3,
+      "gunluk_degisim_yuzde": 5.48,
+      "pivot_noktasi": 117.13,
+      "direncler": {
+        "r1": 119.27,
+        "r2": 123.53,
+        "direnc_20g": 143.7,
+        "fib_618": 160.24
+      },
+      "destekler": {
+        "s1": 112.87,
+        "s2": 110.73,
+        "destek_20g": 115.0,
+        "fib_382": 142.96
+      },
+      "hareketli_ortalamalar": {
+        "sma_20": 129.32,
+        "sma_50": 141.06
+      },
+      "rsi_14": 32.3,
+      "rsi_bolgesi": "Nötr (Dengeli)",
+      "52h_zirve": 226.1,
+      "52h_dip": 115.0,
+      "zirveye_uzaklik_yuzde": -46.35
+    },
+    "fundamental": {
+      "ticker": "PGSUS",
+      "sirket": "PEGASUS",
+      "sektor": "Industrials",
+      "alt_sektor": "Airlines",
+      "piyasa_degeri_tl": 60650000384.0,
+      "piyasa_degeri_fmt": "60.7 Milyar TL",
+      "fiyat_kazanc_fk": 3.35,
+      "piyasa_defter_pddd": 0.54,
+      "fd_favok": 125.4,
+      "yillik_hasilat_tl": 170583212032.0,
+      "hasilat_fmt": "170.6 Milyar TL",
+      "net_kar_marji_yuzde": -0.8,
+      "ozsermaye_karliligi_roe": -1.2,
+      "sozlesme_ciro_analizi": null
+    },
+    "dcf": {
+      "ticker": "PGSUS",
+      "sirket": "PEGASUS",
+      "para_birimi": "TRY",
+      "finansal_para_birimi": "TRY",
+      "guncel_fiyat": 121.3,
+      "hisse_adedi": 500000000.0,
+      "baz_fcf": 32242876868.0,
+      "baz_fcf_fmt": "32.24 Milyar TRY",
+      "varsayimlar": {
+        "wacc_aosm": 0.28,
+        "buyume_orani": 0.25,
+        "uc_buyume_orani": 0.08,
+        "tahmin_yili": 5
+      },
+      "projeksiyonlar": [
+        {
+          "yil": 1,
+          "fcf": 40303596085.0,
+          "pv_fcf": 31487184441.40625,
+          "buyume": 0.25
+        },
+        {
+          "yil": 2,
+          "fcf": 49371905204.125,
+          "pv_fcf": 30134219484.939575,
+          "buyume": 0.225
+        },
+        {
+          "yil": 3,
+          "fcf": 59246286244.95,
+          "pv_fcf": 28250830767.130844,
+          "buyume": 0.2
+        },
+        {
+          "yil": 4,
+          "fcf": 69614386337.81625,
+          "pv_fcf": 25933379805.76465,
+          "buyume": 0.175
+        },
+        {
+          "yil": 5,
+          "fcf": 80056544288.48868,
+          "pv_fcf": 23299520919.24167,
+          "buyume": 0.15
+        }
+      ],
+      "indirgenmis_nakit_akislari_toplami": 139105135418.48,
+      "uc_deger": 432305339157.84,
+      "indirgenmis_uc_deger": 125817412963.91,
+      "firma_degeri_ev": 264922548382.39,
+      "nakit_ve_benzerleri": 69949988864.0,
+      "toplam_borc": 255043584000.0,
+      "net_borc": 185093595136.0,
+      "ozsermaye_degeri": 79828953246.39,
+      "hisse_basina_adil_deger": 159.66,
+      "hisse_basina_adil_deger_try": 159.66,
+      "getiri_potansiyeli_yuzde": 31.6,
+      "degerlendirme": "GÜÇLÜ İSKONTO (CAZİP)",
+      "duyarlilik_matrisi": {
+        "wacc_rates": [
+          0.24,
+          0.26,
+          0.28,
+          0.3,
+          0.32
+        ],
+        "terminal_rates": [
+          0.05,
+          0.065,
+          0.08,
+          0.095,
+          0.11
+        ],
+        "rows": [
+          {
+            "wacc": 0.24,
+            "values": [
+              236.52,
+              267.07,
+              303.35,
+              347.14,
+              401.03
+            ]
+          },
+          {
+            "wacc": 0.26,
+            "values": [
+              172.96,
+              196.23,
+              223.37,
+              255.46,
+              293.96
+            ]
+          },
+          {
+            "wacc": 0.28,
+            "values": [
+              120.76,
+              138.85,
+              159.66,
+              183.84,
+              212.29
+            ]
+          },
+          {
+            "wacc": 0.3,
+            "values": [
+              77.17,
+              91.48,
+              107.75,
+              126.39,
+              147.98
+            ]
+          },
+          {
+            "wacc": 0.32,
+            "values": [
+              40.26,
+              51.75,
+              64.67,
+              79.32,
+              96.07
+            ]
+          }
+        ]
+      },
+      "senaryolar": {
+        "bear": {
+          "ad": "Kötümser (Ayı) Senaryo",
+          "wacc": 0.3,
+          "buyume": 0.188,
+          "adil_deger_try": 26.48,
+          "potansiyel_yuzde": -78.2
+        },
+        "base": {
+          "ad": "Baz Senaryo",
+          "wacc": 0.28,
+          "buyume": 0.25,
+          "adil_deger_try": 159.66,
+          "potansiyel_yuzde": 31.6
+        },
+        "bull": {
+          "ad": "İyimser (Boğa) Senaryo",
+          "wacc": 0.26,
+          "buyume": 0.312,
+          "adil_deger_try": 356.45,
+          "potansiyel_yuzde": 193.9
+        }
+      }
+    }
+  },
+  "FROTO": {
+    "ticker": "FROTO",
+    "key_levels": {
+      "ticker": "FROTO",
+      "son_fiyat": 66.4,
+      "gunluk_degisim_yuzde": 1.45,
+      "pivot_noktasi": 66.98,
+      "direncler": {
+        "r1": 68.52,
+        "r2": 71.58,
+        "direnc_20g": 75.4,
+        "fib_618": 85.54
+      },
+      "destekler": {
+        "s1": 63.92,
+        "s2": 62.38,
+        "destek_20g": 62.3,
+        "fib_382": 76.66
+      },
+      "hareketli_ortalamalar": {
+        "sma_20": 70.15,
+        "sma_50": 74.86
+      },
+      "rsi_14": 33.3,
+      "rsi_bolgesi": "Nötr (Dengeli)",
+      "52h_zirve": 135.4,
+      "52h_dip": 62.3,
+      "zirveye_uzaklik_yuzde": -50.96
+    },
+    "fundamental": {
+      "ticker": "FROTO",
+      "sirket": "FORD OTOSAN",
+      "sektor": "Consumer Cyclical",
+      "alt_sektor": "Auto Manufacturers",
+      "piyasa_degeri_tl": 233004253184.0,
+      "piyasa_degeri_fmt": "233.0 Milyar TL",
+      "fiyat_kazanc_fk": 0.36,
+      "piyasa_defter_pddd": 1.3,
+      "fd_favok": 7.98,
+      "yillik_hasilat_tl": 775224033280.0,
+      "hasilat_fmt": "775.2 Milyar TL",
+      "net_kar_marji_yuzde": 3.5,
+      "ozsermaye_karliligi_roe": 17.0,
+      "sozlesme_ciro_analizi": null
+    },
+    "dcf": {
+      "ticker": "FROTO",
+      "sirket": "FORD OTOSAN",
+      "para_birimi": "TRY",
+      "finansal_para_birimi": "TRY",
+      "guncel_fiyat": 66.4,
+      "hisse_adedi": 3509100000.0,
+      "baz_fcf": 73972026000.0,
+      "baz_fcf_fmt": "73.97 Milyar TRY",
+      "varsayimlar": {
+        "wacc_aosm": 0.28,
+        "buyume_orani": 0.25,
+        "uc_buyume_orani": 0.08,
+        "tahmin_yili": 5
+      },
+      "projeksiyonlar": [
+        {
+          "yil": 1,
+          "fcf": 92465032500.0,
+          "pv_fcf": 72238306640.625,
+          "buyume": 0.25
+        },
+        {
+          "yil": 2,
+          "fcf": 113269664812.50002,
+          "pv_fcf": 69134316902.16064,
+          "buyume": 0.225
+        },
+        {
+          "yil": 3,
+          "fcf": 135923597775.00002,
+          "pv_fcf": 64813422095.775604,
+          "buyume": 0.2
+        },
+        {
+          "yil": 4,
+          "fcf": 159710227385.62503,
+          "pv_fcf": 59496696064.48152,
+          "buyume": 0.175
+        },
+        {
+          "yil": 5,
+          "fcf": 183666761493.46878,
+          "pv_fcf": 53454062870.43261,
+          "buyume": 0.15
+        }
+      ],
+      "indirgenmis_nakit_akislari_toplami": 319136804573.48,
+      "uc_deger": 991800512064.73,
+      "indirgenmis_uc_deger": 288651939500.34,
+      "firma_degeri_ev": 607788744073.81,
+      "nakit_ve_benzerleri": 56042422272.0,
+      "toplam_borc": 169782722560.0,
+      "net_borc": 113740300288.0,
+      "ozsermaye_degeri": 494048443785.81,
+      "hisse_basina_adil_deger": 140.79,
+      "hisse_basina_adil_deger_try": 140.79,
+      "getiri_potansiyeli_yuzde": 112.0,
+      "degerlendirme": "GÜÇLÜ İSKONTO (CAZİP)",
+      "duyarlilik_matrisi": {
+        "wacc_rates": [
+          0.24,
+          0.26,
+          0.28,
+          0.3,
+          0.32
+        ],
+        "terminal_rates": [
+          0.05,
+          0.065,
+          0.08,
+          0.095,
+          0.11
+        ],
+        "rows": [
+          {
+            "wacc": 0.24,
+            "values": [
+              165.92,
+              175.9,
+              187.76,
+              202.08,
+              219.69
+            ]
+          },
+          {
+            "wacc": 0.26,
+            "values": [
+              145.14,
+              152.74,
+              161.62,
+              172.11,
+              184.69
+            ]
+          },
+          {
+            "wacc": 0.28,
+            "values": [
+              128.07,
+              133.99,
+              140.79,
+              148.7,
+              157.99
+            ]
+          },
+          {
+            "wacc": 0.3,
+            "values": [
+              113.83,
+              118.5,
+              123.82,
+              129.92,
+              136.97
+            ]
+          },
+          {
+            "wacc": 0.32,
+            "values": [
+              101.76,
+              105.52,
+              109.74,
+              114.53,
+              120.0
+            ]
+          }
+        ]
+      },
+      "senaryolar": {
+        "bear": {
+          "ad": "Kötümser (Ayı) Senaryo",
+          "wacc": 0.3,
+          "buyume": 0.188,
+          "adil_deger_try": 97.25,
+          "potansiyel_yuzde": 46.5
+        },
+        "base": {
+          "ad": "Baz Senaryo",
+          "wacc": 0.28,
+          "buyume": 0.25,
+          "adil_deger_try": 140.79,
+          "potansiyel_yuzde": 112.0
+        },
+        "bull": {
+          "ad": "İyimser (Boğa) Senaryo",
+          "wacc": 0.26,
+          "buyume": 0.312,
+          "adil_deger_try": 205.12,
+          "potansiyel_yuzde": 208.9
+        }
+      }
+    }
+  },
+  "SISE": {
+    "ticker": "SISE",
+    "key_levels": {
+      "ticker": "SISE",
+      "son_fiyat": 33.28,
+      "gunluk_degisim_yuzde": 3.87,
+      "pivot_noktasi": 32.61,
+      "direncler": {
+        "r1": 33.19,
+        "r2": 34.33,
+        "direnc_20g": 38.32,
+        "fib_618": 45.67
+      },
+      "destekler": {
+        "s1": 31.47,
+        "s2": 30.89,
+        "destek_20g": 32.04,
+        "fib_382": 40.47
+      },
+      "hareketli_ortalamalar": {
+        "sma_20": 35.91,
+        "sma_50": 38.53
+      },
+      "rsi_14": 28.7,
+      "rsi_bolgesi": "Aşırı Satım (<30)",
+      "52h_zirve": 54.1,
+      "52h_dip": 32.04,
+      "zirveye_uzaklik_yuzde": -38.48
+    },
+    "fundamental": {
+      "ticker": "SISE",
+      "sirket": "SISE CAM",
+      "sektor": "Industrials",
+      "alt_sektor": "Conglomerates",
+      "piyasa_degeri_tl": 99588268032.0,
+      "piyasa_degeri_fmt": "99.6 Milyar TL",
+      "fiyat_kazanc_fk": 3.13,
+      "piyasa_defter_pddd": 0.3,
+      "fd_favok": 20.99,
+      "yillik_hasilat_tl": 213718876160.0,
+      "hasilat_fmt": "213.7 Milyar TL",
+      "net_kar_marji_yuzde": 4.7,
+      "ozsermaye_karliligi_roe": 3.2,
+      "sozlesme_ciro_analizi": null
+    },
+    "dcf": {
+      "ticker": "SISE",
+      "sirket": "SISE CAM",
+      "para_birimi": "TRY",
+      "finansal_para_birimi": "TRY",
+      "guncel_fiyat": 33.28,
+      "hisse_adedi": 2992436056.0,
+      "baz_fcf": 3910669000.0,
+      "baz_fcf_fmt": "3.91 Milyar TRY",
+      "varsayimlar": {
+        "wacc_aosm": 0.28,
+        "buyume_orani": 0.25,
+        "uc_buyume_orani": 0.08,
+        "tahmin_yili": 5
+      },
+      "projeksiyonlar": [
+        {
+          "yil": 1,
+          "fcf": 4888336250.0,
+          "pv_fcf": 3819012695.3125,
+          "buyume": 0.25
+        },
+        {
+          "yil": 2,
+          "fcf": 5988211906.25,
+          "pv_fcf": 3654914493.560791,
+          "buyume": 0.225
+        },
+        {
+          "yil": 3,
+          "fcf": 7185854287.5,
+          "pv_fcf": 3426482337.713241,
+          "buyume": 0.2
+        },
+        {
+          "yil": 4,
+          "fcf": 8443378787.8125,
+          "pv_fcf": 3145403708.447702,
+          "buyume": 0.175
+        },
+        {
+          "yil": 5,
+          "fcf": 9709885605.984375,
+          "pv_fcf": 2825948644.308482,
+          "buyume": 0.15
+        }
+      ],
+      "indirgenmis_nakit_akislari_toplami": 16871761879.34,
+      "uc_deger": 52433382272.32,
+      "indirgenmis_uc_deger": 15260122679.27,
+      "firma_degeri_ev": 32131884558.61,
+      "nakit_ve_benzerleri": 28412479488.0,
+      "toplam_borc": 171631312896.0,
+      "net_borc": 143218833408.0,
+      "ozsermaye_degeri": -111086948849.39,
+      "hisse_basina_adil_deger": -37.12,
+      "hisse_basina_adil_deger_try": -37.12,
+      "getiri_potansiyeli_yuzde": -211.5,
+      "degerlendirme": "YÜKSEK PRİMLİ",
+      "duyarlilik_matrisi": {
+        "wacc_rates": [
+          0.24,
+          0.26,
+          0.28,
+          0.3,
+          0.32
+        ],
+        "terminal_rates": [
+          0.05,
+          0.065,
+          0.08,
+          0.095,
+          0.11
+        ],
+        "rows": [
+          {
+            "wacc": 0.24,
+            "values": [
+              -35.56,
+              -34.95,
+              -34.21,
+              -33.32,
+              -32.23
+            ]
+          },
+          {
+            "wacc": 0.26,
+            "values": [
+              -36.85,
+              -36.38,
+              -35.83,
+              -35.18,
+              -34.4
+            ]
+          },
+          {
+            "wacc": 0.28,
+            "values": [
+              -37.91,
+              -37.54,
+              -37.12,
+              -36.63,
+              -36.06
+            ]
+          },
+          {
+            "wacc": 0.3,
+            "values": [
+              -38.79,
+              -38.5,
+              -38.17,
+              -37.8,
+              -37.36
+            ]
+          },
+          {
+            "wacc": 0.32,
+            "values": [
+              -39.54,
+              -39.31,
+              -39.05,
+              -38.75,
+              -38.41
+            ]
+          }
+        ]
+      },
+      "senaryolar": {
+        "bear": {
+          "ad": "Kötümser (Ayı) Senaryo",
+          "wacc": 0.3,
+          "buyume": 0.188,
+          "adil_deger_try": -39.82,
+          "potansiyel_yuzde": -219.7
+        },
+        "base": {
+          "ad": "Baz Senaryo",
+          "wacc": 0.28,
+          "buyume": 0.25,
+          "adil_deger_try": -37.12,
+          "potansiyel_yuzde": -211.5
+        },
+        "bull": {
+          "ad": "İyimser (Boğa) Senaryo",
+          "wacc": 0.26,
+          "buyume": 0.312,
+          "adil_deger_try": -33.13,
+          "potansiyel_yuzde": -199.6
+        }
+      }
+    }
+  },
+  "SAHOL": {
+    "ticker": "SAHOL",
+    "key_levels": {
+      "ticker": "SAHOL",
+      "son_fiyat": 81.55,
+      "gunluk_degisim_yuzde": 0.55,
+      "pivot_noktasi": 81.53,
+      "direncler": {
+        "r1": 82.37,
+        "r2": 83.63,
+        "direnc_20g": 89.7,
+        "fib_618": 94.63
+      },
+      "destekler": {
+        "s1": 80.27,
+        "s2": 79.43,
+        "destek_20g": 80.6,
+        "fib_382": 89.27
+      },
+      "hareketli_ortalamalar": {
+        "sma_20": 85.99,
+        "sma_50": 89.18
+      },
+      "rsi_14": 41.4,
+      "rsi_bolgesi": "Nötr (Dengeli)",
+      "52h_zirve": 115.0,
+      "52h_dip": 73.9,
+      "zirveye_uzaklik_yuzde": -29.09
+    },
+    "fundamental": {
+      "ticker": "SAHOL",
+      "sirket": "SABANCI HOLDING",
+      "sektor": "Financial Services",
+      "alt_sektor": "Banks - Regional",
+      "piyasa_degeri_tl": 168631943168.0,
+      "piyasa_degeri_fmt": "168.6 Milyar TL",
+      "fiyat_kazanc_fk": 2.95,
+      "piyasa_defter_pddd": 0.4,
+      "fd_favok": null,
+      "yillik_hasilat_tl": 275480150016.0,
+      "hasilat_fmt": "275.5 Milyar TL",
+      "net_kar_marji_yuzde": 7.3,
+      "ozsermaye_karliligi_roe": 4.8,
+      "sozlesme_ciro_analizi": null
+    },
+    "dcf": {
+      "ticker": "SAHOL",
+      "sirket": "SABANCI HOLDING",
+      "para_birimi": "TRY",
+      "finansal_para_birimi": "TRY",
+      "guncel_fiyat": 81.55,
+      "hisse_adedi": 2067834969.0,
+      "baz_fcf": 51804301000.0,
+      "baz_fcf_fmt": "51.80 Milyar TRY",
+      "varsayimlar": {
+        "wacc_aosm": 0.28,
+        "buyume_orani": 0.25,
+        "uc_buyume_orani": 0.08,
+        "tahmin_yili": 5
+      },
+      "projeksiyonlar": [
+        {
+          "yil": 1,
+          "fcf": 64755376250.0,
+          "pv_fcf": 50590137695.3125,
+          "buyume": 0.25
+        },
+        {
+          "yil": 2,
+          "fcf": 79325335906.25,
+          "pv_fcf": 48416342716.21704,
+          "buyume": 0.225
+        },
+        {
+          "yil": 3,
+          "fcf": 95190403087.5,
+          "pv_fcf": 45390321296.45347,
+          "buyume": 0.2
+        },
+        {
+          "yil": 4,
+          "fcf": 111848723627.8125,
+          "pv_fcf": 41666896502.603775,
+          "buyume": 0.175
+        },
+        {
+          "yil": 5,
+          "fcf": 128626032171.98436,
+          "pv_fcf": 37435102326.55807,
+          "buyume": 0.15
+        }
+      ],
+      "indirgenmis_nakit_akislari_toplami": 223498800537.14,
+      "uc_deger": 694580573728.72,
+      "indirgenmis_uc_deger": 202149552563.41,
+      "firma_degeri_ev": 425648353100.56,
+      "nakit_ve_benzerleri": 222799757312.0,
+      "toplam_borc": 1039755771904.0,
+      "net_borc": 816956014592.0,
+      "ozsermaye_degeri": -391307661491.44,
+      "hisse_basina_adil_deger": -189.24,
+      "hisse_basina_adil_deger_try": -189.24,
+      "getiri_potansiyeli_yuzde": -332.0,
+      "degerlendirme": "YÜKSEK PRİMLİ",
+      "duyarlilik_matrisi": {
+        "wacc_rates": [
+          0.24,
+          0.26,
+          0.28,
+          0.3,
+          0.32
+        ],
+        "terminal_rates": [
+          0.05,
+          0.065,
+          0.08,
+          0.095,
+          0.11
+        ],
+        "rows": [
+          {
+            "wacc": 0.24,
+            "values": [
+              -159.38,
+              -147.51,
+              -133.41,
+              -116.4,
+              -95.46
+            ]
+          },
+          {
+            "wacc": 0.26,
+            "values": [
+              -184.07,
+              -175.03,
+              -164.48,
+              -152.02,
+              -137.06
+            ]
+          },
+          {
+            "wacc": 0.28,
+            "values": [
+              -204.35,
+              -197.32,
+              -189.24,
+              -179.84,
+              -168.79
+            ]
+          },
+          {
+            "wacc": 0.3,
+            "values": [
+              -221.28,
+              -215.72,
+              -209.4,
+              -202.16,
+              -193.77
+            ]
+          },
+          {
+            "wacc": 0.32,
+            "values": [
+              -235.62,
+              -231.16,
+              -226.14,
+              -220.44,
+              -213.94
+            ]
+          }
+        ]
+      },
+      "senaryolar": {
+        "bear": {
+          "ad": "Kötümser (Ayı) Senaryo",
+          "wacc": 0.3,
+          "buyume": 0.188,
+          "adil_deger_try": -240.98,
+          "potansiyel_yuzde": -395.5
+        },
+        "base": {
+          "ad": "Baz Senaryo",
+          "wacc": 0.28,
+          "buyume": 0.25,
+          "adil_deger_try": -189.24,
+          "potansiyel_yuzde": -332.0
+        },
+        "bull": {
+          "ad": "İyimser (Boğa) Senaryo",
+          "wacc": 0.26,
+          "buyume": 0.312,
+          "adil_deger_try": -112.78,
+          "potansiyel_yuzde": -238.3
+        }
+      }
+    }
+  },
+  "PETKM": {
+    "ticker": "PETKM",
+    "key_levels": {
+      "ticker": "PETKM",
+      "son_fiyat": 16.26,
+      "gunluk_degisim_yuzde": 0.12,
+      "pivot_noktasi": 16.65,
+      "direncler": {
+        "r1": 17.2,
+        "r2": 18.16,
+        "direnc_20g": 21.28,
+        "fib_618": 23.49
+      },
+      "destekler": {
+        "s1": 15.69,
+        "s2": 15.14,
+        "destek_20g": 16.1,
+        "fib_382": 20.67
+      },
+      "hareketli_ortalamalar": {
+        "sma_20": 19.14,
+        "sma_50": 20.44
+      },
+      "rsi_14": 15.1,
+      "rsi_bolgesi": "Aşırı Satım (<30)",
+      "52h_zirve": 28.06,
+      "52h_dip": 16.1,
+      "zirveye_uzaklik_yuzde": -42.05
+    },
+    "fundamental": {
+      "ticker": "PETKM",
+      "sirket": "PETKIM",
+      "sektor": "Basic Materials",
+      "alt_sektor": "Chemicals",
+      "piyasa_degeri_tl": 41209344000.0,
+      "piyasa_degeri_fmt": "41.2 Milyar TL",
+      "fiyat_kazanc_fk": 3.89,
+      "piyasa_defter_pddd": 0.55,
+      "fd_favok": -37.11,
+      "yillik_hasilat_tl": 103342874624.0,
+      "hasilat_fmt": "103.3 Milyar TL",
+      "net_kar_marji_yuzde": -1.4,
+      "ozsermaye_karliligi_roe": -2.1,
+      "sozlesme_ciro_analizi": null
+    },
+    "dcf": {
+      "ticker": "PETKM",
+      "sirket": "PETKIM",
+      "para_birimi": "TRY",
+      "finansal_para_birimi": "TRY",
+      "guncel_fiyat": 16.26,
+      "hisse_adedi": 2534400000.0,
+      "baz_fcf": 1008730368.0,
+      "baz_fcf_fmt": "1.01 Milyar TRY",
+      "varsayimlar": {
+        "wacc_aosm": 0.28,
+        "buyume_orani": 0.25,
+        "uc_buyume_orani": 0.08,
+        "tahmin_yili": 5
+      },
+      "projeksiyonlar": [
+        {
+          "yil": 1,
+          "fcf": 1260912960.0,
+          "pv_fcf": 985088250.0,
+          "buyume": 0.25
+        },
+        {
+          "yil": 2,
+          "fcf": 1544618376.0,
+          "pv_fcf": 942760239.2578125,
+          "buyume": 0.225
+        },
+        {
+          "yil": 3,
+          "fcf": 1853542051.2,
+          "pv_fcf": 883837724.3041991,
+          "buyume": 0.2
+        },
+        {
+          "yil": 4,
+          "fcf": 2177911910.1600003,
+          "pv_fcf": 811335410.9823705,
+          "buyume": 0.175
+        },
+        {
+          "yil": 5,
+          "fcf": 2504598696.684,
+          "pv_fcf": 728934158.3044733,
+          "buyume": 0.15
+        }
+      ],
+      "indirgenmis_nakit_akislari_toplami": 4351955782.85,
+      "uc_deger": 13524832962.09,
+      "indirgenmis_uc_deger": 3936244454.84,
+      "firma_degeri_ev": 8288200237.69,
+      "nakit_ve_benzerleri": 6989085184.0,
+      "toplam_borc": 56086175744.0,
+      "net_borc": 49097090560.0,
+      "ozsermaye_degeri": -40808890322.31,
+      "hisse_basina_adil_deger": -16.1,
+      "hisse_basina_adil_deger_try": -16.1,
+      "getiri_potansiyeli_yuzde": -199.0,
+      "degerlendirme": "YÜKSEK PRİMLİ",
+      "duyarlilik_matrisi": {
+        "wacc_rates": [
+          0.24,
+          0.26,
+          0.28,
+          0.3,
+          0.32
+        ],
+        "terminal_rates": [
+          0.05,
+          0.065,
+          0.08,
+          0.095,
+          0.11
+        ],
+        "rows": [
+          {
+            "wacc": 0.24,
+            "values": [
+              -15.63,
+              -15.44,
+              -15.22,
+              -14.94,
+              -14.61
+            ]
+          },
+          {
+            "wacc": 0.26,
+            "values": [
+              -16.02,
+              -15.88,
+              -15.71,
+              -15.51,
+              -15.27
+            ]
+          },
+          {
+            "wacc": 0.28,
+            "values": [
+              -16.34,
+              -16.23,
+              -16.1,
+              -15.95,
+              -15.78
+            ]
+          },
+          {
+            "wacc": 0.3,
+            "values": [
+              -16.61,
+              -16.52,
+              -16.42,
+              -16.31,
+              -16.17
+            ]
+          },
+          {
+            "wacc": 0.32,
+            "values": [
+              -16.84,
+              -16.77,
+              -16.69,
+              -16.6,
+              -16.49
+            ]
+          }
+        ]
+      },
+      "senaryolar": {
+        "bear": {
+          "ad": "Kötümser (Ayı) Senaryo",
+          "wacc": 0.3,
+          "buyume": 0.188,
+          "adil_deger_try": -16.92,
+          "potansiyel_yuzde": -204.1
+        },
+        "base": {
+          "ad": "Baz Senaryo",
+          "wacc": 0.28,
+          "buyume": 0.25,
+          "adil_deger_try": -16.1,
+          "potansiyel_yuzde": -199.0
+        },
+        "bull": {
+          "ad": "İyimser (Boğa) Senaryo",
+          "wacc": 0.26,
+          "buyume": 0.312,
+          "adil_deger_try": -14.89,
+          "potansiyel_yuzde": -191.6
+        }
+      }
+    }
+  },
+  "TCELL": {
+    "ticker": "TCELL",
+    "key_levels": {
+      "ticker": "TCELL",
+      "son_fiyat": 89.5,
+      "gunluk_degisim_yuzde": -0.67,
+      "pivot_noktasi": 90.45,
+      "direncler": {
+        "r1": 91.4,
+        "r2": 92.7,
+        "direnc_20g": 102.2,
+        "fib_618": 108.67
+      },
+      "destekler": {
+        "s1": 89.15,
+        "s2": 88.2,
+        "destek_20g": 84.85,
+        "fib_382": 99.58
+      },
+      "hareketli_ortalamalar": {
+        "sma_20": 95.67,
+        "sma_50": 98.06
+      },
+      "rsi_14": 27.4,
+      "rsi_bolgesi": "Aşırı Satım (<30)",
+      "52h_zirve": 129.6,
+      "52h_dip": 84.85,
+      "zirveye_uzaklik_yuzde": -30.94
+    },
+    "fundamental": {
+      "ticker": "TCELL",
+      "sirket": "TURKCELL",
+      "sektor": "Communication Services",
+      "alt_sektor": "Telecom Services",
+      "piyasa_degeri_tl": 194791620608.0,
+      "piyasa_degeri_fmt": "194.8 Milyar TL",
+      "fiyat_kazanc_fk": 7.14,
+      "piyasa_defter_pddd": 0.63,
+      "fd_favok": 5.46,
+      "yillik_hasilat_tl": 249203081216.0,
+      "hasilat_fmt": "249.2 Milyar TL",
+      "net_kar_marji_yuzde": 7.2,
+      "ozsermaye_karliligi_roe": 6.8,
+      "sozlesme_ciro_analizi": null
+    },
+    "dcf": {
+      "ticker": "TCELL",
+      "sirket": "TURKCELL",
+      "para_birimi": "TRY",
+      "finansal_para_birimi": "TRY",
+      "guncel_fiyat": 89.5,
+      "hisse_adedi": 2176442555.0,
+      "baz_fcf": 16135556000.0,
+      "baz_fcf_fmt": "16.14 Milyar TRY",
+      "varsayimlar": {
+        "wacc_aosm": 0.28,
+        "buyume_orani": 0.25,
+        "uc_buyume_orani": 0.08,
+        "tahmin_yili": 5
+      },
+      "projeksiyonlar": [
+        {
+          "yil": 1,
+          "fcf": 20169445000.0,
+          "pv_fcf": 15757378906.25,
+          "buyume": 0.25
+        },
+        {
+          "yil": 2,
+          "fcf": 24707570125.0,
+          "pv_fcf": 15080304031.37207,
+          "buyume": 0.225
+        },
+        {
+          "yil": 3,
+          "fcf": 29649084150.0,
+          "pv_fcf": 14137785029.411314,
+          "buyume": 0.2
+        },
+        {
+          "yil": 4,
+          "fcf": 34837673876.25,
+          "pv_fcf": 12978044851.217419,
+          "buyume": 0.175
+        },
+        {
+          "yil": 5,
+          "fcf": 40063324957.6875,
+          "pv_fcf": 11659962171.015648,
+          "buyume": 0.15
+        }
+      ],
+      "indirgenmis_nakit_akislari_toplami": 69613474989.27,
+      "uc_deger": 216341954771.51,
+      "indirgenmis_uc_deger": 62963795723.48,
+      "firma_degeri_ev": 132577270712.75,
+      "nakit_ve_benzerleri": 115207454720.0,
+      "toplam_borc": 212068171776.0,
+      "net_borc": 96860717056.0,
+      "ozsermaye_degeri": 35716553656.75,
+      "hisse_basina_adil_deger": 16.41,
+      "hisse_basina_adil_deger_try": 16.41,
+      "getiri_potansiyeli_yuzde": -81.7,
+      "degerlendirme": "YÜKSEK PRİMLİ",
+      "duyarlilik_matrisi": {
+        "wacc_rates": [
+          0.24,
+          0.26,
+          0.28,
+          0.3,
+          0.32
+        ],
+        "terminal_rates": [
+          0.05,
+          0.065,
+          0.08,
+          0.095,
+          0.11
+        ],
+        "rows": [
+          {
+            "wacc": 0.24,
+            "values": [
+              25.25,
+              28.76,
+              32.93,
+              37.96,
+              44.16
+            ]
+          },
+          {
+            "wacc": 0.26,
+            "values": [
+              17.94,
+              20.61,
+              23.74,
+              27.42,
+              31.85
+            ]
+          },
+          {
+            "wacc": 0.28,
+            "values": [
+              11.94,
+              14.02,
+              16.41,
+              19.19,
+              22.46
+            ]
+          },
+          {
+            "wacc": 0.3,
+            "values": [
+              6.93,
+              8.57,
+              10.44,
+              12.59,
+              15.07
+            ]
+          },
+          {
+            "wacc": 0.32,
+            "values": [
+              2.68,
+              4.0,
+              5.49,
+              7.17,
+              9.1
+            ]
+          }
+        ]
+      },
+      "senaryolar": {
+        "bear": {
+          "ad": "Kötümser (Ayı) Senaryo",
+          "wacc": 0.3,
+          "buyume": 0.188,
+          "adil_deger_try": 1.1,
+          "potansiyel_yuzde": -98.8
+        },
+        "base": {
+          "ad": "Baz Senaryo",
+          "wacc": 0.28,
+          "buyume": 0.25,
+          "adil_deger_try": 16.41,
+          "potansiyel_yuzde": -81.7
+        },
+        "bull": {
+          "ad": "İyimser (Boğa) Senaryo",
+          "wacc": 0.26,
+          "buyume": 0.312,
+          "adil_deger_try": 39.04,
+          "potansiyel_yuzde": -56.4
+        }
+      }
+    }
+  },
+  "TTKOM": {
+    "ticker": "TTKOM",
+    "key_levels": {
+      "ticker": "TTKOM",
+      "son_fiyat": 46.3,
+      "gunluk_degisim_yuzde": 0.3,
+      "pivot_noktasi": 46.6,
+      "direncler": {
+        "r1": 47.04,
+        "r2": 47.92,
+        "direnc_20g": 53.95,
+        "fib_618": 59.38
+      },
+      "destekler": {
+        "s1": 45.72,
+        "s2": 45.28,
+        "destek_20g": 43.98,
+        "fib_382": 53.5
+      },
+      "hareketli_ortalamalar": {
+        "sma_20": 50.06,
+        "sma_50": 52.09
+      },
+      "rsi_14": 26.8,
+      "rsi_bolgesi": "Aşırı Satım (<30)",
+      "52h_zirve": 75.65,
+      "52h_dip": 43.98,
+      "zirveye_uzaklik_yuzde": -38.8
+    },
+    "fundamental": {
+      "ticker": "TTKOM",
+      "sirket": "TURK TELEKOM",
+      "sektor": "Communication Services",
+      "alt_sektor": "Telecom Services",
+      "piyasa_degeri_tl": 162049998848.0,
+      "piyasa_degeri_fmt": "162.0 Milyar TL",
+      "fiyat_kazanc_fk": 6.28,
+      "piyasa_defter_pddd": 0.61,
+      "fd_favok": 2.85,
+      "yillik_hasilat_tl": 253966680064.0,
+      "hasilat_fmt": "254.0 Milyar TL",
+      "net_kar_marji_yuzde": 10.4,
+      "ozsermaye_karliligi_roe": 11.9,
+      "sozlesme_ciro_analizi": null
+    },
+    "dcf": {
+      "ticker": "TTKOM",
+      "sirket": "TURK TELEKOM",
+      "para_birimi": "TRY",
+      "finansal_para_birimi": "TRY",
+      "guncel_fiyat": 46.3,
+      "hisse_adedi": 3500000000.0,
+      "baz_fcf": 22053168000.0,
+      "baz_fcf_fmt": "22.05 Milyar TRY",
+      "varsayimlar": {
+        "wacc_aosm": 0.28,
+        "buyume_orani": 0.25,
+        "uc_buyume_orani": 0.08,
+        "tahmin_yili": 5
+      },
+      "projeksiyonlar": [
+        {
+          "yil": 1,
+          "fcf": 27566460000.0,
+          "pv_fcf": 21536296875.0,
+          "buyume": 0.25
+        },
+        {
+          "yil": 2,
+          "fcf": 33768913500.000004,
+          "pv_fcf": 20610909118.652344,
+          "buyume": 0.225
+        },
+        {
+          "yil": 3,
+          "fcf": 40522696200.0,
+          "pv_fcf": 19322727298.73657,
+          "buyume": 0.2
+        },
+        {
+          "yil": 4,
+          "fcf": 47614168035.0,
+          "pv_fcf": 17737659825.01209,
+          "buyume": 0.175
+        },
+        {
+          "yil": 5,
+          "fcf": 54756293240.24999,
+          "pv_fcf": 15936178749.034292,
+          "buyume": 0.15
+        }
+      ],
+      "indirgenmis_nakit_akislari_toplami": 95143771866.44,
+      "uc_deger": 295683983497.35,
+      "indirgenmis_uc_deger": 86055365244.79,
+      "firma_degeri_ev": 181199137111.22,
+      "nakit_ve_benzerleri": 25658245120.0,
+      "toplam_borc": 145064230912.0,
+      "net_borc": 119405985792.0,
+      "ozsermaye_degeri": 61793151319.22,
+      "hisse_basina_adil_deger": 17.66,
+      "hisse_basina_adil_deger_try": 17.66,
+      "getiri_potansiyeli_yuzde": -61.9,
+      "degerlendirme": "YÜKSEK PRİMLİ",
+      "duyarlilik_matrisi": {
+        "wacc_rates": [
+          0.24,
+          0.26,
+          0.28,
+          0.3,
+          0.32
+        ],
+        "terminal_rates": [
+          0.05,
+          0.065,
+          0.08,
+          0.095,
+          0.11
+        ],
+        "rows": [
+          {
+            "wacc": 0.24,
+            "values": [
+              25.16,
+              28.15,
+              31.7,
+              35.97,
+              41.24
+            ]
+          },
+          {
+            "wacc": 0.26,
+            "values": [
+              18.95,
+              21.23,
+              23.88,
+              27.02,
+              30.78
+            ]
+          },
+          {
+            "wacc": 0.28,
+            "values": [
+              13.85,
+              15.62,
+              17.66,
+              20.02,
+              22.8
+            ]
+          },
+          {
+            "wacc": 0.3,
+            "values": [
+              9.6,
+              10.99,
+              12.58,
+              14.4,
+              16.51
+            ]
+          },
+          {
+            "wacc": 0.32,
+            "values": [
+              5.99,
+              7.11,
+              8.37,
+              9.81,
+              11.44
+            ]
+          }
+        ]
+      },
+      "senaryolar": {
+        "bear": {
+          "ad": "Kötümser (Ayı) Senaryo",
+          "wacc": 0.3,
+          "buyume": 0.188,
+          "adil_deger_try": 4.64,
+          "potansiyel_yuzde": -90.0
+        },
+        "base": {
+          "ad": "Baz Senaryo",
+          "wacc": 0.28,
+          "buyume": 0.25,
+          "adil_deger_try": 17.66,
+          "potansiyel_yuzde": -61.9
+        },
+        "bull": {
+          "ad": "İyimser (Boğa) Senaryo",
+          "wacc": 0.26,
+          "buyume": 0.312,
+          "adil_deger_try": 36.88,
+          "potansiyel_yuzde": -20.3
+        }
+      }
+    }
+  },
+  "ULUUN": {
+    "ticker": "ULUUN",
+    "key_levels": {
+      "ticker": "ULUUN",
+      "son_fiyat": 5.85,
+      "gunluk_degisim_yuzde": -0.34,
+      "pivot_noktasi": 5.93,
+      "direncler": {
+        "r1": 6.04,
+        "r2": 6.2,
+        "direnc_20g": 7.11,
+        "fib_618": 8.82
+      },
+      "destekler": {
+        "s1": 5.77,
+        "s2": 5.66,
+        "destek_20g": 5.8,
+        "fib_382": 7.6
+      },
+      "hareketli_ortalamalar": {
+        "sma_20": 6.39,
+        "sma_50": 7.17
+      },
+      "rsi_14": 8.0,
+      "rsi_bolgesi": "Aşırı Satım (<30)",
+      "52h_zirve": 10.79,
+      "52h_dip": 5.63,
+      "zirveye_uzaklik_yuzde": -45.78
+    },
+    "fundamental": {
+      "ticker": "ULUUN",
+      "sirket": "ULUSOY UN SANAYI",
+      "sektor": "Consumer Defensive",
+      "alt_sektor": "Packaged Foods",
+      "piyasa_degeri_tl": 4387500032.0,
+      "piyasa_degeri_fmt": "4.4 Milyar TL",
+      "fiyat_kazanc_fk": 10.26,
+      "piyasa_defter_pddd": 0.26,
+      "fd_favok": 2.76,
+      "yillik_hasilat_tl": 75506311168.0,
+      "hasilat_fmt": "75.5 Milyar TL",
+      "net_kar_marji_yuzde": 0.7,
+      "ozsermaye_karliligi_roe": 4.3,
+      "sozlesme_ciro_analizi": null
+    },
+    "dcf": {
+      "ticker": "ULUUN",
+      "sirket": "ULUSOY UN SANAYI",
+      "para_birimi": "TRY",
+      "finansal_para_birimi": "TRY",
+      "guncel_fiyat": 5.85,
+      "hisse_adedi": 750000000.0,
+      "baz_fcf": 35241319.0,
+      "baz_fcf_fmt": "35.24 Milyon TRY",
+      "varsayimlar": {
+        "wacc_aosm": 0.28,
+        "buyume_orani": 0.25,
+        "uc_buyume_orani": 0.08,
+        "tahmin_yili": 5
+      },
+      "projeksiyonlar": [
+        {
+          "yil": 1,
+          "fcf": 44051648.75,
+          "pv_fcf": 34415350.5859375,
+          "buyume": 0.25
+        },
+        {
+          "yil": 2,
+          "fcf": 53963269.71875001,
+          "pv_fcf": 32936565.990448,
+          "buyume": 0.225
+        },
+        {
+          "yil": 3,
+          "fcf": 64755923.66250001,
+          "pv_fcf": 30878030.616045,
+          "buyume": 0.2
+        },
+        {
+          "yil": 4,
+          "fcf": 76088210.30343752,
+          "pv_fcf": 28345067.16707256,
+          "buyume": 0.175
+        },
+        {
+          "yil": 5,
+          "fcf": 87501441.84895314,
+          "pv_fcf": 25466271.28291675,
+          "buyume": 0.15
+        }
+      ],
+      "indirgenmis_nakit_akislari_toplami": 152041285.64,
+      "uc_deger": 472507785.98,
+      "indirgenmis_uc_deger": 137517864.93,
+      "firma_degeri_ev": 289559150.57,
+      "nakit_ve_benzerleri": 12867987456.0,
+      "toplam_borc": 10120470528.0,
+      "net_borc": -2747516928.0,
+      "ozsermaye_degeri": 3037076078.57,
+      "hisse_basina_adil_deger": 4.05,
+      "hisse_basina_adil_deger_try": 4.05,
+      "getiri_potansiyeli_yuzde": -30.8,
+      "degerlendirme": "YÜKSEK PRİMLİ",
+      "duyarlilik_matrisi": {
+        "wacc_rates": [
+          0.24,
+          0.26,
+          0.28,
+          0.3,
+          0.32
+        ],
+        "terminal_rates": [
+          0.05,
+          0.065,
+          0.08,
+          0.095,
+          0.11
+        ],
+        "rows": [
+          {
+            "wacc": 0.24,
+            "values": [
+              4.11,
+              4.13,
+              4.15,
+              4.19,
+              4.23
+            ]
+          },
+          {
+            "wacc": 0.26,
+            "values": [
+              4.06,
+              4.08,
+              4.1,
+              4.12,
+              4.15
+            ]
+          },
+          {
+            "wacc": 0.28,
+            "values": [
+              4.02,
+              4.03,
+              4.05,
+              4.07,
+              4.09
+            ]
+          },
+          {
+            "wacc": 0.3,
+            "values": [
+              3.99,
+              4.0,
+              4.01,
+              4.03,
+              4.04
+            ]
+          },
+          {
+            "wacc": 0.32,
+            "values": [
+              3.96,
+              3.97,
+              3.98,
+              3.99,
+              4.0
+            ]
+          }
+        ]
+      },
+      "senaryolar": {
+        "bear": {
+          "ad": "Kötümser (Ayı) Senaryo",
+          "wacc": 0.3,
+          "buyume": 0.188,
+          "adil_deger_try": 3.95,
+          "potansiyel_yuzde": -32.4
+        },
+        "base": {
+          "ad": "Baz Senaryo",
+          "wacc": 0.28,
+          "buyume": 0.25,
+          "adil_deger_try": 4.05,
+          "potansiyel_yuzde": -30.8
+        },
+        "bull": {
+          "ad": "İyimser (Boğa) Senaryo",
+          "wacc": 0.26,
+          "buyume": 0.312,
+          "adil_deger_try": 4.19,
+          "potansiyel_yuzde": -28.3
+        }
+      }
+    }
+  }
+}

@@ -125,7 +125,7 @@ async def test_mcp_all_tools_registered():
     assert "turib_depolama_backtest" in tool_names
     assert "turib_bolgesel_arbitraj" in tool_names
     
-    # BIST Araçları (7 Araç)
+    # BIST Araçları (8 Araç)
     assert "bist_piyasa_ozeti" in tool_names
     assert "bist_hisse_fiyat" in tool_names
     assert "bist_kap_bildirimleri" in tool_names
@@ -133,6 +133,7 @@ async def test_mcp_all_tools_registered():
     assert "bist_sektor_rotasyonu" in tool_names
     assert "bist_key_levels" in tool_names
     assert "bist_temel_analiz" in tool_names
+    assert "bist_dcf_degerleme" in tool_names
     
     # Çapraz Piyasa & Et-Yem Araçları (4 Araç)
     assert "agri_bist_korelasyon" in tool_names
@@ -140,7 +141,7 @@ async def test_mcp_all_tools_registered():
     assert "et_tufe_endeksi" in tool_names
     assert "et_sektoru_bist_etkisi" in tool_names
     
-    assert len(tool_names) == 20
+    assert len(tool_names) == 21
 
 
 def test_turib_market_data_publishing():

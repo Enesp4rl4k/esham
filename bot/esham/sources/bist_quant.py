@@ -172,6 +172,114 @@ def _fmt_try_money(amount: float) -> str:
     return f"{amount:,.0f} TL"
 
 
+
+def _fmt_money(amount: float, curr: str = "TL") -> str:
+    sign = "-" if amount < 0 else ""
+    abs_amt = abs(amount)
+    if abs_amt >= 1_000_000_000:
+        return f"{sign}{abs_amt / 1_000_000_000:.2f} Milyar {curr}"
+    if abs_amt >= 1_000_000:
+        return f"{sign}{abs_amt / 1_000_000:.2f} Milyon {curr}"
+    return f"{sign}{abs_amt:,.0f} {curr}"
+
+
+@dataclass
+class DcfValuationResult:
+    ticker: str
+    company_name: str
+    currency: str
+    financial_currency: str
+    current_price: float
+    shares_outstanding: float
+    base_fcf: float
+    base_fcf_str: str
+    wacc: float
+    growth_rate: float
+    terminal_growth: float
+    projection_years: int
+    projected_fcfs: list[dict[str, Any]]
+    pv_of_fcfs: float
+    terminal_value: float
+    pv_of_terminal_value: float
+    enterprise_value: float
+    total_cash: float
+    total_debt: float
+    net_debt: float
+    equity_value: float
+    fair_value_per_share: float
+    fair_value_try: float
+    upside_pct: float
+    rating: str
+    sensitivity_matrix: dict[str, Any]
+    scenarios: dict[str, Any]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "ticker": self.ticker,
+            "sirket": self.company_name,
+            "para_birimi": self.currency,
+            "finansal_para_birimi": self.financial_currency,
+            "guncel_fiyat": self.current_price,
+            "hisse_adedi": self.shares_outstanding,
+            "baz_fcf": self.base_fcf,
+            "baz_fcf_fmt": self.base_fcf_str,
+            "varsayimlar": {
+                "wacc_aosm": self.wacc,
+                "buyume_orani": self.growth_rate,
+                "uc_buyume_orani": self.terminal_growth,
+                "tahmin_yili": self.projection_years,
+            },
+            "projeksiyonlar": self.projected_fcfs,
+            "indirgenmis_nakit_akislari_toplami": self.pv_of_fcfs,
+            "uc_deger": self.terminal_value,
+            "indirgenmis_uc_deger": self.pv_of_terminal_value,
+            "firma_degeri_ev": self.enterprise_value,
+            "nakit_ve_benzerleri": self.total_cash,
+            "toplam_borc": self.total_debt,
+            "net_borc": self.net_debt,
+            "ozsermaye_degeri": self.equity_value,
+            "hisse_basina_adil_deger": self.fair_value_per_share,
+            "hisse_basina_adil_deger_try": self.fair_value_try,
+            "getiri_potansiyeli_yuzde": self.upside_pct,
+            "degerlendirme": self.rating,
+            "duyarlilik_matrisi": self.sensitivity_matrix,
+            "senaryolar": self.scenarios,
+        }
+
+    def format_table(self) -> str:
+        sign = "+" if self.upside_pct >= 0 else ""
+        fin_curr = self.financial_currency
+
+        sm = self.sensitivity_matrix
+        w_headers = " | ".join(f"%{w*100:.1f}" for w in sm.get("terminal_rates", []))
+        table_rows = []
+        for r in sm.get("rows", []):
+            vals_str = " | ".join(f"{v:.1f} TL" for v in r["values"])
+            table_rows.append(f"| **%{r['wacc']*100:.1f}** | {vals_str} |")
+        sens_md = "\n".join(table_rows)
+
+        proj_str = ", ".join(f"Y{p['yil']}: {_fmt_money(p['fcf'], fin_curr)}" for p in self.projected_fcfs[:5])
+
+        return (
+            f"### 💎 İndirgenmiş Nakit Akışı (İNA / DCF) Değerleme Modeli (${self.ticker})\n"
+            f"- **Güncel Piyasa Fiyatı:** {self.current_price:.2f} TL | **Değerleme:** `{self.rating}`\n"
+            f"- **Baz Serbest Nakit Akımı (FCF):** {self.base_fcf_str} ({fin_curr})\n"
+            f"- **AOSM (WACC):** %{self.wacc*100:.1f} | **İlk 5 Yıl Büyüme:** %{self.growth_rate*100:.1f} | **Uç Büyüme:** %{self.terminal_growth*100:.1f}\n\n"
+            f"| Finansal Kalem | Değer ({fin_curr}) | Açıklama |\n"
+            f"| :--- | :--- | :--- |\n"
+            f"| **5 Yıllık İndirgenmiş FCF (PV)** | {_fmt_money(self.pv_of_fcfs, fin_curr)} | {proj_str} |\n"
+            f"| **İndirgenmiş Uç Değer (PV of TV)** | {_fmt_money(self.pv_of_terminal_value, fin_curr)} | Sonsuz Büyüme Modeli |\n"
+            f"| **Toplam Firma Değeri (EV)** | **{_fmt_money(self.enterprise_value, fin_curr)}** | Operasyonel Varlık Değeri |\n"
+            f"| **(-) Net Borç / Nakit Köprüsü** | {_fmt_money(self.net_debt, fin_curr)} | Borç: {_fmt_money(self.total_debt, fin_curr)} / Nakit: {_fmt_money(self.total_cash, fin_curr)} |\n"
+            f"| **Özsermaye Değeri (Equity Value)** | **{_fmt_money(self.equity_value, fin_curr)}** | Hissedarlara Düşen Değer |\n"
+            f"| **Hisse Başına Adil Değer** | **{self.fair_value_try:.2f} TL** | Potansiyel: **%{sign}{self.upside_pct:.1f}** |\n\n"
+            f"#### 📊 WACC vs. Uç Büyüme Duyarlılık Tablosu (Hedef Fiyat TL)\n"
+            f"| WACC \\ Uç Büyüme | {w_headers} |\n"
+            f"| :---: | {' :---: |' * len(sm.get('terminal_rates', []))}\n"
+            f"{sens_md}\n"
+        )
+
+
 class BistQuantAnalyzer:
     """BIST kantitatif seviyeler ve temel analiz motoru."""
 
@@ -338,6 +446,201 @@ class BistQuantAnalyzer:
             )
         except Exception as exc:
             log.warning("Temel analiz verisi çekilemedi (%s): %s", ticker, exc)
+            return None
+
+
+
+    def calculate_dcf(
+        self,
+        ticker: str,
+        wacc: float | None = None,
+        growth_rate: float | None = None,
+        terminal_growth: float | None = None,
+        projection_years: int = 5,
+        usd_try: float = 34.2,
+    ) -> DcfValuationResult | None:
+        """Borsa İstanbul hissesi için İndirgenmiş Nakit Akışı (İNA / DCF) değerlemesi hesaplar."""
+        clean = ticker.strip().upper().replace(".IS", "")
+        symbol = f"{clean}.IS"
+
+        try:
+            import yfinance as yf
+            import pandas as pd
+            t = yf.Ticker(symbol)
+            info = t.info
+
+            curr = info.get("currency") or "TRY"
+            fin_curr = info.get("financialCurrency") or curr
+            is_usd = fin_curr == "USD"
+
+            price = float(info.get("currentPrice") or info.get("regularMarketPrice") or 0.0)
+            shares = float(info.get("sharesOutstanding") or 0.0)
+            cash = float(info.get("totalCash") or 0.0)
+            debt = float(info.get("totalDebt") or 0.0)
+
+            if shares <= 0:
+                return None
+
+            # Varsayılan Parametreler (Para birimine duyarlı)
+            if is_usd:
+                wacc = float(wacc if wacc is not None else 0.13)
+                growth_rate = float(growth_rate if growth_rate is not None else 0.08)
+                terminal_growth = float(terminal_growth if terminal_growth is not None else 0.035)
+            else:
+                wacc = float(wacc if wacc is not None else 0.28)
+                growth_rate = float(growth_rate if growth_rate is not None else 0.25)
+                terminal_growth = float(terminal_growth if terminal_growth is not None else 0.08)
+
+            # Baz FCF Tespiti (Son yıl veya normalleştirilmiş ortalama)
+            cf = t.cashflow
+            base_fcf = 0.0
+            if cf is not None and not cf.empty:
+                if "Free Cash Flow" in cf.index:
+                    vals = [float(x) for x in cf.loc["Free Cash Flow"] if x is not None and not pd.isna(x)]
+                    if vals and vals[0] > 0:
+                        base_fcf = vals[0]
+                    elif vals:
+                        pos = [x for x in vals if x > 0]
+                        if pos:
+                            base_fcf = sum(pos) / len(pos)
+                if base_fcf <= 0 and "Operating Cash Flow" in cf.index:
+                    ovals = [float(x) for x in cf.loc["Operating Cash Flow"] if x is not None and not pd.isna(x)]
+                    if ovals and ovals[0] > 0:
+                        base_fcf = ovals[0] * 0.45
+
+            if base_fcf <= 0:
+                base_fcf = float(info.get("freeCashflow") or 0.0)
+            if base_fcf <= 0:
+                base_fcf = float(info.get("operatingCashflow") or 0.0) * 0.45
+
+            if base_fcf <= 0:
+                log.warning("%s için pozitif baz serbest nakit akımı bulunamadı.", ticker)
+                return None
+
+            # Model koşucu
+            def _run_model(w_rate: float, g_rate: float, tg_rate: float) -> tuple[float, float, float, float, list[dict[str, Any]]]:
+                pv_f = 0.0
+                cur = base_fcf
+                proj = []
+                for y in range(1, projection_years + 1):
+                    decay_factor = max(0.5, 1.0 - ((y - 1) * 0.10))
+                    effective_growth = max(tg_rate, g_rate * decay_factor)
+                    cur *= (1 + effective_growth)
+                    pv_step = cur / ((1 + w_rate) ** y)
+                    pv_f += pv_step
+                    proj.append({"yil": y, "fcf": cur, "pv_fcf": pv_step, "buyume": effective_growth})
+
+                if w_rate <= tg_rate:
+                    tg_rate = w_rate - 0.02
+
+                tv_calc = (cur * (1 + tg_rate)) / (w_rate - tg_rate)
+                pv_tv_calc = tv_calc / ((1 + w_rate) ** projection_years)
+                ev_calc = pv_f + pv_tv_calc
+                eq_calc = ev_calc + cash - debt
+                fv_calc = eq_calc / shares
+                return pv_f, tv_calc, pv_tv_calc, fv_calc, proj
+
+            pv_fcfs, tv, pv_tv, fv, projections = _run_model(wacc, growth_rate, terminal_growth)
+            fair_val_try = fv * usd_try if is_usd else fv
+            upside = ((fair_val_try - price) / price) * 100 if price > 0 else 0.0
+
+            if upside >= 30.0:
+                rating = "GÜÇLÜ İSKONTO (CAZİP)"
+            elif upside >= 10.0:
+                rating = "İSKONTOLU"
+            elif upside >= -10.0:
+                rating = "DENGELİ / ADİL DEĞER"
+            elif upside >= -25.0:
+                rating = "HAFİF PRİMLİ"
+            else:
+                rating = "YÜKSEK PRİMLİ"
+
+            # 5x5 Duyarlılık Matrisi
+            wacc_step = 0.02
+            tg_step = 0.01 if is_usd else 0.015
+            w_list = [round(wacc - 2 * wacc_step, 3), round(wacc - wacc_step, 3), round(wacc, 3), round(wacc + wacc_step, 3), round(wacc + 2 * wacc_step, 3)]
+            tg_list = [round(terminal_growth - 2 * tg_step, 3), round(terminal_growth - tg_step, 3), round(terminal_growth, 3), round(terminal_growth + tg_step, 3), round(terminal_growth + 2 * tg_step, 3)]
+
+            sens_rows = []
+            for w_val in w_list:
+                row_vals = []
+                for tg_val in tg_list:
+                    _, _, _, fv_step, _ = _run_model(w_val, growth_rate, tg_val)
+                    fv_try_step = fv_step * usd_try if is_usd else fv_step
+                    row_vals.append(round(fv_try_step, 2))
+                sens_rows.append({"wacc": w_val, "values": row_vals})
+
+            sensitivity_matrix = {
+                "wacc_rates": w_list,
+                "terminal_rates": tg_list,
+                "rows": sens_rows,
+            }
+
+            # Senaryolar: Bear / Base / Bull
+            _, _, _, bear_fv, _ = _run_model(wacc + 0.02, growth_rate * 0.75, max(0.01, terminal_growth - 0.01))
+            bear_try = bear_fv * usd_try if is_usd else bear_fv
+            _, _, _, bull_fv, _ = _run_model(max(0.05, wacc - 0.02), growth_rate * 1.25, terminal_growth + 0.01)
+            bull_try = bull_fv * usd_try if is_usd else bull_fv
+
+            scenarios = {
+                "bear": {
+                    "ad": "Kötümser (Ayı) Senaryo",
+                    "wacc": round(wacc + 0.02, 3),
+                    "buyume": round(growth_rate * 0.75, 3),
+                    "adil_deger_try": round(bear_try, 2),
+                    "potansiyel_yuzde": round(((bear_try - price) / price) * 100, 1) if price > 0 else 0.0,
+                },
+                "base": {
+                    "ad": "Baz Senaryo",
+                    "wacc": round(wacc, 3),
+                    "buyume": round(growth_rate, 3),
+                    "adil_deger_try": round(fair_val_try, 2),
+                    "potansiyel_yuzde": round(upside, 1),
+                },
+                "bull": {
+                    "ad": "İyimser (Boğa) Senaryo",
+                    "wacc": round(max(0.05, wacc - 0.02), 3),
+                    "buyume": round(growth_rate * 1.25, 3),
+                    "adil_deger_try": round(bull_try, 2),
+                    "potansiyel_yuzde": round(((bull_try - price) / price) * 100, 1) if price > 0 else 0.0,
+                },
+            }
+
+            net_debt = debt - cash
+            ev = pv_fcfs + pv_tv
+            eq = ev - net_debt
+
+            return DcfValuationResult(
+                ticker=clean,
+                company_name=info.get("shortName") or info.get("longName") or clean,
+                currency=curr,
+                financial_currency=fin_curr,
+                current_price=round(price, 2),
+                shares_outstanding=shares,
+                base_fcf=base_fcf,
+                base_fcf_str=_fmt_money(base_fcf, fin_curr),
+                wacc=round(wacc, 3),
+                growth_rate=round(growth_rate, 3),
+                terminal_growth=round(terminal_growth, 3),
+                projection_years=projection_years,
+                projected_fcfs=projections,
+                pv_of_fcfs=round(pv_fcfs, 2),
+                terminal_value=round(tv, 2),
+                pv_of_terminal_value=round(pv_tv, 2),
+                enterprise_value=round(ev, 2),
+                total_cash=round(cash, 2),
+                total_debt=round(debt, 2),
+                net_debt=round(net_debt, 2),
+                equity_value=round(eq, 2),
+                fair_value_per_share=round(fv, 2),
+                fair_value_try=round(fair_val_try, 2),
+                upside_pct=round(upside, 1),
+                rating=rating,
+                sensitivity_matrix=sensitivity_matrix,
+                scenarios=scenarios,
+            )
+        except Exception as exc:
+            log.warning("DCF hesabı başarısız (%s): %s", ticker, exc)
             return None
 
 

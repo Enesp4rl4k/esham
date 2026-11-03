@@ -423,6 +423,33 @@ def bist_temel_analiz(ticker: str, sozlesme_tutari_tl: float | None = None) -> d
     return res.to_dict()
 
 
+@mcp.tool()
+def bist_dcf_degerleme(
+    ticker: str,
+    wacc: float | None = None,
+    buyume_orani: float | None = None,
+    uc_buyume_orani: float | None = None,
+    tahmin_yili: int = 5,
+) -> dict[str, Any]:
+    """Borsa İstanbul hissesi için İndirgenmiş Nakit Akışı (İNA / DCF) değerleme modeli çalıştırır.
+    
+    Serbest nakit akımı (FCF), firma değeri (EV), net borç köprüsü, hisse başına adil değer,
+    prim/iskonto potansiyeli (%), 5x5 WACC vs. Uç Büyüme duyarlılık matrisi ve Ayı/Baz/Boğa senaryolarını üretir.
+    Parametre verilmezse şirketin fonksiyonel para birimine (TRY/USD) uygun varsayılan oranlar kullanılır."""
+    from ..sources.bist_quant import BistQuantAnalyzer
+    analyzer = BistQuantAnalyzer()
+    res = analyzer.calculate_dcf(
+        ticker,
+        wacc=wacc,
+        growth_rate=buyume_orani,
+        terminal_growth=uc_buyume_orani,
+        projection_years=tahmin_yili,
+    )
+    if not res:
+        return {"hata": f"{ticker} için DCF değerlemesi hesaplanamadı (pozitif serbest nakit akımı veya bilanço verisi eksik)."}
+    return res.to_dict()
+
+
 # ============================================================================
 # ÇAPRAZ PİYASA (BIST x TÜRİB) ARAÇLARI
 # ============================================================================
