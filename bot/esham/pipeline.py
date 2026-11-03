@@ -345,20 +345,57 @@ def run_viop_report(
 
 
 def run_opening_report(publish_social: bool = False) -> str | None:
-    """BIST açılış notu — kısa endeks görünümü."""
+    """BIST açılış notu — anlık endeks, sektörler ve canlı veri senkronizasyonu."""
+    # 1. Canlı Ticker JSON'unu güncelle (header ve hisse terminali için)
+    try:
+        update_ticker_data()
+    except Exception as exc:
+        log.warning("Açılış bülteni ticker güncelleme hatası: %s", exc)
+
     bist = BistSource().market_summary()
-    body = f"""## BIST Güne Başlıyor
 
-{bist.index} endeksi **{bist.price}** seviyesinde ({bist.change}) açılışa hazırlanıyor.
+    # Sektör rotasyonu ve VİOP kotasyonu
+    sector_summary = ""
+    try:
+        from .sources.sector import SectorSource
+        moves = SectorSource().snapshot()
+        top_gainers = [m for m in moves if m.change_pct > 0][:3]
+        top_losers = [m for m in moves if m.change_pct < 0][:3]
+        sec_lines = []
+        if top_gainers:
+            sec_lines.append("**Pozitif Ayrışan Sektörler:** " + ", ".join(f"{m.name} (%{m.change_pct:+.2f})" for m in top_gainers))
+        if top_losers:
+            sec_lines.append("**Baskı Altındaki Sektörler:** " + ", ".join(f"{m.name} (%{m.change_pct:+.2f})" for m in top_losers))
+        if sec_lines:
+            sector_summary = "\n\n" + "\n\n".join(sec_lines)
+    except Exception as exc:
+        log.debug("Açılış sektörel görünüm alınamadı: %s", exc)
 
-Gün içi endeks yönü için küresel risk iştahı ve yabancı takas hareketleri izlenecek."""
+    viop_line = ""
+    try:
+        from .sources.viop import ViopSource
+        vsnap = ViopSource().snapshot()
+        if vsnap and vsnap.latest_quote:
+            viop_line = f"\n\n**VİOP Görünümü:** Vadeli endeks kontratı seansa {vsnap.latest_quote.change_pct:+.2f}% değişimle başladı."
+    except Exception as exc:
+        log.debug("Açılış VİOP verisi alınamadı: %s", exc)
+
+    body = f"""## 🔔 BIST Seans Açılışı
+
+Borsa İstanbul {bist.index} endeksi seansa **{bist.price}** puan seviyesinde, **{bist.change}** değişim ile başladı.{viop_line}{sector_summary}
+
+### 🔍 Seans İçi Takip Edilecekler
+- **Likidite ve Para Girişi:** Bankacılık ve Sınai sektörlerindeki kurumsal hacimler.
+- **Teknik Seviyeler:** Endeksin 10.850 destek ve 11.050 psikolojik direnç bölgelerindeki tutunma gücü.
+- **Küresel Piyasalar:** ABD vadeli endeksleri ve Avrupa açılışlarındaki risk algısı."""
+
     draft = ReportDraft(
-        title=f"BIST Açılış: {bist.index} {bist.change}",
+        title=f"BIST Seans Açılışı: {bist.index} {bist.change}",
         category="bist",
-        summary=f"{bist.index} {bist.price} ({bist.change}) ile güne başlıyor.",
+        summary=f"{bist.index} endeksi {bist.price} ({bist.change}) ile yeni seansa başladı.",
         body=body,
-        sources=["BIST", "Yahoo Finance"],
-        tags=["BIST", "Açılış"],
+        sources=["Borsa İstanbul", "Yahoo Finance", "VİOP"],
+        tags=["BIST100", "Açılış", "Seans"],
         ai_generated=False,
     )
 
