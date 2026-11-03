@@ -33,50 +33,205 @@ Haber: {news_text}
 """
         return self.client.generate(prompt, task_type="analysis") or "Yapay zeka yorumu şu an üretilemedi."
 
-    def generate_breaking_news_tweet(self, headline: str, macro_context: str = "") -> tuple[str, str]:
-        """SON DAKİKA haberi için AI destekli tweet metni ve kısa rapor gövdesi üretir.
+    def generate_event_analysis(
+        self,
+        event: "MarketEvent",
+        macro_context: str = "",
+    ) -> tuple[str, str, str]:
+        """Piyasa olayı (Teknoloji, Kripto, Makro, Hisse veya Son Dakika) için
+        zengin analiz gövdesi, özet ve tweet üretir.
 
-        Döndürür: (tweet_text, body_markdown)
-        - tweet_text   : 280 karakter hedefli, bağlam ve etki açıklaması olan tweet
-        - body_markdown: web raporu için kısa analiz gövdesi
+        Döndürür: (body_markdown, summary_line, tweet_text)
+        - body_markdown : Web raporu için detaylı, yapılandırılmış markdown metni (başlık içermez)
+        - summary_line  : Başlıktan bağımsız, 1-2 cümlelik vurucu yönetici özeti (lead)
+        - tweet_text    : Bilgi yoğunluğu yüksek sosyal medya paylaşımı (≤260 karakter)
         """
-        macro_block = f"\nGüncel makro bağlam: {macro_context}" if macro_context else ""
+        macro_block = f"\nGüncel makro bağlam:\n{macro_context}" if macro_context else ""
+        details_block = f"\nGelişme Detayları & Açıklama:\n{event.details}" if getattr(event, "details", "") else ""
+        source_name = getattr(event, "source_name", "")
+        source_info = f"\nKaynak: {source_name}" if source_name else ""
 
-        prompt = f"""
-Sen bir finansal haber masası analistisin. Aşağıdaki son dakika haberini analiz et.
+        prompt = f"""Sen küresel piyasalar, teknoloji ve finans alanında uzmanlaşmış kıdemli bir ekonomi analisti ve piyasa stratejistisin.
+Aşağıdaki gelişmeyi az, öz, derinlikli ve kurumsal kalitede analiz et. Boş laf, basmakalıp dolgu cümleler ve uzun girişler YAZMA. Doğrudan somut bilgiye, sektör etkisine ve piyasa verilerine odaklan. Türkçe yaz. Yatırım tavsiyesi verme.
 
-Haber: {headline}
-{macro_block}
+Gelişme Türü: {event.kind} (Kategori: {event.category})
+Konu / Başlık: {event.headline}
+{details_block}{macro_block}{source_info}
 
-Şu formatta yanıt ver:
+Şu formatta eksiksiz yanıt ver:
+
+## ÖZET
+Başlığı doğrudan KOPYALAMADAN, gelişmenin özünü ve piyasa/sektör açısından neden kritik olduğunu 1-2 net cümlede (maksimum 160 karakter) özetle.
+
+## ANALİZ
+Aşağıdaki 4 bölümü yapılandırılmış markdown olarak hazırla (her bölüm en az 2-3 doyurucu ve somut cümle içermeli):
+
+### ⚡ Gelişmenin Detayları
+Olayın arka planı, teknik/finansal özellikleri, ilgili şirketlerin veya aktörlerin rolleri ve somut veriler.
+
+### 🔍 Sektörel & Stratejik Etki
+Gelişmenin ilgili ekosisteme etkisi (Yapay Zeka/Teknoloji için: bilgi işlem kapasitesi, çip talebi, veri merkezi yatırımları; Kripto için: likidite, regülasyon, ağ aktivitesi, faiz etkisi; Makro için: küresel faizler, sermaye akımları, risk iştahı).
+
+### 📊 Piyasa & Varlık Yansıması
+İlgili varlık sınıfları (teknoloji hisseleri, BIST Teknoloji endeksi, Bitcoin/altcoinler, döviz/tahvil piyasaları) üzerindeki fiyatlama ve risk algısı yansıması.
+
+### 🔮 Yakından İzlenecekler
+Önümüzdeki gün ve haftalarda takip edilecek somut katalizörler, direnç/destek seviyeleri veya beklenen yeni adımlar.
 
 ## TWEET
-280 karakteri akıllıca kullanan, bilgi yoğun bir tweet yaz. Kurallar:
-- Haberin NEDEN önemli olduğunu ve piyasalara/ekonomiye olası etkisini belirt
-- Varsa rakam/veri mutlaka ekle (fiyat, oran, tutar, yüzde)
-- Sadece başlığı tekrar etme — yorum ve bağlam ekle
-- EMOJİ KULLANMA — sadece metin, rakam ve veriler
-- Hashtag EKLEMEde — zaten dışarıdan eklenecek
-
-## ANALIZ
-3-4 cümlelik kısa Türkçe analiz. Bu haberin piyasalar, sektörler veya Türkiye ekonomisi
-üzerindeki etkisini, risk ve fırsatları ve izlenmesi gereken sonraki gelişmeleri açıkla.
-Yatırım tavsiyesi verme.
+260 karakter sınırını aşmayan, bilgi yoğun tek bir tweet.
+- Format: [Konu/Aktör] [ne yaptı/oldu] — bu [neden önemli/etkisi ne] demek.
+- Varsa rakam/oran ekle.
+- EMOJİ KULLANMA. Hashtag EKLEME.
 """
-        raw = self.client.generate(prompt, disable_thinking=True, task_type="tweet")
-        if not raw:
-            # Fallback — sadece başlık
-            return headline[:260], f"## {headline}\n\nBu gelişme piyasalar üzerinde etkili olabilir."
+        raw = self.client.generate(prompt, disable_thinking=True, task_type="analysis")
+        if raw:
+            return self._parse_event_analysis(raw, event)
 
+        log.info("AI kapalı/başarısız; şablon piyasa olayı analizi üretiliyor: %s", event.headline[:60])
+        return self._template_event_analysis(event, macro_context)
+
+    @staticmethod
+    def _parse_event_analysis(raw: str, event: "MarketEvent") -> tuple[str, str, str]:
         import re
+
         def _extract(section: str) -> str:
             pattern = rf"##\s*{re.escape(section)}\s*\n(.*?)(?=\n##\s|\Z)"
             m = re.search(pattern, raw, re.DOTALL | re.IGNORECASE)
             return m.group(1).strip() if m else ""
 
-        tweet = _extract("TWEET") or headline[:260]
-        analysis = _extract("ANALİZ") or _extract("ANALIZ") or ""
-        body = f"## {headline}\n\n{analysis}" if analysis else f"## {headline}\n\n{raw}"
+        summary = _extract("ÖZET")
+        if not summary or summary.strip().lower() == event.headline.strip().lower():
+            first_clause = event.headline.split('.')[0]
+            summary = f"{first_clause}; sektör dinamikleri ve piyasa fiyatlamaları üzerindeki yansımaları takip ediliyor."
+
+        analiz = _extract("ANALİZ") or _extract("ANALIZ") or raw.strip()
+
+        # Başlığın gövde başında gereksiz H1/H2 olarak tekrarlanmasını engelle
+        cleaned_body = re.sub(
+            rf"^#{{1,3}}\s+{re.escape(event.headline)}\s*\n+", "", analiz, flags=re.IGNORECASE
+        ).strip()
+
+        tweet_raw = _extract("TWEET")
+        if not tweet_raw or len(tweet_raw.strip()) < 30:
+            tweet_raw = f"{event.headline[:200]} — piyasalar ve sektör üzerindeki etkileri analiz edildi:"
+
+        return cleaned_body, summary, tweet_raw
+
+    @staticmethod
+    def _template_event_analysis(event: "MarketEvent", macro_context: str = "") -> tuple[str, str, str]:
+        """AI devre dışıyken veya başarısız olduğunda zengin, yapılandırılmış finansal analiz üretir."""
+        details_clean = getattr(event, "details", "").strip()
+        first_clause = event.headline.split('.')[0].rstrip(" ,;:")
+
+        if event.kind == "TEKNOLOJI_HAREKET":
+            summary = f"{first_clause}; yapay zeka altyapısı, donanım talebi ve teknoloji hisseleri üzerindeki etkileriyle takip ediliyor."
+            
+            detay_metni = details_clean if details_clean else (
+                f"{event.headline}. Yapay zeka ve yüksek teknoloji odaklı bu gelişme, küresel bilişim mimarisi "
+                "ve kurumsal yazılım çözümlerinde yeni bir dönüşüm dalgasını temsil ediyor."
+            )
+
+            body = (
+                f"### ⚡ Gelişmenin Detayları\n"
+                f"{detay_metni}\n\n"
+                f"### 🔍 Teknoloji & Yapay Zeka Ekosistemine Etkisi\n"
+                f"Yapay zeka modellerinin hesaplama maliyetleri ve veri işleme ihtiyaçları katlanarak artarken, "
+                f"yeni nesil çip tasarımları ve sunucu mimarileri teknoloji devlerinin sermaye harcamalarında (CapEx) "
+                f"birinci sıraya yerleşmiş durumda. Söz konusu gelişme, donanım tedarik zinciri ve bulut bilişim "
+                f"sağlayıcıları açısından kritik bir dönüm noktası olarak değerlendiriliyor.\n\n"
+                f"### 📊 Finansal Piyasalar & Hisse Yansıması\n"
+                f"Teknoloji şirketlerinin inovasyon hamleleri Nasdaq teknoloji endeksi başta olmak üzere yarı iletken üreticileri "
+                f"ve veri merkezi sağlayıcılarının çarpanlarını doğrudan destekliyor. Gelişmeler küresel risk iştahı kanalıyla "
+                f"Borsa İstanbul Teknoloji Endeksi (XUTEK) hisseleri üzerinde de pozitif sektörel çarpan algısını besliyor.\n\n"
+                f"### 🔮 Yakından İzlenecekler\n"
+                f"- Yeni mimari ve teknolojinin ticari pazara sunulma takvimi ile hacimli üretim metrikleri.\n"
+                f"- Enerji verimliliği, soğutma sistemleri ve veri merkezi altyapı sınırlamalarına yönelik çözümler.\n"
+                f"- Küresel regülasyon kurumlarının büyük teknoloji platformlarına yönelik rekabet ve yapay zeka standartları."
+            )
+            tweet = f"{first_clause} — yapay zeka altyapısı ve küresel teknoloji piyasalarına etkileri analiz edildi:"
+
+        elif event.kind == "KRIPTO_HAREKET":
+            if event.change_pct != 0.0:
+                direction = "yükselişle" if event.change_pct >= 0 else "düşüşle"
+                sign = "+" if event.change_pct >= 0 else ""
+                summary = f"{event.label} son 24 saatte %{sign}{event.change_pct:.2f} {direction} {event.value_str} seviyesinde; kaldıraçlı piyasalarda volatilite öne çıkıyor."
+                
+                body = (
+                    f"### ⚡ Piyasa Hareketi & Anlık Fiyatlama\n"
+                    f"{event.label} ({event.value_str}), son 24 saatlik seansta **%{sign}{event.change_pct:.2f}** "
+                    f"oranında hareket ederek kripto varlık piyasasında yön arayışına öncülük etti. Türev borsalarda açık pozisyon (OI) "
+                    f"ve fonlama oranlarındaki dalgalanma volatiliteyi artırıyor.\n\n"
+                    f"### 🔍 Kripto Dinamikleri & Likidite Akışı\n"
+                    f"Spot kripto ETF'lerine yönelik kurumsal para giriş/çıkışları, büyük cüzdanların (balina) transfer hareketleri ve "
+                    f"stabilcoin rezervlerindeki değişimler piyasa derinliğini belirlemeyi sürdürüyor. Makro faiz patikası ve Dolar Endeksi (DXY) "
+                    f"kripto paralar üzerindeki genel risk iştahını şekillendiren temel faktör konumunda.\n\n"
+                    f"### 📊 Kritik Seviyeler & Destek / Direnç\n"
+                    f"- **Psikolojik Eşik:** {event.value_str} çevresinde yoğunlaşan alım ve satım kademeleri.\n"
+                    f"- **Türev Piyasalar:** Tasfiye (liquidation) haritalarında long/short pozisyon dengesizliği.\n"
+                    f"- **Momentum:** Günlük RSI ve hareketli ortalama (20/50 günlük) trend bantları.\n\n"
+                    f"### 🔮 Yakından İzlenecekler\n"
+                    f"- ABD Merkez Bankası (Fed) faiz beklentileri ve küresel tahvil getirilerindeki yönelim.\n"
+                    f"- Kurumsal saklama çözümleri ve regülatif adımlara ilişkin resmi açıklamalar."
+                )
+            else:
+                summary = f"{first_clause}; dijital varlık ekosistemi ve kurumsal fon hareketleri üzerindeki etkileriyle izleniyor."
+                detay_metni = details_clean if details_clean else (
+                    f"{event.headline}. Dijital varlıklar ve blokzincir teknolojisi ekseninde yaşanan bu gelişme, "
+                    "sektördeki kurumsal benimseme ve güvenlik standartları açısından kritik önem taşıyor."
+                )
+                body = (
+                    f"### ⚡ Haberin Detayları\n"
+                    f"{detay_metni}\n\n"
+                    f"### 🔍 Dijital Varlıklar & Düzenleyici Etki\n"
+                    f"Kripto para piyasalarında kurumsal güven, kullanıcı varlıklarının saklama güvencesi ve yasal düzenlemelere uyum "
+                    f"ön planda kalmaya devam ediyor. Büyük platformların attığı stratejik adımlar piyasa likiditesini doğrudan belirliyor.\n\n"
+                    f"### 📊 Piyasa Algısı & Likidite Yansıması\n"
+                    f"Gelişmenin ardından majör kripto varlıklar ile altcoinlerdeki risk primi yeniden dengelenirken, "
+                    f"türev piyasalardaki volatilite beklentileri ve fonlama oranları takip ediliyor.\n\n"
+                    f"### 🔮 Yakından İzlenecekler\n"
+                    f"- İlgili kurum ve platformlardan gelecek resmi açıklamalar ve yasal süreçler.\n"
+                    f"- Kripto varlık fon akımları ve borsa rezerv hareketleri."
+                )
+            tweet = f"{first_clause} — kripto para piyasalarındaki likidite ve fiyat yansıması analiz edildi:"
+
+        else:
+            summary = f"{first_clause}; küresel piyasalardaki risk iştahı ve makro varlık fiyatlamaları üzerindeki yansımalarıyla değerlendiriliyor."
+            detay_metni = details_clean if details_clean else (
+                f"{event.headline}. Piyasaların yakından takip ettiği bu gelişme, varlık fiyatlamaları "
+                "ve makroekonomik beklentiler üzerinde doğrudan etkili olma potansiyeli taşıyor."
+            )
+            body = (
+                f"### ⚡ Gelişmenin Detayları\n"
+                f"{detay_metni}\n\n"
+                f"### 🔍 Makroekonomik Bağlam & Küresel Risk İştahı\n"
+                f"Küresel enflasyon dinamikleri, merkez bankalarının para politikası patikası ve tahvil faizlerindeki dalgalanma, "
+                f"uluslararası fon akımlarını yönlendiren temel unsurlar olmaya devam ediyor. Gelişmekte olan piyasalar "
+                f"ve riskli varlıklar bu dalgalanmalardan öncelikli olarak etkileniyor.\n\n"
+                f"### 📊 Piyasa & Varlık Yansıması\n"
+                f"Gelişmenin küresel tahvil faizleri, emtia (altın, petrol) ve döviz kurları üzerindeki seyri Borsa İstanbul "
+                f"ve Türk Lirası varlıkları açısından çarpan ve getiri arayışı üzerinden izleniyor.\n\n"
+                f"### 🔮 Yakından İzlenecekler\n"
+                f"- Açıklanacak öncü makroekonomik göstergeler ve merkez bankası yönlendirmeleri.\n"
+                f"- Küresel hisse senedi piyasalarında volatilite endekslerinin (VIX) seyri."
+            )
+            tweet = f"{first_clause} — küresel piyasalar ve makroekonomik yansımaları analiz edildi:"
+
+        return body, summary, tweet
+
+    def generate_breaking_news_tweet(self, headline: str, macro_context: str = "") -> tuple[str, str]:
+        """Geriye dönük uyumluluk wrapper'ı: (tweet, body) ikilisi döner."""
+        from ..sources.news_detector import MarketEvent
+        event = MarketEvent(
+            kind="SON_DAKIKA",
+            label="Son Dakika",
+            change_pct=0.0,
+            value_str="",
+            change_str="",
+            headline=headline,
+            key="",
+        )
+        body, _, tweet = self.generate_event_analysis(event, macro_context)
         return tweet, body
 
     def analyze_global_breaking_news(self, news_title: str) -> str | None:

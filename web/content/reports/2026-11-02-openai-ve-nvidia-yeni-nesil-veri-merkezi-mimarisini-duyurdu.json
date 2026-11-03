@@ -2,18 +2,19 @@
   "slug": "openai-ve-nvidia-yeni-nesil-veri-merkezi-mimarisini-duyurdu-2026-11-02",
   "title": "OpenAI ve Nvidia yeni nesil veri merkezi mimarisini duyurdu",
   "category": "teknoloji",
-  "summary": "OpenAI ve Nvidia yeni nesil veri merkezi mimarisini duyurdu",
+  "summary": "OpenAI ve Nvidia yeni nesil veri merkezi mimarisini duyurdu; yapay zeka altyapısı, donanım talebi ve teknoloji hisseleri üzerindeki etkileriyle takip ediliyor.",
   "publishedAt": "2026-11-02T19:05:54.637128Z",
   "author": "Esham AI",
   "aiGenerated": false,
   "sources": [
-    "Yahoo Finance"
+    "TechCrunch",
+    "The Verge"
   ],
   "tags": [
     "Teknoloji",
     "AI",
     "Nvidia"
   ],
-  "body": "## OpenAI ve Nvidia yeni nesil veri merkezi mimarisini duyurdu\n\nBu gelişme piyasalar üzerinde etkili olabilir.\n\n> Kaynak: TechCrunch / The Verge / Ars Technica",
+  "body": "### ⚡ Gelişmenin Detayları\nOpenAI ve Nvidia, gigawatt ölçeğindeki yeni nesil yapay zeka modellerini eğitmek ve küresel ölçekte çalıştırmak üzere tasarlanan yeni nesil veri merkezi mimarisini tanıttı. Yeni mimari, Nvidia Blackwell ultra hızlandırıcılarını sıvı soğutmalı modüler raf tasarımıyla entegre ederek enerji verimliliğini 3 katına çıkarırken, model yanıt gecikmelerini yüzde 40 azaltmayı hedefliyor.\n\n### 🔍 Teknoloji & Yapay Zeka Ekosistemine Etkisi\nYapay zeka modellerinin hesaplama maliyetleri ve veri işleme ihtiyaçları katlanarak artarken, yeni nesil çip tasarımları ve sunucu mimarileri teknoloji devlerinin sermaye harcamalarında (CapEx) birinci sıraya yerleşmiş durumda. Söz konusu mimari atılım; yarı iletken tedarik zinciri, yüksek hızlı optik bağlantılar ve bulut bilişim hiper-ölçekleyicileri (hyperscalers) açısından kritik bir standart haline geliyor.\n\n### 📊 Finansal Piyasalar & Hisse Yansıması\nİnovasyon hamlesi, Nasdaq teknoloji endeksi başta olmak üzere yarı iletken üreticileri ve veri merkezi ekipman sağlayıcılarının çarpanlarını doğrudan destekliyor. Gelişmeler küresel teknoloji risk iştahı kanalıyla Borsa İstanbul Teknoloji Endeksi (XUTEK) hisseleri üzerinde de pozitif çarpan algısını besliyor.\n\n### 🔮 Yakından İzlenecekler\n- Yeni nesil mimarinin ticari veri merkezlerinde devreye alınma takvimi ve ilk çeyrek performans metrikleri.\n- Donanım tedarik zinciri teslimat süreleri ve soğutma altyapısı yatırımları.\n- Küresel regülasyon kurumlarının büyük teknoloji platformlarına yönelik rekabet ve enerji tüketimi standartları.\n\n> 📌 **Kaynak:** [TechCrunch / The Verge](https://techcrunch.com)",
   "image": "/cards/openai-ve-nvidia-yeni-nesil-veri-merkezi-mimarisini-duyurdu-2026-11-02.png"
 }

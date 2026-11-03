@@ -68,6 +68,9 @@ class MarketEvent:
     change_str— biçimlendirilmiş değişim metni (ör. "+5,2%")
     headline  — AI prompt'una ve tweet başlığına hazır açıklama
     key       — tekrar tespiti engellemek için benzersiz anahtar
+    details   — haberin tam açıklaması veya piyasa/teknik veri detayları
+    source_url— haberin orijinal bağlantısı
+    source_name— haber kaynağının adı
     """
 
     kind: EventKind
@@ -78,6 +81,9 @@ class MarketEvent:
     headline: str
     key: str
     tags: list[str] = field(default_factory=list)
+    details: str = ""
+    source_url: str = ""
+    source_name: str = ""
 
     @property
     def emoji(self) -> str:
@@ -440,8 +446,7 @@ class NewsDetector:
             if not translated:
                 continue
 
-            source_label = f" ({item.source})" if item.source else ""
-            headline = f"{translated}\n\nKaynak{source_label}: {item.link}"
+            headline = translated.removeprefix("SON DAKİKA: ").strip()
             event = MarketEvent(
                 kind="SON_DAKIKA",
                 label="Küresel Haber",
@@ -451,6 +456,9 @@ class NewsDetector:
                 headline=headline,
                 key=key,
                 tags=["SonDakika", "Küresel"],
+                details=item.description,
+                source_url=item.link,
+                source_name=item.source or "Küresel Ajanslar",
             )
             events.append(event)
             log.info(
@@ -479,8 +487,12 @@ class NewsDetector:
             direction = _direction(ticker.change_pct)
             strength = "güçlü" if ticker.change_pct >= 0 else "sert"
             headline = (
-                f"{ticker.label} {_fmt_pct(ticker.change_pct)} ile {strength} {direction}. "
-                f"Güncel fiyat: ${ticker.price:,.0f}"
+                f"{ticker.label} {_fmt_pct(ticker.change_pct)} ile {strength} {direction} (Güncel: ${ticker.price:,.0f})"
+            )
+            details = (
+                f"{ticker.label} ({ticker.symbol}) son 24 saatlik seansta {_fmt_pct(ticker.change_pct)} "
+                f"oranında hareket ederek ${ticker.price:,.2f} seviyesinde dengelendi. "
+                f"Piyasada yön arayışı sürerken türev piyasalardaki likidite ve fonlama oranları yakından takip ediliyor."
             )
             key = _dedup_key("crypto", ticker.symbol, ticker.change_pct)
             if key in self._seen_keys:
@@ -497,6 +509,9 @@ class NewsDetector:
                 headline=headline,
                 key=key,
                 tags=["Kripto", ticker.label],
+                details=details,
+                source_url="https://finance.yahoo.com/crypto",
+                source_name="Yahoo Finance / CoinMarketCap",
             )
             events.append(event)
             log.info("Kripto olayı tespit edildi: %s %s (eşik: ±%.2f%%)", ticker.label, _fmt_pct(ticker.change_pct), threshold)
@@ -530,9 +545,10 @@ class NewsDetector:
             self._state.save_seen_news(self._seen_news_keys)
 
             # AI ile önem filtresi — sadece piyasayı etkileyen haberler geçer
-            translated = self._ai.analyze_global_breaking_news(item.title)
+            context_hint = f"{item.title} — {item.description[:200]}" if item.description else item.title
+            translated = self._ai.analyze_global_breaking_news(context_hint)
             if not translated:
-                t_lower = item.title.lower()
+                t_lower = f"{item.title} {item.description}".lower()
                 is_major = any(k in t_lower for k in (
                     "bitcoin", "btc", "ethereum", "eth", "solana", "sol", "crypto", "sec",
                     "etf", "binance", "coinbase", "tether", "stablecoin", "fed", "rate",
@@ -543,8 +559,7 @@ class NewsDetector:
                 else:
                     continue
 
-            source_label = f" ({item.source})" if item.source else ""
-            headline = f"{translated}\n\nKaynak{source_label}: {item.link}"
+            headline = translated.removeprefix("SON DAKİKA: ").strip()
             event = MarketEvent(
                 kind="KRIPTO_HAREKET",
                 label="Kripto Haber",
@@ -554,6 +569,9 @@ class NewsDetector:
                 headline=headline,
                 key=key,
                 tags=["Kripto", "DijitalVarlıklar"],
+                details=item.description,
+                source_url=item.link,
+                source_name=item.source or "Kripto Basını",
             )
             events.append(event)
             log.info(
@@ -595,9 +613,10 @@ class NewsDetector:
             self._state.save_seen_news(self._seen_news_keys)
 
             # AI filtresi: sadece ekonomi/piyasa etkisi olan teknoloji haberlerini geçir
-            translated = self._ai.analyze_global_breaking_news(item.title)
+            context_hint = f"{item.title} — {item.description[:200]}" if item.description else item.title
+            translated = self._ai.analyze_global_breaking_news(context_hint)
             if not translated:
-                t_lower = item.title.lower()
+                t_lower = f"{item.title} {item.description}".lower()
                 is_major_tech = any(k in t_lower for k in (
                     "ai", "artificial intelligence", "model", "openai", "chatgpt", "gemini",
                     "claude", "anthropic", "nvidia", "gpu", "chip", "semiconductor", "tsmc",
@@ -609,8 +628,7 @@ class NewsDetector:
                 else:
                     continue
 
-            source_label = f" ({item.source})" if item.source else ""
-            headline = f"{translated}\n\nKaynak{source_label}: {item.link}"
+            headline = translated.removeprefix("SON DAKİKA: ").strip()
             event = MarketEvent(
                 kind="TEKNOLOJI_HAREKET",
                 label="Teknoloji & AI",
@@ -620,6 +638,9 @@ class NewsDetector:
                 headline=headline,
                 key=key,
                 tags=["Teknoloji", "YapayZeka", "AI"],
+                details=item.description,
+                source_url=item.link,
+                source_name=item.source or "Teknoloji Basını",
             )
             events.append(event)
             log.info(

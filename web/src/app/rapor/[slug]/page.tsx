@@ -141,7 +141,9 @@ export default async function ReportPage({
         {report.title}
       </h1>
 
-      <p className="text-xl text-zinc-400 leading-relaxed mb-8">{report.summary}</p>
+      {report.summary && report.summary.trim().toLowerCase() !== report.title.trim().toLowerCase() && (
+        <p className="text-xl text-zinc-400 leading-relaxed mb-8">{report.summary}</p>
+      )}
 
       <div className="flex flex-wrap items-center justify-between gap-4 border-y border-zinc-800 py-4 mb-10">
         <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500">
@@ -163,7 +165,12 @@ export default async function ReportPage({
         />
       </div>
 
-      <Markdown>{report.body}</Markdown>
+      <Markdown>
+        {report.body.replace(
+          new RegExp(`^#{1,3}\\s+${report.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\n+`, 'i'),
+          ''
+        )}
+      </Markdown>
 
       {report.tags.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-10">

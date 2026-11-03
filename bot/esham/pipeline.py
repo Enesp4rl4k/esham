@@ -883,23 +883,32 @@ def run_news_report(
         card_headline = title_line[:120] if event.kind == "SON_DAKIKA" else event.headline[:120]
         card_ticker_val = "" if event.kind == "SON_DAKIKA" else event.label
 
-        if event.kind in ("SON_DAKIKA", "HISSE_HAREKET", "TEKNOLOJI_HAREKET", "KRIPTO_HAREKET"):
-            # AI ile tweet metni + kısa analiz gövdesi üret
-            tweet_text, ai_body = analyzer.generate_breaking_news_tweet(
-                headline=title_line,
+        if event.kind in ("SON_DAKIKA", "HISSE_HAREKET", "TEKNOLOJI_HAREKET", "KRIPTO_HAREKET", "MAKRO_HAREKET"):
+            ai_body, ai_summary, tweet_text = analyzer.generate_event_analysis(
+                event=event,
                 macro_context=macro_context,
             )
-            if "Kaynak" in event.headline:
-                kaynak = event.headline.split("Kaynak")[1].strip()
-                body = f"{ai_body}\n\n> Kaynak:{kaynak}"
-            elif event.kind == "HISSE_HAREKET":
-                body = f"{ai_body}\n\n> Kaynak: Yahoo Finance / BIST"
-            elif event.kind == "KRIPTO_HAREKET":
-                body = f"{ai_body}\n\n> Kaynak: CoinDesk / CoinTelegraph / Yahoo Finance"
-            elif event.kind == "TEKNOLOJI_HAREKET":
-                body = f"{ai_body}\n\n> Kaynak: TechCrunch / The Verge / Ars Technica"
+            if ai_summary and ai_summary.strip().lower() != title.strip().lower():
+                summary = ai_summary.strip()
+
+            src_label = getattr(event, "source_name", "")
+            if not src_label:
+                if event.kind == "TEKNOLOJI_HAREKET":
+                    src_label = "TechCrunch / The Verge / Ars Technica"
+                elif event.kind == "KRIPTO_HAREKET":
+                    src_label = "CoinDesk / CoinTelegraph / Yahoo Finance"
+                elif event.kind == "HISSE_HAREKET":
+                    src_label = "Yahoo Finance / BIST"
+                else:
+                    src_label = "Küresel Haber Ajansları"
+
+            src_url = getattr(event, "source_url", "")
+            if src_url:
+                source_block = f"\n\n> 📌 **Kaynak:** [{src_label}]({src_url})"
             else:
-                body = f"{ai_body}\n\n> Kaynak: Küresel haber ajansları"
+                source_block = f"\n\n> 📌 **Kaynak:** {src_label}"
+
+            body = f"{ai_body}{source_block}"
         elif event.kind == "SEKTÖR_HAREKET":
             body, summary, tweet_text = analyzer.generate_sector_movement_analysis(
                 sector_name=event.label,
@@ -986,7 +995,15 @@ def run_news_report(
         category=category,
         summary=summary,
         body=body,
-        sources=["KAP", "Yahoo Finance"] if disclosure else ["Yahoo Finance"],
+        sources=(
+            (["KAP", ticker] if ticker else ["KAP"])
+            if disclosure
+            else ([event.source_name] if getattr(event, "source_name", "") else (
+                ["TechCrunch"] if event.kind == "TEKNOLOJI_HAREKET"
+                else ["CoinDesk"] if event.kind == "KRIPTO_HAREKET"
+                else ["Yahoo Finance"]
+            ))
+        ),
         tags=tags,
         ai_generated=settings.ai_enabled,
         image_path=card_path,

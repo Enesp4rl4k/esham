@@ -17,6 +17,8 @@ Tasarım:
 """
 from __future__ import annotations
 
+import html
+import re
 import xml.etree.ElementTree as ET
 import urllib.request
 import urllib.error
@@ -28,12 +30,31 @@ from ..config import get_logger
 log = get_logger(__name__)
 
 
+def clean_html(text: str) -> str:
+    """HTML etiketlerini, CDATA bloklarını ve XML kaçışlarını temizler."""
+    if not text:
+        return ""
+    # script/style bloklarını sil
+    text = re.sub(r"<(script|style).*?>.*?</>", "", text, flags=re.DOTALL | re.IGNORECASE)
+    # Satır sonu oluşturan HTML etiketlerini yeni satıra çevir
+    text = re.sub(r"<br\s*/?>|</p>|</div>|</li>", "\n", text, flags=re.IGNORECASE)
+    # Kalan tüm HTML etiketlerini kaldır
+    text = re.sub(r"<[^>]+>", "", text)
+    # HTML karakter varlıklarını (&amp;, &#8217; vb.) dönüştür
+    text = html.unescape(text)
+    # Fazla boşlukları düzenle
+    lines = [re.sub(r"\s+", " ", line).strip() for line in text.splitlines()]
+    clean_text = "\n".join(l for l in lines if l)
+    return clean_text.strip()
+
+
 @dataclass
 class GlobalNewsItem:
     title: str
     link: str
     pub_date: str = ""
     source: str = ""
+    description: str = ""
 
 
 # ---- kaynak tanımları ----------------------------------------------------------
@@ -136,7 +157,7 @@ _TIMEOUT = 12  # saniye — tek kaynak için
 # ---- yardımcı ----------------------------------------------------------------
 
 def _fetch_rss(src: RssSource) -> list[GlobalNewsItem]:
-    """Tek bir RSS kaynağını çeker; hata durumunda boş liste döner."""
+    """Tek bir RSS veya Atom kaynağını çeker; hata durumunda boş liste döner."""
     items: list[GlobalNewsItem] = []
     try:
         req = urllib.request.Request(
@@ -153,21 +174,54 @@ def _fetch_rss(src: RssSource) -> list[GlobalNewsItem]:
         response = urllib.request.urlopen(req, timeout=_TIMEOUT).read()
         root = ET.fromstring(response)
 
+        # RSS <item> veya Atom <entry>
+        items_nodes = root.findall(".//item")
+        is_atom = False
+        if not items_nodes:
+            items_nodes = root.findall(".//{http://www.w3.org/2005/Atom}entry")
+            is_atom = bool(items_nodes)
+
         count = 0
-        for item in root.findall(".//item"):
+        for item in items_nodes:
             if count >= src.max_items:
                 break
-            title = item.findtext("title")
-            link = item.findtext("link") or item.findtext("guid")
-            pub_date = item.findtext("pubDate") or ""
+
+            if is_atom:
+                raw_title = item.findtext("{http://www.w3.org/2005/Atom}title") or ""
+                link_node = item.find("{http://www.w3.org/2005/Atom}link")
+                link = link_node.get("href") if link_node is not None else ""
+                pub_date = (
+                    item.findtext("{http://www.w3.org/2005/Atom}published")
+                    or item.findtext("{http://www.w3.org/2005/Atom}updated")
+                    or ""
+                )
+                desc = (
+                    item.findtext("{http://www.w3.org/2005/Atom}summary")
+                    or item.findtext("{http://www.w3.org/2005/Atom}content")
+                    or ""
+                )
+            else:
+                raw_title = item.findtext("title") or ""
+                link = item.findtext("link") or item.findtext("guid") or ""
+                pub_date = item.findtext("pubDate") or ""
+                desc = (
+                    item.findtext("description")
+                    or item.findtext("{http://purl.org/rss/1.0/modules/content/}encoded")
+                    or item.findtext("{http://www.w3.org/2005/Atom}summary")
+                    or ""
+                )
+
+            title = html.unescape(raw_title).strip()
+            cleaned_desc = clean_html(desc)
 
             if title and link:
                 items.append(
                     GlobalNewsItem(
-                        title=title.strip(),
+                        title=title,
                         link=link.strip(),
                         pub_date=pub_date.strip(),
                         source=src.name,
+                        description=cleaned_desc,
                     )
                 )
                 count += 1
