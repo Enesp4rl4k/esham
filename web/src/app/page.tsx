@@ -21,7 +21,6 @@ import { ReportCard } from "@/components/ReportCard";
 import { Newsletter } from "@/components/Newsletter";
 import { TickerBand } from "@/components/TickerBand";
 import { MarketMatrix } from "@/components/MarketMatrix";
-import { AudioBriefingPlayer } from "@/components/AudioBriefingPlayer";
 import { MacroBarometerCard } from "@/components/MacroBarometerCard";
 import { ViopBasisCard } from "@/components/ViopBasisCard";
 
@@ -105,7 +104,6 @@ export default async function Home() {
       <section className="border-b bg-zinc-950/40 py-4" style={{ borderColor: "var(--border)" }}>
         <div className="container mx-auto px-6 space-y-4">
           <MarketMatrix tickerData={tickerData} turibData={turibData} />
-          <AudioBriefingPlayer />
         </div>
       </section>
 
