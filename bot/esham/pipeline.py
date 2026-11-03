@@ -856,7 +856,7 @@ def run_news_report(
         from .sources.bist import BistSource
         tech_snapshot = BistSource.fetch_technical_snapshot(ticker)
         if tech_snapshot:
-            body = f"{body}\n\n> {tech_snapshot.format_line()}"
+            body = f"{body}\n\n{tech_snapshot.format_table()}"
             if is_mega_deal:
                 summary = f"🔥 MEGA SÖZLEŞME | {summary}"
 

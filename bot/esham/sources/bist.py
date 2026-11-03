@@ -31,7 +31,15 @@ class TechnicalSnapshot:
     trend: str     # "20G HO Üzerinde", "20G HO Altında"
     support: float
     resistance: float
+    year_high: float = 0.0
+    year_low: float = 0.0
     closes: list[float] = field(default_factory=list)
+
+    @property
+    def dist_to_high(self) -> float:
+        if self.year_high > 0:
+            return round((self.last_price - self.year_high) / self.year_high * 100, 2)
+        return 0.0
 
     def format_line(self) -> str:
         sign = "+" if self.change_pct >= 0 else ""
@@ -42,6 +50,23 @@ class TechnicalSnapshot:
             f"20G HO: `{self.sma_20:.2f} TL` | "
             f"Destek: `{self.support:.2f} TL` | "
             f"Direnç: `{self.resistance:.2f} TL`"
+        )
+
+    def format_table(self) -> str:
+        sign = "+" if self.change_pct >= 0 else ""
+        dist_str = f"%{self.dist_to_high:+.1f}" if self.year_high > 0 else "—"
+        high_low_str = f"Zirve: {self.year_high:.2f} TL / Dip: {self.year_low:.2f} TL" if self.year_high > 0 else "—"
+        return (
+            f"### 📊 Kurumsal Teknik İstihbarat (${self.ticker})\n"
+            f"| Gösterge | Değer | Sinyal / Yorum |\n"
+            f"| :--- | :--- | :--- |\n"
+            f"| **Son Fiyat** | **{self.last_price:.2f} TL** | Günlük Değişim: %{sign}{self.change_pct:.2f} |\n"
+            f"| **14G Göreceli Güç (RSI)** | **{self.rsi_14:.1f}** | {self.rsi_zone} Bölgesi |\n"
+            f"| **20 Günlük HO** | {self.sma_20:.2f} TL | {self.trend} |\n"
+            f"| **50 Günlük HO** | {self.sma_50:.2f} TL | Orta Vadeli Trend Desteği |\n"
+            f"| **Kısa Vadeli Destek** | {self.support:.2f} TL | 20 Günlük Dip Tabanı |\n"
+            f"| **Kısa Vadeli Direnç** | {self.resistance:.2f} TL | 20 Günlük Zirve Tavanı |\n"
+            f"| **52H Zirveye Uzaklık** | {dist_str} | {high_low_str} |"
         )
 
 CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
@@ -131,7 +156,25 @@ class BistSource:
         
         symbol = clean_ticker if (clean_ticker.endswith(".IS") or clean_ticker.startswith("^") or "=" in clean_ticker) else f"{clean_ticker}.IS"
         source = cls(symbol=symbol)
-        closes = source.fetch_closes(range_str="3mo", interval="1d")
+        
+        # Meta verisini ve kapanışları tek çağrıda al
+        year_high = 0.0
+        year_low = 0.0
+        closes: list[float] = []
+        try:
+            url = f"{CHART_URL.format(symbol=source.symbol)}?range=3mo&interval=1d"
+            resp = retry_get(url, headers=source.headers, timeout=settings.http_timeout)
+            resp.raise_for_status()
+            res = resp.json()["chart"]["result"][0]
+            meta = res.get("meta", {})
+            year_high = float(meta.get("fiftyTwoWeekHigh", 0.0) or 0.0)
+            year_low = float(meta.get("fiftyTwoWeekLow", 0.0) or 0.0)
+            raw_closes = res["indicators"]["quote"][0].get("close", [])
+            closes = [float(c) for c in raw_closes if c is not None]
+        except Exception as exc:
+            log.warning("Teknik snapshot verisi çekilemedi (%s): %s", symbol, exc)
+            return None
+
         if not closes or len(closes) < 15:
             return None
         
@@ -179,5 +222,7 @@ class BistSource:
             trend=trend,
             support=round(support, 2),
             resistance=round(resistance, 2),
+            year_high=round(year_high, 2),
+            year_low=round(year_low, 2),
             closes=closes,
         )

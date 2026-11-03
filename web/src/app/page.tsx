@@ -20,6 +20,7 @@ import {
 import { ReportCard } from "@/components/ReportCard";
 import { Newsletter } from "@/components/Newsletter";
 import { TickerBand } from "@/components/TickerBand";
+import { MarketMatrix } from "@/components/MarketMatrix";
 
 // Kategori etiket renkleri — CSS değişkenleriyle
 const catColors: Record<CategorySlug, string> = {
@@ -42,12 +43,23 @@ async function loadTuribSnapshot() {
   }
 }
 
+async function loadMarketTickerData() {
+  try {
+    const filePath = path.join(process.cwd(), "public", "data", "market-ticker.json");
+    const raw = await fs.readFile(filePath, "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 export default async function Home() {
   const reports = getAllReports();
   const latest = reports.slice(0, 6);
   const featured = reports[0];
   const secondary = reports.slice(1, 4);
   const turibData = await loadTuribSnapshot();
+  const tickerData = await loadMarketTickerData();
 
   const trbHub = turibData?.indices?.find((i: any) => i.code === "TRBHUB");
   const bugdaySpot = turibData?.spotCommodities?.find((p: any) =>
@@ -63,6 +75,13 @@ export default async function Home() {
 
       {/* ── Ticker Bant — canlı fiyat (bot tarafından güncellenen JSON) ── */}
       <TickerBand />
+
+      {/* ── Canlı Piyasa Matrisi & Terminal Widget ── */}
+      <section className="border-b bg-zinc-950/40 py-4" style={{ borderColor: "var(--border)" }}>
+        <div className="container mx-auto px-6">
+          <MarketMatrix tickerData={tickerData} turibData={turibData} />
+        </div>
+      </section>
 
       {/* ── Hero — Editorial ────────────────────────────────────── */}
       <section className="py-16 md:py-24 border-b" style={{ borderColor: "var(--border)" }}>

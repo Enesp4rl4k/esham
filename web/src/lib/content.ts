@@ -149,3 +149,46 @@ export function getReport(slug: string): Report | null {
 export function getReportsByCategory(category: CategorySlug): Report[] {
   return getAllReports().filter((r) => r.category === category);
 }
+
+export function getReportsByTicker(ticker: string): Report[] {
+  const t = ticker.toUpperCase().replace(/\.IS$/, "");
+  return getAllReports().filter((r) => {
+    if (r.tags.some((tag) => tag.toUpperCase() === t || tag.toUpperCase() === `$${t}`)) {
+      return true;
+    }
+    if (r.sources.some((s) => s.toUpperCase() === t || s.toUpperCase() === `$${t}`)) {
+      return true;
+    }
+    if (r.ipo?.ticker.toUpperCase() === t) {
+      return true;
+    }
+    const regex = new RegExp(`\\b\\$?${t}\\b`, "i");
+    return regex.test(r.title);
+  });
+}
+
+export function getAllTickers(): string[] {
+  const set = new Set<string>();
+  const DEFAULT_BIST30 = [
+    "THYAO", "ASELS", "GARAN", "EREGL", "KCHOL", "TUPRS", "BIMAS", "AKBNK",
+    "ISCTR", "SISE", "SAHOL", "YKBNK", "PGSUS", "FROTO", "TOASO", "ENKAI",
+    "PETKM", "KOZAL", "GUBRF", "TCELL", "TTKOM", "EKGYO", "HEKTS", "SASA"
+  ];
+  DEFAULT_BIST30.forEach((t) => set.add(t));
+
+  for (const r of getAllReports()) {
+    if (r.ipo?.ticker) {
+      const clean = r.ipo.ticker.replace(/^\$/, "").toUpperCase();
+      if (/^[A-Z]{3,6}$/.test(clean)) set.add(clean);
+    }
+    for (const tag of r.tags) {
+      const clean = tag.replace(/^\$/, "").toUpperCase();
+      if (/^[A-Z]{3,6}$/.test(clean)) set.add(clean);
+    }
+    for (const src of r.sources) {
+      const clean = src.replace(/^\$/, "").toUpperCase();
+      if (/^[A-Z]{3,6}$/.test(clean)) set.add(clean);
+    }
+  }
+  return Array.from(set);
+}
