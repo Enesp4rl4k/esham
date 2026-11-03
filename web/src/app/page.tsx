@@ -23,6 +23,7 @@ import { TickerBand } from "@/components/TickerBand";
 import { MarketMatrix } from "@/components/MarketMatrix";
 import { MacroBarometerCard } from "@/components/MacroBarometerCard";
 import { ViopBasisCard } from "@/components/ViopBasisCard";
+import { DevaluationRadarCard } from "@/components/DevaluationRadarCard";
 
 // Kategori etiket renkleri — CSS değişkenleriyle
 const catColors: Record<CategorySlug, string> = {
@@ -65,6 +66,16 @@ async function loadViopBasis() {
   }
 }
 
+async function loadDevaluationRadar() {
+  try {
+    const filePath = path.join(process.cwd(), "public", "data", "devaluation-radar.json");
+    const raw = await fs.readFile(filePath, "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 async function loadMarketTickerData() {
   try {
     const filePath = path.join(process.cwd(), "public", "data", "market-ticker.json");
@@ -84,6 +95,7 @@ export default async function Home() {
   const tickerData = await loadMarketTickerData();
   const macroData = await loadMacroBarometer();
   const viopData = await loadViopBasis();
+  const devalData = await loadDevaluationRadar();
 
   const trbHub = turibData?.indices?.find((i: any) => i.code === "TRBHUB");
   const bugdaySpot = turibData?.spotCommodities?.find((p: any) =>
@@ -404,10 +416,11 @@ export default async function Home() {
         </section>
       )}
 
-      {/* ── Makro Radar & VİOP Basis İstihbarat Paneli ── */}
-      {(macroData || viopData) && (
+      {/* ── Kur Riski, Makro Radar & VİOP İstihbarat Paneli ── */}
+      {(macroData || viopData || devalData) && (
         <section className="py-12 border-b bg-zinc-950/20" style={{ borderColor: "var(--border)" }}>
-          <div className="container mx-auto px-6">
+          <div className="container mx-auto px-6 space-y-6">
+            {devalData && <DevaluationRadarCard data={devalData} />}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {macroData && <MacroBarometerCard data={macroData} />}
               {viopData && <ViopBasisCard data={viopData} />}

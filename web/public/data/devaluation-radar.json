@@ -1,0 +1,87 @@
+{
+  "composite_score": 16.0,
+  "risk_level": "LOW",
+  "risk_label": "Düşük Risk / Sakin Piyasa",
+  "risk_summary": "TCMB swap hariç net rezervleri pozitif bölgede güçlenirken, Kapalıçarşı makası (%0.23) son derece dardır. VİOP vadeli ima edilen kur faizi TCMB fonlama faiziyle uyumlu seyretmekte olup, kısa vadede öngörülemeyen bir kur atağı veya devalüasyon riski düşüktür.",
+  "updated_at": "2026-11-04 00:57",
+  "components": {
+    "viop_implied_yield": {
+      "spot_usd": 34.3,
+      "futures_usd": 35.82,
+      "days_to_expiry": 56,
+      "implied_rate_pct": 28.88,
+      "policy_rate_pct": 50.0,
+      "spread_pct": -21.12,
+      "score": 12.0,
+      "status": "NORMAL"
+    },
+    "tcmb_reserves": {
+      "swap_free_net_usd_bn": 31.5,
+      "monthly_change_usd_bn": 4.2,
+      "burn_rate_status": "Rezerv Birikimi (Güçlü Cephane)",
+      "score": 15.0,
+      "status": "STRONG"
+    },
+    "grand_bazaar_spread": {
+      "interbank_usd": 34.3,
+      "grand_bazaar_usd": 34.38,
+      "spread_pct": 0.23,
+      "score": 14.0,
+      "status": "TIGHT"
+    },
+    "cds_5y": {
+      "value_bps": 264.0,
+      "score": 18.0,
+      "status": "LOW_RISK"
+    },
+    "reer": {
+      "value": 63.8,
+      "score": 25.0,
+      "status": "BALANCED"
+    }
+  },
+  "historical_benchmarks": [
+    {
+      "period": "Mayıs 2023",
+      "label": "Genel Seçim Öncesi (İkili Kur Zirvesi)",
+      "score": 88,
+      "usd_try": "19.80 -> 26.00",
+      "spread_bazaar": "%8.4",
+      "net_reserves": "-$60.5 Mrd",
+      "result": "Seçim sonrası 1 ayda %34 devalüasyon."
+    },
+    {
+      "period": "Aralık 2021",
+      "label": "Faiz İndirim Döngüsü / KKM Öncesi",
+      "score": 96,
+      "usd_try": "9.50 -> 18.30",
+      "spread_bazaar": "%4.2",
+      "net_reserves": "-$51.0 Mrd",
+      "result": "Tarihi kur atağı ve olağanüstü KKM kararı."
+    },
+    {
+      "period": "Ağustos 2018",
+      "label": "Rahip Brunson Krizi / Yaptırım Şoku",
+      "score": 92,
+      "usd_try": "4.80 -> 7.10",
+      "spread_bazaar": "%3.5",
+      "net_reserves": "+$18.0 Mrd (Hızlı erime)",
+      "result": "%45 ani kur şoku ve 625 bps faiz artışı."
+    },
+    {
+      "period": "Güncel Durum",
+      "label": "Mevcut Para Politikası ve Rezerv İnşası",
+      "score": 16.0,
+      "usd_try": "34.30",
+      "spread_bazaar": "%0.23",
+      "net_reserves": "+$31.5 Mrd",
+      "result": "De-dolarizasyon, pozitif net rezerv ve istikrarlı kur patikası."
+    }
+  ],
+  "actionable_notes": [
+    "Kapalıçarşı ile bankalararası makas %1.0'ı aşmadıkça fiziksel döviz kıtlığı riski oluşmaz.",
+    "VİOP USDTRY ima edilen yıllık faizi, TCMB politika faizinin 500 baz puan üzerine çıkmadıkça spekülatif kur atağı sinyali vermez.",
+    "TCMB swap hariç rezervlerinin +$30 Milyar üzerinde kalması dış şoklara karşı birincil kalkan vazifesi görmektedir.",
+    "Şirketler için kur riski yönetimi: Vadeli döviz yükümlülükleri olan kurumlar için VİOP Dolar vadeli sözleşmelerinde prim/taşıma maliyeti avantajlı seviyededir."
+  ]
+}

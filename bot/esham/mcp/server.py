@@ -502,6 +502,17 @@ def viop_basis_analizi() -> dict[str, Any]:
     return MacroRadarAnalyzer().get_viop_basis().to_dict()
 
 
+@mcp.tool()
+def devaluasyon_risk_analizi() -> dict[str, Any]:
+    """TRY Devalüasyon / Kur Şoku Basınç Endeksi (0-100) ve risk seviyesini sunar.
+    
+    VİOP USDTRY ima edilen faiz vs TCMB politika faizi, TCMB swap hariç rezerv yanma hızı,
+    Kapalıçarşı (Tahtakale) vs bankalararası makas, Türkiye 5Y CDS ve TÜFE Reel Efektif Kur (REER)
+    bileşenlerini ve kriz stres kıyaslamalarını analiz eder."""
+    from ..sources.devaluation_radar import DevaluationRadarAnalyzer
+    return DevaluationRadarAnalyzer().analyze().to_dict()
+
+
 # ============================================================================
 # ÇAPRAZ PİYASA (BIST x TÜRİB) ARAÇLARI
 # ============================================================================

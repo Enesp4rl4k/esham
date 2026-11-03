@@ -41,6 +41,7 @@ const DEFAULT_ITEMS: SearchItem[] = [
   { id: "ULUUN", title: "ULUUN", subtitle: "Ulusoy Un — Buğday & TÜRİB Tarım Sanayisi", category: "hisse", href: "/hisse/ULUUN", badge: "BIST 100" },
 
   // Analitik Araçlar & Sayfalar
+  { id: "DEVAL", title: "Kur Şoku & Devalüasyon Radarı", subtitle: "TCMB Rezerv Yanma Hızı, Tahtakale Makası & VİOP İma Edilen Faiz", category: "arac", href: "/piyasa/devaluasyon-radari", badge: "0-100 Radar" },
   { id: "BUYBACKS", title: "Pay Geri Alımları", subtitle: "BIST Şirketlerinin Aktif Hisse Geri Alım Fonları & Maliyetleri", category: "arac", href: "/piyasa/geri-alimlar", badge: "Radar" },
   { id: "DIVIDENDS", title: "Temettü Takvimi", subtitle: "2026 Nakit Kâr Payı Dağıtımları & Temettü Verimleri", category: "arac", href: "/piyasa/temettu-takvimi", badge: "Takvim" },
   { id: "TARIM", title: "Tarımsal Emtia & Et-Yem", subtitle: "TÜRİB Hububat Fiyatları, Karkas Et ve Yem Rasyosu", category: "arac", href: "/tarim-emtia", badge: "Canlı Veri" },
