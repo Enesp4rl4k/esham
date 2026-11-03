@@ -25,6 +25,8 @@ import { ReportCard } from "@/components/ReportCard";
 import { DcfTerminalCard } from "@/components/DcfTerminalCard";
 import { KeyLevelsCard } from "@/components/KeyLevelsCard";
 import { FundamentalMetricsCard } from "@/components/FundamentalMetricsCard";
+import { FinancialHealthCard } from "@/components/FinancialHealthCard";
+import { WatchlistDrawer } from "@/components/WatchlistDrawer";
 
 type Params = { ticker: string };
 
@@ -123,6 +125,7 @@ export default async function TickerPage({
   const dcfData = companyQuant?.dcf;
   const keyLevelsData = companyQuant?.key_levels;
   const fundamentalData = companyQuant?.fundamental;
+  const financialHealthData = companyQuant?.financial_health;
 
   const liveQuote = tickerData?.tickers?.find(
     (t: any) => t.label.toUpperCase() === cleanTicker
@@ -168,6 +171,7 @@ export default async function TickerPage({
               <span className="text-[11px] font-semibold tracking-wider uppercase px-2.5 py-1 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
                 Takasbank Saklama
               </span>
+              <WatchlistDrawer currentTicker={cleanTicker} />
             </div>
             <h1 className="text-base md:text-lg font-medium text-zinc-300">
               {companyName}
@@ -252,6 +256,13 @@ export default async function TickerPage({
       {dcfData && (
         <div className="mb-10">
           <DcfTerminalCard dcf={dcfData} />
+        </div>
+      )}
+
+      {/* Kurumsal Finansal Sağlık & Skor Kartı (Piotroski, Altman Z, DuPont) */}
+      {financialHealthData && (
+        <div className="mb-10">
+          <FinancialHealthCard health={financialHealthData} />
         </div>
       )}
 

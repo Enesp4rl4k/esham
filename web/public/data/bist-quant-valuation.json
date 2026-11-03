@@ -194,6 +194,93 @@
           "potansiyel_yuzde": 182.2
         }
       }
+    },
+    "financial_health": {
+      "ticker": "THYAO",
+      "sirket": "TURK HAVA YOLLARI",
+      "piotroski_skor": 4,
+      "piotroski_degerlendirme": "Dengeli / Orta Segment (4-5/9)",
+      "piotroski_kriterler": [
+        {
+          "kod": "ROA",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Varlik Karliligi (ROA > 0)",
+          "gecerli": true,
+          "deger": "%6.2"
+        },
+        {
+          "kod": "CFO",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Operasyonel Nakit Akisi (CFO > 0)",
+          "gecerli": true,
+          "deger": "4.3 Milyar TL"
+        },
+        {
+          "kod": "DROA",
+          "kategori": "Karlilik",
+          "aciklama": "Yillik ROA Artisi (ΔROA > 0)",
+          "gecerli": false,
+          "deger": "Onceki: %8.6 → Guncel: %6.2"
+        },
+        {
+          "kod": "ACCRUAL",
+          "kategori": "Karlilik",
+          "aciklama": "Kar Kalitesi (CFO > Net Kar - Nakit Odakli Kar)",
+          "gecerli": true,
+          "deger": "Nakit: 4.3 Milyar TL vs Kar: 2.9 Milyar TL"
+        },
+        {
+          "kod": "LEVERAGE",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Uzun Vadeli Borcluluk Azalmasi veya Dengeli Seyir",
+          "gecerli": false,
+          "deger": "%2.4 (Onceki: %0.1)"
+        },
+        {
+          "kod": "CURRENT_RATIO",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Cari Oran Iyilesmesi (Likidite Guclenmesi)",
+          "gecerli": false,
+          "deger": "0.99x (Onceki: 1.01x)"
+        },
+        {
+          "kod": "DILUTION",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Sermaye Seyrelmemesi (Hisse Ihraci / Bedelli Yok)",
+          "gecerli": true,
+          "deger": "Seyrelme Yok"
+        },
+        {
+          "kod": "GROSS_MARGIN",
+          "kategori": "Verimlilik",
+          "aciklama": "Brut Kar Marji Artisi (Fiyatlama Gucu)",
+          "gecerli": false,
+          "deger": "%16.1 (Onceki: %19.1)"
+        },
+        {
+          "kod": "ASSET_TURNOVER",
+          "kategori": "Verimlilik",
+          "aciklama": "Aktif Devir Hizi Artisi (Varlik Kullanim Etkinligi)",
+          "gecerli": false,
+          "deger": "0.52x (Onceki: 0.57x)"
+        }
+      ],
+      "altman_z_skor": 10.09,
+      "altman_bolge": "Guvenli Bolge (Dusuk Iflas Riski)",
+      "altman_bilesenler": {
+        "x1_isletme_sermayesi_aktif": -0.002,
+        "x2_gecmis_yillar_kari_aktif": 0.433,
+        "x3_ebit_aktif": 0.085,
+        "x4_piyasa_degeri_toplam_borc": 14.488,
+        "x5_ciro_aktif": 0.517
+      },
+      "dupont_analizi": {
+        "net_kar_marji": 12.08,
+        "aktif_devir_hizi": 0.52,
+        "kaldirac_carpani": 2.19,
+        "hesaplanan_roe": 13.65
+      },
+      "ozet": "TURK HAVA YOLLARI icin Piotroski F-Score 4/9 (Dengeli / Orta Segment (4-5/9)). Altman Z-Score 10.09 ile 'Guvenli Bolge (Dusuk Iflas Riski)' konumunda. DuPont ayristirmasina gore karlilik %12.1 net marj, 0.52x devir hizi ve 2.19x kaldirac carpani ile %13.7 ROE uretmektedir."
     }
   },
   "ASELS": {
@@ -391,6 +478,93 @@
           "potansiyel_yuzde": -95.8
         }
       }
+    },
+    "financial_health": {
+      "ticker": "ASELS",
+      "sirket": "ASELSAN",
+      "piotroski_skor": 7,
+      "piotroski_degerlendirme": "Guclu / Saglam Bilanco (6-7/9)",
+      "piotroski_kriterler": [
+        {
+          "kod": "ROA",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Varlik Karliligi (ROA > 0)",
+          "gecerli": true,
+          "deger": "%6.9"
+        },
+        {
+          "kod": "CFO",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Operasyonel Nakit Akisi (CFO > 0)",
+          "gecerli": true,
+          "deger": "48.9 Milyar TL"
+        },
+        {
+          "kod": "DROA",
+          "kategori": "Karlilik",
+          "aciklama": "Yillik ROA Artisi (ΔROA > 0)",
+          "gecerli": true,
+          "deger": "Onceki: %6.3 → Guncel: %6.9"
+        },
+        {
+          "kod": "ACCRUAL",
+          "kategori": "Karlilik",
+          "aciklama": "Kar Kalitesi (CFO > Net Kar - Nakit Odakli Kar)",
+          "gecerli": true,
+          "deger": "Nakit: 48.9 Milyar TL vs Kar: 29.9 Milyar TL"
+        },
+        {
+          "kod": "LEVERAGE",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Uzun Vadeli Borcluluk Azalmasi veya Dengeli Seyir",
+          "gecerli": true,
+          "deger": "%1.2 (Onceki: %4.0)"
+        },
+        {
+          "kod": "CURRENT_RATIO",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Cari Oran Iyilesmesi (Likidite Guclenmesi)",
+          "gecerli": false,
+          "deger": "1.39x (Onceki: 1.52x)"
+        },
+        {
+          "kod": "DILUTION",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Sermaye Seyrelmemesi (Hisse Ihraci / Bedelli Yok)",
+          "gecerli": true,
+          "deger": "Seyrelme Yok"
+        },
+        {
+          "kod": "GROSS_MARGIN",
+          "kategori": "Verimlilik",
+          "aciklama": "Brut Kar Marji Artisi (Fiyatlama Gucu)",
+          "gecerli": true,
+          "deger": "%31.8 (Onceki: %31.7)"
+        },
+        {
+          "kod": "ASSET_TURNOVER",
+          "kategori": "Verimlilik",
+          "aciklama": "Aktif Devir Hizi Artisi (Varlik Kullanim Etkinligi)",
+          "gecerli": false,
+          "deger": "0.42x (Onceki: 0.50x)"
+        }
+      ],
+      "altman_z_skor": 6.55,
+      "altman_bolge": "Guvenli Bolge (Dusuk Iflas Riski)",
+      "altman_bilesenler": {
+        "x1_isletme_sermayesi_aktif": 0.113,
+        "x2_gecmis_yillar_kari_aktif": 0.317,
+        "x3_ebit_aktif": 0.076,
+        "x4_piyasa_degeri_toplam_borc": 8.832,
+        "x5_ciro_aktif": 0.418
+      },
+      "dupont_analizi": {
+        "net_kar_marji": 16.6,
+        "aktif_devir_hizi": 0.42,
+        "kaldirac_carpani": 1.72,
+        "hesaplanan_roe": 11.96
+      },
+      "ozet": "ASELSAN icin Piotroski F-Score 7/9 (Guclu / Saglam Bilanco (6-7/9)). Altman Z-Score 6.55 ile 'Guvenli Bolge (Dusuk Iflas Riski)' konumunda. DuPont ayristirmasina gore karlilik %16.6 net marj, 0.42x devir hizi ve 1.72x kaldirac carpani ile %12.0 ROE uretmektedir."
     }
   },
   "TUPRS": {
@@ -588,6 +762,93 @@
           "potansiyel_yuzde": -27.2
         }
       }
+    },
+    "financial_health": {
+      "ticker": "TUPRS",
+      "sirket": "TUPRAS",
+      "piotroski_skor": 7,
+      "piotroski_degerlendirme": "Guclu / Saglam Bilanco (6-7/9)",
+      "piotroski_kriterler": [
+        {
+          "kod": "ROA",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Varlik Karliligi (ROA > 0)",
+          "gecerli": true,
+          "deger": "%5.0"
+        },
+        {
+          "kod": "CFO",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Operasyonel Nakit Akisi (CFO > 0)",
+          "gecerli": true,
+          "deger": "49.5 Milyar TL"
+        },
+        {
+          "kod": "DROA",
+          "kategori": "Karlilik",
+          "aciklama": "Yillik ROA Artisi (ΔROA > 0)",
+          "gecerli": true,
+          "deger": "Onceki: %4.0 → Guncel: %5.0"
+        },
+        {
+          "kod": "ACCRUAL",
+          "kategori": "Karlilik",
+          "aciklama": "Kar Kalitesi (CFO > Net Kar - Nakit Odakli Kar)",
+          "gecerli": true,
+          "deger": "Nakit: 49.5 Milyar TL vs Kar: 29.5 Milyar TL"
+        },
+        {
+          "kod": "LEVERAGE",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Uzun Vadeli Borcluluk Azalmasi veya Dengeli Seyir",
+          "gecerli": false,
+          "deger": "%4.7 (Onceki: %2.1)"
+        },
+        {
+          "kod": "CURRENT_RATIO",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Cari Oran Iyilesmesi (Likidite Guclenmesi)",
+          "gecerli": true,
+          "deger": "1.40x (Onceki: 1.25x)"
+        },
+        {
+          "kod": "DILUTION",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Sermaye Seyrelmemesi (Hisse Ihraci / Bedelli Yok)",
+          "gecerli": true,
+          "deger": "Seyrelme Yok"
+        },
+        {
+          "kod": "GROSS_MARGIN",
+          "kategori": "Verimlilik",
+          "aciklama": "Brut Kar Marji Artisi (Fiyatlama Gucu)",
+          "gecerli": true,
+          "deger": "%9.8 (Onceki: %8.4)"
+        },
+        {
+          "kod": "ASSET_TURNOVER",
+          "kategori": "Verimlilik",
+          "aciklama": "Aktif Devir Hizi Artisi (Varlik Kullanim Etkinligi)",
+          "gecerli": false,
+          "deger": "1.40x (Onceki: 1.78x)"
+        }
+      ],
+      "altman_z_skor": 4.29,
+      "altman_bolge": "Guvenli Bolge (Dusuk Iflas Riski)",
+      "altman_bilesenler": {
+        "x1_isletme_sermayesi_aktif": 0.113,
+        "x2_gecmis_yillar_kari_aktif": 0.447,
+        "x3_ebit_aktif": 0.102,
+        "x4_piyasa_degeri_toplam_borc": 2.986,
+        "x5_ciro_aktif": 1.403
+      },
+      "dupont_analizi": {
+        "net_kar_marji": 3.56,
+        "aktif_devir_hizi": 1.4,
+        "kaldirac_carpani": 1.63,
+        "hesaplanan_roe": 8.11
+      },
+      "ozet": "TUPRAS icin Piotroski F-Score 7/9 (Guclu / Saglam Bilanco (6-7/9)). Altman Z-Score 4.29 ile 'Guvenli Bolge (Dusuk Iflas Riski)' konumunda. DuPont ayristirmasina gore karlilik %3.6 net marj, 1.40x devir hizi ve 1.63x kaldirac carpani ile %8.1 ROE uretmektedir."
     }
   },
   "BIMAS": {
@@ -785,6 +1046,93 @@
           "potansiyel_yuzde": -55.4
         }
       }
+    },
+    "financial_health": {
+      "ticker": "BIMAS",
+      "sirket": "BIM MAGAZALAR",
+      "piotroski_skor": 7,
+      "piotroski_degerlendirme": "Guclu / Saglam Bilanco (6-7/9)",
+      "piotroski_kriterler": [
+        {
+          "kod": "ROA",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Varlik Karliligi (ROA > 0)",
+          "gecerli": true,
+          "deger": "%5.5"
+        },
+        {
+          "kod": "CFO",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Operasyonel Nakit Akisi (CFO > 0)",
+          "gecerli": true,
+          "deger": "40.9 Milyar TL"
+        },
+        {
+          "kod": "DROA",
+          "kategori": "Karlilik",
+          "aciklama": "Yillik ROA Artisi (ΔROA > 0)",
+          "gecerli": false,
+          "deger": "Onceki: %7.9 → Guncel: %5.5"
+        },
+        {
+          "kod": "ACCRUAL",
+          "kategori": "Karlilik",
+          "aciklama": "Kar Kalitesi (CFO > Net Kar - Nakit Odakli Kar)",
+          "gecerli": true,
+          "deger": "Nakit: 40.9 Milyar TL vs Kar: 18.6 Milyar TL"
+        },
+        {
+          "kod": "LEVERAGE",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Uzun Vadeli Borcluluk Azalmasi veya Dengeli Seyir",
+          "gecerli": true,
+          "deger": "%11.7 (Onceki: %12.2)"
+        },
+        {
+          "kod": "CURRENT_RATIO",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Cari Oran Iyilesmesi (Likidite Guclenmesi)",
+          "gecerli": true,
+          "deger": "1.03x (Onceki: 0.99x)"
+        },
+        {
+          "kod": "DILUTION",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Sermaye Seyrelmemesi (Hisse Ihraci / Bedelli Yok)",
+          "gecerli": true,
+          "deger": "Seyrelme Yok"
+        },
+        {
+          "kod": "GROSS_MARGIN",
+          "kategori": "Verimlilik",
+          "aciklama": "Brut Kar Marji Artisi (Fiyatlama Gucu)",
+          "gecerli": true,
+          "deger": "%19.3 (Onceki: %17.5)"
+        },
+        {
+          "kod": "ASSET_TURNOVER",
+          "kategori": "Verimlilik",
+          "aciklama": "Aktif Devir Hizi Artisi (Varlik Kullanim Etkinligi)",
+          "gecerli": false,
+          "deger": "2.13x (Onceki: 2.20x)"
+        }
+      ],
+      "altman_z_skor": 4.5,
+      "altman_bolge": "Guvenli Bolge (Dusuk Iflas Riski)",
+      "altman_bilesenler": {
+        "x1_isletme_sermayesi_aktif": 0.009,
+        "x2_gecmis_yillar_kari_aktif": 0.339,
+        "x3_ebit_aktif": 0.116,
+        "x4_piyasa_degeri_toplam_borc": 2.5,
+        "x5_ciro_aktif": 2.133
+      },
+      "dupont_analizi": {
+        "net_kar_marji": 2.58,
+        "aktif_devir_hizi": 2.13,
+        "kaldirac_carpani": 2.04,
+        "hesaplanan_roe": 11.25
+      },
+      "ozet": "BIM MAGAZALAR icin Piotroski F-Score 7/9 (Guclu / Saglam Bilanco (6-7/9)). Altman Z-Score 4.50 ile 'Guvenli Bolge (Dusuk Iflas Riski)' konumunda. DuPont ayristirmasina gore karlilik %2.6 net marj, 2.13x devir hizi ve 2.04x kaldirac carpani ile %11.3 ROE uretmektedir."
     }
   },
   "EREGL": {
@@ -982,6 +1330,93 @@
           "potansiyel_yuzde": 150.9
         }
       }
+    },
+    "financial_health": {
+      "ticker": "EREGL",
+      "sirket": "EREGLI DEMIR CELIK",
+      "piotroski_skor": 4,
+      "piotroski_degerlendirme": "Dengeli / Orta Segment (4-5/9)",
+      "piotroski_kriterler": [
+        {
+          "kod": "ROA",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Varlik Karliligi (ROA > 0)",
+          "gecerli": true,
+          "deger": "%0.1"
+        },
+        {
+          "kod": "CFO",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Operasyonel Nakit Akisi (CFO > 0)",
+          "gecerli": true,
+          "deger": "65.1 Milyar TL"
+        },
+        {
+          "kod": "DROA",
+          "kategori": "Karlilik",
+          "aciklama": "Yillik ROA Artisi (ΔROA > 0)",
+          "gecerli": false,
+          "deger": "Onceki: %3.2 → Guncel: %0.1"
+        },
+        {
+          "kod": "ACCRUAL",
+          "kategori": "Karlilik",
+          "aciklama": "Kar Kalitesi (CFO > Net Kar - Nakit Odakli Kar)",
+          "gecerli": true,
+          "deger": "Nakit: 65.1 Milyar TL vs Kar: 511.8 Milyon TL"
+        },
+        {
+          "kod": "LEVERAGE",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Uzun Vadeli Borcluluk Azalmasi veya Dengeli Seyir",
+          "gecerli": false,
+          "deger": "%21.0 (Onceki: %19.8)"
+        },
+        {
+          "kod": "CURRENT_RATIO",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Cari Oran Iyilesmesi (Likidite Guclenmesi)",
+          "gecerli": false,
+          "deger": "2.14x (Onceki: 2.40x)"
+        },
+        {
+          "kod": "DILUTION",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Sermaye Seyrelmemesi (Hisse Ihraci / Bedelli Yok)",
+          "gecerli": true,
+          "deger": "Seyrelme Yok"
+        },
+        {
+          "kod": "GROSS_MARGIN",
+          "kategori": "Verimlilik",
+          "aciklama": "Brut Kar Marji Artisi (Fiyatlama Gucu)",
+          "gecerli": false,
+          "deger": "%8.9 (Onceki: %9.8)"
+        },
+        {
+          "kod": "ASSET_TURNOVER",
+          "kategori": "Verimlilik",
+          "aciklama": "Aktif Devir Hizi Artisi (Varlik Kullanim Etkinligi)",
+          "gecerli": false,
+          "deger": "0.37x (Onceki: 0.48x)"
+        }
+      ],
+      "altman_z_skor": 1.64,
+      "altman_bolge": "Riskli Bolge (Yuksek Kaldirac / Borc Baskisi)",
+      "altman_bilesenler": {
+        "x1_isletme_sermayesi_aktif": 0.239,
+        "x2_gecmis_yillar_kari_aktif": 0.294,
+        "x3_ebit_aktif": 0.027,
+        "x4_piyasa_degeri_toplam_borc": 0.804,
+        "x5_ciro_aktif": 0.374
+      },
+      "dupont_analizi": {
+        "net_kar_marji": 0.24,
+        "aktif_devir_hizi": 0.37,
+        "kaldirac_carpani": 1.94,
+        "hesaplanan_roe": 0.18
+      },
+      "ozet": "EREGLI DEMIR CELIK icin Piotroski F-Score 4/9 (Dengeli / Orta Segment (4-5/9)). Altman Z-Score 1.64 ile 'Riskli Bolge (Yuksek Kaldirac / Borc Baskisi)' konumunda. DuPont ayristirmasina gore karlilik %0.2 net marj, 0.37x devir hizi ve 1.94x kaldirac carpani ile %0.2 ROE uretmektedir."
     }
   },
   "KCHOL": {
@@ -1179,6 +1614,93 @@
           "potansiyel_yuzde": 84.0
         }
       }
+    },
+    "financial_health": {
+      "ticker": "KCHOL",
+      "sirket": "KOC HOLDING",
+      "piotroski_skor": 5,
+      "piotroski_degerlendirme": "Dengeli / Orta Segment (4-5/9)",
+      "piotroski_kriterler": [
+        {
+          "kod": "ROA",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Varlik Karliligi (ROA > 0)",
+          "gecerli": true,
+          "deger": "%0.4"
+        },
+        {
+          "kod": "CFO",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Operasyonel Nakit Akisi (CFO > 0)",
+          "gecerli": false,
+          "deger": "-101,956,000,000 TL"
+        },
+        {
+          "kod": "DROA",
+          "kategori": "Karlilik",
+          "aciklama": "Yillik ROA Artisi (ΔROA > 0)",
+          "gecerli": true,
+          "deger": "Onceki: %0.0 → Guncel: %0.4"
+        },
+        {
+          "kod": "ACCRUAL",
+          "kategori": "Karlilik",
+          "aciklama": "Kar Kalitesi (CFO > Net Kar - Nakit Odakli Kar)",
+          "gecerli": false,
+          "deger": "Nakit: -101,956,000,000 TL vs Kar: 22.0 Milyar TL"
+        },
+        {
+          "kod": "LEVERAGE",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Uzun Vadeli Borcluluk Azalmasi veya Dengeli Seyir",
+          "gecerli": false,
+          "deger": "%11.0 (Onceki: %8.7)"
+        },
+        {
+          "kod": "CURRENT_RATIO",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Cari Oran Iyilesmesi (Likidite Guclenmesi)",
+          "gecerli": true,
+          "deger": "0.87x (Onceki: 0.87x)"
+        },
+        {
+          "kod": "DILUTION",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Sermaye Seyrelmemesi (Hisse Ihraci / Bedelli Yok)",
+          "gecerli": true,
+          "deger": "Seyrelme Yok"
+        },
+        {
+          "kod": "GROSS_MARGIN",
+          "kategori": "Verimlilik",
+          "aciklama": "Brut Kar Marji Artisi (Fiyatlama Gucu)",
+          "gecerli": true,
+          "deger": "%17.0 (Onceki: %14.1)"
+        },
+        {
+          "kod": "ASSET_TURNOVER",
+          "kategori": "Verimlilik",
+          "aciklama": "Aktif Devir Hizi Artisi (Varlik Kullanim Etkinligi)",
+          "gecerli": false,
+          "deger": "0.52x (Onceki: 0.59x)"
+        }
+      ],
+      "altman_z_skor": 0.75,
+      "altman_bolge": "Riskli Bolge (Yuksek Kaldirac / Borc Baskisi)",
+      "altman_bilesenler": {
+        "x1_isletme_sermayesi_aktif": -0.083,
+        "x2_gecmis_yillar_kari_aktif": 0.116,
+        "x3_ebit_aktif": 0.03,
+        "x4_piyasa_degeri_toplam_borc": 0.118,
+        "x5_ciro_aktif": 0.519
+      },
+      "dupont_analizi": {
+        "net_kar_marji": 0.8,
+        "aktif_devir_hizi": 0.52,
+        "kaldirac_carpani": 7.85,
+        "hesaplanan_roe": 3.25
+      },
+      "ozet": "KOC HOLDING icin Piotroski F-Score 5/9 (Dengeli / Orta Segment (4-5/9)). Altman Z-Score 0.75 ile 'Riskli Bolge (Yuksek Kaldirac / Borc Baskisi)' konumunda. DuPont ayristirmasina gore karlilik %0.8 net marj, 0.52x devir hizi ve 7.85x kaldirac carpani ile %3.2 ROE uretmektedir."
     }
   },
   "PGSUS": {
@@ -1376,6 +1898,93 @@
           "potansiyel_yuzde": 193.9
         }
       }
+    },
+    "financial_health": {
+      "ticker": "PGSUS",
+      "sirket": "PEGASUS",
+      "piotroski_skor": 4,
+      "piotroski_degerlendirme": "Dengeli / Orta Segment (4-5/9)",
+      "piotroski_kriterler": [
+        {
+          "kod": "ROA",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Varlik Karliligi (ROA > 0)",
+          "gecerli": true,
+          "deger": "%3.4"
+        },
+        {
+          "kod": "CFO",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Operasyonel Nakit Akisi (CFO > 0)",
+          "gecerli": true,
+          "deger": "34.5 Milyar TL"
+        },
+        {
+          "kod": "DROA",
+          "kategori": "Karlilik",
+          "aciklama": "Yillik ROA Artisi (ΔROA > 0)",
+          "gecerli": false,
+          "deger": "Onceki: %4.7 → Guncel: %3.4"
+        },
+        {
+          "kod": "ACCRUAL",
+          "kategori": "Karlilik",
+          "aciklama": "Kar Kalitesi (CFO > Net Kar - Nakit Odakli Kar)",
+          "gecerli": true,
+          "deger": "Nakit: 34.5 Milyar TL vs Kar: 13.8 Milyar TL"
+        },
+        {
+          "kod": "LEVERAGE",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Uzun Vadeli Borcluluk Azalmasi veya Dengeli Seyir",
+          "gecerli": false,
+          "deger": "%6.1 (Onceki: %6.1)"
+        },
+        {
+          "kod": "CURRENT_RATIO",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Cari Oran Iyilesmesi (Likidite Guclenmesi)",
+          "gecerli": false,
+          "deger": "1.03x (Onceki: 1.26x)"
+        },
+        {
+          "kod": "DILUTION",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Sermaye Seyrelmemesi (Hisse Ihraci / Bedelli Yok)",
+          "gecerli": true,
+          "deger": "Seyrelme Yok"
+        },
+        {
+          "kod": "GROSS_MARGIN",
+          "kategori": "Verimlilik",
+          "aciklama": "Brut Kar Marji Artisi (Fiyatlama Gucu)",
+          "gecerli": false,
+          "deger": "%17.0 (Onceki: %22.3)"
+        },
+        {
+          "kod": "ASSET_TURNOVER",
+          "kategori": "Verimlilik",
+          "aciklama": "Aktif Devir Hizi Artisi (Varlik Kullanim Etkinligi)",
+          "gecerli": false,
+          "deger": "0.38x (Onceki: 0.39x)"
+        }
+      ],
+      "altman_z_skor": 0.89,
+      "altman_bolge": "Riskli Bolge (Yuksek Kaldirac / Borc Baskisi)",
+      "altman_bilesenler": {
+        "x1_isletme_sermayesi_aktif": 0.005,
+        "x2_gecmis_yillar_kari_aktif": 0.13,
+        "x3_ebit_aktif": 0.058,
+        "x4_piyasa_degeri_toplam_borc": 0.218,
+        "x5_ciro_aktif": 0.376
+      },
+      "dupont_analizi": {
+        "net_kar_marji": 8.92,
+        "aktif_devir_hizi": 0.38,
+        "kaldirac_carpani": 3.51,
+        "hesaplanan_roe": 11.77
+      },
+      "ozet": "PEGASUS icin Piotroski F-Score 4/9 (Dengeli / Orta Segment (4-5/9)). Altman Z-Score 0.89 ile 'Riskli Bolge (Yuksek Kaldirac / Borc Baskisi)' konumunda. DuPont ayristirmasina gore karlilik %8.9 net marj, 0.38x devir hizi ve 3.51x kaldirac carpani ile %11.8 ROE uretmektedir."
     }
   },
   "FROTO": {
@@ -1573,6 +2182,93 @@
           "potansiyel_yuzde": 208.9
         }
       }
+    },
+    "financial_health": {
+      "ticker": "FROTO",
+      "sirket": "FORD OTOSAN",
+      "piotroski_skor": 6,
+      "piotroski_degerlendirme": "Guclu / Saglam Bilanco (6-7/9)",
+      "piotroski_kriterler": [
+        {
+          "kod": "ROA",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Varlik Karliligi (ROA > 0)",
+          "gecerli": true,
+          "deger": "%7.5"
+        },
+        {
+          "kod": "CFO",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Operasyonel Nakit Akisi (CFO > 0)",
+          "gecerli": true,
+          "deger": "105.1 Milyar TL"
+        },
+        {
+          "kod": "DROA",
+          "kategori": "Karlilik",
+          "aciklama": "Yillik ROA Artisi (ΔROA > 0)",
+          "gecerli": false,
+          "deger": "Onceki: %11.9 → Guncel: %7.5"
+        },
+        {
+          "kod": "ACCRUAL",
+          "kategori": "Karlilik",
+          "aciklama": "Kar Kalitesi (CFO > Net Kar - Nakit Odakli Kar)",
+          "gecerli": true,
+          "deger": "Nakit: 105.1 Milyar TL vs Kar: 34.0 Milyar TL"
+        },
+        {
+          "kod": "LEVERAGE",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Uzun Vadeli Borcluluk Azalmasi veya Dengeli Seyir",
+          "gecerli": true,
+          "deger": "%21.8 (Onceki: %23.7)"
+        },
+        {
+          "kod": "CURRENT_RATIO",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Cari Oran Iyilesmesi (Likidite Guclenmesi)",
+          "gecerli": false,
+          "deger": "1.24x (Onceki: 1.25x)"
+        },
+        {
+          "kod": "DILUTION",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Sermaye Seyrelmemesi (Hisse Ihraci / Bedelli Yok)",
+          "gecerli": true,
+          "deger": "Seyrelme Yok"
+        },
+        {
+          "kod": "GROSS_MARGIN",
+          "kategori": "Verimlilik",
+          "aciklama": "Brut Kar Marji Artisi (Fiyatlama Gucu)",
+          "gecerli": false,
+          "deger": "%8.4 (Onceki: %9.2)"
+        },
+        {
+          "kod": "ASSET_TURNOVER",
+          "kategori": "Verimlilik",
+          "aciklama": "Aktif Devir Hizi Artisi (Varlik Kullanim Etkinligi)",
+          "gecerli": true,
+          "deger": "1.84x (Onceki: 1.82x)"
+        }
+      ],
+      "altman_z_skor": 3.45,
+      "altman_bolge": "Guvenli Bolge (Dusuk Iflas Riski)",
+      "altman_bilesenler": {
+        "x1_isletme_sermayesi_aktif": 0.095,
+        "x2_gecmis_yillar_kari_aktif": 0.392,
+        "x3_ebit_aktif": 0.141,
+        "x4_piyasa_degeri_toplam_borc": 0.795,
+        "x5_ciro_aktif": 1.843
+      },
+      "dupont_analizi": {
+        "net_kar_marji": 4.09,
+        "aktif_devir_hizi": 1.84,
+        "kaldirac_carpani": 2.89,
+        "hesaplanan_roe": 21.78
+      },
+      "ozet": "FORD OTOSAN icin Piotroski F-Score 6/9 (Guclu / Saglam Bilanco (6-7/9)). Altman Z-Score 3.45 ile 'Guvenli Bolge (Dusuk Iflas Riski)' konumunda. DuPont ayristirmasina gore karlilik %4.1 net marj, 1.84x devir hizi ve 2.89x kaldirac carpani ile %21.8 ROE uretmektedir."
     }
   },
   "SISE": {
@@ -1770,6 +2466,93 @@
           "potansiyel_yuzde": -199.6
         }
       }
+    },
+    "financial_health": {
+      "ticker": "SISE",
+      "sirket": "SISE CAM",
+      "piotroski_skor": 7,
+      "piotroski_degerlendirme": "Guclu / Saglam Bilanco (6-7/9)",
+      "piotroski_kriterler": [
+        {
+          "kod": "ROA",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Varlik Karliligi (ROA > 0)",
+          "gecerli": true,
+          "deger": "%1.9"
+        },
+        {
+          "kod": "CFO",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Operasyonel Nakit Akisi (CFO > 0)",
+          "gecerli": true,
+          "deger": "39.7 Milyar TL"
+        },
+        {
+          "kod": "DROA",
+          "kategori": "Karlilik",
+          "aciklama": "Yillik ROA Artisi (ΔROA > 0)",
+          "gecerli": true,
+          "deger": "Onceki: %1.3 → Guncel: %1.9"
+        },
+        {
+          "kod": "ACCRUAL",
+          "kategori": "Karlilik",
+          "aciklama": "Kar Kalitesi (CFO > Net Kar - Nakit Odakli Kar)",
+          "gecerli": true,
+          "deger": "Nakit: 39.7 Milyar TL vs Kar: 9.9 Milyar TL"
+        },
+        {
+          "kod": "LEVERAGE",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Uzun Vadeli Borcluluk Azalmasi veya Dengeli Seyir",
+          "gecerli": true,
+          "deger": "%19.0 (Onceki: %23.9)"
+        },
+        {
+          "kod": "CURRENT_RATIO",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Cari Oran Iyilesmesi (Likidite Guclenmesi)",
+          "gecerli": false,
+          "deger": "1.26x (Onceki: 1.69x)"
+        },
+        {
+          "kod": "DILUTION",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Sermaye Seyrelmemesi (Hisse Ihraci / Bedelli Yok)",
+          "gecerli": true,
+          "deger": "Seyrelme Yok"
+        },
+        {
+          "kod": "GROSS_MARGIN",
+          "kategori": "Verimlilik",
+          "aciklama": "Brut Kar Marji Artisi (Fiyatlama Gucu)",
+          "gecerli": true,
+          "deger": "%27.6 (Onceki: %22.6)"
+        },
+        {
+          "kod": "ASSET_TURNOVER",
+          "kategori": "Verimlilik",
+          "aciklama": "Aktif Devir Hizi Artisi (Varlik Kullanim Etkinligi)",
+          "gecerli": false,
+          "deger": "0.44x (Onceki: 0.47x)"
+        }
+      ],
+      "altman_z_skor": 1.61,
+      "altman_bolge": "Riskli Bolge (Yuksek Kaldirac / Borc Baskisi)",
+      "altman_bilesenler": {
+        "x1_isletme_sermayesi_aktif": 0.058,
+        "x2_gecmis_yillar_kari_aktif": 0.409,
+        "x3_ebit_aktif": 0.079,
+        "x4_piyasa_degeri_toplam_borc": 0.435,
+        "x5_ciro_aktif": 0.443
+      },
+      "dupont_analizi": {
+        "net_kar_marji": 4.4,
+        "aktif_devir_hizi": 0.44,
+        "kaldirac_carpani": 2.09,
+        "hesaplanan_roe": 4.07
+      },
+      "ozet": "SISE CAM icin Piotroski F-Score 7/9 (Guclu / Saglam Bilanco (6-7/9)). Altman Z-Score 1.61 ile 'Riskli Bolge (Yuksek Kaldirac / Borc Baskisi)' konumunda. DuPont ayristirmasina gore karlilik %4.4 net marj, 0.44x devir hizi ve 2.09x kaldirac carpani ile %4.1 ROE uretmektedir."
     }
   },
   "SAHOL": {
@@ -1967,6 +2750,93 @@
           "potansiyel_yuzde": -238.3
         }
       }
+    },
+    "financial_health": {
+      "ticker": "SAHOL",
+      "sirket": "SABANCI HOLDING",
+      "piotroski_skor": 7,
+      "piotroski_degerlendirme": "Guclu / Saglam Bilanco (6-7/9)",
+      "piotroski_kriterler": [
+        {
+          "kod": "ROA",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Varlik Karliligi (ROA > 0)",
+          "gecerli": true,
+          "deger": "%0.1"
+        },
+        {
+          "kod": "CFO",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Operasyonel Nakit Akisi (CFO > 0)",
+          "gecerli": true,
+          "deger": "87.2 Milyar TL"
+        },
+        {
+          "kod": "DROA",
+          "kategori": "Karlilik",
+          "aciklama": "Yillik ROA Artisi (ΔROA > 0)",
+          "gecerli": true,
+          "deger": "Onceki: %-0.5 → Guncel: %0.1"
+        },
+        {
+          "kod": "ACCRUAL",
+          "kategori": "Karlilik",
+          "aciklama": "Kar Kalitesi (CFO > Net Kar - Nakit Odakli Kar)",
+          "gecerli": true,
+          "deger": "Nakit: 87.2 Milyar TL vs Kar: 3.8 Milyar TL"
+        },
+        {
+          "kod": "LEVERAGE",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Uzun Vadeli Borcluluk Azalmasi veya Dengeli Seyir",
+          "gecerli": false,
+          "deger": "%13.9 (Onceki: %11.2)"
+        },
+        {
+          "kod": "CURRENT_RATIO",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Cari Oran Iyilesmesi (Likidite Guclenmesi)",
+          "gecerli": true,
+          "deger": "0.00x (Onceki: 0.00x)"
+        },
+        {
+          "kod": "DILUTION",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Sermaye Seyrelmemesi (Hisse Ihraci / Bedelli Yok)",
+          "gecerli": true,
+          "deger": "Seyrelme Yok"
+        },
+        {
+          "kod": "GROSS_MARGIN",
+          "kategori": "Verimlilik",
+          "aciklama": "Brut Kar Marji Artisi (Fiyatlama Gucu)",
+          "gecerli": true,
+          "deger": "%0.0 (Onceki: %0.0)"
+        },
+        {
+          "kod": "ASSET_TURNOVER",
+          "kategori": "Verimlilik",
+          "aciklama": "Aktif Devir Hizi Artisi (Varlik Kullanim Etkinligi)",
+          "gecerli": false,
+          "deger": "0.13x (Onceki: 0.13x)"
+        }
+      ],
+      "altman_z_skor": 0.24,
+      "altman_bolge": "Riskli Bolge (Yuksek Kaldirac / Borc Baskisi)",
+      "altman_bilesenler": {
+        "x1_isletme_sermayesi_aktif": 0.0,
+        "x2_gecmis_yillar_kari_aktif": 0.056,
+        "x3_ebit_aktif": 0.0,
+        "x4_piyasa_degeri_toplam_borc": 0.049,
+        "x5_ciro_aktif": 0.13
+      },
+      "dupont_analizi": {
+        "net_kar_marji": 0.71,
+        "aktif_devir_hizi": 0.13,
+        "kaldirac_carpani": 11.35,
+        "hesaplanan_roe": 1.05
+      },
+      "ozet": "SABANCI HOLDING icin Piotroski F-Score 7/9 (Guclu / Saglam Bilanco (6-7/9)). Altman Z-Score 0.24 ile 'Riskli Bolge (Yuksek Kaldirac / Borc Baskisi)' konumunda. DuPont ayristirmasina gore karlilik %0.7 net marj, 0.13x devir hizi ve 11.35x kaldirac carpani ile %1.1 ROE uretmektedir."
     }
   },
   "PETKM": {
@@ -2164,6 +3034,93 @@
           "potansiyel_yuzde": -191.6
         }
       }
+    },
+    "financial_health": {
+      "ticker": "PETKM",
+      "sirket": "PETKIM",
+      "piotroski_skor": 3,
+      "piotroski_degerlendirme": "Zayif Bilanco / Dikkat (0-3/9)",
+      "piotroski_kriterler": [
+        {
+          "kod": "ROA",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Varlik Karliligi (ROA > 0)",
+          "gecerli": false,
+          "deger": "%-6.8"
+        },
+        {
+          "kod": "CFO",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Operasyonel Nakit Akisi (CFO > 0)",
+          "gecerli": false,
+          "deger": "-6,551,904,000 TL"
+        },
+        {
+          "kod": "DROA",
+          "kategori": "Karlilik",
+          "aciklama": "Yillik ROA Artisi (ΔROA > 0)",
+          "gecerli": false,
+          "deger": "Onceki: %-5.1 → Guncel: %-6.8"
+        },
+        {
+          "kod": "ACCRUAL",
+          "kategori": "Karlilik",
+          "aciklama": "Kar Kalitesi (CFO > Net Kar - Nakit Odakli Kar)",
+          "gecerli": true,
+          "deger": "Nakit: -6,551,904,000 TL vs Kar: -10,233,898,000 TL"
+        },
+        {
+          "kod": "LEVERAGE",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Uzun Vadeli Borcluluk Azalmasi veya Dengeli Seyir",
+          "gecerli": true,
+          "deger": "%11.7 (Onceki: %15.4)"
+        },
+        {
+          "kod": "CURRENT_RATIO",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Cari Oran Iyilesmesi (Likidite Guclenmesi)",
+          "gecerli": false,
+          "deger": "0.56x (Onceki: 0.66x)"
+        },
+        {
+          "kod": "DILUTION",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Sermaye Seyrelmemesi (Hisse Ihraci / Bedelli Yok)",
+          "gecerli": true,
+          "deger": "Seyrelme Yok"
+        },
+        {
+          "kod": "GROSS_MARGIN",
+          "kategori": "Verimlilik",
+          "aciklama": "Brut Kar Marji Artisi (Fiyatlama Gucu)",
+          "gecerli": false,
+          "deger": "%-3.5 (Onceki: %-1.6)"
+        },
+        {
+          "kod": "ASSET_TURNOVER",
+          "kategori": "Verimlilik",
+          "aciklama": "Aktif Devir Hizi Artisi (Varlik Kullanim Etkinligi)",
+          "gecerli": false,
+          "deger": "0.59x (Onceki: 0.63x)"
+        }
+      ],
+      "altman_z_skor": 0.92,
+      "altman_bolge": "Riskli Bolge (Yuksek Kaldirac / Borc Baskisi)",
+      "altman_bilesenler": {
+        "x1_isletme_sermayesi_aktif": -0.16,
+        "x2_gecmis_yillar_kari_aktif": 0.117,
+        "x3_ebit_aktif": 0.018,
+        "x4_piyasa_degeri_toplam_borc": 0.502,
+        "x5_ciro_aktif": 0.589
+      },
+      "dupont_analizi": {
+        "net_kar_marji": -11.49,
+        "aktif_devir_hizi": 0.59,
+        "kaldirac_carpani": 2.37,
+        "hesaplanan_roe": -16.0
+      },
+      "ozet": "PETKIM icin Piotroski F-Score 3/9 (Zayif Bilanco / Dikkat (0-3/9)). Altman Z-Score 0.92 ile 'Riskli Bolge (Yuksek Kaldirac / Borc Baskisi)' konumunda. DuPont ayristirmasina gore karlilik %-11.5 net marj, 0.59x devir hizi ve 2.37x kaldirac carpani ile %-16.0 ROE uretmektedir."
     }
   },
   "TCELL": {
@@ -2361,6 +3318,93 @@
           "potansiyel_yuzde": -56.4
         }
       }
+    },
+    "financial_health": {
+      "ticker": "TCELL",
+      "sirket": "TURKCELL",
+      "piotroski_skor": 3,
+      "piotroski_degerlendirme": "Zayif Bilanco / Dikkat (0-3/9)",
+      "piotroski_kriterler": [
+        {
+          "kod": "ROA",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Varlik Karliligi (ROA > 0)",
+          "gecerli": false,
+          "deger": "%0.0"
+        },
+        {
+          "kod": "CFO",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Operasyonel Nakit Akisi (CFO > 0)",
+          "gecerli": true,
+          "deger": "82.8 Milyar TL"
+        },
+        {
+          "kod": "DROA",
+          "kategori": "Karlilik",
+          "aciklama": "Yillik ROA Artisi (ΔROA > 0)",
+          "gecerli": false,
+          "deger": "Onceki: %6.8 → Guncel: %0.0"
+        },
+        {
+          "kod": "ACCRUAL",
+          "kategori": "Karlilik",
+          "aciklama": "Kar Kalitesi (CFO > Net Kar - Nakit Odakli Kar)",
+          "gecerli": true,
+          "deger": "Nakit: 82.8 Milyar TL vs Kar: 0 TL"
+        },
+        {
+          "kod": "LEVERAGE",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Uzun Vadeli Borcluluk Azalmasi veya Dengeli Seyir",
+          "gecerli": true,
+          "deger": "%0.0 (Onceki: %14.1)"
+        },
+        {
+          "kod": "CURRENT_RATIO",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Cari Oran Iyilesmesi (Likidite Guclenmesi)",
+          "gecerli": false,
+          "deger": "0.00x (Onceki: 1.25x)"
+        },
+        {
+          "kod": "DILUTION",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Sermaye Seyrelmemesi (Hisse Ihraci / Bedelli Yok)",
+          "gecerli": false,
+          "deger": "Hisse Artisi Tespit Edildi"
+        },
+        {
+          "kod": "GROSS_MARGIN",
+          "kategori": "Verimlilik",
+          "aciklama": "Brut Kar Marji Artisi (Fiyatlama Gucu)",
+          "gecerli": false,
+          "deger": "%0.0 (Onceki: %24.7)"
+        },
+        {
+          "kod": "ASSET_TURNOVER",
+          "kategori": "Verimlilik",
+          "aciklama": "Aktif Devir Hizi Artisi (Varlik Kullanim Etkinligi)",
+          "gecerli": false,
+          "deger": "0.00x (Onceki: 0.48x)"
+        }
+      ],
+      "altman_z_skor": 0.0,
+      "altman_bolge": "Riskli Bolge (Yuksek Kaldirac / Borc Baskisi)",
+      "altman_bilesenler": {
+        "x1_isletme_sermayesi_aktif": 0.0,
+        "x2_gecmis_yillar_kari_aktif": 0.0,
+        "x3_ebit_aktif": 0.0,
+        "x4_piyasa_degeri_toplam_borc": 0.0,
+        "x5_ciro_aktif": 0.0
+      },
+      "dupont_analizi": {
+        "net_kar_marji": 0.0,
+        "aktif_devir_hizi": 0.0,
+        "kaldirac_carpani": 1.0,
+        "hesaplanan_roe": 0.0
+      },
+      "ozet": "TURKCELL icin Piotroski F-Score 3/9 (Zayif Bilanco / Dikkat (0-3/9)). Altman Z-Score 0.00 ile 'Riskli Bolge (Yuksek Kaldirac / Borc Baskisi)' konumunda. DuPont ayristirmasina gore karlilik %0.0 net marj, 0.00x devir hizi ve 1.00x kaldirac carpani ile %0.0 ROE uretmektedir."
     }
   },
   "TTKOM": {
@@ -2558,6 +3602,93 @@
           "potansiyel_yuzde": -20.3
         }
       }
+    },
+    "financial_health": {
+      "ticker": "TTKOM",
+      "sirket": "TURK TELEKOM",
+      "piotroski_skor": 7,
+      "piotroski_degerlendirme": "Guclu / Saglam Bilanco (6-7/9)",
+      "piotroski_kriterler": [
+        {
+          "kod": "ROA",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Varlik Karliligi (ROA > 0)",
+          "gecerli": true,
+          "deger": "%5.4"
+        },
+        {
+          "kod": "CFO",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Operasyonel Nakit Akisi (CFO > 0)",
+          "gecerli": true,
+          "deger": "97.0 Milyar TL"
+        },
+        {
+          "kod": "DROA",
+          "kategori": "Karlilik",
+          "aciklama": "Yillik ROA Artisi (ΔROA > 0)",
+          "gecerli": true,
+          "deger": "Onceki: %3.1 → Guncel: %5.4"
+        },
+        {
+          "kod": "ACCRUAL",
+          "kategori": "Karlilik",
+          "aciklama": "Kar Kalitesi (CFO > Net Kar - Nakit Odakli Kar)",
+          "gecerli": true,
+          "deger": "Nakit: 97.0 Milyar TL vs Kar: 23.0 Milyar TL"
+        },
+        {
+          "kod": "LEVERAGE",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Uzun Vadeli Borcluluk Azalmasi veya Dengeli Seyir",
+          "gecerli": false,
+          "deger": "%24.1 (Onceki: %15.3)"
+        },
+        {
+          "kod": "CURRENT_RATIO",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Cari Oran Iyilesmesi (Likidite Guclenmesi)",
+          "gecerli": true,
+          "deger": "1.52x (Onceki: 0.92x)"
+        },
+        {
+          "kod": "DILUTION",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Sermaye Seyrelmemesi (Hisse Ihraci / Bedelli Yok)",
+          "gecerli": true,
+          "deger": "Seyrelme Yok"
+        },
+        {
+          "kod": "GROSS_MARGIN",
+          "kategori": "Verimlilik",
+          "aciklama": "Brut Kar Marji Artisi (Fiyatlama Gucu)",
+          "gecerli": true,
+          "deger": "%41.8 (Onceki: %36.8)"
+        },
+        {
+          "kod": "ASSET_TURNOVER",
+          "kategori": "Verimlilik",
+          "aciklama": "Aktif Devir Hizi Artisi (Varlik Kullanim Etkinligi)",
+          "gecerli": false,
+          "deger": "0.57x (Onceki: 0.60x)"
+        }
+      ],
+      "altman_z_skor": 1.95,
+      "altman_bolge": "Gri Bolge (Orta Risk / Takip Edilmeli)",
+      "altman_bilesenler": {
+        "x1_isletme_sermayesi_aktif": 0.092,
+        "x2_gecmis_yillar_kari_aktif": 0.264,
+        "x3_ebit_aktif": 0.131,
+        "x4_piyasa_degeri_toplam_borc": 0.787,
+        "x5_ciro_aktif": 0.568
+      },
+      "dupont_analizi": {
+        "net_kar_marji": 9.49,
+        "aktif_devir_hizi": 0.57,
+        "kaldirac_carpani": 2.01,
+        "hesaplanan_roe": 10.82
+      },
+      "ozet": "TURK TELEKOM icin Piotroski F-Score 7/9 (Guclu / Saglam Bilanco (6-7/9)). Altman Z-Score 1.95 ile 'Gri Bolge (Orta Risk / Takip Edilmeli)' konumunda. DuPont ayristirmasina gore karlilik %9.5 net marj, 0.57x devir hizi ve 2.01x kaldirac carpani ile %10.8 ROE uretmektedir."
     }
   },
   "ULUUN": {
@@ -2755,6 +3886,93 @@
           "potansiyel_yuzde": -28.3
         }
       }
+    },
+    "financial_health": {
+      "ticker": "ULUUN",
+      "sirket": "ULUSOY UN SANAYI",
+      "piotroski_skor": 6,
+      "piotroski_degerlendirme": "Guclu / Saglam Bilanco (6-7/9)",
+      "piotroski_kriterler": [
+        {
+          "kod": "ROA",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Varlik Karliligi (ROA > 0)",
+          "gecerli": false,
+          "deger": "%-0.3"
+        },
+        {
+          "kod": "CFO",
+          "kategori": "Karlilik",
+          "aciklama": "Pozitif Operasyonel Nakit Akisi (CFO > 0)",
+          "gecerli": true,
+          "deger": "1.7 Milyar TL"
+        },
+        {
+          "kod": "DROA",
+          "kategori": "Karlilik",
+          "aciklama": "Yillik ROA Artisi (ΔROA > 0)",
+          "gecerli": true,
+          "deger": "Onceki: %-0.5 → Guncel: %-0.3"
+        },
+        {
+          "kod": "ACCRUAL",
+          "kategori": "Karlilik",
+          "aciklama": "Kar Kalitesi (CFO > Net Kar - Nakit Odakli Kar)",
+          "gecerli": true,
+          "deger": "Nakit: 1.7 Milyar TL vs Kar: -130,938,459 TL"
+        },
+        {
+          "kod": "LEVERAGE",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Uzun Vadeli Borcluluk Azalmasi veya Dengeli Seyir",
+          "gecerli": false,
+          "deger": "%11.3 (Onceki: %3.2)"
+        },
+        {
+          "kod": "CURRENT_RATIO",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Cari Oran Iyilesmesi (Likidite Guclenmesi)",
+          "gecerli": true,
+          "deger": "1.26x (Onceki: 1.13x)"
+        },
+        {
+          "kod": "DILUTION",
+          "kategori": "Kaldirac & Likidite",
+          "aciklama": "Sermaye Seyrelmemesi (Hisse Ihraci / Bedelli Yok)",
+          "gecerli": true,
+          "deger": "Seyrelme Yok"
+        },
+        {
+          "kod": "GROSS_MARGIN",
+          "kategori": "Verimlilik",
+          "aciklama": "Brut Kar Marji Artisi (Fiyatlama Gucu)",
+          "gecerli": true,
+          "deger": "%4.5 (Onceki: %4.4)"
+        },
+        {
+          "kod": "ASSET_TURNOVER",
+          "kategori": "Verimlilik",
+          "aciklama": "Aktif Devir Hizi Artisi (Varlik Kullanim Etkinligi)",
+          "gecerli": false,
+          "deger": "1.49x (Onceki: 1.54x)"
+        }
+      ],
+      "altman_z_skor": 1.96,
+      "altman_bolge": "Gri Bolge (Orta Risk / Takip Edilmeli)",
+      "altman_bilesenler": {
+        "x1_isletme_sermayesi_aktif": 0.131,
+        "x2_gecmis_yillar_kari_aktif": 0.1,
+        "x3_ebit_aktif": 0.024,
+        "x4_piyasa_degeri_toplam_borc": 0.151,
+        "x5_ciro_aktif": 1.491
+      },
+      "dupont_analizi": {
+        "net_kar_marji": -0.2,
+        "aktif_devir_hizi": 1.49,
+        "kaldirac_carpani": 3.27,
+        "hesaplanan_roe": -0.95
+      },
+      "ozet": "ULUSOY UN SANAYI icin Piotroski F-Score 6/9 (Guclu / Saglam Bilanco (6-7/9)). Altman Z-Score 1.96 ile 'Gri Bolge (Orta Risk / Takip Edilmeli)' konumunda. DuPont ayristirmasina gore karlilik %-0.2 net marj, 1.49x devir hizi ve 3.27x kaldirac carpani ile %-1.0 ROE uretmektedir."
     }
   }
 }

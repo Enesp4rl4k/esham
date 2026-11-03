@@ -450,6 +450,20 @@ def bist_dcf_degerleme(
     return res.to_dict()
 
 
+@mcp.tool()
+def bist_finansal_saglik(ticker: str) -> dict[str, Any]:
+    """Borsa İstanbul şirketi için Piotroski F-Score (0-9), Altman Z-Score iflas riski ve 3 Aşamalı DuPont kârlılık analizini hesaplar.
+    
+    9 kriterli Piotroski F-Skoru (kârlılık, likidite/kaldıraç, operasyonel verimlilik), Altman Z-Skoru (Güvenli, Gri, Riskli bölge)
+    ve DuPont ROE ayrıştırması (Net Kâr Marjı x Aktif Devir Hızı x Finansal Kaldıraç) sunar."""
+    from ..sources.bist_quant import BistQuantAnalyzer
+    analyzer = BistQuantAnalyzer()
+    res = analyzer.get_financial_health(ticker)
+    if not res:
+        return {"hata": f"{ticker} için finansal sağlık metrikleri hesaplanamadı."}
+    return res.to_dict()
+
+
 # ============================================================================
 # ÇAPRAZ PİYASA (BIST x TÜRİB) ARAÇLARI
 # ============================================================================

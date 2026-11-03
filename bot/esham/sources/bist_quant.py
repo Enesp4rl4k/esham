@@ -280,6 +280,58 @@ class DcfValuationResult:
         )
 
 
+@dataclass
+class FinancialHealthResult:
+    ticker: str
+    company_name: str
+    piotroski_score: int
+    piotroski_rating: str
+    piotroski_criteria: list[dict[str, Any]]
+    altman_z_score: float
+    altman_zone: str
+    altman_components: dict[str, float]
+    dupont: dict[str, float]
+    summary: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "ticker": self.ticker,
+            "sirket": self.company_name,
+            "piotroski_skor": self.piotroski_score,
+            "piotroski_degerlendirme": self.piotroski_rating,
+            "piotroski_kriterler": self.piotroski_criteria,
+            "altman_z_skor": self.altman_z_score,
+            "altman_bolge": self.altman_zone,
+            "altman_bilesenler": self.altman_components,
+            "dupont_analizi": self.dupont,
+            "ozet": self.summary,
+        }
+
+    def format_table(self) -> str:
+        dupont_str = (
+            f"- **Net Kar Marji:** %{self.dupont.get('net_kar_marji', 0.0):.1f}\n"
+            f"- **Aktif Devir Hizi:** {self.dupont.get('aktif_devir_hizi', 0.0):.2f}x\n"
+            f"- **Finansal Kaldirac Carpani:** {self.dupont.get('kaldirac_carpani', 0.0):.2f}x\n"
+            f"- **DuPont Hesaplanmis ROE:** **%{self.dupont.get('hesaplanan_roe', 0.0):.1f}**"
+        )
+        passed_criteria = [c["aciklama"] for c in self.piotroski_criteria if c.get("gecerli")]
+        crit_str = ", ".join(passed_criteria) if passed_criteria else "Kriter saglanamadi"
+
+        return (
+            f"### 🛡️ Kurumsal Finansal Saglik & Skor Karti (${self.ticker})\n"
+            f"| Analitik Metrik | Deger / Seviye | Degerlendirme & Yorum |\n"
+            f"| :--- | :--- | :--- |\n"
+            f"| **Piotroski F-Score** | **{self.piotroski_score} / 9** | `{self.piotroski_rating}` |\n"
+            f"| **Altman Z-Score** | **{self.altman_z_score:.2f}** | `{self.altman_zone}` |\n"
+            f"| **DuPont ROE** | **%{self.dupont.get('hesaplanan_roe', 0.0):.1f}** | Marj: %{self.dupont.get('net_kar_marji', 0.0):.1f} × Devir: {self.dupont.get('aktif_devir_hizi', 0.0):.2f}x × Kaldirac: {self.dupont.get('kaldirac_carpani', 0.0):.2f}x |\n\n"
+            f"#### 🔍 Piotroski Kriterleri & Finansal Teshis\n"
+            f"- **Saglanan Pozitif Sinyaller ({self.piotroski_score}/9):** {crit_str}\n"
+            f"- **Finansal Ozet:** {self.summary}\n\n"
+            f"#### 📊 DuPont 3 Asamali Karlilik Ayristirmasi\n"
+            f"{dupont_str}\n"
+        )
+
+
 class BistQuantAnalyzer:
     """BIST kantitatif seviyeler ve temel analiz motoru."""
 
@@ -644,6 +696,221 @@ class BistQuantAnalyzer:
             return None
 
 
+    def get_financial_health(self, ticker: str) -> FinancialHealthResult | None:
+        """Piotroski F-Score (0-9), Altman Z-Score ve 3 Asamali DuPont Analizi hesaplar."""
+        clean = ticker.strip().upper().replace(".IS", "")
+        symbol = f"{clean}.IS"
+
+        try:
+            import yfinance as yf
+            t = yf.Ticker(symbol)
+            fin = t.financials
+            bs = t.balance_sheet
+            cf = t.cashflow
+            info = t.info
+
+            company_name = info.get("shortName") or info.get("longName") or clean
+            mcap = float(info.get("marketCap") or 0.0)
+
+            def _get(df: Any, key: str, col: int = 0) -> float:
+                if df is not None and not df.empty and key in df.index and len(df.columns) > col:
+                    val = df.loc[key].iloc[col]
+                    return float(val) if val is not None and str(val) != "nan" else 0.0
+                return 0.0
+
+            net_inc_0 = _get(fin, "Net Income", 0)
+            net_inc_1 = _get(fin, "Net Income", 1)
+            tot_assets_0 = _get(bs, "Total Assets", 0)
+            tot_assets_1 = _get(bs, "Total Assets", 1)
+            cfo_0 = _get(cf, "Operating Cash Flow", 0)
+            cfo_1 = _get(cf, "Operating Cash Flow", 1)
+            rev_0 = _get(fin, "Total Revenue", 0) or _get(fin, "Operating Revenue", 0)
+            rev_1 = _get(fin, "Total Revenue", 1) or _get(fin, "Operating Revenue", 1)
+            gross_0 = _get(fin, "Gross Profit", 0)
+            gross_1 = _get(fin, "Gross Profit", 1)
+            wc_0 = _get(bs, "Working Capital", 0)
+            ret_0 = _get(bs, "Retained Earnings", 0)
+            ebit_0 = _get(fin, "EBIT", 0) or _get(fin, "Operating Income", 0)
+            tot_liab_0 = _get(bs, "Total Liabilities Net Minority Interest", 0)
+            equity_0 = _get(bs, "Stockholders Equity", 0) or _get(bs, "Common Stock Equity", 0)
+            if not tot_liab_0 and tot_assets_0 and equity_0:
+                tot_liab_0 = max(0.0, tot_assets_0 - equity_0)
+
+            # 1. Piotroski Kriterleri
+            criteria: list[dict[str, Any]] = []
+
+            # Karlilik (Profitability)
+            roa_0 = (net_inc_0 / tot_assets_0) if tot_assets_0 else 0.0
+            roa_1 = (net_inc_1 / tot_assets_1) if tot_assets_1 else 0.0
+            pass_roa = roa_0 > 0
+            criteria.append({
+                "kod": "ROA",
+                "kategori": "Karlilik",
+                "aciklama": "Pozitif Varlik Karliligi (ROA > 0)",
+                "gecerli": pass_roa,
+                "deger": f"%{roa_0*100:.1f}",
+            })
+
+            pass_cfo = cfo_0 > 0
+            criteria.append({
+                "kod": "CFO",
+                "kategori": "Karlilik",
+                "aciklama": "Pozitif Operasyonel Nakit Akisi (CFO > 0)",
+                "gecerli": pass_cfo,
+                "deger": _fmt_try_money(cfo_0) if cfo_0 else "0 TL",
+            })
+
+            pass_droa = roa_0 > roa_1
+            criteria.append({
+                "kod": "DROA",
+                "kategori": "Karlilik",
+                "aciklama": "Yillik ROA Artisi (ΔROA > 0)",
+                "gecerli": pass_droa,
+                "deger": f"Onceki: %{roa_1*100:.1f} → Guncel: %{roa_0*100:.1f}",
+            })
+
+            pass_accrual = cfo_0 > net_inc_0
+            criteria.append({
+                "kod": "ACCRUAL",
+                "kategori": "Karlilik",
+                "aciklama": "Kar Kalitesi (CFO > Net Kar - Nakit Odakli Kar)",
+                "gecerli": pass_accrual,
+                "deger": f"Nakit: {_fmt_try_money(cfo_0)} vs Kar: {_fmt_try_money(net_inc_0)}",
+            })
+
+            # Kaldirac, Likidite & Fonlama
+            lt_debt_0 = _get(bs, "Long Term Debt", 0) or _get(bs, "Long Term Debt And Capital Lease Obligation", 0)
+            lt_debt_1 = _get(bs, "Long Term Debt", 1) or _get(bs, "Long Term Debt And Capital Lease Obligation", 1)
+            lev_0 = (lt_debt_0 / tot_assets_0) if tot_assets_0 else 0.0
+            lev_1 = (lt_debt_1 / tot_assets_1) if tot_assets_1 else 0.0
+            pass_lev = lev_0 <= lev_1
+            criteria.append({
+                "kod": "LEVERAGE",
+                "kategori": "Kaldirac & Likidite",
+                "aciklama": "Uzun Vadeli Borcluluk Azalmasi veya Dengeli Seyir",
+                "gecerli": pass_lev,
+                "deger": f"%{lev_0*100:.1f} (Onceki: %{lev_1*100:.1f})",
+            })
+
+            ca_0 = _get(bs, "Current Assets", 0)
+            cl_0 = _get(bs, "Current Liabilities", 0)
+            ca_1 = _get(bs, "Current Assets", 1)
+            cl_1 = _get(bs, "Current Liabilities", 1)
+            cr_0 = (ca_0 / cl_0) if cl_0 else 0.0
+            cr_1 = (ca_1 / cl_1) if cl_1 else 0.0
+            pass_cr = cr_0 >= cr_1
+            criteria.append({
+                "kod": "CURRENT_RATIO",
+                "kategori": "Kaldirac & Likidite",
+                "aciklama": "Cari Oran Iyilesmesi (Likidite Guclenmesi)",
+                "gecerli": pass_cr,
+                "deger": f"{cr_0:.2f}x (Onceki: {cr_1:.2f}x)",
+            })
+
+            shares_0 = _get(bs, "Ordinary Shares Number", 0) or _get(bs, "Share Issued", 0)
+            shares_1 = _get(bs, "Ordinary Shares Number", 1) or _get(bs, "Share Issued", 1)
+            pass_shares = shares_0 <= shares_1 or shares_1 == 0
+            criteria.append({
+                "kod": "DILUTION",
+                "kategori": "Kaldirac & Likidite",
+                "aciklama": "Sermaye Seyrelmemesi (Hisse Ihraci / Bedelli Yok)",
+                "gecerli": pass_shares,
+                "deger": "Seyrelme Yok" if pass_shares else "Hisse Artisi Tespit Edildi",
+            })
+
+            # Operasyonel Verimlilik
+            gm_0 = (gross_0 / rev_0) if rev_0 else 0.0
+            gm_1 = (gross_1 / rev_1) if rev_1 else 0.0
+            pass_gm = gm_0 >= gm_1
+            criteria.append({
+                "kod": "GROSS_MARGIN",
+                "kategori": "Verimlilik",
+                "aciklama": "Brut Kar Marji Artisi (Fiyatlama Gucu)",
+                "gecerli": pass_gm,
+                "deger": f"%{gm_0*100:.1f} (Onceki: %{gm_1*100:.1f})",
+            })
+
+            at_0 = (rev_0 / tot_assets_0) if tot_assets_0 else 0.0
+            at_1 = (rev_1 / tot_assets_1) if tot_assets_1 else 0.0
+            pass_at = at_0 >= at_1
+            criteria.append({
+                "kod": "ASSET_TURNOVER",
+                "kategori": "Verimlilik",
+                "aciklama": "Aktif Devir Hizi Artisi (Varlik Kullanim Etkinligi)",
+                "gecerli": pass_at,
+                "deger": f"{at_0:.2f}x (Onceki: {at_1:.2f}x)",
+            })
+
+            piotroski_score = sum(1 for c in criteria if c["gecerli"])
+            if piotroski_score >= 8:
+                piotroski_rating = "Cok Guclu Finansal Saglik (8-9/9)"
+            elif piotroski_score >= 6:
+                piotroski_rating = "Guclu / Saglam Bilanco (6-7/9)"
+            elif piotroski_score >= 4:
+                piotroski_rating = "Dengeli / Orta Segment (4-5/9)"
+            else:
+                piotroski_rating = "Zayif Bilanco / Dikkat (0-3/9)"
+
+            # 2. Altman Z-Score
+            x1 = (wc_0 / tot_assets_0) if tot_assets_0 else 0.0
+            x2 = (ret_0 / tot_assets_0) if tot_assets_0 else 0.0
+            x3 = (ebit_0 / tot_assets_0) if tot_assets_0 else 0.0
+            x4 = (mcap / tot_liab_0) if tot_liab_0 else 0.0
+            x5 = (rev_0 / tot_assets_0) if tot_assets_0 else 0.0
+            altman_z = 1.2 * x1 + 1.4 * x2 + 3.3 * x3 + 0.6 * x4 + 0.999 * x5
+
+            if altman_z >= 2.99:
+                altman_zone = "Guvenli Bolge (Dusuk Iflas Riski)"
+            elif altman_z >= 1.81:
+                altman_zone = "Gri Bolge (Orta Risk / Takip Edilmeli)"
+            else:
+                altman_zone = "Riskli Bolge (Yuksek Kaldirac / Borc Baskisi)"
+
+            altman_comp = {
+                "x1_isletme_sermayesi_aktif": round(x1, 3),
+                "x2_gecmis_yillar_kari_aktif": round(x2, 3),
+                "x3_ebit_aktif": round(x3, 3),
+                "x4_piyasa_degeri_toplam_borc": round(x4, 3),
+                "x5_ciro_aktif": round(x5, 3),
+            }
+
+            # 3. DuPont 3 Asamali Analizi
+            net_margin = (net_inc_0 / rev_0 * 100.0) if rev_0 else 0.0
+            asset_turn = (rev_0 / tot_assets_0) if tot_assets_0 else 0.0
+            equity_mult = (tot_assets_0 / equity_0) if equity_0 else 1.0
+            calc_roe = (net_margin / 100.0) * asset_turn * equity_mult * 100.0
+
+            dupont_dict = {
+                "net_kar_marji": round(net_margin, 2),
+                "aktif_devir_hizi": round(asset_turn, 2),
+                "kaldirac_carpani": round(equity_mult, 2),
+                "hesaplanan_roe": round(calc_roe, 2),
+            }
+
+            summary = (
+                f"{company_name} icin Piotroski F-Score {piotroski_score}/9 ({piotroski_rating}). "
+                f"Altman Z-Score {altman_z:.2f} ile '{altman_zone}' konumunda. "
+                f"DuPont ayristirmasina gore karlilik %{net_margin:.1f} net marj, {asset_turn:.2f}x devir hizi "
+                f"ve {equity_mult:.2f}x kaldirac carpani ile %{calc_roe:.1f} ROE uretmektedir."
+            )
+
+            return FinancialHealthResult(
+                ticker=clean,
+                company_name=company_name,
+                piotroski_score=piotroski_score,
+                piotroski_rating=piotroski_rating,
+                piotroski_criteria=criteria,
+                altman_z_score=round(altman_z, 2),
+                altman_zone=altman_zone,
+                altman_components=altman_comp,
+                dupont=dupont_dict,
+                summary=summary,
+            )
+        except Exception as exc:
+            log.warning("Finansal saglik hesabi basarisiz (%s): %s", ticker, exc)
+            return None
+
+
 def extract_contract_amount(text: str, usd_try: float = 34.2, eur_try: float = 37.1) -> float | None:
     """Metin içinden sözleşme, sipariş veya ihale tutarını (TL cinsinden) ayrıştırır."""
     if not text:
@@ -687,3 +954,26 @@ def extract_contract_amount(text: str, usd_try: float = 34.2, eur_try: float = 3
         return val
 
     return None
+
+def get_key_levels(ticker: str) -> KeyLevelsResult | None:
+    return BistQuantAnalyzer().get_key_levels(ticker)
+
+
+def get_fundamental_metrics(ticker: str, contract_amount_try: float | None = None) -> FundamentalResult | None:
+    return BistQuantAnalyzer().get_fundamental_metrics(ticker, contract_amount_try)
+
+
+def calculate_dcf(
+    ticker: str,
+    wacc: float | None = None,
+    growth_rate: float | None = None,
+    terminal_growth: float | None = None,
+    projection_years: int = 5,
+    usd_try: float = 34.2,
+) -> DcfValuationResult | None:
+    return BistQuantAnalyzer().calculate_dcf(ticker, wacc, growth_rate, terminal_growth, projection_years, usd_try)
+
+
+def calculate_financial_health(ticker: str) -> FinancialHealthResult | None:
+    return BistQuantAnalyzer().get_financial_health(ticker)
+

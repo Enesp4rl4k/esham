@@ -5,6 +5,8 @@ import "./globals.css";
 import { CATEGORIES, type CategorySlug } from "@/lib/content";
 import { MobileMenu } from "@/components/MobileMenu";
 import { DesktopNav } from "@/components/DesktopNav";
+import { SearchCommandPalette } from "@/components/SearchCommandPalette";
+import { WatchlistDrawer } from "@/components/WatchlistDrawer";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -80,30 +82,9 @@ export default function RootLayout({
 
             <DesktopNav navItems={navItems} />
 
-            <div className="flex items-center gap-1">
-              {/* Arama */}
-              <Link
-                href="/arama"
-                aria-label="Rapor ara"
-                className="p-2 rounded-lg transition-colors"
-                style={{ color: "var(--text-muted)" }}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.3-4.3" />
-                </svg>
-              </Link>
+            <div className="flex items-center gap-2">
+              <SearchCommandPalette />
+              <WatchlistDrawer />
               <MobileMenu navItems={navItems} />
             </div>
           </div>

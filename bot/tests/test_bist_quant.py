@@ -4,6 +4,7 @@ from esham.sources.bist_quant import (
     BistQuantAnalyzer,
     KeyLevelsResult,
     FundamentalResult,
+    FinancialHealthResult,
     extract_contract_amount,
     _fmt_try_money,
 )
@@ -154,3 +155,30 @@ def test_dcf_valuation_result_format():
     assert d["ticker"] == "THYAO"
     assert d["hisse_basina_adil_deger_try"] == 383.04
     assert "senaryolar" in d
+
+def test_financial_health_result_format():
+    fh = FinancialHealthResult(
+        ticker="ASELS",
+        company_name="Aselsan Elektronik",
+        piotroski_score=7,
+        piotroski_rating="Guclu / Saglam Bilanco (6-7/9)",
+        piotroski_criteria=[
+            {"kod": "ROA", "kategori": "Karlilik", "aciklama": "Pozitif Varlik Karliligi (ROA > 0)", "gecerli": True, "deger": "%16.6"},
+            {"kod": "CFO", "kategori": "Karlilik", "aciklama": "Pozitif Operasyonel Nakit Akisi (CFO > 0)", "gecerli": True, "deger": "12 Milyar TL"},
+        ],
+        altman_z_score=6.55,
+        altman_zone="Guvenli Bolge (Dusuk Iflas Riski)",
+        altman_components={"x1": 0.25, "x2": 0.35, "x3": 0.18, "x4": 3.2, "x5": 0.42},
+        dupont={"net_kar_marji": 16.6, "aktif_devir_hizi": 0.42, "kaldirac_carpani": 1.72, "hesaplanan_roe": 12.0},
+        summary="Aselsan guclu finansal sagliga sahiptir.",
+    )
+    tbl = fh.format_table()
+    assert "ASELS" in tbl
+    assert "7 / 9" in tbl
+    assert "6.55" in tbl
+    assert "%12.0" in tbl
+    d = fh.to_dict()
+    assert d["piotroski_skor"] == 7
+    assert d["altman_z_skor"] == 6.55
+    assert "dupont_analizi" in d
+
