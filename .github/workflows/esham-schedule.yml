@@ -154,8 +154,8 @@ jobs:
             echo "has_changes=false" >> $GITHUB_OUTPUT
           else
             git commit -m "content: otomatik yayın (${{ github.event.schedule || github.event.inputs.command }}) [skip ci]"
-            git pull --rebase origin master || true
-            git push
+            git pull --rebase -X theirs origin master || git rebase --abort || true
+            git push origin master || true
             echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
 
