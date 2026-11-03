@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-03T17:49:07+03:00",
+  "updatedAt": "2026-11-03T19:14:57+03:00",
   "date": "2026-11-03",
   "indices": [
     {
@@ -101,7 +101,7 @@
     "headlineCpiAnnualPct": 31.52,
     "meatInflationSpread": -1.01,
     "macroCommentary": "Yıllık Et TÜFE Enflasyonu %30.5 seviyesinde gerçekleşerek, manşet TÜFE'nin (%31.5) -1.0 puan altında seyretti. TÜRİB yem hammaddeleri (Arpa: 11.50 TL, Mısır: 12.00 TL) ile Dana Karkas/Yem paritesi (28.2), önümüzdeki çeyrek et enflasyonu için belirleyici öncü sinyal olmaya devam ediyor.",
-    "bistSectorImpact": "BIST Et & Gıda Hisseleri: BANVT 109,40 (+0,74%) tavuk/yem paritesinden doğrudan etkilenirken; PETUN 8,85 (+1,14%) karkas et ve un maliyet artışını şarküteri ürünlerine fiyatlama gücüyle dengeliyor. BIMAS, MGROS ve SOKM gibi perakendecilerde Et TÜFE artışı sepet büyüklüğünü artırırken brüt kâr marjını hassas tutuyor.",
+    "bistSectorImpact": "BIST Et & Gıda Hisseleri: BANVT 110,00 (+1,29%) tavuk/yem paritesinden doğrudan etkilenirken; PETUN 8,82 (+0,80%) karkas et ve un maliyet artışını şarküteri ürünlerine fiyatlama gücüyle dengeliyor. BIMAS, MGROS ve SOKM gibi perakendecilerde Et TÜFE artışı sepet büyüklüğünü artırırken brüt kâr marjını hassas tutuyor.",
     "parities": [
       {
         "title": "Dana Besi Karkas",
@@ -518,99 +518,23 @@
   },
   "regionalArbitrage": {
     "date": "2026-11-03",
-    "totalScannedTrades": 78,
-    "evaluation": "TÜRİB bülteninde EDİRNE ile MARDİN lisanslı depoları arasında 4.90 TL/kg brüt fiyat farkı tespit edildi. Tahmini 0.50 TL nakliye düşüldükten sonra net %32.4 (4.40 TL/kg) arbitraj marjı bulunmaktadır.",
-    "opportunities": [
-      {
-        "commodity": "BUĞDAY",
-        "cheapCity": "EDİRNE",
-        "cheapLidas": "CEMİL DEMİR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 13.6,
-        "expensiveCity": "MARDİN",
-        "expensiveLidas": "ENS LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "expensivePrice": 18.5,
-        "grossSpread": 4.9,
-        "freightCost": 0.5,
-        "netArbitrage": 4.4,
-        "netArbitragePct": 32.35,
-        "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "EDİRNE (CEMİL DEMİR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 13.60 TL'ye alınıp, MARDİN (ENS LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 4.40 TL/kg kâr kalır."
-      },
-      {
-        "commodity": "BUĞDAY",
-        "cheapCity": "EDİRNE",
-        "cheapLidas": "CEMİL DEMİR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 13.6,
-        "expensiveCity": "KAHRAMANMARAŞ",
-        "expensiveLidas": "KAYNAR AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "expensivePrice": 18.5,
-        "grossSpread": 4.9,
-        "freightCost": 0.5,
-        "netArbitrage": 4.4,
-        "netArbitragePct": 32.35,
-        "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "EDİRNE (CEMİL DEMİR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 13.60 TL'ye alınıp, KAHRAMANMARAŞ (KAYNAR AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 4.40 TL/kg kâr kalır."
-      },
-      {
-        "commodity": "BUĞDAY",
-        "cheapCity": "EDİRNE",
-        "cheapLidas": "CEMİL DEMİR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 13.6,
-        "expensiveCity": "ÇORUM",
-        "expensiveLidas": "ULİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ VE TİCARET A.Ş.",
-        "expensivePrice": 18.5,
-        "grossSpread": 4.9,
-        "freightCost": 0.5,
-        "netArbitrage": 4.4,
-        "netArbitragePct": 32.35,
-        "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "EDİRNE (CEMİL DEMİR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 13.60 TL'ye alınıp, ÇORUM (ULİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ VE TİCARET A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 4.40 TL/kg kâr kalır."
-      },
-      {
-        "commodity": "BUĞDAY",
-        "cheapCity": "KAYSERİ",
-        "cheapLidas": "KUŞAT TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 14.8,
-        "expensiveCity": "MARDİN",
-        "expensiveLidas": "ENS LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "expensivePrice": 18.5,
-        "grossSpread": 3.7,
-        "freightCost": 0.5,
-        "netArbitrage": 3.2,
-        "netArbitragePct": 21.62,
-        "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "KAYSERİ (KUŞAT TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.80 TL'ye alınıp, MARDİN (ENS LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.20 TL/kg kâr kalır."
-      },
-      {
-        "commodity": "BUĞDAY",
-        "cheapCity": "KAYSERİ",
-        "cheapLidas": "KUŞAT TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 14.8,
-        "expensiveCity": "KAHRAMANMARAŞ",
-        "expensiveLidas": "KAYNAR AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "expensivePrice": 18.5,
-        "grossSpread": 3.7,
-        "freightCost": 0.5,
-        "netArbitrage": 3.2,
-        "netArbitragePct": 21.62,
-        "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "KAYSERİ (KUŞAT TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.80 TL'ye alınıp, KAHRAMANMARAŞ (KAYNAR AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.20 TL/kg kâr kalır."
-      }
-    ]
+    "totalScannedTrades": 0,
+    "evaluation": "Taranan 0 farklı lisanslı depoda fiyatlar bölgesel lojistik dengede seyretmektedir; nakliye maliyetini aşan belirgin bir net arbitraj boşluğu bulunmamaktadır.",
+    "opportunities": []
   },
   "agriBist": {
     "date": "2026-11-03",
-    "xgidaPrice": "10.963,82",
-    "xgidaChange": "+0,75%",
+    "xgidaPrice": "10.920,23",
+    "xgidaChange": "+0,35%",
     "turibHububatIndex": "7.937,16",
     "turibHububatChange": "+0,34%",
-    "macroTakeaway": "BIST Gıda Endeksi (XGIDA) +0,75% hareket ederken, TÜRİB Hububat Endeksi +0,34% seviyesinde. Tarımsal emtia fiyatlarındaki yön, BIST gıda şirketlerinin 1-2 çeyrek sonraki FAVÖK marjlarına doğrudan yansıyacaktır.",
+    "macroTakeaway": "BIST Gıda Endeksi (XGIDA) +0,35% hareket ederken, TÜRİB Hububat Endeksi +0,34% seviyesinde. Tarımsal emtia fiyatlarındaki yön, BIST gıda şirketlerinin 1-2 çeyrek sonraki FAVÖK marjlarına doğrudan yansıyacaktır.",
     "companies": [
       {
         "ticker": "ULUUN",
         "companyName": "Ulusoy Un Sanayi",
-        "stockPrice": "5,97",
-        "stockChange": "+1,53%",
+        "stockPrice": "5,99",
+        "stockChange": "+1,87%",
         "commodity": "BUĞDAY EKMEKLİK",
         "commodityPrice": 18.18,
         "commodityChange": -0.03,
@@ -620,8 +544,8 @@
       {
         "ticker": "PETUN",
         "companyName": "Pınar Et ve Un",
-        "stockPrice": "8,85",
-        "stockChange": "+1,14%",
+        "stockPrice": "8,82",
+        "stockChange": "+0,80%",
         "commodity": "BUĞDAY EKMEKLİK",
         "commodityPrice": 18.18,
         "commodityChange": -0.03,
@@ -631,8 +555,8 @@
       {
         "ticker": "BANVT",
         "companyName": "Banvit",
-        "stockPrice": "109,40",
-        "stockChange": "+0,74%",
+        "stockPrice": "110,00",
+        "stockChange": "+1,29%",
         "commodity": "MISIR",
         "commodityPrice": 0.0,
         "commodityChange": 0.0,
@@ -642,8 +566,8 @@
       {
         "ticker": "TATGD",
         "companyName": "Tat Gıda",
-        "stockPrice": "14,61",
-        "stockChange": "-0,61%",
+        "stockPrice": "14,74",
+        "stockChange": "+0,27%",
         "commodity": "BUĞDAY MAKARNALIK",
         "commodityPrice": 18.49,
         "commodityChange": 0.06,
