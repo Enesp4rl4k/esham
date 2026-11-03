@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-03T19:14:57+03:00",
+  "updatedAt": "2026-11-03T23:16:08+03:00",
   "date": "2026-11-03",
   "indices": [
     {
@@ -517,10 +517,86 @@
     ]
   },
   "regionalArbitrage": {
-    "date": "2026-11-03",
-    "totalScannedTrades": 0,
-    "evaluation": "Taranan 0 farklı lisanslı depoda fiyatlar bölgesel lojistik dengede seyretmektedir; nakliye maliyetini aşan belirgin bir net arbitraj boşluğu bulunmamaktadır.",
-    "opportunities": []
+    "date": "2026-11-02",
+    "totalScannedTrades": 76,
+    "evaluation": "TÜRİB bülteninde KIRŞEHİR ile ŞANLIURFA lisanslı depoları arasında 6.10 TL/kg brüt fiyat farkı tespit edildi. Tahmini 0.50 TL nakliye düşüldükten sonra net %45.2 (5.60 TL/kg) arbitraj marjı bulunmaktadır.",
+    "opportunities": [
+      {
+        "commodity": "BUĞDAY",
+        "cheapCity": "KIRŞEHİR",
+        "cheapLidas": "ALKIM LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 12.4,
+        "expensiveCity": "ŞANLIURFA",
+        "expensiveLidas": "MEREK TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "expensivePrice": 18.5,
+        "grossSpread": 6.1,
+        "freightCost": 0.5,
+        "netArbitrage": 5.6,
+        "netArbitragePct": 45.16,
+        "opportunityLevel": "YUKSEK_FIRSAT",
+        "notes": "KIRŞEHİR (ALKIM LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 12.40 TL'ye alınıp, ŞANLIURFA (MEREK TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 5.60 TL/kg kâr kalır."
+      },
+      {
+        "commodity": "BUĞDAY",
+        "cheapCity": "KIRŞEHİR",
+        "cheapLidas": "ALKIM LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 12.4,
+        "expensiveCity": "ŞANLIURFA",
+        "expensiveLidas": "TAVŞU LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "expensivePrice": 18.5,
+        "grossSpread": 6.1,
+        "freightCost": 0.5,
+        "netArbitrage": 5.6,
+        "netArbitragePct": 45.16,
+        "opportunityLevel": "YUKSEK_FIRSAT",
+        "notes": "KIRŞEHİR (ALKIM LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 12.40 TL'ye alınıp, ŞANLIURFA (TAVŞU LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 5.60 TL/kg kâr kalır."
+      },
+      {
+        "commodity": "BUĞDAY",
+        "cheapCity": "KIRŞEHİR",
+        "cheapLidas": "ALKIM LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 12.4,
+        "expensiveCity": "ŞANLIURFA",
+        "expensiveLidas": "SENTİNUS TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "expensivePrice": 18.5,
+        "grossSpread": 6.1,
+        "freightCost": 0.5,
+        "netArbitrage": 5.6,
+        "netArbitragePct": 45.16,
+        "opportunityLevel": "YUKSEK_FIRSAT",
+        "notes": "KIRŞEHİR (ALKIM LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 12.40 TL'ye alınıp, ŞANLIURFA (SENTİNUS TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 5.60 TL/kg kâr kalır."
+      },
+      {
+        "commodity": "BUĞDAY",
+        "cheapCity": "EDİRNE",
+        "cheapLidas": "TRAKYA EVREN TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 15.0,
+        "expensiveCity": "ŞANLIURFA",
+        "expensiveLidas": "MEREK TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "expensivePrice": 18.5,
+        "grossSpread": 3.5,
+        "freightCost": 0.5,
+        "netArbitrage": 3.0,
+        "netArbitragePct": 20.0,
+        "opportunityLevel": "YUKSEK_FIRSAT",
+        "notes": "EDİRNE (TRAKYA EVREN TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 15.00 TL'ye alınıp, ŞANLIURFA (MEREK TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.00 TL/kg kâr kalır."
+      },
+      {
+        "commodity": "BUĞDAY",
+        "cheapCity": "EDİRNE",
+        "cheapLidas": "TRAKYA EVREN TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 15.0,
+        "expensiveCity": "ŞANLIURFA",
+        "expensiveLidas": "TAVŞU LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "expensivePrice": 18.5,
+        "grossSpread": 3.5,
+        "freightCost": 0.5,
+        "netArbitrage": 3.0,
+        "netArbitragePct": 20.0,
+        "opportunityLevel": "YUKSEK_FIRSAT",
+        "notes": "EDİRNE (TRAKYA EVREN TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 15.00 TL'ye alınıp, ŞANLIURFA (TAVŞU LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.00 TL/kg kâr kalır."
+      }
+    ]
   },
   "agriBist": {
     "date": "2026-11-03",
@@ -587,32 +663,5 @@
       }
     ]
   },
-  "realReturns": [
-    {
-      "commodityGroup": "BUĞDAY EKMEKLİK",
-      "startDate": "2019-07-26",
-      "endDate": "2026-11-03",
-      "tradingDays": 1803,
-      "startPriceTl": 1.26,
-      "endPriceTl": 18.18,
-      "nominalReturnPct": 1337.49,
-      "usdReturnPct": 101.26,
-      "eurReturnPct": 106.53,
-      "realInflationReturnPct": 8.9,
-      "commentary": "'BUĞDAY EKMEKLİK' 2019-07-26 - 2026-11-03 döneminde nominal TL bazında %1337.5 yükselirken, birikimli TÜFE enflasyonunu aşarak reel alım gücünü %8.9 artırdı. Dolar bazlı getiri %101.3 olarak gerçekleşti; emtia enflasyona karşı koruma sağladı."
-    },
-    {
-      "commodityGroup": "BUĞDAY MAKARNALIK",
-      "startDate": "2019-07-29",
-      "endDate": "2026-11-03",
-      "tradingDays": 1637,
-      "startPriceTl": 1.51,
-      "endPriceTl": 18.49,
-      "nominalReturnPct": 1120.86,
-      "usdReturnPct": 70.87,
-      "eurReturnPct": 75.35,
-      "realInflationReturnPct": -7.51,
-      "commentary": "'BUĞDAY MAKARNALIK' 2019-07-29 - 2026-11-03 döneminde nominal TL bazında %1120.9 prim yapmasına rağmen, TÜFE enflasyonunun gerisinde kalarak reel olarak %7.5 satın alma gücü erimesi yaşadı. Dolar bazlı getiri %70.9 seviyesinde kaldı."
-    }
-  ]
+  "realReturns": []
 }
