@@ -27,6 +27,7 @@ import { KeyLevelsCard } from "@/components/KeyLevelsCard";
 import { FundamentalMetricsCard } from "@/components/FundamentalMetricsCard";
 import { FinancialHealthCard } from "@/components/FinancialHealthCard";
 import { WatchlistDrawer } from "@/components/WatchlistDrawer";
+import { InteractiveStockChart } from "@/components/InteractiveStockChart";
 
 type Params = { ticker: string };
 
@@ -250,6 +251,25 @@ export default async function TickerPage({
             </Link>
           ))}
         </div>
+      </div>
+
+      {/* ── Etkileşimli Fiyat Grafiği & Trend Görünümü ── */}
+      <div className="mb-10">
+        <InteractiveStockChart
+          ticker={cleanTicker}
+          currentPrice={
+            liveQuote?.value
+              ? parseFloat(liveQuote.value.replace("₺", "").replace(".", "").replace(",", ".")) || (keyLevelsData?.son_fiyat || 100)
+              : (keyLevelsData?.son_fiyat || 100)
+          }
+          changePct={
+            liveQuote?.change
+              ? parseFloat(liveQuote.change.replace("%", "").replace("+", "").replace(",", ".")) || (keyLevelsData?.gunluk_degisim_yuzde || 0)
+              : (keyLevelsData?.gunluk_degisim_yuzde || 0)
+          }
+          sma20={keyLevelsData?.hareketli_ortalamalar?.sma_20}
+          sma50={keyLevelsData?.hareketli_ortalamalar?.sma_50}
+        />
       </div>
 
       {/* İndirgenmiş Nakit Akışı (İNA / DCF) Değerleme Modeli */}

@@ -8,6 +8,30 @@ import {
   accentClasses,
 } from "@/lib/content";
 import { CategoryReports } from "@/components/CategoryReports";
+import { MacroBarometerCard } from "@/components/MacroBarometerCard";
+import { ViopBasisCard } from "@/components/ViopBasisCard";
+import { promises as fs } from "fs";
+import path from "path";
+
+async function loadMacroBarometer() {
+  try {
+    const filePath = path.join(process.cwd(), "public", "data", "macro-barometer.json");
+    const raw = await fs.readFile(filePath, "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+async function loadViopBasis() {
+  try {
+    const filePath = path.join(process.cwd(), "public", "data", "viop-basis.json");
+    const raw = await fs.readFile(filePath, "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
 
 type Params = { category: string };
 
@@ -237,6 +261,8 @@ export default async function CategoryPage({
 
   const meta = CATEGORIES[category];
   const reports = getReportsByCategory(category);
+  const macroData = category === "global" ? await loadMacroBarometer() : null;
+  const viopData = category === "viop" ? await loadViopBasis() : null;
 
   return (
     <div className="container mx-auto px-6 py-12">
@@ -246,6 +272,18 @@ export default async function CategoryPage({
         description={meta.description}
         accent={meta.accent}
       />
+
+      {macroData && (
+        <div className="mb-10">
+          <MacroBarometerCard data={macroData} />
+        </div>
+      )}
+
+      {viopData && (
+        <div className="mb-10">
+          <ViopBasisCard data={viopData} />
+        </div>
+      )}
 
       <CategoryReports reports={reports} />
     </div>

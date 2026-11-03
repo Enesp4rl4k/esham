@@ -464,6 +464,44 @@ def bist_finansal_saglik(ticker: str) -> dict[str, Any]:
     return res.to_dict()
 
 
+@mcp.tool()
+def bist_geri_alimlar(ticker: str | None = None) -> list[dict[str, Any]]:
+    """Borsa İstanbul şirketlerinin aktif pay geri alım (share buyback) programlarını listeler.
+    
+    Ayrılan fon tutarı, azami lot, geri alınan lot, sermaye oranı (%), ortalama maliyet
+    ve piyasa fiyatına göre prim/iskonto getirisini sunar."""
+    from ..sources.bist_corporate_actions import BistCorporateActionsSource
+    source = BistCorporateActionsSource()
+    return [b.to_dict() for b in source.get_buybacks(ticker)]
+
+
+@mcp.tool()
+def bist_temettu_takvimi(ticker: str | None = None) -> list[dict[str, Any]]:
+    """Borsa İstanbul şirketlerinin temettü dağıtım takvimi, net temettü tutarları ve temettü verimlerini listeler.
+    
+    Hak kullanım (ex-date) ve ödeme tarihleri, kâr dağıtım oranları (%) ve hisse başına net tutarları gösterir."""
+    from ..sources.bist_corporate_actions import BistCorporateActionsSource
+    source = BistCorporateActionsSource()
+    return [d.to_dict() for d in source.get_dividends(ticker)]
+
+
+@mcp.tool()
+def macro_turkiye_barometresi() -> dict[str, Any]:
+    """Türkiye 5 Yıllık CDS Primi, TCMB Brüt / Net / Swap Hariç Net Rezervleri ve Hisse Risk Primini (ERP) sunar.
+    
+    Piyasa risk iştahını ve getiri dengesini (mevduat vs tahvil vs hisse) analiz eder."""
+    from ..sources.macro_radar import MacroRadarAnalyzer
+    return MacroRadarAnalyzer().get_macro_barometer().to_dict()
+
+
+@mcp.tool()
+def viop_basis_analizi() -> dict[str, Any]:
+    """VİOP BIST 30 Vadeli Kontratı ile Spot piyasa arasındaki Basis (fark), ima edilen yıllık faiz oranı,
+    açık pozisyon değişimi ve Takasbank teminat tamamlama (Margin Call) risk seviyesini sunar."""
+    from ..sources.macro_radar import MacroRadarAnalyzer
+    return MacroRadarAnalyzer().get_viop_basis().to_dict()
+
+
 # ============================================================================
 # ÇAPRAZ PİYASA (BIST x TÜRİB) ARAÇLARI
 # ============================================================================

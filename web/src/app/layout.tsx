@@ -43,6 +43,8 @@ export const metadata: Metadata = {
 const navItems: { href: string; label: string }[] = [
   { href: "/", label: "Ana Sayfa" },
   { href: "/tarim-emtia", label: "Tarımsal Emtia & Et-Yem" },
+  { href: "/piyasa/geri-alimlar", label: "Pay Geri Alımları" },
+  { href: "/piyasa/temettu-takvimi", label: "Temettü Takvimi" },
   ...(Object.keys(CATEGORIES) as CategorySlug[]).map((slug) => ({
     href: `/kategori/${slug}`,
     label: CATEGORIES[slug].label,

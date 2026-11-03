@@ -21,6 +21,9 @@ import { ReportCard } from "@/components/ReportCard";
 import { Newsletter } from "@/components/Newsletter";
 import { TickerBand } from "@/components/TickerBand";
 import { MarketMatrix } from "@/components/MarketMatrix";
+import { AudioBriefingPlayer } from "@/components/AudioBriefingPlayer";
+import { MacroBarometerCard } from "@/components/MacroBarometerCard";
+import { ViopBasisCard } from "@/components/ViopBasisCard";
 
 // Kategori etiket renkleri — CSS değişkenleriyle
 const catColors: Record<CategorySlug, string> = {
@@ -36,6 +39,26 @@ const catColors: Record<CategorySlug, string> = {
 async function loadTuribSnapshot() {
   try {
     const filePath = path.join(process.cwd(), "public", "data", "turib-market.json");
+    const raw = await fs.readFile(filePath, "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+async function loadMacroBarometer() {
+  try {
+    const filePath = path.join(process.cwd(), "public", "data", "macro-barometer.json");
+    const raw = await fs.readFile(filePath, "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+async function loadViopBasis() {
+  try {
+    const filePath = path.join(process.cwd(), "public", "data", "viop-basis.json");
     const raw = await fs.readFile(filePath, "utf-8");
     return JSON.parse(raw);
   } catch {
@@ -60,6 +83,8 @@ export default async function Home() {
   const secondary = reports.slice(1, 4);
   const turibData = await loadTuribSnapshot();
   const tickerData = await loadMarketTickerData();
+  const macroData = await loadMacroBarometer();
+  const viopData = await loadViopBasis();
 
   const trbHub = turibData?.indices?.find((i: any) => i.code === "TRBHUB");
   const bugdaySpot = turibData?.spotCommodities?.find((p: any) =>
@@ -78,8 +103,9 @@ export default async function Home() {
 
       {/* ── Canlı Piyasa Matrisi & Terminal Widget ── */}
       <section className="border-b bg-zinc-950/40 py-4" style={{ borderColor: "var(--border)" }}>
-        <div className="container mx-auto px-6">
+        <div className="container mx-auto px-6 space-y-4">
           <MarketMatrix tickerData={tickerData} turibData={turibData} />
+          <AudioBriefingPlayer />
         </div>
       </section>
 
@@ -375,6 +401,18 @@ export default async function Home() {
               {latest.map((report) => (
                 <ReportCard key={report.slug} report={report} />
               ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Makro Radar & VİOP Basis İstihbarat Paneli ── */}
+      {(macroData || viopData) && (
+        <section className="py-12 border-b bg-zinc-950/20" style={{ borderColor: "var(--border)" }}>
+          <div className="container mx-auto px-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {macroData && <MacroBarometerCard data={macroData} />}
+              {viopData && <ViopBasisCard data={viopData} />}
             </div>
           </div>
         </section>

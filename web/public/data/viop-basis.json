@@ -1,0 +1,14 @@
+{
+  "updated_at": "2026-11-03T17:00:00+03:00",
+  "spot_xu030": 11840.5,
+  "vadeli_f_xu030": 12180.0,
+  "basis_puan": 339.5,
+  "basis_yuzde": 2.87,
+  "ima_edilen_yillik_faiz_yuzde": 32.7,
+  "vadeye_kalan_gun": 32,
+  "acik_pozisyon_lot": 342500,
+  "acik_pozisyon_gunluk_degisim": 14200,
+  "teminat_tamamlama_durumu": "Normal (Düşük Sıkışma Riski)",
+  "teminat_tamamlama_tutari": "18.2 Milyon TL",
+  "degerlendirme": "VİOP F_XU030 vadeli kontratı spot piyasaya göre +339.50 puan (%2.87) primli (Contango) işlem görüyor. İma edilen yıllıklandırılmış faiz %32.7 ile politika faizinin hafif altında. Açık pozisyon sayısı +14.200 lot artışla kurumsal alıcıların vade sonuna pozisyon taşıdığını gösteriyor."
+}

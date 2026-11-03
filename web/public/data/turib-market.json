@@ -1,58 +1,58 @@
 {
-  "updatedAt": "2026-11-03T15:58:03+03:00",
+  "updatedAt": "2026-11-03T17:49:07+03:00",
   "date": "2026-11-03",
   "indices": [
     {
       "code": "TRBHUB",
       "name": "TÜRİB Hububat Endeksi",
-      "value": 7910.25,
-      "valueStr": "7.910,25",
-      "change": 167.7,
-      "changePct": 2.12,
-      "changeStr": "+2,12%",
-      "high": 7948.4,
-      "low": 7855.43,
-      "volumeTon": 640293433.08,
-      "volumeStr": "640.293.433,1 Ton"
+      "value": 7937.16,
+      "valueStr": "7.937,16",
+      "change": 26.99,
+      "changePct": 0.34,
+      "changeStr": "+0,34%",
+      "high": 7958.93,
+      "low": 7926.02,
+      "volumeTon": 372754891.88,
+      "volumeStr": "372.754.891,9 Ton"
     },
     {
       "code": "TRBBGD",
       "name": "TÜRİB Buğday Endeksi",
-      "value": 8198.8,
-      "valueStr": "8.198,80",
-      "change": 210.71,
-      "changePct": 2.57,
-      "changeStr": "+2,57%",
-      "high": 8243.74,
-      "low": 8126.63,
-      "volumeTon": 625021138.35,
-      "volumeStr": "625.021.138,4 Ton"
+      "value": 8231.69,
+      "valueStr": "8.231,69",
+      "change": 32.93,
+      "changePct": 0.4,
+      "changeStr": "+0,40%",
+      "high": 8251.1,
+      "low": 8218.58,
+      "volumeTon": 316430639.75,
+      "volumeStr": "316.430.639,8 Ton"
     },
     {
       "code": "TRBMSR",
       "name": "TÜRİB Mısır Endeksi",
-      "value": 8179.16,
-      "valueStr": "8.179,16",
-      "change": -28.63,
-      "changePct": -0.35,
-      "changeStr": "-0,35%",
-      "high": 8184.69,
-      "low": 8175.14,
-      "volumeTon": 13816426.73,
-      "volumeStr": "13.816.426,7 Ton"
+      "value": 8268.79,
+      "valueStr": "8.268,79",
+      "change": 90.96,
+      "changePct": 1.1,
+      "changeStr": "+1,10%",
+      "high": 8268.79,
+      "low": 8234.79,
+      "volumeTon": 53357407.13,
+      "volumeStr": "53.357.407,1 Ton"
     },
     {
       "code": "TRBARP",
       "name": "TÜRİB Arpa Endeksi",
-      "value": 8096.23,
-      "valueStr": "8.096,23",
-      "change": 327.09,
-      "changePct": 4.04,
-      "changeStr": "+4,04%",
-      "high": 8175.06,
-      "low": 8064.5,
-      "volumeTon": 1455868.0,
-      "volumeStr": "1.455.868,0 Ton"
+      "value": 7829.27,
+      "valueStr": "7.829,27",
+      "change": -258.37,
+      "changePct": -3.3,
+      "changeStr": "-3,30%",
+      "high": 7838.16,
+      "low": 7566.33,
+      "volumeTon": 2966845.0,
+      "volumeStr": "2.966.845,0 Ton"
     }
   ],
   "spotCommodities": [
@@ -90,8 +90,8 @@
     "totalVolumeTonStr": "316.430,6 Ton",
     "totalValueTl": 5782130913.77,
     "totalValueTlStr": "5.782.130.914 ₺",
-    "hububatIndex": 7910.25,
-    "summaryText": "TÜRİB Hububat Endeksi (TRBHUB): 7.910,25 (+2,12%)\nBUĞDAY EKMEKLİK: 18,18 TL/kg (-0,03%) | BUĞDAY MAKARNALIK: 18,49 TL/kg (+0,06%)\nİşlem Hacmi: 316.430,6 Ton (5,8 Milyar TL)"
+    "hububatIndex": 7937.16,
+    "summaryText": "TÜRİB Hububat Endeksi (TRBHUB): 7.937,16 (+0,34%)\nBUĞDAY EKMEKLİK: 18,18 TL/kg (-0,03%) | BUĞDAY MAKARNALIK: 18,49 TL/kg (+0,06%)\nİşlem Hacmi: 316.430,6 Ton (5,8 Milyar TL)"
   },
   "meatFeed": {
     "cpiDate": "2026-11-03",
@@ -101,7 +101,7 @@
     "headlineCpiAnnualPct": 31.52,
     "meatInflationSpread": -1.01,
     "macroCommentary": "Yıllık Et TÜFE Enflasyonu %30.5 seviyesinde gerçekleşerek, manşet TÜFE'nin (%31.5) -1.0 puan altında seyretti. TÜRİB yem hammaddeleri (Arpa: 11.50 TL, Mısır: 12.00 TL) ile Dana Karkas/Yem paritesi (28.2), önümüzdeki çeyrek et enflasyonu için belirleyici öncü sinyal olmaya devam ediyor.",
-    "bistSectorImpact": "BIST Et & Gıda Hisseleri: BANVT 109,50 (+0,83%) tavuk/yem paritesinden doğrudan etkilenirken; PETUN 8,88 (+1,49%) karkas et ve un maliyet artışını şarküteri ürünlerine fiyatlama gücüyle dengeliyor. BIMAS, MGROS ve SOKM gibi perakendecilerde Et TÜFE artışı sepet büyüklüğünü artırırken brüt kâr marjını hassas tutuyor.",
+    "bistSectorImpact": "BIST Et & Gıda Hisseleri: BANVT 109,40 (+0,74%) tavuk/yem paritesinden doğrudan etkilenirken; PETUN 8,85 (+1,14%) karkas et ve un maliyet artışını şarküteri ürünlerine fiyatlama gücüyle dengeliyor. BIMAS, MGROS ve SOKM gibi perakendecilerde Et TÜFE artışı sepet büyüklüğünü artırırken brüt kâr marjını hassas tutuyor.",
     "parities": [
       {
         "title": "Dana Besi Karkas",
@@ -600,11 +600,11 @@
   },
   "agriBist": {
     "date": "2026-11-03",
-    "xgidaPrice": "10.999,57",
-    "xgidaChange": "+1,08%",
-    "turibHububatIndex": "7.910,25",
-    "turibHububatChange": "+2,12%",
-    "macroTakeaway": "BIST Gıda Endeksi (XGIDA) +1,08% hareket ederken, TÜRİB Hububat Endeksi +2,12% seviyesinde. Tarımsal emtia fiyatlarındaki yön, BIST gıda şirketlerinin 1-2 çeyrek sonraki FAVÖK marjlarına doğrudan yansıyacaktır.",
+    "xgidaPrice": "10.963,82",
+    "xgidaChange": "+0,75%",
+    "turibHububatIndex": "7.937,16",
+    "turibHububatChange": "+0,34%",
+    "macroTakeaway": "BIST Gıda Endeksi (XGIDA) +0,75% hareket ederken, TÜRİB Hububat Endeksi +0,34% seviyesinde. Tarımsal emtia fiyatlarındaki yön, BIST gıda şirketlerinin 1-2 çeyrek sonraki FAVÖK marjlarına doğrudan yansıyacaktır.",
     "companies": [
       {
         "ticker": "ULUUN",
@@ -620,8 +620,8 @@
       {
         "ticker": "PETUN",
         "companyName": "Pınar Et ve Un",
-        "stockPrice": "8,88",
-        "stockChange": "+1,49%",
+        "stockPrice": "8,85",
+        "stockChange": "+1,14%",
         "commodity": "BUĞDAY EKMEKLİK",
         "commodityPrice": 18.18,
         "commodityChange": -0.03,
@@ -631,8 +631,8 @@
       {
         "ticker": "BANVT",
         "companyName": "Banvit",
-        "stockPrice": "109,50",
-        "stockChange": "+0,83%",
+        "stockPrice": "109,40",
+        "stockChange": "+0,74%",
         "commodity": "MISIR",
         "commodityPrice": 0.0,
         "commodityChange": 0.0,
@@ -642,8 +642,8 @@
       {
         "ticker": "TATGD",
         "companyName": "Tat Gıda",
-        "stockPrice": "14,68",
-        "stockChange": "-0,14%",
+        "stockPrice": "14,61",
+        "stockChange": "-0,61%",
         "commodity": "BUĞDAY MAKARNALIK",
         "commodityPrice": 18.49,
         "commodityChange": 0.06,
@@ -653,8 +653,8 @@
       {
         "ticker": "TUKAS",
         "companyName": "Tukaş Gıda",
-        "stockPrice": "1,67",
-        "stockChange": "+0,00%",
+        "stockPrice": "1,69",
+        "stockChange": "+1,20%",
         "commodity": "BUĞDAY EKMEKLİK",
         "commodityPrice": 18.18,
         "commodityChange": -0.03,

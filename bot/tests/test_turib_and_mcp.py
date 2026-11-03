@@ -135,6 +135,10 @@ async def test_mcp_all_tools_registered():
     assert "bist_temel_analiz" in tool_names
     assert "bist_dcf_degerleme" in tool_names
     assert "bist_finansal_saglik" in tool_names
+    assert "bist_geri_alimlar" in tool_names
+    assert "bist_temettu_takvimi" in tool_names
+    assert "macro_turkiye_barometresi" in tool_names
+    assert "viop_basis_analizi" in tool_names
     
     # Çapraz Piyasa & Et-Yem Araçları (4 Araç)
     assert "agri_bist_korelasyon" in tool_names
@@ -142,7 +146,7 @@ async def test_mcp_all_tools_registered():
     assert "et_tufe_endeksi" in tool_names
     assert "et_sektoru_bist_etkisi" in tool_names
     
-    assert len(tool_names) == 22
+    assert len(tool_names) == 26
 
 
 def test_turib_market_data_publishing():

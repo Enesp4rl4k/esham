@@ -1,0 +1,16 @@
+{
+  "updated_at": "2026-11-03T17:00:00+03:00",
+  "cds_5y_bps": 254.0,
+  "cds_bolgesi": "Güvenli / Normal Bölge (<260 bps)",
+  "cds_aylik_degisim": -18.5,
+  "tcmb_brut_rezerv_milyar_dolar": 158.4,
+  "tcmb_net_rezerv_milyar_dolar": 48.2,
+  "tcmb_swap_haric_net_rezerv_milyar_dolar": 34.6,
+  "rezerv_trendi": "Pozitif / Sürekli Artış",
+  "politika_faizi_yuzde": 45.0,
+  "mevduat_faizi_yuzde": 51.5,
+  "gosterge_tahvil_2y_yuzde": 38.2,
+  "hisse_risk_primi_erp_yuzde": 8.4,
+  "piyasa_risk_istahi": "Yüksek / Pozitif Akış",
+  "ozet": "Türkiye 5Y CDS primi 254 bps seviyesinde risk iştahını destekliyor. TCMB swap hariç net rezervleri +$34.6 Milyar ile pozitif bölgede. BIST Hisse Risk Primi (ERP) %8.4 seviyesinde hisse senedi getirisini tahvil karşısında cazip tutuyor."
+}
