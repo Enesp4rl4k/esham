@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-04T20:17:21+03:00",
+  "updatedAt": "2026-11-04T20:37:33+03:00",
   "date": "2026-11-04",
   "indices": [
     {
@@ -518,85 +518,9 @@
   },
   "regionalArbitrage": {
     "date": "2026-11-04",
-    "totalScannedTrades": 53,
-    "evaluation": "TÜRİB bülteninde YOZGAT ile KONYA lisanslı depoları arasında 3.75 TL/kg brüt fiyat farkı tespit edildi. Tahmini 0.50 TL nakliye düşüldükten sonra net %22.0 (3.25 TL/kg) arbitraj marjı bulunmaktadır.",
-    "opportunities": [
-      {
-        "commodity": "BUĞDAY",
-        "cheapCity": "YOZGAT",
-        "cheapLidas": "POLAT AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 14.75,
-        "expensiveCity": "KONYA",
-        "expensiveLidas": "KAHVECİ AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ TİCARET A.Ş.",
-        "expensivePrice": 18.5,
-        "grossSpread": 3.75,
-        "freightCost": 0.5,
-        "netArbitrage": 3.25,
-        "netArbitragePct": 22.03,
-        "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "YOZGAT (POLAT AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.75 TL'ye alınıp, KONYA (KAHVECİ AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ TİCARET A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.25 TL/kg kâr kalır."
-      },
-      {
-        "commodity": "BUĞDAY",
-        "cheapCity": "YOZGAT",
-        "cheapLidas": "POLAT AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 14.75,
-        "expensiveCity": "KONYA",
-        "expensiveLidas": "KULU AK TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "expensivePrice": 18.5,
-        "grossSpread": 3.75,
-        "freightCost": 0.5,
-        "netArbitrage": 3.25,
-        "netArbitragePct": 22.03,
-        "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "YOZGAT (POLAT AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.75 TL'ye alınıp, KONYA (KULU AK TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.25 TL/kg kâr kalır."
-      },
-      {
-        "commodity": "BUĞDAY",
-        "cheapCity": "YOZGAT",
-        "cheapLidas": "POLAT AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 14.75,
-        "expensiveCity": "KONYA",
-        "expensiveLidas": "KONYA TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ VE TİCARET A.Ş.",
-        "expensivePrice": 18.5,
-        "grossSpread": 3.75,
-        "freightCost": 0.5,
-        "netArbitrage": 3.25,
-        "netArbitragePct": 22.03,
-        "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "YOZGAT (POLAT AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.75 TL'ye alınıp, KONYA (KONYA TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ VE TİCARET A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.25 TL/kg kâr kalır."
-      },
-      {
-        "commodity": "BUĞDAY",
-        "cheapCity": "AKSARAY",
-        "cheapLidas": "ALTUNTAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 15.0,
-        "expensiveCity": "KONYA",
-        "expensiveLidas": "KAHVECİ AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ TİCARET A.Ş.",
-        "expensivePrice": 18.5,
-        "grossSpread": 3.5,
-        "freightCost": 0.5,
-        "netArbitrage": 3.0,
-        "netArbitragePct": 20.0,
-        "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "AKSARAY (ALTUNTAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 15.00 TL'ye alınıp, KONYA (KAHVECİ AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ TİCARET A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.00 TL/kg kâr kalır."
-      },
-      {
-        "commodity": "BUĞDAY",
-        "cheapCity": "AKSARAY",
-        "cheapLidas": "ALTUNTAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 15.0,
-        "expensiveCity": "KONYA",
-        "expensiveLidas": "KULU AK TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "expensivePrice": 18.5,
-        "grossSpread": 3.5,
-        "freightCost": 0.5,
-        "netArbitrage": 3.0,
-        "netArbitragePct": 20.0,
-        "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "AKSARAY (ALTUNTAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 15.00 TL'ye alınıp, KONYA (KULU AK TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.00 TL/kg kâr kalır."
-      }
-    ]
+    "totalScannedTrades": 0,
+    "evaluation": "Taranan 0 farklı lisanslı depoda fiyatlar bölgesel lojistik dengede seyretmektedir; nakliye maliyetini aşan belirgin bir net arbitraj boşluğu bulunmamaktadır.",
+    "opportunities": []
   },
   "agriBist": {
     "date": "2026-11-04",
@@ -692,31 +616,31 @@
     }
   ],
   "petrolTanker": {
-    "updatedAt": "2026-11-04T20:18:12+03:00",
+    "updatedAt": "2026-11-04T20:38:52+03:00",
     "date": "2026-11-04",
     "oilBenchmarks": {
       "brent": {
-        "price": 94.69,
-        "priceStr": "$94.69",
-        "changePct": -8.600386100386098,
-        "changeStr": "-8.60%"
+        "price": 94.13,
+        "priceStr": "$94.13",
+        "changePct": -9.14092664092664,
+        "changeStr": "-9.14%"
       },
       "wti": {
-        "price": 91.09,
-        "priceStr": "$91.09",
+        "price": 90.53,
+        "priceStr": "$90.53",
         "changePct": 0.35,
         "changeStr": "+0.35%"
       },
       "brentWtiSpread": 3.6,
       "urals": {
-        "price": 82.39,
+        "price": 81.83,
         "discount": 12.3,
-        "priceStr": "$82.39",
+        "priceStr": "$81.83",
         "g7Cap": 60.0
       },
       "crackSpread321": {
-        "value": 17.54,
-        "valueStr": "$17.54 / varil",
+        "value": 17.49,
+        "valueStr": "$17.49 / varil",
         "interpretation": "Akdeniz Rafineri Kârlılığı (Tüpraş Göstergesi)"
       }
     },
