@@ -117,6 +117,33 @@ export default async function Home() {
         <div className="container mx-auto px-6">
 
           {/* Üst satır — tarih + etiket */}
+          {/* Bloomberg Tarzı Trader Terminali Hızlı Geçiş Bannerı */}
+          <div className="mb-8 p-3.5 sm:p-4 rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-zinc-900/60 to-zinc-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
+            <div className="flex items-center gap-3">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-amber-300">
+                    BIST & VİOP Trader Terminali (Bloomberg Mod)
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 hidden xs:inline">
+                    CANLI KOKPİT
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400 mt-0.5 hidden sm:block">
+                  BIST-30 teknik pivotları, VİOP basis spread, Takasbank teminat stresi, filtrelenmiş KAP ve quant değerleme matrisi.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/terminal"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-400 text-zinc-950 font-mono text-xs font-bold hover:bg-amber-300 transition-colors shrink-0 shadow-md shadow-amber-500/20"
+            >
+              <span>Terminali Başlat</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <span

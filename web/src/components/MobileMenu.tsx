@@ -23,6 +23,19 @@ export function MobileMenu() {
 
       {isOpen && (
         <div className="fixed inset-x-0 top-14 bottom-0 bg-zinc-950/98 border-b border-zinc-900 shadow-2xl py-5 px-6 z-50 overflow-y-auto backdrop-blur-2xl flex flex-col gap-6">
+          {/* Trader Terminali Hızlı Erişim */}
+          <Link
+            href="/terminal"
+            onClick={close}
+            className="flex items-center justify-between px-3.5 py-3 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-300 font-mono text-xs font-bold shadow-lg shadow-amber-500/5 hover:bg-amber-500/20 transition-all"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <span>TRADER TERMİNALİ (BLOOMBERG MOD)</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-amber-400" />
+          </Link>
+
           {/* Ana Sayfalar */}
           <div className="space-y-1">
             <Link
