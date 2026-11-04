@@ -162,6 +162,15 @@ export default function RootLayout({
                 <span style={{ color: "var(--accent)" }} className="font-semibold">Esham</span>.
                 {" "}Buradaki içerikler yatırım tavsiyesi değildir.
               </p>
+
+              {/* Easter Egg */}
+              <span
+                className="text-[10px] font-mono tracking-[0.22em] text-zinc-600/80 hover:text-zinc-400 transition-colors duration-300 select-none cursor-default"
+                title="OODA Loop"
+              >
+                observe orient decide act
+              </span>
+
               <div className="flex items-center gap-6">
                 <Link
                   href="/feed.xml"
