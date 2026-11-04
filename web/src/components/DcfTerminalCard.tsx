@@ -306,7 +306,7 @@ export function DcfTerminalCard({ dcf }: DcfTerminalCardProps) {
                   : "bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800"
               }`}
             >
-              {sc === "bear" ? "🐻 Ayı (Kötümser)" : sc === "base" ? "⚖️ Baz Senaryo" : "🐂 Boğa (İyimser)"}
+              {sc === "bear" ? "Ayı (Kötümser)" : sc === "base" ? "Baz Senaryo" : "Boğa (İyimser)"}
             </button>
           ))}
           {activeScenario === "custom" && (

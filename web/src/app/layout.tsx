@@ -75,20 +75,25 @@ export default function RootLayout({
         >
           <div className="container mx-auto px-6 h-14 flex items-center justify-between">
             {/* Wordmark */}
-            <Link
-              href="/"
-              className="font-display font-bold text-lg tracking-tight flex items-center shrink-0 mr-4"
-              style={{ color: "var(--text-primary)" }}
-            >
-              <span style={{ color: "var(--accent)" }}>Es</span>ham
-            </Link>
+            <div className="flex items-center shrink-0 mr-4">
+              <Link
+                href="/"
+                className="font-display font-bold text-lg tracking-tight flex items-center"
+                style={{ color: "var(--text-primary)" }}
+              >
+                <span style={{ color: "var(--accent)" }}>Es</span>ham
+              </Link>
+              <span className="text-[10px] font-mono tracking-wider uppercase px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hidden xl:inline ml-2.5">
+                Finansal İstihbarat
+              </span>
+            </div>
 
-            <DesktopNav navItems={navItems} />
+            <DesktopNav />
 
             <div className="flex items-center gap-2">
               <SearchCommandPalette />
               <WatchlistDrawer />
-              <MobileMenu navItems={navItems} />
+              <MobileMenu />
             </div>
           </div>
         </header>
