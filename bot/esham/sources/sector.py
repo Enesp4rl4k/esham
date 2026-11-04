@@ -84,8 +84,5 @@ class SectorSource:
         return (price - prev) / prev * 100
 
     def _sample(self) -> list[SectorMove]:
-        data = [
-            ("XBANK", 2.4), ("XUTEK", 1.8), ("XHOLD", 0.9),
-            ("XUSIN", 0.3), ("XKMYA", -0.4), ("XGIDA", -1.1),
-        ]
-        return [SectorMove(c, SECTORS[c], v) for c, v in data]
+        # Sahte / yapay sektör yüzdesi yayını yapmamak için boş liste dön
+        return []

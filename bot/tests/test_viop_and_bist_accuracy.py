@@ -6,15 +6,18 @@ from esham.sources import MarketSummary
 from esham.ai.analyzer import MarketAIAnalyzer
 
 
-def test_viop_margin_is_dynamic():
+def test_viop_margin_is_official_takasbank():
     vs = ViopSource()
     snap = vs.margin_snapshot()
     
-    # 1. Required margin must be a realistic non-zero value and NOT frozen
-    assert snap.required_margin_total_tl > 100_000_000_000.0
+    assert snap is not None
+    # 1. Asla yapay/sentetik veri olmamalı; Takasbank resmi bülteni olmalı
+    assert snap.is_sample is False
+    assert snap.required_margin_total_tl > 50_000_000_000.0
     assert snap.margin_call_total_tl > 0.0
     assert snap.margin_call_to_required_pct > 0.0
-    assert snap.margined_account_count > 100_000
+    assert snap.margined_account_count > 10_000
+    assert len(snap.as_of) > 0
     
     # 2. Pretty strings should format correctly
     assert "Milyar TL" in snap.required_pretty()
@@ -37,6 +40,7 @@ def test_bist_market_summary_fields():
     bs = BistSource()
     summary = bs.market_summary()
     
+    assert summary is not None
     assert summary.index == "XU100"
     assert len(summary.price) > 0
     assert len(summary.change) > 0

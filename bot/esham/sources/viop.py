@@ -3,15 +3,13 @@
 İki tür veri:
 1. Piyasa kotasyonu — BIST30 endeksi (XU030) ve vadeli (XU030D) TradingView
    scanner API'sinden (canlı, sağlam).
-2. Marketwide teminat agregatı — Takasbank'tan (teminatlı hesap sayısı, margin-call
-   toplamı, gereken teminat). Takasbank doğrudan erişimi captcha/WAF ile kısıtlı
-   olduğundan endpoint opsiyoneldir; yoksa gerçek yapıda örnek veri döner.
-
-`margin_call_to_required_pct` marketwide stres sinyalidir: önceki güne göre yükselmesi
-CCP'nin teminatı sıkılaştırdığını, brokerların margin-call çıkaracağını gösterir.
+2. Marketwide teminat agregatı — Takasbank resmi kamu bülteninden (teminatlı hesap sayısı,
+   margin-call toplamı, gereken teminat).
 """
 from __future__ import annotations
 
+import html
+import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
@@ -24,6 +22,7 @@ from ..formatting import tr_money, tr_number
 log = get_logger(__name__)
 
 TV_SCAN_URL = "https://scanner.tradingview.com/turkey/scan"
+TAKASBANK_VIOP_PAGE = "https://www.takasbank.com.tr/tr/istatistikler/vadeli-islem-ve-opsiyon-piyasasi-viop"
 
 
 @dataclass
@@ -134,7 +133,21 @@ class ViopSource:
 
     # ---- marketwide teminat agregatı ------------------------------------------
 
-    def margin_snapshot(self) -> ViopMarginSnapshot:
+    def margin_snapshot(self) -> ViopMarginSnapshot | None:
+        """Takasbank resmi kamu bülteninden gerçek VİOP teminat verilerini çeker.
+        
+        Kullanıcı güvenliği ve yasal hassasiyet gereği ASLA yapay/sentetik rakam üretilmez.
+        Veri çekilemezse None döner.
+        """
+        # 1. Öncelikli Kaynak: Takasbank Resmi Kamu İstatistik Sayfası
+        try:
+            snap = self._fetch_takasbank_official()
+            if snap:
+                return snap
+        except Exception as exc:
+            log.warning("Takasbank resmi bülteni ayrıştırılamadı (%s).", exc)
+
+        # 2. İkincil Kaynak: Özel tanımlı Takasbank API URL'si
         url = settings.takasbank_viop_url
         if url:
             try:
@@ -143,12 +156,84 @@ class ViopSource:
                 snap = self._parse_margin(resp.json())
                 if snap:
                     return snap
-                log.warning("Takasbank yanıtı ayrıştırılamadı; örnek veri kullanılıyor.")
             except (requests.RequestException, ValueError) as exc:
-                log.warning("Takasbank verisi alınamadı (%s); örnek veri kullanılıyor.", exc)
-        else:
-            log.info("Takasbank URL tanımlı değil; örnek VİOP teminat verisi kullanılıyor.")
-        return self._sample_margin()
+                log.warning("Özel Takasbank API verisi alınamadı (%s).", exc)
+
+        # ASLA sahte / yapay teminat rakamı üretme!
+        log.warning("Takasbank resmi teminat verisi temin edilemedi; yapay veri üretilmiyor.")
+        return None
+
+    def _fetch_takasbank_official(self) -> ViopMarginSnapshot | None:
+        """Takasbank VİOP Takas Merkezi günlük resmi bültenini çeker ve ayrıştırır."""
+        try:
+            # Takasbank HTML sayfası Accept: application/json başlığı aldığında bot kalkanı devreye girer;
+            # bu nedenle temiz tarayıcı User-Agent başlığı kullanılır.
+            takas_headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+            resp = requests.get(TAKASBANK_VIOP_PAGE, headers=takas_headers, timeout=settings.http_timeout)
+            resp.raise_for_status()
+            text = resp.text
+
+            date_match = re.search(r"(\d{2}\.\d{2}\.\d{4})\s*Tarihli", text)
+            as_of = date_match.group(1) if date_match else datetime.now(timezone.utc).strftime("%d.%m.%Y")
+
+            table_match = re.search(r"<table[^>]*class=['\"]grey-table['\"][^>]*>(.*?)</table>", text, re.S)
+            if not table_match:
+                table_match = re.search(r"<table[^>]*>(.*?)</table>", text, re.S)
+            if not table_match:
+                return None
+
+            rows = re.findall(r"<tr[^>]*>(.*?)</tr>", table_match.group(1), re.S)
+            data = {}
+            for r in rows:
+                cells = [html.unescape(re.sub(r"<[^>]+>", "", c).strip()) for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", r, re.S)]
+                if len(cells) >= 2:
+                    key = cells[0].strip()
+                    val = cells[1].strip()
+                    data[key] = val
+
+            def parse_num(v_str: str) -> float:
+                clean = v_str.replace(".", "").replace(",", ".").strip()
+                return float(clean)
+
+            def get_num(key_substr: str) -> float:
+                for k, v in data.items():
+                    if key_substr.lower() in k.lower():
+                        m = re.search(r"(\d+(?:\.\d+)*(?:,\d+)?)", v)
+                        if m:
+                            return parse_num(m.group(1))
+                return 0.0
+
+            def get_int(key_substr: str) -> int:
+                return int(get_num(key_substr))
+
+            req = get_num("Bulunması Gereken Teminat") or get_num("Bulunmas Gereken Teminat")
+            call = get_num("Teminat Tamamlama Çağrısı") or get_num("Teminat Tamamlama ars")
+            acc = get_int("Teminatlı Hesap Sayısı") or get_int("Teminatl Hesap Says")
+            fut_vol = get_num("Vadeli İşlem Sözleşmesi İşlem Hacmi") or get_num("Vadeli lem Szlemesi lem Hacmi")
+            opt_vol = get_num("Opsiyon İşlem Hacmi") or get_num("Opsiyon lem Hacmi")
+            oi_val = get_num("Vadeli İşlem Sözleşmesi Açık Pozisyon Değeri") or get_num("Vadeli lem Szlemesi Ak Pozisyon Deeri")
+            pnl = get_num("Kar / Zarar Tutarı") or get_num("Kar / Zarar Tutar")
+
+            if req <= 0:
+                return None
+
+            pct = (call / req * 100.0) if req > 0 else 0.0
+
+            return ViopMarginSnapshot(
+                as_of=as_of,
+                margined_account_count=acc,
+                margin_call_total_tl=call,
+                required_margin_total_tl=req,
+                margin_call_to_required_pct=round(pct, 4),
+                futures_oi_value_tl=oi_val,
+                futures_volume_tl=fut_vol,
+                options_volume_tl=opt_vol,
+                profit_loss_total_tl=pnl,
+                is_sample=False,
+            )
+        except Exception as exc:
+            log.warning("Takasbank resmi sayfası çekilemedi: %s", exc)
+            return None
 
     def _parse_margin(self, payload: dict) -> ViopMarginSnapshot | None:
         snap = payload.get("snapshot", payload)
@@ -161,6 +246,9 @@ class ViopSource:
 
         required = num("required_margin_total_tl")
         call = num("margin_call_total_tl")
+        if required <= 0:
+            return None
+
         pct = snap.get("margin_call_to_required_pct")
         if not isinstance(pct, (int, float)):
             pct = (call / required * 100) if required else 0.0
@@ -174,66 +262,6 @@ class ViopSource:
             futures_volume_tl=num("futures_volume_tl"),
             options_volume_tl=num("options_volume_tl"),
             profit_loss_total_tl=num("profit_loss_total_tl"),
-        )
-
-    def _sample_margin(self) -> ViopMarginSnapshot:
-        """Canlı BIST30 seans akışına, endeks seviyesine ve volatiliteye dayalı dinamik Takasbank SPAN modellemesi."""
-        import math
-        try:
-            q = self.market_quote()
-            clean_chg = q.index_change.replace("%", "").replace("+", "").replace(",", ".").strip()
-            pct_raw = float(clean_chg) if clean_chg else 0.0
-            clean_p = q.index_price.replace(".", "").replace(",", ".").strip()
-            price_val = float(clean_p) if clean_p else 14000.0
-        except Exception:
-            pct_raw = 0.0
-            price_val = 14000.0
-
-        now = datetime.now(timezone.utc)
-        # Gün bazlı deterministik takvim döngüsü (her gün farklı, seans içi tutarlı açık pozisyon dalgalanması)
-        day_seed = (now.year * 372) + (now.month * 31) + now.day
-        drift_pct = (math.sin(day_seed * 12.9898) * 0.035) + (math.cos(day_seed * 78.233) * 0.015)
-
-        # 1. Sözleşme nominal büyüklüğü ve endeks seviyesi çarpanı (Baz: 14.000 puan)
-        price_factor = max(0.75, min(1.40, price_val / 14000.0))
-
-        # 2. Volatiliteye göre SPAN risk parametresi esnemesi (|pct| arttıkça gereken teminat artar)
-        vol_factor = 1.0 + (abs(pct_raw) * 0.008)
-
-        # 3. Dinamik gereken teminat büyüklüğü (Asla statik 145 Milyar TL kalmaz)
-        base_margin = 146_500_000_000.0
-        required_margin = round(base_margin * price_factor * (1.0 + drift_pct) * vol_factor, -6)
-
-        # 4. Piyasa yönü ve oynaklığına bağlı teminat tamamlama çağrısı oranı (SPAN modeli)
-        abs_move = abs(pct_raw)
-        if pct_raw < -1.5:  # Sert düşüş — uzun pozisyonlar yoğun margin-call alır
-            call_pct = 0.48 + (abs_move * 0.35)
-        elif pct_raw > 1.5: # Sert ralli — kısa pozisyonlar margin-call alır
-            call_pct = 0.42 + (abs_move * 0.20)
-        else:               # Dengeli seans
-            call_pct = 0.40 + (abs_move * 0.08)
-
-        # Küçük günlük gürültü ekle (+/- %0.02)
-        call_pct += math.sin(day_seed * 5.67) * 0.02
-        call_pct = max(0.25, round(call_pct, 4))
-        call_total = round(required_margin * (call_pct / 100.0), 2)
-
-        account_drift = int(math.sin(day_seed * 3.1415) * 850)
-        account_count = 124_500 + account_drift
-
-        oi_val = round(required_margin * 4.25 * (1.0 + drift_pct * 0.5), -6)
-        fut_vol = round(required_margin * (0.85 + abs_move * 0.08), -6)
-
-        return ViopMarginSnapshot(
-            as_of=now.isoformat(),
-            margined_account_count=account_count,
-            margin_call_total_tl=call_total,
-            required_margin_total_tl=required_margin,
-            margin_call_to_required_pct=call_pct,
-            futures_oi_value_tl=oi_val,
-            futures_volume_tl=fut_vol,
-            options_volume_tl=round(fut_vol * 0.042, -6),
-            profit_loss_total_tl=round(call_total * 3.8, 2),
             is_sample=False,
         )
 

@@ -105,7 +105,5 @@ class EconomicCalendarSource:
         return str(value)
 
     def _sample(self) -> list[CalendarEvent]:
-        return [
-            CalendarEvent("14:00", "Türkiye", "TCMB Faiz Kararı", "Yüksek", "%50,00"),
-            CalendarEvent("15:30", "ABD", "Tarım Dışı İstihdam", "Yüksek", "190K"),
-        ]
+        # Sahte / yapay ekonomik takvim yayını yapmamak için boş liste dön
+        return []

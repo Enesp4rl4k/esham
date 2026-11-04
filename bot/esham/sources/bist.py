@@ -118,8 +118,8 @@ class BistSource:
                 return summary
             log.warning("BIST Yahoo verisi ayrıştırılamadı; örnek veri kullanılıyor.")
         except (requests.RequestException, ValueError) as exc:
-            log.warning("BIST verisi alınamadı (%s); örnek veri kullanılıyor.", exc)
-        return self._sample()
+            log.error("BIST verisi hiçbir resmi kaynaktan alınamadı (%s); yapay veri üretilmiyor.", exc)
+        return None
 
     def _parse_tv(self, payload: dict, tv_sym: str) -> MarketSummary | None:
         rows = {r["s"]: r["d"] for r in payload.get("data", []) if "s" in r and "d" in r}

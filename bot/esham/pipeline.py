@@ -257,9 +257,13 @@ def run_viop_report(
     src = ViopSource()
     quote = src.market_quote()
     snap = src.margin_snapshot()
+    if snap is None or snap.required_margin_total_tl <= 0:
+        log.error("Takasbank resmi teminat verisi temin edilemedi; yapay veri yayınlanamaz.")
+        return None
+
     if prior_pct is None:
         from .state import get_state
-        prior_pct = get_state().get_margin_prev_pct() or 0.45
+        prior_pct = get_state().get_margin_prev_pct() or snap.margin_call_to_required_pct
     stress = assess_margin_stress(snap.margin_call_to_required_pct, prior_pct)
     from .state import get_state
     get_state().set_margin_prev_pct(snap.margin_call_to_required_pct)
@@ -353,6 +357,9 @@ def run_opening_report(publish_social: bool = False) -> str | None:
         log.warning("Açılış bülteni ticker güncelleme hatası: %s", exc)
 
     bist = BistSource().market_summary()
+    if not bist or not bist.price:
+        log.error("BIST verisi temin edilemedi; yapay veri basılmaması için rapor iptal edildi.")
+        return None
 
     # Sektör rotasyonu ve VİOP kotasyonu
     sector_summary = ""
@@ -437,6 +444,9 @@ Borsa İstanbul {bist.index} endeksi seansa **{open_val}** puan seviyesinde, **{
 def run_closing_report(publish_social: bool = True) -> str | None:
     """Kapanış bülteni — BIST + VİOP kapanış özeti."""
     bist = BistSource().market_summary()
+    if not bist or not bist.price:
+        log.error("BIST verisi temin edilemedi; yapay veri basılmaması için rapor iptal edildi.")
+        return None
     quote = ViopSource().market_quote()
     body = f"""## Kapanış Görünümü
 
@@ -1128,6 +1138,9 @@ def run_weekly_summary(publish_social: bool = True) -> str | None:
 
     # Anlık veri kaynakları
     bist = BistSource().market_summary()
+    if not bist or not bist.price:
+        log.error("BIST verisi temin edilemedi; yapay veri basılmaması için rapor iptal edildi.")
+        return None
     macro = GlobalMacroSource().snapshot()
     sector_moves = SectorSource().snapshot()
     disclosures = KapSource().latest_disclosures()
