@@ -28,6 +28,8 @@ import { FundamentalMetricsCard } from "@/components/FundamentalMetricsCard";
 import { FinancialHealthCard } from "@/components/FinancialHealthCard";
 import { WatchlistDrawer } from "@/components/WatchlistDrawer";
 import { InteractiveStockChart } from "@/components/InteractiveStockChart";
+import { StockCorporateActionsCard } from "@/components/StockCorporateActionsCard";
+import { StockPeerComparisonCard } from "@/components/StockPeerComparisonCard";
 
 type Params = { ticker: string };
 
@@ -68,6 +70,26 @@ async function loadMarketTickerData() {
 async function loadQuantValuationData() {
   try {
     const filePath = path.join(process.cwd(), "public", "data", "bist-quant-valuation.json");
+    const raw = await fs.readFile(filePath, "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+async function loadBuybacksData() {
+  try {
+    const filePath = path.join(process.cwd(), "public", "data", "bist-buybacks.json");
+    const raw = await fs.readFile(filePath, "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+async function loadDividendsData() {
+  try {
+    const filePath = path.join(process.cwd(), "public", "data", "bist-dividends.json");
     const raw = await fs.readFile(filePath, "utf-8");
     return JSON.parse(raw);
   } catch {
@@ -120,9 +142,15 @@ export default async function TickerPage({
   const cleanTicker = ticker.toUpperCase();
 
   const reports = getReportsByTicker(cleanTicker);
-  const tickerData = await loadMarketTickerData();
-  const quantData = await loadQuantValuationData();
+  const [tickerData, quantData, buybacksData, dividendsData] = await Promise.all([
+    loadMarketTickerData(),
+    loadQuantValuationData(),
+    loadBuybacksData(),
+    loadDividendsData(),
+  ]);
   const companyQuant = quantData ? quantData[cleanTicker] : null;
+  const companyBuyback = buybacksData?.programs?.find((p: any) => p.ticker === cleanTicker) || null;
+  const companyDividend = dividendsData?.records?.find((d: any) => d.ticker === cleanTicker) || null;
   const dcfData = companyQuant?.dcf;
   const keyLevelsData = companyQuant?.key_levels;
   const fundamentalData = companyQuant?.fundamental;
@@ -173,6 +201,14 @@ export default async function TickerPage({
                 Takasbank Saklama
               </span>
               <WatchlistDrawer currentTicker={cleanTicker} />
+              <Link
+                href={`/terminal?ticker=${cleanTicker}`}
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-amber-500/40 bg-amber-500/10 text-amber-300 font-mono text-[11px] font-bold hover:bg-amber-500/20 hover:border-amber-400 transition-colors"
+                title="Bu hisseyi Bloomberg tarzı Trader Terminali'nde canlı izle"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                TRADER MODU
+              </Link>
             </div>
             <h1 className="text-base md:text-lg font-medium text-zinc-300">
               {companyName}
@@ -291,6 +327,26 @@ export default async function TickerPage({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
           {keyLevelsData && <KeyLevelsCard data={keyLevelsData} />}
           {fundamentalData && <FundamentalMetricsCard data={fundamentalData} />}
+        </div>
+      )}
+
+      {/* Kurumsal Sermaye Eylemleri (Pay Geri Alımı & Nakit Kâr Payı) */}
+      <div className="mb-10">
+        <StockCorporateActionsCard
+          ticker={cleanTicker}
+          buyback={companyBuyback}
+          dividend={companyDividend}
+        />
+      </div>
+
+      {/* Sektörel Akran Değerleme & Çarpan Karşılaştırması */}
+      {companyQuant?.fundamental?.sektor && quantData && (
+        <div className="mb-10">
+          <StockPeerComparisonCard
+            currentTicker={cleanTicker}
+            currentSector={companyQuant.fundamental.sektor}
+            quantData={quantData}
+          />
         </div>
       )}
 

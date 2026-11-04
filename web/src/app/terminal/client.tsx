@@ -41,6 +41,7 @@ export interface TraderTerminalClientProps {
   dividendsData: any;
   turibData: any;
   recentReports: any[];
+  initialTicker?: string;
 }
 
 type LayoutPreset = "morning" | "scalp" | "valuation" | "full";
@@ -110,6 +111,7 @@ export function TraderTerminalClient({
   dividendsData,
   turibData,
   recentReports,
+  initialTicker,
 }: TraderTerminalClientProps) {
   // ── 1. State & Settings ──
   const [activePreset, setActivePreset] = useState<LayoutPreset>("morning");
@@ -126,7 +128,24 @@ export function TraderTerminalClient({
     return Object.keys(quantData).sort();
   }, [quantData]);
 
-  const [selectedTicker, setSelectedTicker] = useState<string>("THYAO");
+  const [selectedTicker, setSelectedTicker] = useState<string>(() => {
+    if (initialTicker && quantData && quantData[initialTicker]) {
+      return initialTicker;
+    }
+    return "THYAO";
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlTicker = params.get("ticker")?.toUpperCase();
+      if (urlTicker && quantData && quantData[urlTicker]) {
+        setSelectedTicker(urlTicker);
+      } else if (initialTicker && quantData && quantData[initialTicker]) {
+        setSelectedTicker(initialTicker);
+      }
+    }
+  }, [initialTicker, quantData]);
   const [tickerSearch, setTickerSearch] = useState<string>("");
 
   // KAP Filtresi
