@@ -1,6 +1,6 @@
 {
-  "updatedAt": "2026-11-04T23:30:50+03:00",
-  "date": "2026-11-04",
+  "updatedAt": "2026-11-05T00:16:45+03:00",
+  "date": "2026-11-05",
   "indices": [
     {
       "code": "TRBHUB",
@@ -203,319 +203,7 @@
       "commentary": "Serbest piyasa fiyatı (11.50 TL/kg), TMO alım tabanının (10.75 TL/kg) %7.0 üzerinde primli seyrediyor. Özel sektör talebi canlı, üretici ürününü TMO yerine ELÜS borsasında satmayı tercih ediyor."
     }
   ],
-  "storageBacktest": {
-    "productGroup": "BUĞDAY EKMEKLİK",
-    "testedSeasonsCount": 6,
-    "annualInterestPct": 50.0,
-    "winRate3mPct": 16.7,
-    "winRate6mPct": 16.7,
-    "winRate9mPct": 16.7,
-    "avgNetReturn6mPct": -20.83,
-    "bestStrategy": "Hasatta Spot Satış (Yüksek faiz ortamında depolama riskli)",
-    "strategicAdvice": "Tarihsel 6 hasat sezonunda, yıllık %50 alternatif finansman faizi ve resmî LİDAŞ kirası/fire düşüldüğünde; en yüksek kârlılık 'Hasatta Spot Satış (Yüksek faiz ortamında depolama riskli)' stratejisinde elde edildi. 6 aylık depolama stratejisinin hasat spot satışını geçme başarı oranı %17 ve ortalama net getirisi %-20.8 oldu.",
-    "seasons": [
-      {
-        "seasonYear": 2020,
-        "harvestMonth": 7,
-        "harvestSpotPrice": 1.69,
-        "winningStrategy": "Hasatta Spot Satış (Maliyetleri Karşılamadı)",
-        "strategies": [
-          {
-            "strategyName": "3 Ay Depolama Sonrası Satış",
-            "termMonths": 3,
-            "saleMonth": 10,
-            "salePrice": 2.05,
-            "grossSpread": 0.36,
-            "storageCost": 0.45,
-            "interestCost": 0.21,
-            "shrinkageCost": 0.01,
-            "totalCost": 0.66,
-            "netProfitTl": -0.3,
-            "netReturnPct": -17.98,
-            "beatSpot": false
-          },
-          {
-            "strategyName": "6 Ay Depolama Sonrası Satış",
-            "termMonths": 6,
-            "saleMonth": 1,
-            "salePrice": 2.07,
-            "grossSpread": 0.38,
-            "storageCost": 0.9,
-            "interestCost": 0.42,
-            "shrinkageCost": 0.01,
-            "totalCost": 1.33,
-            "netProfitTl": -0.95,
-            "netReturnPct": -56.34,
-            "beatSpot": false
-          },
-          {
-            "strategyName": "9 Ay Depolama Sonrası Satış",
-            "termMonths": 9,
-            "saleMonth": 4,
-            "salePrice": 2.04,
-            "grossSpread": 0.35,
-            "storageCost": 1.35,
-            "interestCost": 0.63,
-            "shrinkageCost": 0.02,
-            "totalCost": 2.0,
-            "netProfitTl": -1.65,
-            "netReturnPct": -97.38,
-            "beatSpot": false
-          }
-        ]
-      },
-      {
-        "seasonYear": 2021,
-        "harvestMonth": 7,
-        "harvestSpotPrice": 2.37,
-        "winningStrategy": "9 Ay Depolama Sonrası Satış",
-        "strategies": [
-          {
-            "strategyName": "3 Ay Depolama Sonrası Satış",
-            "termMonths": 3,
-            "saleMonth": 10,
-            "salePrice": 2.86,
-            "grossSpread": 0.49,
-            "storageCost": 0.45,
-            "interestCost": 0.29,
-            "shrinkageCost": 0.01,
-            "totalCost": 0.75,
-            "netProfitTl": -0.26,
-            "netReturnPct": -10.87,
-            "beatSpot": false
-          },
-          {
-            "strategyName": "6 Ay Depolama Sonrası Satış",
-            "termMonths": 6,
-            "saleMonth": 1,
-            "salePrice": 4.15,
-            "grossSpread": 1.79,
-            "storageCost": 0.9,
-            "interestCost": 0.58,
-            "shrinkageCost": 0.02,
-            "totalCost": 1.5,
-            "netProfitTl": 0.28,
-            "netReturnPct": 12.03,
-            "beatSpot": true
-          },
-          {
-            "strategyName": "9 Ay Depolama Sonrası Satış",
-            "termMonths": 9,
-            "saleMonth": 4,
-            "salePrice": 5.25,
-            "grossSpread": 2.88,
-            "storageCost": 1.35,
-            "interestCost": 0.88,
-            "shrinkageCost": 0.03,
-            "totalCost": 2.25,
-            "netProfitTl": 0.63,
-            "netReturnPct": 26.64,
-            "beatSpot": true
-          }
-        ]
-      },
-      {
-        "seasonYear": 2022,
-        "harvestMonth": 7,
-        "harvestSpotPrice": 6.85,
-        "winningStrategy": "Hasatta Spot Satış (Maliyetleri Karşılamadı)",
-        "strategies": [
-          {
-            "strategyName": "3 Ay Depolama Sonrası Satış",
-            "termMonths": 3,
-            "saleMonth": 10,
-            "salePrice": 6.8,
-            "grossSpread": -0.05,
-            "storageCost": 0.45,
-            "interestCost": 0.84,
-            "shrinkageCost": 0.02,
-            "totalCost": 1.32,
-            "netProfitTl": -1.37,
-            "netReturnPct": -19.94,
-            "beatSpot": false
-          },
-          {
-            "strategyName": "6 Ay Depolama Sonrası Satış",
-            "termMonths": 6,
-            "saleMonth": 1,
-            "salePrice": 6.57,
-            "grossSpread": -0.28,
-            "storageCost": 0.9,
-            "interestCost": 1.69,
-            "shrinkageCost": 0.05,
-            "totalCost": 2.64,
-            "netProfitTl": -2.92,
-            "netReturnPct": -42.59,
-            "beatSpot": false
-          },
-          {
-            "strategyName": "9 Ay Depolama Sonrası Satış",
-            "termMonths": 9,
-            "saleMonth": 4,
-            "salePrice": 6.25,
-            "grossSpread": -0.6,
-            "storageCost": 1.35,
-            "interestCost": 2.53,
-            "shrinkageCost": 0.08,
-            "totalCost": 3.96,
-            "netProfitTl": -4.56,
-            "netReturnPct": -66.62,
-            "beatSpot": false
-          }
-        ]
-      },
-      {
-        "seasonYear": 2023,
-        "harvestMonth": 7,
-        "harvestSpotPrice": 6.85,
-        "winningStrategy": "Hasatta Spot Satış (Maliyetleri Karşılamadı)",
-        "strategies": [
-          {
-            "strategyName": "3 Ay Depolama Sonrası Satış",
-            "termMonths": 3,
-            "saleMonth": 10,
-            "salePrice": 7.41,
-            "grossSpread": 0.56,
-            "storageCost": 0.45,
-            "interestCost": 0.84,
-            "shrinkageCost": 0.02,
-            "totalCost": 1.32,
-            "netProfitTl": -0.76,
-            "netReturnPct": -11.07,
-            "beatSpot": false
-          },
-          {
-            "strategyName": "6 Ay Depolama Sonrası Satış",
-            "termMonths": 6,
-            "saleMonth": 1,
-            "salePrice": 8.84,
-            "grossSpread": 1.98,
-            "storageCost": 0.9,
-            "interestCost": 1.69,
-            "shrinkageCost": 0.05,
-            "totalCost": 2.64,
-            "netProfitTl": -0.66,
-            "netReturnPct": -9.61,
-            "beatSpot": false
-          },
-          {
-            "strategyName": "9 Ay Depolama Sonrası Satış",
-            "termMonths": 9,
-            "saleMonth": 4,
-            "salePrice": 9.04,
-            "grossSpread": 2.18,
-            "storageCost": 1.35,
-            "interestCost": 2.53,
-            "shrinkageCost": 0.08,
-            "totalCost": 3.96,
-            "netProfitTl": -1.78,
-            "netReturnPct": -25.96,
-            "beatSpot": false
-          }
-        ]
-      },
-      {
-        "seasonYear": 2024,
-        "harvestMonth": 7,
-        "harvestSpotPrice": 8.74,
-        "winningStrategy": "3 Ay Depolama Sonrası Satış",
-        "strategies": [
-          {
-            "strategyName": "3 Ay Depolama Sonrası Satış",
-            "termMonths": 3,
-            "saleMonth": 10,
-            "salePrice": 10.52,
-            "grossSpread": 1.77,
-            "storageCost": 0.45,
-            "interestCost": 1.08,
-            "shrinkageCost": 0.03,
-            "totalCost": 1.56,
-            "netProfitTl": 0.21,
-            "netReturnPct": 2.46,
-            "beatSpot": true
-          },
-          {
-            "strategyName": "6 Ay Depolama Sonrası Satış",
-            "termMonths": 6,
-            "saleMonth": 1,
-            "salePrice": 11.5,
-            "grossSpread": 2.76,
-            "storageCost": 0.9,
-            "interestCost": 2.16,
-            "shrinkageCost": 0.07,
-            "totalCost": 3.12,
-            "netProfitTl": -0.36,
-            "netReturnPct": -4.13,
-            "beatSpot": false
-          },
-          {
-            "strategyName": "9 Ay Depolama Sonrası Satış",
-            "termMonths": 9,
-            "saleMonth": 4,
-            "salePrice": 11.85,
-            "grossSpread": 3.11,
-            "storageCost": 1.35,
-            "interestCost": 3.23,
-            "shrinkageCost": 0.1,
-            "totalCost": 4.68,
-            "netProfitTl": -1.58,
-            "netReturnPct": -18.06,
-            "beatSpot": false
-          }
-        ]
-      },
-      {
-        "seasonYear": 2025,
-        "harvestMonth": 7,
-        "harvestSpotPrice": 12.71,
-        "winningStrategy": "Hasatta Spot Satış (Maliyetleri Karşılamadı)",
-        "strategies": [
-          {
-            "strategyName": "3 Ay Depolama Sonrası Satış",
-            "termMonths": 3,
-            "saleMonth": 10,
-            "salePrice": 13.82,
-            "grossSpread": 1.11,
-            "storageCost": 0.45,
-            "interestCost": 1.57,
-            "shrinkageCost": 0.04,
-            "totalCost": 2.06,
-            "netProfitTl": -0.95,
-            "netReturnPct": -7.46,
-            "beatSpot": false
-          },
-          {
-            "strategyName": "6 Ay Depolama Sonrası Satış",
-            "termMonths": 6,
-            "saleMonth": 1,
-            "salePrice": 13.74,
-            "grossSpread": 1.04,
-            "storageCost": 0.9,
-            "interestCost": 3.13,
-            "shrinkageCost": 0.1,
-            "totalCost": 4.13,
-            "netProfitTl": -3.09,
-            "netReturnPct": -24.33,
-            "beatSpot": false
-          },
-          {
-            "strategyName": "9 Ay Depolama Sonrası Satış",
-            "termMonths": 9,
-            "saleMonth": 4,
-            "salePrice": 13.7,
-            "grossSpread": 1.0,
-            "storageCost": 1.35,
-            "interestCost": 4.7,
-            "shrinkageCost": 0.15,
-            "totalCost": 6.2,
-            "netProfitTl": -5.2,
-            "netReturnPct": -40.92,
-            "beatSpot": false
-          }
-        ]
-      }
-    ]
-  },
+  "storageBacktest": {},
   "regionalArbitrage": {
     "date": "2026-11-04",
     "totalScannedTrades": 53,
@@ -692,31 +380,31 @@
     }
   ],
   "petrolTanker": {
-    "updatedAt": "2026-11-04T23:31:57+03:00",
-    "date": "2026-11-04",
+    "updatedAt": "2026-11-05T00:17:42+03:00",
+    "date": "2026-11-05",
     "oilBenchmarks": {
       "brent": {
-        "price": 95.37,
-        "priceStr": "$95.37",
-        "changePct": -7.9440154440154345,
-        "changeStr": "-7.94%"
+        "price": 95.11,
+        "priceStr": "$95.11",
+        "changePct": -8.19498069498069,
+        "changeStr": "-8.19%"
       },
       "wti": {
-        "price": 91.77,
-        "priceStr": "$91.77",
+        "price": 91.51,
+        "priceStr": "$91.51",
         "changePct": 0.35,
         "changeStr": "+0.35%"
       },
       "brentWtiSpread": 3.6,
       "urals": {
-        "price": 83.07,
+        "price": 82.81,
         "discount": 12.3,
-        "priceStr": "$83.07",
+        "priceStr": "$82.81",
         "g7Cap": 60.0
       },
       "crackSpread321": {
-        "value": 17.61,
-        "valueStr": "$17.61 / varil",
+        "value": 17.58,
+        "valueStr": "$17.58 / varil",
         "interpretation": "Akdeniz Rafineri Kârlılığı (Tüpraş Göstergesi)"
       }
     },
