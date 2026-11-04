@@ -50,6 +50,8 @@ ACCENTS: dict[str, dict[str, str]] = {
     "emerald": {"400": "#34d399", "500": "#10b981", "900": "#064e3b"},
     "violet": {"400": "#a78bfa", "500": "#8b5cf6", "900": "#4c1d95"},
     "amber": {"400": "#fbbf24", "500": "#f59e0b", "900": "#78350f"},
+    "orange": {"400": "#fb923c", "500": "#f97316", "900": "#7c2d12"},
+    "pink": {"400": "#f472b6", "500": "#ec4899", "900": "#831843"},
 }
 
 CATEGORY_ACCENT: dict[str, str] = {
@@ -62,6 +64,8 @@ CATEGORY_ACCENT: dict[str, str] = {
     "turib": "emerald",
     "emtia": "amber",
     "tarim": "emerald",
+    "kripto": "orange",
+    "teknoloji": "pink",
 }
 
 CATEGORY_LABEL: dict[str, str] = {
@@ -74,6 +78,8 @@ CATEGORY_LABEL: dict[str, str] = {
     "turib": "TÜRİB & ELÜS",
     "emtia": "TARIMSAL EMTİA",
     "tarim": "TÜRİB & TARIM",
+    "kripto": "KRİPTO VARLIKLAR",
+    "teknoloji": "TEKNOLOJİ & AI",
 }
 
 

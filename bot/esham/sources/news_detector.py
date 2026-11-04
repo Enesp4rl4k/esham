@@ -85,6 +85,8 @@ class MarketEvent:
     source_url: str = ""
     source_name: str = ""
 
+    custom_category: str = ""
+
     @property
     def emoji(self) -> str:
         if self.kind == "SON_DAKIKA":
@@ -101,6 +103,8 @@ class MarketEvent:
 
     @property
     def category(self) -> str:
+        if self.custom_category:
+            return self.custom_category
         if self.kind == "TEKNOLOJI_HAREKET":
             return "teknoloji"
         if self.kind == "KRIPTO_HAREKET":
@@ -143,7 +147,7 @@ def _dedup_key(prefix: str, label: str, pct: float) -> str:
 def _macro_event(ticker: MacroTicker) -> MarketEvent:
     direction = _direction(ticker.change_pct)
     headline = (
-        f"{ticker.label} {ticker.arrow} {ticker.change_str} {direction}; "
+        f"{ticker.label} {ticker.change_str} {direction}; "
         f"küresel risk iştahına yansıması izleniyor."
     )
     # Enstrümana özgü daha açıklayıcı başlık
@@ -239,10 +243,8 @@ class NewsDetector:
         self._crypto_src = CryptoSource()
         self._ai = MarketAIAnalyzer()
         # Kripto haber kaynağı ayrı instance (farklı RSS URL'leri)
-        self._crypto_news_src = GlobalNewsSource.__new__(GlobalNewsSource)
-        self._crypto_news_src.sources = __import__(
-            "esham.sources.global_news", fromlist=["CRYPTO_NEWS_SOURCES"]
-        ).CRYPTO_NEWS_SOURCES
+        from .global_news import CRYPTO_NEWS_SOURCES
+        self._crypto_news_src = GlobalNewsSource(CRYPTO_NEWS_SOURCES)
         # Bireysel hisse watchlist
         from .watchlist import fetch_watchlist_moves, STOCK_ALERT_THRESHOLD
         self._fetch_watchlist = fetch_watchlist_moves
@@ -424,45 +426,72 @@ class NewsDetector:
             return events
 
         for item in news_items:
-            # Link'ten normalize anahtar — query string'i at
             norm_link = item.link.split("?")[0].rstrip("/")
             key = f"news:{norm_link}"
 
-            # Kalıcı seen set'te kontrol et (restart'tan sonra da tekrar göndermez)
-            if key in self._seen_news_keys:
+            if key in self._seen_news_keys or key in self._seen_keys:
                 continue
 
-            # Bellekteki set'e de ekle (aynı seans içinde tekrarı önle)
-            if key in self._seen_keys:
-                continue
+            is_domestic = item.source in ("AA Ekonomi", "Sabah Ekonomi", "Hürriyet Ekonomi")
+            context_hint = f"{item.title} — {item.description[:200]}" if item.description else item.title
 
-            # Önce seen'e ekle — AI çağrısından bağımsız (başarısız olsa da tekrar denemesin)
+            # AI Analizi — önemsizse None döner
+            translated = self._ai.analyze_global_breaking_news(context_hint)
+
+            # AI kapalı veya sessiz kaldıysa yedek anahtar kelime filtresi
+            if not translated:
+                t_lower = f"{item.title} {item.description}".lower()
+                if is_domestic:
+                    is_major = any(k in t_lower for k in (
+                        "tcmb", "faiz", "enflasyon", "tüfe", "üfe", "asgari ücret", "vergi",
+                        "bddk", "spk", "hazine", "bakan", "mehmet şimşek", "fitch", "moody's",
+                        "s&p", "kredi notu", "cari açık", "bütçe", "ihracat", "ithalat",
+                        "döviz", "rezerv", "kkm", "büyüme", "istihdam", "sanayi", "borsa",
+                        "bist", "türkiye", "merkez bankası", "mevduat", "kredi", "konut",
+                    ))
+                else:
+                    is_major = any(k in t_lower for k in (
+                        "fed", "powell", "rate", "inflation", "ecb", "lagarde", "tariff",
+                        "trade", "oil", "brent", "crude", "opec", "gold", "dollar", "yield",
+                        "treasury", "stocks", "wall street", "s&p", "nasdaq", "china",
+                        "gdp", "recession", "war", "iran", "israel", "russia", "ukraine",
+                        "sanction", "jobs", "payrolls", "cpi", "ppi", "central bank", "faiz",
+                    ))
+                if is_major:
+                    translated = f"SON DAKİKA: {item.title}"
+                else:
+                    self._seen_keys.add(key)
+                    self._seen_news_keys.add(key)
+                    self._state.save_seen_news(self._seen_news_keys)
+                    continue
+
             self._seen_keys.add(key)
             self._seen_news_keys.add(key)
             self._state.save_seen_news(self._seen_news_keys)
 
-            # AI Analizi — önemsizse None döner
-            translated = self._ai.analyze_global_breaking_news(item.title)
-            if not translated:
-                continue
-
             headline = translated.removeprefix("SON DAKİKA: ").strip()
+            target_category = "gundem" if is_domestic else "global"
+            label = "Ekonomi Gündemi" if is_domestic else "Küresel Piyasalar"
+            tags = ["Gündem", "Ekonomi", "Türkiye"] if is_domestic else ["Küresel", "Makro", "Piyasalar"]
+
             event = MarketEvent(
                 kind="SON_DAKIKA",
-                label="Küresel Haber",
+                label=label,
                 change_pct=0.0,
                 value_str="",
                 change_str="",
                 headline=headline,
                 key=key,
-                tags=["SonDakika", "Küresel"],
+                tags=tags,
                 details=item.description,
                 source_url=item.link,
-                source_name=item.source or "Küresel Ajanslar",
+                source_name=item.source or ("Türkiye Basını" if is_domestic else "Küresel Ajanslar"),
+                custom_category=target_category,
             )
             events.append(event)
             log.info(
-                "Son dakika haberi tespit edildi [%s]: %s",
+                "Haber tespit edildi [%s | %s]: %s",
+                target_category,
                 item.source or "?",
                 translated[:80],
             )
@@ -572,6 +601,7 @@ class NewsDetector:
                 details=item.description,
                 source_url=item.link,
                 source_name=item.source or "Kripto Basını",
+                custom_category="kripto",
             )
             events.append(event)
             log.info(
@@ -641,6 +671,7 @@ class NewsDetector:
                 details=item.description,
                 source_url=item.link,
                 source_name=item.source or "Teknoloji Basını",
+                custom_category="teknoloji",
             )
             events.append(event)
             log.info(

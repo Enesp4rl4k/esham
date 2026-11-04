@@ -884,7 +884,7 @@ def run_news_report(
             is_insider=is_insider,
             macro_context=macro_context,
         )
-        category = "insider" if is_insider else "bist"
+        category = "bist"
         emoji = "🔥" if is_mega_deal else ("🚨" if is_insider else "📰")
         
         if is_mega_deal:

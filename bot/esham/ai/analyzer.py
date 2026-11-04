@@ -195,6 +195,28 @@ Gelişmenin ilgili ekosisteme etkisi (Yapay Zeka/Teknoloji için: bilgi işlem k
                 )
             tweet = f"{first_clause} — kripto para piyasalarındaki likidite ve fiyat yansıması analiz edildi:"
 
+        elif event.category == "gundem":
+            summary = f"{first_clause}; Türkiye ekonomisi, makro dengeler ve piyasa fiyatlamaları üzerindeki yansımalarıyla izleniyor."
+            detay_metni = details_clean if details_clean else (
+                f"{event.headline}. Türkiye ekonomisi ve finansal piyasaları yakından ilgilendiren bu gelişme, "
+                "makroekonomik istikrar ve piyasa beklentileri açısından önem taşıyor."
+            )
+            body = (
+                f"### Gelişmenin Detayları\n"
+                f"{detay_metni}\n\n"
+                f"### Makroekonomik Etki & Politika Görünümü\n"
+                f"Türkiye Cumhuriyet Merkez Bankası (TCMB) para politikası, dezenflasyon patikası ve mali disiplin hedefleri "
+                f"doğrultusunda atılan adımlar, yurtiçi piyasalarda güven ortamı ve risk priminin (CDS) seyrini belirlemeyi sürdürüyor. "
+                f"Söz konusu gelişme, makro dengelerin korunması açısından yakından değerlendiriliyor.\n\n"
+                f"### Piyasa & TL Varlıkları Yansıması\n"
+                f"Gelişmenin Türk Lirası varlıkları, Borsa İstanbul endeksleri ve tahvil faizleri üzerindeki seyri "
+                f"yurtiçi ve yurtdışı yatırımcı algısı üzerinden takip ediliyor.\n\n"
+                f"### Yakından İzlenecekler\n"
+                f"- İlgili kamu otoriteleri ve regülatör kurumların yönlendirmeleri.\n"
+                f"- Enflasyon, cari denge ve rezerv göstergelerindeki dönemsel gerçekleşmeler."
+            )
+            tweet = f"{first_clause} — Türkiye ekonomisi ve piyasa yansımaları değerlendirildi:"
+
         else:
             summary = f"{first_clause}; küresel piyasalardaki risk iştahı ve makro varlık fiyatlamaları üzerindeki yansımalarıyla değerlendiriliyor."
             detay_metni = details_clean if details_clean else (

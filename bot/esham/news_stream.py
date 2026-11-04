@@ -87,8 +87,7 @@ def _is_post_ipo(d: "Disclosure") -> bool:  # type: ignore[name-defined]
 def _classify(d: Disclosure) -> tuple[str, str]:
     """Bildirimden (kategori, emoji) çıkarır."""
     if d.is_insider:
-        # insider tipi kartlar desteklenmiyor; gündem olarak sınıflandır
-        return "gundem", "🏦"
+        return "bist", "🚨"
     text = tr_fold(f"{d.disclosure_type} {d.title}")
     if any(tr_fold(m) in text for m in _IPO_DOC_MARKERS):
         return "ipo", "📄"
