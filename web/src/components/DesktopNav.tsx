@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, BarChart2, ShieldAlert, Calendar, RefreshCcw, Landmark, Wheat, Archive, Layers } from "lucide-react";
+import { ChevronDown, BarChart2, ShieldAlert, Calendar, RefreshCcw, Landmark, Wheat, Archive, Layers, Fuel } from "lucide-react";
 
 interface DropdownItem {
   href: string;
@@ -46,6 +46,12 @@ export function DesktopNav() {
       label: "Küresel Makro",
       description: "ABD tahvilleri, Fed faiz patikası, DXY ve küresel piyasalar",
       icon: Landmark,
+    },
+    {
+      href: "/tarim-emtia?tab=petrolTanker",
+      label: "Petrol & Tanker Navlun",
+      description: "Brent, WTI, VLCC/Aframax kiralama ücretleri ve boğaz bekleme süreleri",
+      icon: Fuel,
     },
     {
       href: "/kategori/gundem",
@@ -220,7 +226,7 @@ export function DesktopNav() {
         )}
       </div>
 
-      {/* 4. Tarımsal Emtia */}
+      {/* 4. Emtia & Terminal */}
       <Link
         href="/tarim-emtia"
         className={`px-3 py-1.5 rounded-lg transition-colors ${
@@ -229,7 +235,7 @@ export function DesktopNav() {
             : "text-zinc-400 hover:text-white hover:bg-zinc-900/50"
         }`}
       >
-        Tarımsal Emtia
+        Emtia & Terminal
       </Link>
 
       {/* 5. Arşiv */}

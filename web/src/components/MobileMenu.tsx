@@ -41,7 +41,14 @@ export function MobileMenu() {
                 pathname === "/tarim-emtia" ? "text-amber-400" : "text-white hover:text-amber-400"
               }`}
             >
-              Tarımsal Emtia & Et-Yem (TÜRİB)
+              Emtia & Tanker Terminali
+            </Link>
+            <Link
+              href="/tarim-emtia?tab=petrolTanker"
+              onClick={close}
+              className="block py-1.5 pl-3 text-xs text-zinc-400 hover:text-amber-400 border-l border-zinc-800 font-mono"
+            >
+              Petrol & Tanker Navlun (TCE)
             </Link>
             <Link
               href="/arsiv"

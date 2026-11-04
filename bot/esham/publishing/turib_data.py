@@ -287,6 +287,15 @@ def generate_turib_market_data() -> dict[str, Any]:
     except Exception as exc:
         log.warning("TuribData: Reel getiriler derlenirken hata: %s", exc)
 
+    # 8. Petrol & Tanker Navlun Veri Seti
+    try:
+        from ..sources.tanker_freight import TankerFreightSource
+        tanker_src = TankerFreightSource()
+        data["petrolTanker"] = tanker_src.fetch_snapshot().to_dict()
+    except Exception as exc:
+        log.warning("TuribData: Petrol & Tanker verisi derlenirken hata: %s", exc)
+        data["petrolTanker"] = {}
+
     return data
 
 

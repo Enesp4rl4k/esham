@@ -115,9 +115,17 @@ export function MarketMatrix({ tickerData, turibData }: MarketMatrixProps) {
       ],
     },
     {
-      title: "Emtia, TÜRİB & Kripto",
+      title: "Emtia, Petrol & Kripto",
       icon: Wheat,
       items: [
+        {
+          label: "Brent Petrol",
+          sublabel: "Tanker & Varil Spot",
+          value: brent?.value || "$74,80",
+          change: brent?.change || "+0,45%",
+          up: brent?.up ?? true,
+          href: "/tarim-emtia?tab=petrolTanker",
+        },
         {
           label: "Ons Altın",
           sublabel: "XAU/USD Spot",

@@ -6,13 +6,13 @@ import { ChevronRight } from "lucide-react";
 import { TuribMarketClient, type TuribMarketDataset } from "./client";
 
 export const metadata: Metadata = {
-  title: "Tarımsal Emtia, TÜRİB & Et-Yem Terminali",
+  title: "Emtia, Petrol & Tanker Navlun Terminali",
   description:
-    "TÜRİB Hububat endeksleri (TRBHUB, TRBBGD), lisanslı depo ELÜS spot fiyatları, Et-Yem paritesi, TÜİK Et TÜFE enflasyonu, TMO müdahale fiyatları ve LİDAŞ depolama analizleri.",
+    "Ham petrol göstergeleri (Brent, WTI, Urals, Crack Spread), VLCC/Aframax tanker kiralama ücretleri (TCE), Türk Boğazları demurraj süreleri ve TÜRİB tarımsal emtia terminali.",
   openGraph: {
-    title: "Tarımsal Emtia, TÜRİB & Et-Yem Terminali — Esham",
+    title: "Emtia, Petrol & Tanker Navlun Terminali — Esham",
     description:
-      "Türkiye Ürün İhtisas Borsası (TÜRİB) lisanslı depo işlem fiyatları, et-yem pariteleri ve BIST tarım-gıda hisseleri entegrasyonu.",
+      "Ham petrol piyasaları, tanker kiralama ücretleri (TCE), Türk Boğazları transit süreleri, TÜRİB lisanslı depo ürün fiyatları ve BIST rafineri-denizcilik etkisi.",
   },
 };
 
@@ -122,7 +122,7 @@ export default async function TarimEmtiaPage() {
           Ana Sayfa
         </Link>
         <ChevronRight className="w-3.5 h-3.5" />
-        <span style={{ color: "var(--text-primary)" }}>Tarımsal Emtia & Et-Yem Terminali</span>
+        <span style={{ color: "var(--text-primary)" }}>Emtia, Petrol & Tanker Navlun Terminali</span>
       </nav>
 
       {/* ── Client Terminal Component ── */}

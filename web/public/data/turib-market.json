@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-04T19:19:32+03:00",
+  "updatedAt": "2026-11-04T20:17:21+03:00",
   "date": "2026-11-04",
   "indices": [
     {
@@ -517,84 +517,84 @@
     ]
   },
   "regionalArbitrage": {
-    "date": "2026-11-03",
-    "totalScannedTrades": 78,
-    "evaluation": "TÜRİB bülteninde EDİRNE ile MARDİN lisanslı depoları arasında 4.90 TL/kg brüt fiyat farkı tespit edildi. Tahmini 0.50 TL nakliye düşüldükten sonra net %32.4 (4.40 TL/kg) arbitraj marjı bulunmaktadır.",
+    "date": "2026-11-04",
+    "totalScannedTrades": 53,
+    "evaluation": "TÜRİB bülteninde YOZGAT ile KONYA lisanslı depoları arasında 3.75 TL/kg brüt fiyat farkı tespit edildi. Tahmini 0.50 TL nakliye düşüldükten sonra net %22.0 (3.25 TL/kg) arbitraj marjı bulunmaktadır.",
     "opportunities": [
       {
         "commodity": "BUĞDAY",
-        "cheapCity": "EDİRNE",
-        "cheapLidas": "CEMİL DEMİR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 13.6,
-        "expensiveCity": "MARDİN",
-        "expensiveLidas": "ENS LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapCity": "YOZGAT",
+        "cheapLidas": "POLAT AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 14.75,
+        "expensiveCity": "KONYA",
+        "expensiveLidas": "KAHVECİ AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ TİCARET A.Ş.",
         "expensivePrice": 18.5,
-        "grossSpread": 4.9,
+        "grossSpread": 3.75,
         "freightCost": 0.5,
-        "netArbitrage": 4.4,
-        "netArbitragePct": 32.35,
+        "netArbitrage": 3.25,
+        "netArbitragePct": 22.03,
         "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "EDİRNE (CEMİL DEMİR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 13.60 TL'ye alınıp, MARDİN (ENS LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 4.40 TL/kg kâr kalır."
+        "notes": "YOZGAT (POLAT AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.75 TL'ye alınıp, KONYA (KAHVECİ AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ TİCARET A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.25 TL/kg kâr kalır."
       },
       {
         "commodity": "BUĞDAY",
-        "cheapCity": "EDİRNE",
-        "cheapLidas": "CEMİL DEMİR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 13.6,
-        "expensiveCity": "KAHRAMANMARAŞ",
-        "expensiveLidas": "KAYNAR AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapCity": "YOZGAT",
+        "cheapLidas": "POLAT AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 14.75,
+        "expensiveCity": "KONYA",
+        "expensiveLidas": "KULU AK TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
         "expensivePrice": 18.5,
-        "grossSpread": 4.9,
+        "grossSpread": 3.75,
         "freightCost": 0.5,
-        "netArbitrage": 4.4,
-        "netArbitragePct": 32.35,
+        "netArbitrage": 3.25,
+        "netArbitragePct": 22.03,
         "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "EDİRNE (CEMİL DEMİR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 13.60 TL'ye alınıp, KAHRAMANMARAŞ (KAYNAR AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 4.40 TL/kg kâr kalır."
+        "notes": "YOZGAT (POLAT AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.75 TL'ye alınıp, KONYA (KULU AK TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.25 TL/kg kâr kalır."
       },
       {
         "commodity": "BUĞDAY",
-        "cheapCity": "EDİRNE",
-        "cheapLidas": "CEMİL DEMİR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 13.6,
-        "expensiveCity": "ÇORUM",
-        "expensiveLidas": "ULİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ VE TİCARET A.Ş.",
+        "cheapCity": "YOZGAT",
+        "cheapLidas": "POLAT AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 14.75,
+        "expensiveCity": "KONYA",
+        "expensiveLidas": "KONYA TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ VE TİCARET A.Ş.",
         "expensivePrice": 18.5,
-        "grossSpread": 4.9,
+        "grossSpread": 3.75,
         "freightCost": 0.5,
-        "netArbitrage": 4.4,
-        "netArbitragePct": 32.35,
+        "netArbitrage": 3.25,
+        "netArbitragePct": 22.03,
         "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "EDİRNE (CEMİL DEMİR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 13.60 TL'ye alınıp, ÇORUM (ULİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ VE TİCARET A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 4.40 TL/kg kâr kalır."
+        "notes": "YOZGAT (POLAT AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.75 TL'ye alınıp, KONYA (KONYA TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ VE TİCARET A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.25 TL/kg kâr kalır."
       },
       {
         "commodity": "BUĞDAY",
-        "cheapCity": "KAYSERİ",
-        "cheapLidas": "KUŞAT TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 14.8,
-        "expensiveCity": "MARDİN",
-        "expensiveLidas": "ENS LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapCity": "AKSARAY",
+        "cheapLidas": "ALTUNTAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 15.0,
+        "expensiveCity": "KONYA",
+        "expensiveLidas": "KAHVECİ AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ TİCARET A.Ş.",
         "expensivePrice": 18.5,
-        "grossSpread": 3.7,
+        "grossSpread": 3.5,
         "freightCost": 0.5,
-        "netArbitrage": 3.2,
-        "netArbitragePct": 21.62,
+        "netArbitrage": 3.0,
+        "netArbitragePct": 20.0,
         "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "KAYSERİ (KUŞAT TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.80 TL'ye alınıp, MARDİN (ENS LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.20 TL/kg kâr kalır."
+        "notes": "AKSARAY (ALTUNTAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 15.00 TL'ye alınıp, KONYA (KAHVECİ AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ TİCARET A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.00 TL/kg kâr kalır."
       },
       {
         "commodity": "BUĞDAY",
-        "cheapCity": "KAYSERİ",
-        "cheapLidas": "KUŞAT TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 14.8,
-        "expensiveCity": "KAHRAMANMARAŞ",
-        "expensiveLidas": "KAYNAR AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapCity": "AKSARAY",
+        "cheapLidas": "ALTUNTAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 15.0,
+        "expensiveCity": "KONYA",
+        "expensiveLidas": "KULU AK TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
         "expensivePrice": 18.5,
-        "grossSpread": 3.7,
+        "grossSpread": 3.5,
         "freightCost": 0.5,
-        "netArbitrage": 3.2,
-        "netArbitragePct": 21.62,
+        "netArbitrage": 3.0,
+        "netArbitragePct": 20.0,
         "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "KAYSERİ (KUŞAT TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.80 TL'ye alınıp, KAHRAMANMARAŞ (KAYNAR AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.20 TL/kg kâr kalır."
+        "notes": "AKSARAY (ALTUNTAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 15.00 TL'ye alınıp, KONYA (KULU AK TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.00 TL/kg kâr kalır."
       }
     ]
   },
@@ -676,6 +676,180 @@
       "eurReturnPct": 108.18,
       "realInflationReturnPct": 9.76,
       "commentary": "'BUĞDAY EKMEKLİK' 2019-07-26 - 2026-11-04 döneminde nominal TL bazında %1348.8 yükselirken, birikimli TÜFE enflasyonunu aşarak reel alım gücünü %9.8 artırdı. Dolar bazlı getiri %102.8 olarak gerçekleşti; emtia enflasyona karşı koruma sağladı."
+    },
+    {
+      "commodityGroup": "BUĞDAY MAKARNALIK",
+      "startDate": "2019-07-29",
+      "endDate": "2026-11-04",
+      "tradingDays": 1638,
+      "startPriceTl": 1.51,
+      "endPriceTl": 17.6,
+      "nominalReturnPct": 1062.18,
+      "usdReturnPct": 62.67,
+      "eurReturnPct": 66.92,
+      "realInflationReturnPct": -11.95,
+      "commentary": "'BUĞDAY MAKARNALIK' 2019-07-29 - 2026-11-04 döneminde nominal TL bazında %1062.2 prim yapmasına rağmen, TÜFE enflasyonunun gerisinde kalarak reel olarak %11.9 satın alma gücü erimesi yaşadı. Dolar bazlı getiri %62.7 seviyesinde kaldı."
     }
-  ]
+  ],
+  "petrolTanker": {
+    "updatedAt": "2026-11-04T20:18:12+03:00",
+    "date": "2026-11-04",
+    "oilBenchmarks": {
+      "brent": {
+        "price": 94.69,
+        "priceStr": "$94.69",
+        "changePct": -8.600386100386098,
+        "changeStr": "-8.60%"
+      },
+      "wti": {
+        "price": 91.09,
+        "priceStr": "$91.09",
+        "changePct": 0.35,
+        "changeStr": "+0.35%"
+      },
+      "brentWtiSpread": 3.6,
+      "urals": {
+        "price": 82.39,
+        "discount": 12.3,
+        "priceStr": "$82.39",
+        "g7Cap": 60.0
+      },
+      "crackSpread321": {
+        "value": 17.54,
+        "valueStr": "$17.54 / varil",
+        "interpretation": "Akdeniz Rafineri Kârlılığı (Tüpraş Göstergesi)"
+      }
+    },
+    "freightIndices": {
+      "bdti": {
+        "value": 1085,
+        "change": 24,
+        "label": "Baltic Dirty Tanker Index (Ham Petrol)"
+      },
+      "bcti": {
+        "value": 742,
+        "change": -8,
+        "label": "Baltic Clean Tanker Index (Ürün / Akaryakıt)"
+      },
+      "vlsfoBunker": {
+        "value": 592.0,
+        "unit": "$/Ton (Singapur/Rotterdam Ortalama)"
+      }
+    },
+    "rates": [
+      {
+        "ship_class": "VLCC",
+        "dwt_capacity": "300.000 DWT (~2.000.000 Varil)",
+        "route_code": "TD3C",
+        "route_desc": "Ras Tanura -> Ningbo (Arap Körfezi - Çin)",
+        "daily_rate_usd": 46200.0,
+        "daily_rate_str": "$46.200 / gün",
+        "change_usd": 2100.0,
+        "change_pct": 4.7,
+        "change_str": "+4,7%",
+        "worldscale": 56.5,
+        "fuel_consumption_ton": 48.0,
+        "cargo_type": "Ham Petrol",
+        "status": "Yüksek Talep",
+        "commentary": "Kızıldeniz'deki güvenlik riskleri nedeniyle gemilerin Ümit Burnu rotasyonuna kayması ton-mil talebini artırıyor."
+      },
+      {
+        "ship_class": "Suezmax",
+        "dwt_capacity": "150.000 DWT (~1.000.000 Varil)",
+        "route_code": "TD20",
+        "route_desc": "Batı Afrika -> Rotterdam / Akdeniz",
+        "daily_rate_usd": 39800.0,
+        "daily_rate_str": "$39.800 / gün",
+        "change_usd": 1400.0,
+        "change_pct": 3.6,
+        "change_str": "+3,6%",
+        "worldscale": 82.0,
+        "fuel_consumption_ton": 38.0,
+        "cargo_type": "Ham Petrol",
+        "status": "Dengeli / Pozitif",
+        "commentary": "Avrupa rafinerilerinin alternatif hafif tatlı ham petrol arayışları Batı Afrika-Avrupa rotasında navlun primini koruyor."
+      },
+      {
+        "ship_class": "Aframax",
+        "dwt_capacity": "110.000 DWT (~700.000 Varil)",
+        "route_code": "TD19",
+        "route_desc": "Ceyhan (BTC Boru Hattı) -> Lavera / Akdeniz",
+        "daily_rate_usd": 34500.0,
+        "daily_rate_str": "$34.500 / gün",
+        "change_usd": -800.0,
+        "change_pct": -2.3,
+        "change_str": "-2,3%",
+        "worldscale": 128.0,
+        "fuel_consumption_ton": 32.0,
+        "cargo_type": "Ham Petrol",
+        "status": "Akdeniz / Ceyhan Canlı",
+        "commentary": "Bakü-Tiflis-Ceyhan ve Kerkük-Ceyhan akışlarının Doğu Akdeniz piyasasına arzı Aframax tanker talebini diri tutuyor."
+      },
+      {
+        "ship_class": "Clean MR",
+        "dwt_capacity": "50.000 DWT (~350.000 Varil)",
+        "route_code": "TC6",
+        "route_desc": "Cezayir / Skikda -> Akdeniz (Dizel & Nafta)",
+        "daily_rate_usd": 27900.0,
+        "daily_rate_str": "$27.900 / gün",
+        "change_usd": 650.0,
+        "change_pct": 2.4,
+        "change_str": "+2,4%",
+        "worldscale": 165.0,
+        "fuel_consumption_ton": 24.0,
+        "cargo_type": "İşlenmiş Akaryakıt",
+        "status": "Sezonsal Stoklama",
+        "commentary": "Kış ayları öncesi kalorifer yakıtı, dizel ve sanayi naftası taşımacılığı clean tanker navlunlarını destekliyor."
+      }
+    ],
+    "chokepoints": [
+      {
+        "name": "Türk Boğazları (İstanbul & Çanakkale)",
+        "flow_mbpd": "~2,8 Mln Varil/Gün",
+        "wait_time_days": "Kuzey-Güney: 2,8 gün | Güney-Kuzey: 2,1 gün",
+        "demurrage_usd_day": "~$32.000 / gün",
+        "security_level": "Normal / Kış Yoğunluğu",
+        "impact": "Karadeniz (Novorossiysk / CPC Blend) yüklemelerinde bekleme süreleri ham petrol kargolarına varil başı $0.40-$0.60 demurraj maliyeti ekliyor."
+      },
+      {
+        "name": "Kızıldeniz & Babülmendep Boğazı",
+        "flow_mbpd": "~6,5 Mln Varil/Gün (Normalde)",
+        "wait_time_days": "Ümit Burnu Geçişi: +12-14 gün",
+        "demurrage_usd_day": "Savaş Sigortası: %0,75 gemi değeri",
+        "security_level": "Yüksek Güvenlik Alarmı",
+        "impact": "Tanker filosunun %65'inden fazlası Süveyş yerine Afrika'yı dolanıyor. Bu durum küresel tanker arzını emerek navlun tabanını yükseltiyor."
+      },
+      {
+        "name": "Hürmüz Boğazı",
+        "flow_mbpd": "~20,5 Mln Varil/Gün (%21 Küresel Tüketim)",
+        "wait_time_days": "Kesintisiz Transit",
+        "demurrage_usd_day": "Risk Primi: Dinamik",
+        "security_level": "Yüksek Jeopolitik Alarm",
+        "impact": "Orta Doğu geriliminde Hürmüz'deki herhangi bir aksama küresel Brent petrolünü $100+ seviyesine taşıyabilecek birincil risk faktörü."
+      }
+    ],
+    "bistImpacts": [
+      {
+        "ticker": "TUPRS",
+        "company": "Tüpraş - Türkiye Petrol Rafinerileri A.Ş.",
+        "driver": "Rafineri Çatlama Marjı & Ural-Brent Makası",
+        "impact_level": "Pozitif Çarpan",
+        "commentary": "Akdeniz kompleksi 3:2:1 crack spread'in $18+ seviyesinde güçlü kalması rafineri brüt kârlılığını desteklerken, Ceyhan ve bölgesel Aframax navlun maliyetleri kontrollü seyrediyor."
+      },
+      {
+        "ticker": "DITAS",
+        "company": "Ditaş Denizcilik A.Ş.",
+        "driver": "Ham Petrol & Akaryakıt Tanker Kiralama",
+        "impact_level": "Yüksek Pozitif",
+        "commentary": "VLCC ve Aframax spot tanker kiralama ücretlerindeki her %10'luk artış, kontrat yenilemelerinde Ditaş'ın time-charter navlun gelirlerine ve FAVÖK marjına doğrudan çarpan etkisi yapar."
+      },
+      {
+        "ticker": "PETKM",
+        "company": "Petkim Petrokimya Holding A.Ş.",
+        "driver": "Nafta Hammadde Taşımacılığı (Clean MR)",
+        "impact_level": "Nötr / Maliyet Takibi",
+        "commentary": "Clean tanker navlunlarının ılımlı seyri Akdeniz nafta tedarik maliyetlerini dengeliyor. Etilen-nafta marjı temel kârlılık çıpası olmaya devam ediyor."
+      }
+    ]
+  }
 }

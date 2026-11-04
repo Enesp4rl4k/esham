@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Wheat,
@@ -22,7 +22,57 @@ import {
   Layers,
   ArrowRight,
   Database,
+  Fuel,
 } from "lucide-react";
+import { PetrolTankerSection } from "@/components/PetrolTankerSection";
+
+export interface PetrolTankerDataset {
+  updatedAt?: string;
+  date?: string;
+  oilBenchmarks?: {
+    brent?: { price: number; priceStr: string; changePct: number; changeStr: string };
+    wti?: { price: number; priceStr: string; changePct: number; changeStr: string };
+    brentWtiSpread?: number;
+    urals?: { price: number; discount: number; priceStr: string; g7Cap: number };
+    crackSpread321?: { value: number; valueStr: string; interpretation: string };
+  };
+  freightIndices?: {
+    bdti?: { value: number; change: number; label: string };
+    bcti?: { value: number; change: number; label: string };
+    vlsfoBunker?: { value: number; unit: string };
+  };
+  rates?: Array<{
+    ship_class: string;
+    dwt_capacity: string;
+    route_code: string;
+    route_desc: string;
+    daily_rate_usd: number;
+    daily_rate_str: string;
+    change_usd: number;
+    change_pct: number;
+    change_str: string;
+    worldscale: number;
+    fuel_consumption_ton: number;
+    cargo_type: string;
+    status: string;
+    commentary: string;
+  }>;
+  chokepoints?: Array<{
+    name: string;
+    flow_mbpd: string;
+    wait_time_days: string;
+    demurrage_usd_day: string;
+    security_level: string;
+    impact: string;
+  }>;
+  bistImpacts?: Array<{
+    ticker: string;
+    company: string;
+    driver: string;
+    impact_level: string;
+    commentary: string;
+  }>;
+}
 
 export interface TuribMarketDataset {
   updatedAt: string;
@@ -182,12 +232,34 @@ export interface TuribMarketDataset {
     realInflationReturnPct: number;
     commentary: string;
   }>;
+  petrolTanker?: PetrolTankerDataset;
 }
 
-export function TuribMarketClient({ dataset }: { dataset: TuribMarketDataset }) {
+export function TuribMarketClient({
+  dataset,
+  initialTab,
+}: {
+  dataset: TuribMarketDataset;
+  initialTab?: string;
+}) {
   const [activeTab, setActiveTab] = useState<
-    "all" | "indices" | "meatFeed" | "tmoStorage" | "arbitrage" | "agriBist" | "api"
-  >("all");
+    "all" | "petrolTanker" | "indices" | "meatFeed" | "tmoStorage" | "arbitrage" | "agriBist" | "api"
+  >((initialTab as any) || "all");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (
+        tabParam &&
+        ["all", "petrolTanker", "indices", "meatFeed", "tmoStorage", "arbitrage", "agriBist", "api"].includes(
+          tabParam
+        )
+      ) {
+        setActiveTab(tabParam as any);
+      }
+    }
+  }, []);
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [copiedMcp, setCopiedMcp] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -365,6 +437,7 @@ export function TuribMarketClient({ dataset }: { dataset: TuribMarketDataset }) 
       <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b" style={{ borderColor: "var(--border)" }}>
         {[
           { id: "all", label: "Tüm Terminal", icon: Layers },
+          { id: "petrolTanker", label: "Petrol & Tanker Navlun", icon: Fuel },
           { id: "indices", label: "TÜRİB Endeks & Spot", icon: Wheat },
           { id: "meatFeed", label: "Et-Yem & TÜFE", icon: Beef },
           { id: "tmoStorage", label: "TMO & Depolama Backtest", icon: Warehouse },
@@ -391,6 +464,11 @@ export function TuribMarketClient({ dataset }: { dataset: TuribMarketDataset }) 
           );
         })}
       </div>
+
+      {/* ── Section: Petrol Piyasası & Tanker Kiralama Navlun ── */}
+      {(activeTab === "all" || activeTab === "petrolTanker") && (
+        <PetrolTankerSection data={dataset.petrolTanker} />
+      )}
 
       {/* ── Section: TÜRİB Endeksleri ── */}
       {(activeTab === "all" || activeTab === "indices") && (
