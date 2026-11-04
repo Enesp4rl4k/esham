@@ -1,0 +1,145 @@
+{
+  "updated_at": "2026-11-04T08:30:00+03:00",
+  "events": [
+    {
+      "time": "13:00",
+      "country": "Euro Bölgesi",
+      "event": "Core Inflation Rate YoY Flash",
+      "importance": "Orta",
+      "forecast": "2.5"
+    },
+    {
+      "time": "13:00",
+      "country": "Euro Bölgesi",
+      "event": "Core Inflation Rate MoM Flash",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "13:00",
+      "country": "Euro Bölgesi",
+      "event": "Inflation Rate YoY Flash",
+      "importance": "Yüksek",
+      "forecast": "4"
+    },
+    {
+      "time": "15:00",
+      "country": "ABD",
+      "event": "MBA 5/1 ARM Contract Rate",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "15:00",
+      "country": "ABD",
+      "event": "MBA 5/1 ARM Effective Rate",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "15:00",
+      "country": "ABD",
+      "event": "MBA 15-Year Mortgage Contract Rate",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "15:00",
+      "country": "ABD",
+      "event": "MBA 15-Year Mortgage Effective Rate",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "15:00",
+      "country": "ABD",
+      "event": "MBA 15-Year Mortgage Points",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "15:00",
+      "country": "ABD",
+      "event": "MBA 30-Year Mortgage Rate",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "15:00",
+      "country": "ABD",
+      "event": "MBA 5/1 ARM Points",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "16:15",
+      "country": "ABD",
+      "event": "ADP Employment Change",
+      "importance": "Orta",
+      "forecast": "69"
+    },
+    {
+      "time": "16:30",
+      "country": "ABD",
+      "event": "Goods Trade Balance",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "16:30",
+      "country": "ABD",
+      "event": "Balance of Trade",
+      "importance": "Orta",
+      "forecast": "-108"
+    },
+    {
+      "time": "16:30",
+      "country": "ABD",
+      "event": "Exports",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "18:00",
+      "country": "ABD",
+      "event": "ISM Services PMI",
+      "importance": "Yüksek",
+      "forecast": "54.8"
+    },
+    {
+      "time": "18:30",
+      "country": "ABD",
+      "event": "EIA Ethanol Production",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "18:30",
+      "country": "ABD",
+      "event": "EIA Ethanol Stocks",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "18:30",
+      "country": "ABD",
+      "event": "EIA Crude Oil Stocks Change",
+      "importance": "Orta",
+      "forecast": "1.75"
+    },
+    {
+      "time": "18:30",
+      "country": "ABD",
+      "event": "EIA Gasoline Stocks Change",
+      "importance": "Orta",
+      "forecast": "-0.75"
+    },
+    {
+      "time": "18:30",
+      "country": "ABD",
+      "event": "EIA Crude Oil Exports Change",
+      "importance": "Orta",
+      "forecast": ""
+    }
+  ]
+}

@@ -30,12 +30,6 @@ export function DesktopNav() {
 
   const piyasalarItems: DropdownItem[] = [
     {
-      href: "/terminal",
-      label: "Trader Terminali (Bloomberg Mod)",
-      description: "BIST-30 canlı pivotları, VİOP basis, margin-call ve quant çarpanları",
-      icon: BarChart2,
-    },
-    {
       href: "/kategori/bist",
       label: "BIST & Sektörler",
       description: "Borsa İstanbul şirketleri, sektör rotasyonları ve bilanço analizleri",

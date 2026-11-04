@@ -126,6 +126,18 @@ def update_ticker_data() -> bool:
         TICKER_JSON.parent.mkdir(parents=True, exist_ok=True)
         TICKER_JSON.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
         log.info("Ticker JSON güncellendi: %d enstrüman → %s", len(tickers), TICKER_JSON)
+
+        # Ekonomik Takvim verisi
+        try:
+            from ..sources.calendar import EconomicCalendarSource
+            events = EconomicCalendarSource().daily_events(min_importance=0)
+            cal_path = TICKER_JSON.parent / "economic-calendar.json"
+            cal_data = {"updated_at": now_str, "events": [vars(e) for e in events]}
+            cal_path.write_text(json.dumps(cal_data, ensure_ascii=False, indent=2), encoding="utf-8")
+            log.info("Ekonomik Takvim JSON güncellendi: %d olay → %s", len(events), cal_path)
+        except Exception as exc:
+            log.warning("Ekonomik Takvim JSON yazılamadı: %s", exc)
+
         return True
     except OSError as exc:
         log.error("Ticker JSON yazılamadı: %s", exc)

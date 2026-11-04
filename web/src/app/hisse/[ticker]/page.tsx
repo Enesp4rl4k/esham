@@ -201,14 +201,6 @@ export default async function TickerPage({
                 Takasbank Saklama
               </span>
               <WatchlistDrawer currentTicker={cleanTicker} />
-              <Link
-                href={`/terminal?ticker=${cleanTicker}`}
-                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-amber-500/40 bg-amber-500/10 text-amber-300 font-mono text-[11px] font-bold hover:bg-amber-500/20 hover:border-amber-400 transition-colors"
-                title="Bu hisseyi Bloomberg tarzı Trader Terminali'nde canlı izle"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                TRADER MODU
-              </Link>
             </div>
             <h1 className="text-base md:text-lg font-medium text-zinc-300">
               {companyName}

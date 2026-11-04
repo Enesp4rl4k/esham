@@ -91,14 +91,6 @@ export default function RootLayout({
             <DesktopNav />
 
             <div className="flex items-center gap-2">
-              <Link
-                href="/terminal"
-                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono font-semibold rounded-md border border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 hover:border-amber-400 transition-colors shadow-sm"
-                title="Bloomberg Tarzı BIST & VİOP Trader Terminali"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                TRADER MOD
-              </Link>
               <SearchCommandPalette />
               <WatchlistDrawer />
               <MobileMenu />
