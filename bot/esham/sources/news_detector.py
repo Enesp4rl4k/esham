@@ -22,6 +22,7 @@ from datetime import datetime, timezone
 from typing import Literal
 
 from ..config import get_logger
+from ..translation import ensure_turkish, translate_to_turkish, is_mostly_english
 from .global_macro import GlobalMacroSource, MacroTicker
 from .sector import SectorMove, SectorSource
 
@@ -520,18 +521,22 @@ class NewsDetector:
                         "sanction", "jobs", "payrolls", "cpi", "ppi", "central bank", "faiz",
                     ))
                 if is_major:
-                    translated = f"SON DAKİKA: {item.title}"
+                    translated = translate_to_turkish(item.title)
+                    if not translated or is_mostly_english(translated):
+                        continue
                 else:
                     self._seen_keys.add(key)
                     self._seen_news_keys.add(key)
                     self._state.save_seen_news(self._seen_news_keys)
                     continue
 
+            headline = ensure_turkish(translated.removeprefix("SON DAKİKA: ").strip())
+            if not headline:
+                continue
+
             self._seen_keys.add(key)
             self._seen_news_keys.add(key)
             self._state.save_seen_news(self._seen_news_keys)
-
-            headline = translated.removeprefix("SON DAKİKA: ").strip()
             target_category = "gundem" if is_domestic else "global"
             label = "Ekonomi Gündemi" if is_domestic else "Küresel Piyasalar"
             tags = ["Gündem", "Ekonomi", "Türkiye"] if is_domestic else ["Küresel", "Makro", "Piyasalar"]
@@ -545,7 +550,7 @@ class NewsDetector:
                 headline=headline,
                 key=key,
                 tags=tags,
-                details=item.description,
+                details=translate_to_turkish(item.description) if (item.description and is_mostly_english(item.description)) else (item.description or ""),
                 source_url=item.link,
                 source_name=item.source or ("Türkiye Basını" if is_domestic else "Küresel Ajanslar"),
                 custom_category=target_category,
@@ -646,11 +651,15 @@ class NewsDetector:
                     "rally", "crash", "ath", "record", "hack", "whale", "halving", "inflow",
                 ))
                 if is_major:
-                    translated = f"SON DAKİKA: {item.title}"
+                    translated = translate_to_turkish(item.title)
+                    if not translated or is_mostly_english(translated):
+                        continue
                 else:
                     continue
 
-            headline = translated.removeprefix("SON DAKİKA: ").strip()
+            headline = ensure_turkish(translated.removeprefix("SON DAKİKA: ").strip())
+            if not headline:
+                continue
             event = MarketEvent(
                 kind="KRIPTO_HAREKET",
                 label="Kripto Haber",
@@ -660,7 +669,7 @@ class NewsDetector:
                 headline=headline,
                 key=key,
                 tags=["Kripto", "DijitalVarlıklar"],
-                details=item.description,
+                details=translate_to_turkish(item.description) if (item.description and is_mostly_english(item.description)) else (item.description or ""),
                 source_url=item.link,
                 source_name=item.source or "Kripto Basını",
                 custom_category="kripto",
@@ -716,11 +725,15 @@ class NewsDetector:
                     "acquisition", "buys", "deal", "billion", "data center", "robot",
                 ))
                 if is_major_tech:
-                    translated = f"SON DAKİKA: {item.title}"
+                    translated = translate_to_turkish(item.title)
+                    if not translated or is_mostly_english(translated):
+                        continue
                 else:
                     continue
 
-            headline = translated.removeprefix("SON DAKİKA: ").strip()
+            headline = ensure_turkish(translated.removeprefix("SON DAKİKA: ").strip())
+            if not headline:
+                continue
             event = MarketEvent(
                 kind="TEKNOLOJI_HAREKET",
                 label="Teknoloji & AI",
@@ -730,7 +743,7 @@ class NewsDetector:
                 headline=headline,
                 key=key,
                 tags=["Teknoloji", "YapayZeka", "AI"],
-                details=item.description,
+                details=translate_to_turkish(item.description) if (item.description and is_mostly_english(item.description)) else (item.description or ""),
                 source_url=item.link,
                 source_name=item.source or "Teknoloji Basını",
                 custom_category="teknoloji",

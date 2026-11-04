@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from .config import get_logger, settings
 from .evals.checks import contains_investment_advice
+from .translation import is_mostly_english
 
 log = get_logger(__name__)
 
@@ -29,6 +30,8 @@ def validate_report(title: str, summary: str, body: str) -> list[str]:
     violations: list[str] = []
     if contains_investment_advice(text):
         violations.append("örtük/açık yatırım tavsiyesi kalıbı")
+    if is_mostly_english(title):
+        violations.append(f"başlık Türkçe değil / İngilizce kaldı: {title[:50]}")
     return violations
 
 
@@ -38,6 +41,8 @@ def validate_tweet(text: str) -> list[str]:
         violations.append(f"tweet {TWEET_LIMIT} karakteri aşıyor ({len(text)})")
     if contains_investment_advice(text):
         violations.append("örtük/açık yatırım tavsiyesi kalıbı")
+    if is_mostly_english(text):
+        violations.append(f"tweet Türkçe değil / İngilizce kaldı: {text[:50]}")
     return violations
 
 

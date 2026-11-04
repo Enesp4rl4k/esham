@@ -937,7 +937,13 @@ def run_news_report(
     # ---- Makro/sektör olay modu --------------------------------------------------
     else:
         assert event is not None  # mypy
+        from .translation import ensure_turkish, is_mostly_english
         title_line = event.headline.split('\n')[0]
+        if is_mostly_english(title_line):
+            title_line = ensure_turkish(title_line)
+            if not title_line:
+                log.error("Haber başlığı İngilizce ve Türkçeleştirilemedi; iptal: %s", event.headline[:60])
+                return None
         title = title_line
         summary = title_line
         category = event.category

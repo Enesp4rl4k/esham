@@ -132,6 +132,14 @@ class ContentStore:
         if settings.paused:
             log.info("[PAUSED] Rapor yayını atlandı: %s", draft.title)
             return None
+
+        # Başlık İngilizce ise son emniyet kilidi olarak Türkçeleştir
+        from ..translation import ensure_turkish, is_mostly_english
+        if is_mostly_english(draft.title):
+            tr_title = ensure_turkish(draft.title)
+            if tr_title:
+                draft.title = tr_title
+
         violations = validate_report(draft.title, draft.summary, draft.body)
         if not allow(f"rapor '{draft.title}'", violations):
             return None

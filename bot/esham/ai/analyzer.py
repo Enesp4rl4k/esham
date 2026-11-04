@@ -8,6 +8,7 @@ Tasarım ilkeleri:
 from __future__ import annotations
 
 from ..config import get_logger, settings
+from ..translation import ensure_turkish, translate_to_turkish, is_mostly_english
 from ..sources import MarketSnapshot
 from .client import LlmClient
 
@@ -122,7 +123,12 @@ Gelişmenin ilgili ekosisteme etkisi (Yapay Zeka/Teknoloji için: bilgi işlem k
     def _template_event_analysis(event: "MarketEvent", macro_context: str = "") -> tuple[str, str, str]:
         """AI devre dışıyken veya başarısız olduğunda zengin, yapılandırılmış finansal analiz üretir."""
         details_clean = getattr(event, "details", "").strip()
+        if details_clean and is_mostly_english(details_clean):
+            details_clean = translate_to_turkish(details_clean)
+
         first_clause = event.headline.split('.')[0].rstrip(" ,;:")
+        if is_mostly_english(first_clause):
+            first_clause = ensure_turkish(first_clause) or first_clause
 
         if event.kind == "TEKNOLOJI_HAREKET":
             summary = f"{first_clause}; yapay zeka altyapısı, donanım talebi ve teknoloji hisseleri üzerindeki etkileriyle takip ediliyor."
@@ -292,9 +298,12 @@ Haber Başlığı: {news_title}
 
         # Temizle
         result = result.strip().strip('"').strip("'")
-        if result.upper().startswith("SON DAKİKA:"):
-            return result
-        return f"SON DAKİKA: {result}"
+        clean_text = result.removeprefix("SON DAKİKA:").removeprefix("SON DAKIKA:").strip()
+        if is_mostly_english(clean_text):
+            clean_text = translate_to_turkish(clean_text)
+            if not clean_text or is_mostly_english(clean_text):
+                return None
+        return f"SON DAKİKA: {clean_text}"
 
     def generate_news_analysis(
         self,
