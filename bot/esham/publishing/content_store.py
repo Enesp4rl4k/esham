@@ -90,6 +90,43 @@ class ContentStore:
         self.content_dir.mkdir(parents=True, exist_ok=True)
         self.cards_dir = cards_dir or settings.cards_dir
 
+    def _is_daily_duplicate(self, draft: ReportDraft) -> bool:
+        """Kullanıcı kuralı: Gün içi aynı varlık hakkında (yön değişse dahi) tek bir
+        kaliteli paylaşım yeterlidir; gün içi 2 defa aynı paylaşımı yapmaya gerek yok.
+        """
+        today_prefix = draft.published_at.date().isoformat()
+        candidate_slug = slugify(draft.title)
+        candidate_filename = f"{today_prefix}-{candidate_slug}.json"
+        if (self.content_dir / candidate_filename).exists():
+            return True
+
+        title_lower = draft.title.translate(_TR_MAP).lower()
+        SINGLE_PER_DAY_ASSETS = [
+            ("nasdaq", "nasdaq"),
+            ("s&p 500", "s-p-500"),
+            ("sp 500", "s-p-500"),
+            ("dow jones", "dow-jones"),
+            ("bitcoin", "bitcoin"),
+            ("ethereum", "ethereum"),
+            ("solana", "solana"),
+            ("ripple", "ripple"),
+            ("viop piyasa", "viop-piyasa"),
+            ("bist seans acilisi", "bist-seans-acilisi"),
+            ("borsa gunu", "borsa-gunu"),
+        ]
+
+        for asset_key, file_token in SINGLE_PER_DAY_ASSETS:
+            if asset_key in title_lower:
+                existing = list(self.content_dir.glob(f"{today_prefix}-*{file_token}*.json"))
+                if existing:
+                    log.info(
+                        "[MÜKERRER ENGELİ] Gün içinde '%s' için zaten rapor yayınlanmış (%s); ikinci paylaşım atlandı: %s",
+                        asset_key, existing[0].name, draft.title,
+                    )
+                    return True
+
+        return False
+
     def publish(self, draft: ReportDraft) -> Path | None:
         """Raporu yayınlar. Acil durdurma veya guardrail'a takılırsa yazmaz, None döner."""
         if settings.paused:
@@ -97,6 +134,9 @@ class ContentStore:
             return None
         violations = validate_report(draft.title, draft.summary, draft.body)
         if not allow(f"rapor '{draft.title}'", violations):
+            return None
+        if self._is_daily_duplicate(draft):
+            log.info("[MÜKERRER ATLANDI] Gün içi 2. kez aynı varlık paylaşımı yapılmaz: %s", draft.title)
             return None
 
         slug = draft.resolved_slug()

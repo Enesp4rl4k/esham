@@ -13,7 +13,9 @@ venv/
 
 # Bot çıktıları
 bot/output/
-bot/state/
+bot/state/*
+!bot/state/esham_state.json
+!bot/state/.gitkeep
 
 # Next.js / Node
 web/node_modules/

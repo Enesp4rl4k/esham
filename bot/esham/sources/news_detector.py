@@ -15,6 +15,7 @@ piyasa eşikleri (örn. VIX %5+, ABD 10Y 5 baz puan+, altın %0.8+).
 """
 from __future__ import annotations
 
+import json
 import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -127,19 +128,14 @@ def _direction(pct: float) -> str:
     return "yükseldi" if pct >= 0 else "geriledi"
 
 
-def _dedup_key(prefix: str, label: str, pct: float) -> str:
-    """Aynı enstrüman için günde bir kez tetikleme anahtarı.
+def _dedup_key(prefix: str, label: str, pct: float = 0.0) -> str:
+    """Aynı enstrüman için günde en fazla bir kez tetikleme anahtarı.
 
-    Önceden anahtar `pct:.2f` içeriyordu; hareket her tarama turunda birkaç
-    baz puan kayınca (ör. %2,91 -> %2,97) anahtar değişip aynı olay tekrar
-    "yeni" sayılıyor, bu da 10 dakikada bir neredeyse aynı tweet'in
-    atılmasına yol açıyordu. Gün + yön (artı/eksi) bazlı anahtar, aynı
-    enstrüman aynı yönde hareket ettiği sürece günde bir kez tetiklenmesini
-    sağlar; yön değişirse (ör. sektör düşüşe geçerse) yeniden tetiklenir.
+    Kullanıcı kuralı: Gün içi aynı varlık hakkında (yön değişse dahi) tek bir
+    kaliteli paylaşım yeterlidir; mükerrer paylaşım ASLA yapılmaz.
     """
     day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    direction = "up" if pct >= 0 else "down"
-    return f"{prefix}:{label}:{day}:{direction}"
+    return f"{prefix}:{label}:{day}"
 
 
 # ---- olay oluşturucular ---------------------------------------------------------
@@ -231,6 +227,8 @@ class NewsDetector:
         self._seen_keys: set[str] = self._state.load_seen_market_events()
         # SON_DAKIKA haberleri için kalıcı seen set (24 saatlik TTL)
         self._seen_news_keys: set[str] = self._state.load_seen_news()
+        # Disk üzerindeki bugün yayınlanmış raporları seen set'e ekle (CI/stateless konteyner koruması)
+        self._populate_seen_from_disk_reports()
 
         self._macro_src = GlobalMacroSource()
         self._sector_src = SectorSource()
@@ -249,6 +247,70 @@ class NewsDetector:
         from .watchlist import fetch_watchlist_moves, STOCK_ALERT_THRESHOLD
         self._fetch_watchlist = fetch_watchlist_moves
         self._watchlist_threshold = STOCK_ALERT_THRESHOLD
+
+
+    def _populate_seen_from_disk_reports(self) -> None:
+        """Disk üzerindeki bugün yayınlanmış raporları tarayarak seen set'e ekler.
+        
+        Bu koruma sayesinde:
+        - GitHub Actions yeni/temiz bir container'da başlasa dahi,
+        - veya state dosyası silinse dahi,
+        bugün web sitesine commit edilmiş hiçbir varlık/haber ikinci kez paylaşılmaz.
+        """
+        try:
+            today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            from ..config import settings
+            reports_dir = settings.content_dir
+            if not reports_dir.exists():
+                return
+            for report_file in reports_dir.glob(f"{today_str}-*.json"):
+                fname = report_file.stem.lower()
+                for macro_name, macro_lbl in (
+                    ("nasdaq", "NASDAQ"),
+                    ("s-p-500", "S&P 500"),
+                    ("dow-jones", "Dow Jones"),
+                    ("vix", "VIX"),
+                    ("altin", "ALTIN"),
+                    ("brent", "BRENT"),
+                    ("dolar", "USD/TRY"),
+                    ("usd-try", "USD/TRY"),
+                    ("eur-usd", "EUR/USD"),
+                    ("abd-10y", "ABD 10Y"),
+                ):
+                    if macro_name in fname:
+                        self._seen_keys.add(f"macro:{macro_lbl}:{today_str}")
+                        self._seen_keys.add(f"macro:{macro_name}:{today_str}")
+
+                for crypto_label, crypto_sym in (
+                    ("bitcoin", "BTC-USD"),
+                    ("ethereum", "ETH-USD"),
+                    ("solana", "SOL-USD"),
+                    ("ripple", "XRP-USD"),
+                ):
+                    if crypto_label in fname:
+                        self._seen_keys.add(f"crypto:{crypto_sym}:{today_str}")
+                        self._seen_keys.add(f"crypto:{crypto_label}:{today_str}")
+
+                if "bist-seans-acilisi" in fname or "xu100" in fname:
+                    self._seen_keys.add(f"bist:XU100:{today_str}")
+
+                try:
+                    with open(report_file, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    for tag in data.get("tags", []):
+                        if len(tag) in (4, 5) and tag.isupper():
+                            self._seen_keys.add(f"hisse:{tag}:{today_str}")
+                            self._seen_keys.add(f"sector:{tag}:{today_str}")
+                    src_url = data.get("source_url") or ""
+                    if src_url:
+                        norm = src_url.split("?")[0].rstrip("/")
+                        self._seen_news_keys.add(f"news:{norm}")
+                        self._seen_news_keys.add(f"tech:{norm}")
+                        self._seen_news_keys.add(f"cryptonews:{norm}")
+                except Exception:
+                    pass
+        except Exception as exc:
+            log.warning("Disk raporlarından seen kümesi yüklenirken hata: %s", exc)
 
     def scan(self) -> list[MarketEvent]:
         """Tüm kaynakları tarar; yeni tetikleyici olayları listeler."""
