@@ -66,16 +66,16 @@ Başlığı doğrudan KOPYALAMADAN, gelişmenin özünü ve piyasa/sektör açı
 ## ANALİZ
 Aşağıdaki 4 bölümü yapılandırılmış markdown olarak hazırla (her bölüm en az 2-3 doyurucu ve somut cümle içermeli):
 
-### ⚡ Gelişmenin Detayları
+### Gelişmenin Detayları
 Olayın arka planı, teknik/finansal özellikleri, ilgili şirketlerin veya aktörlerin rolleri ve somut veriler.
 
-### 🔍 Sektörel & Stratejik Etki
+### Sektörel & Stratejik Etki
 Gelişmenin ilgili ekosisteme etkisi (Yapay Zeka/Teknoloji için: bilgi işlem kapasitesi, çip talebi, veri merkezi yatırımları; Kripto için: likidite, regülasyon, ağ aktivitesi, faiz etkisi; Makro için: küresel faizler, sermaye akımları, risk iştahı).
 
-### 📊 Piyasa & Varlık Yansıması
+### Piyasa & Varlık Yansıması
 İlgili varlık sınıfları (teknoloji hisseleri, BIST Teknoloji endeksi, Bitcoin/altcoinler, döviz/tahvil piyasaları) üzerindeki fiyatlama ve risk algısı yansıması.
 
-### 🔮 Yakından İzlenecekler
+### Yakından İzlenecekler
 Önümüzdeki gün ve haftalarda takip edilecek somut katalizörler, direnç/destek seviyeleri veya beklenen yeni adımlar.
 
 ## TWEET
@@ -133,18 +133,18 @@ Gelişmenin ilgili ekosisteme etkisi (Yapay Zeka/Teknoloji için: bilgi işlem k
             )
 
             body = (
-                f"### ⚡ Gelişmenin Detayları\n"
+                f"### Gelişmenin Detayları\n"
                 f"{detay_metni}\n\n"
-                f"### 🔍 Teknoloji & Yapay Zeka Ekosistemine Etkisi\n"
+                f"### Teknoloji & Yapay Zeka Ekosistemine Etkisi\n"
                 f"Yapay zeka modellerinin hesaplama maliyetleri ve veri işleme ihtiyaçları katlanarak artarken, "
                 f"yeni nesil çip tasarımları ve sunucu mimarileri teknoloji devlerinin sermaye harcamalarında (CapEx) "
                 f"birinci sıraya yerleşmiş durumda. Söz konusu gelişme, donanım tedarik zinciri ve bulut bilişim "
                 f"sağlayıcıları açısından kritik bir dönüm noktası olarak değerlendiriliyor.\n\n"
-                f"### 📊 Finansal Piyasalar & Hisse Yansıması\n"
+                f"### Finansal Piyasalar & Hisse Yansıması\n"
                 f"Teknoloji şirketlerinin inovasyon hamleleri Nasdaq teknoloji endeksi başta olmak üzere yarı iletken üreticileri "
                 f"ve veri merkezi sağlayıcılarının çarpanlarını doğrudan destekliyor. Gelişmeler küresel risk iştahı kanalıyla "
                 f"Borsa İstanbul Teknoloji Endeksi (XUTEK) hisseleri üzerinde de pozitif sektörel çarpan algısını besliyor.\n\n"
-                f"### 🔮 Yakından İzlenecekler\n"
+                f"### Yakından İzlenecekler\n"
                 f"- Yeni mimari ve teknolojinin ticari pazara sunulma takvimi ile hacimli üretim metrikleri.\n"
                 f"- Enerji verimliliği, soğutma sistemleri ve veri merkezi altyapı sınırlamalarına yönelik çözümler.\n"
                 f"- Küresel regülasyon kurumlarının büyük teknoloji platformlarına yönelik rekabet ve yapay zeka standartları."
@@ -158,19 +158,19 @@ Gelişmenin ilgili ekosisteme etkisi (Yapay Zeka/Teknoloji için: bilgi işlem k
                 summary = f"{event.label} son 24 saatte %{sign}{event.change_pct:.2f} {direction} {event.value_str} seviyesinde; kaldıraçlı piyasalarda volatilite öne çıkıyor."
                 
                 body = (
-                    f"### ⚡ Piyasa Hareketi & Anlık Fiyatlama\n"
+                    f"### Piyasa Hareketi & Anlık Fiyatlama\n"
                     f"{event.label} ({event.value_str}), son 24 saatlik seansta **%{sign}{event.change_pct:.2f}** "
                     f"oranında hareket ederek kripto varlık piyasasında yön arayışına öncülük etti. Türev borsalarda açık pozisyon (OI) "
                     f"ve fonlama oranlarındaki dalgalanma volatiliteyi artırıyor.\n\n"
-                    f"### 🔍 Kripto Dinamikleri & Likidite Akışı\n"
+                    f"### Kripto Dinamikleri & Likidite Akışı\n"
                     f"Spot kripto ETF'lerine yönelik kurumsal para giriş/çıkışları, büyük cüzdanların (balina) transfer hareketleri ve "
                     f"stabilcoin rezervlerindeki değişimler piyasa derinliğini belirlemeyi sürdürüyor. Makro faiz patikası ve Dolar Endeksi (DXY) "
                     f"kripto paralar üzerindeki genel risk iştahını şekillendiren temel faktör konumunda.\n\n"
-                    f"### 📊 Kritik Seviyeler & Destek / Direnç\n"
+                    f"### Kritik Seviyeler & Destek / Direnç\n"
                     f"- **Psikolojik Eşik:** {event.value_str} çevresinde yoğunlaşan alım ve satım kademeleri.\n"
                     f"- **Türev Piyasalar:** Tasfiye (liquidation) haritalarında long/short pozisyon dengesizliği.\n"
                     f"- **Momentum:** Günlük RSI ve hareketli ortalama (20/50 günlük) trend bantları.\n\n"
-                    f"### 🔮 Yakından İzlenecekler\n"
+                    f"### Yakından İzlenecekler\n"
                     f"- ABD Merkez Bankası (Fed) faiz beklentileri ve küresel tahvil getirilerindeki yönelim.\n"
                     f"- Kurumsal saklama çözümleri ve regülatif adımlara ilişkin resmi açıklamalar."
                 )
@@ -181,15 +181,15 @@ Gelişmenin ilgili ekosisteme etkisi (Yapay Zeka/Teknoloji için: bilgi işlem k
                     "sektördeki kurumsal benimseme ve güvenlik standartları açısından kritik önem taşıyor."
                 )
                 body = (
-                    f"### ⚡ Haberin Detayları\n"
+                    f"### Haberin Detayları\n"
                     f"{detay_metni}\n\n"
-                    f"### 🔍 Dijital Varlıklar & Düzenleyici Etki\n"
+                    f"### Dijital Varlıklar & Düzenleyici Etki\n"
                     f"Kripto para piyasalarında kurumsal güven, kullanıcı varlıklarının saklama güvencesi ve yasal düzenlemelere uyum "
                     f"ön planda kalmaya devam ediyor. Büyük platformların attığı stratejik adımlar piyasa likiditesini doğrudan belirliyor.\n\n"
-                    f"### 📊 Piyasa Algısı & Likidite Yansıması\n"
+                    f"### Piyasa Algısı & Likidite Yansıması\n"
                     f"Gelişmenin ardından majör kripto varlıklar ile altcoinlerdeki risk primi yeniden dengelenirken, "
                     f"türev piyasalardaki volatilite beklentileri ve fonlama oranları takip ediliyor.\n\n"
-                    f"### 🔮 Yakından İzlenecekler\n"
+                    f"### Yakından İzlenecekler\n"
                     f"- İlgili kurum ve platformlardan gelecek resmi açıklamalar ve yasal süreçler.\n"
                     f"- Kripto varlık fon akımları ve borsa rezerv hareketleri."
                 )
@@ -202,16 +202,16 @@ Gelişmenin ilgili ekosisteme etkisi (Yapay Zeka/Teknoloji için: bilgi işlem k
                 "ve makroekonomik beklentiler üzerinde doğrudan etkili olma potansiyeli taşıyor."
             )
             body = (
-                f"### ⚡ Gelişmenin Detayları\n"
+                f"### Gelişmenin Detayları\n"
                 f"{detay_metni}\n\n"
-                f"### 🔍 Makroekonomik Bağlam & Küresel Risk İştahı\n"
+                f"### Makroekonomik Bağlam & Küresel Risk İştahı\n"
                 f"Küresel enflasyon dinamikleri, merkez bankalarının para politikası patikası ve tahvil faizlerindeki dalgalanma, "
                 f"uluslararası fon akımlarını yönlendiren temel unsurlar olmaya devam ediyor. Gelişmekte olan piyasalar "
                 f"ve riskli varlıklar bu dalgalanmalardan öncelikli olarak etkileniyor.\n\n"
-                f"### 📊 Piyasa & Varlık Yansıması\n"
+                f"### Piyasa & Varlık Yansıması\n"
                 f"Gelişmenin küresel tahvil faizleri, emtia (altın, petrol) ve döviz kurları üzerindeki seyri Borsa İstanbul "
                 f"ve Türk Lirası varlıkları açısından çarpan ve getiri arayışı üzerinden izleniyor.\n\n"
-                f"### 🔮 Yakından İzlenecekler\n"
+                f"### Yakından İzlenecekler\n"
                 f"- Açıklanacak öncü makroekonomik göstergeler ve merkez bankası yönlendirmeleri.\n"
                 f"- Küresel hisse senedi piyasalarında volatilite endekslerinin (VIX) seyri."
             )
@@ -325,7 +325,7 @@ Bildirim içeriği:
 Tek cümle (max 140 karakter). Varsa sayısal veriyi (tutar, oran, lot, yüzde) dahil et.
 
 ## ANALİZ
-**Finansal Sinyal:** 🟢 Pozitif / 🟡 Nötr / 🔴 Negatif (hangisi uygunsa birini seç)
+**Finansal Sinyal:** Pozitif / Nötr / Negatif (hangisi uygunsa birini seç)
 
 - **Gelişmenin Özü:** Haberin şirket için ne anlama geldiği (1 net cümle).
 - **Finansal & Bilanço Etkisi:** Gelir, ciro, kâr marjı veya nakit akışına somut etkisi (1 net cümle).
@@ -388,9 +388,9 @@ Tek cümle (max 140 karakter). Varsa sayısal veriyi (tutar, oran, lot, yüzde) 
         # Body: Az ve öz, doğrudan sonuca odaklı yapı
         analiz = _extract("ANALİZ") or _extract("ANALIZ")
         if analiz:
-            body = f"### ⚡ Hızlı Bakış\n{summary}\n\n### 🎯 Finansal Sinyal & Analiz\n{analiz}"
+            body = f"### Hızlı Bakış\n{summary}\n\n### Finansal Sinyal & Analiz\n{analiz}"
         else:
-            body = f"### ⚡ Hızlı Bakış\n{summary}\n\n{raw}"
+            body = f"### Hızlı Bakış\n{summary}\n\n{raw}"
         return body, summary, tweet
 
     @staticmethod
@@ -407,61 +407,66 @@ Tek cümle (max 140 karakter). Varsa sayısal veriyi (tutar, oran, lot, yüzde) 
         amounts = re.findall(r"(\d+(?:[.,]\d+)?\s*(?:milyon|milyar|bin|TL|USD|EUR|adet|lot|%))", full_text, re.IGNORECASE)
         amounts_str = ", ".join(amounts[:2]) if amounts else None
 
-        is_order = any(k in norm_title for k in ("yeni is iliskisi", "siparis", "sozlesme", "ihale", "proje", "is iliskisi"))
+        is_default = any(k in norm_title for k in ("temerrut", "temerrüt"))
+        is_order = (not is_default) and any(k in norm_title for k in ("yeni is iliskisi", "siparis", "sozlesme", "ihale", "proje", "is iliskisi"))
         is_buyback = any(k in norm_title for k in ("pay geri alim", "geri alim", "pay alim"))
         is_capital = any(k in norm_title for k in ("sermaye artir", "bedelli", "bedelsiz", "tahsisli"))
         is_dividend = any(k in norm_title for k in ("kar payi", "temettu"))
         is_acquisition = any(k in norm_title for k in ("birles", "devral", "satin al", "istirak"))
 
-        if is_order:
-            signal = "🟢 Pozitif (Yeni Sipariş / İş Anlaşması)"
+        if is_default:
+            signal = "Risk / Temerrüt Bildirimi"
+            bilanço = f"Takasbank veya Borsa İstanbul temerrüt takası çerçevesinde açılan işlem sırası bildirilmiştir{f' (`{amounts_str}`)' if amounts_str else ''}."
+            sektor = "İlgili pay sırasında yükümlülüklerin yerine getirilmesi amacıyla temerrüt satışı/alımı gerçekleştirilmektedir."
+            piyasa = "Kısa vadeli likidite ve teminat baskısı yaratabilir; işlem sırası yakından izlenmelidir."
+        elif is_order:
+            signal = "Pozitif (Yeni Sipariş / İş Anlaşması)"
             bilanço = f"Alınan sipariş/ihale{f' (`{amounts_str}`)' if amounts_str else ''}, şirketin bakiye iş hacmini ve gelecek dönem cirosunu destekler."
             sektor = "Sektördeki pazar payını ve operasyonel kapasite kullanımını güçlendirir."
             piyasa = "Hisse üzerinde kısa vadede pozitif haber akışı etkisi yaratması beklenir."
         elif is_buyback:
-            signal = "🟢 Pozitif (Pay Geri Alımı / Güven Sinyali)"
+            signal = "Pozitif (Pay Geri Alımı / Güven Sinyali)"
             bilanço = f"Geri alım programı{f' (`{amounts_str}`)' if amounts_str else ''}, hisse başına kârı matematiksel olarak destekler."
             sektor = "Şirket yönetiminin mevcut piyasa değerlemesini ucuz bulduğuna işaret eder."
             piyasa = "Fiyat oynaklığını azaltıcı taban desteği oluşturur."
         elif is_dividend:
-            signal = "🟢 Pozitif (Temettü / Nakit Dağıtımı)"
+            signal = "Pozitif (Temettü / Nakit Dağıtımı)"
             bilanço = f"Kâr payı dağıtımı{f' (`{amounts_str}`)' if amounts_str else ''}, şirketin güçlü nakit yaratma kabiliyetini teyit eder."
             sektor = "BIST genelinde temettü verimi odaklı kurumsal ilgiyi canlı tutar."
             piyasa = "Hissede temettü takvimine doğru pozitif fiyatlama eğilimini destekler."
         elif is_acquisition:
-            signal = "🟡 Stratejik / Nötr-Pozitif (İnorganik Büyüme)"
+            signal = "Stratejik / Nötr-Pozitif (İnorganik Büyüme)"
             bilanço = f"Satın alma/iştirak adımı{f' (`{amounts_str}`)' if amounts_str else ''}, konsolide hasılata doğrudan katkı sunar."
             sektor = "Pazardaki rekabet gücünü ve operasyonel sinerjiyi artırır."
             piyasa = "Entegrasyon süreci ve yatırım geri dönüş süresi piyasa tarafından takip edilir."
         elif is_capital:
-            signal = "🟡 Nötr / Bilanço Güçlendirme (Sermaye Artırımı)"
+            signal = "Nötr / Bilanço Güçlendirme (Sermaye Artırımı)"
             bilanço = f"Sermaye artırımı{f' (`{amounts_str}`)' if amounts_str else ''}, özkaynakları güçlendirerek finansman maliyetini dengeler."
             sektor = "Şirketin borçluluk rasyolarını iyileştirir."
             piyasa = "Sermaye türüne (bedelli/bedelsiz) bağlı olarak likidite etkisi fiyatlanır."
         elif is_insider:
-            signal = "🚨 İçsel İşlem / Yakın Takip"
+            signal = "İçsel İşlem / Kurumsal Takip"
             bilanço = f"İlişkili taraf pay işlemi{f' (`{amounts_str}`)' if amounts_str else ''}, kurumsal şeffaflık kapsamında bildirilmiştir."
             sektor = "Yönetim/ortaklık pay hareketleri kurumsal yatırımcılar tarafından yakından izlenir."
             piyasa = "İşlemin alış veya satış yönlü oluşu kısa vadeli fiyat algısını etkileyebilir."
         else:
-            signal = "🟡 Bilgilendirme / Nötr"
+            signal = "Bilgilendirme / Nötr"
             bilanço = f"Bildirilen kurumsal gelişme{f' (`{amounts_str}`)' if amounts_str else ''}, olağan faaliyet takvimi çerçevesindedir."
             sektor = "Operasyonel süreçlerin planlandığı şekilde ilerlediğine işaret eder."
             piyasa = "Doğrudan sert bir fiyatlama etkisi beklenmemektedir."
 
-        emoji = "🚨" if is_insider else "📊"
         summary = f"{company} ({ticker}): {title[:110]}"
 
         body = (
-            f"### ⚡ Hızlı Bakış\n"
+            f"### Hızlı Bakış\n"
             f"**{company}** ({ticker}), Kamuyu Aydınlatma Platformu'nda `{title}` başlıklı açıklamada bulundu.\n\n"
-            f"### 🎯 Finansal Sinyal: {signal}\n"
+            f"### Finansal Sinyal: {signal}\n"
             f"- **Bilanço & Ciro:** {bilanço}\n"
             f"- **Sektörel Konum:** {sektor}\n"
             f"- **Piyasa Yansıması:** {piyasa}"
         )
 
-        _prefix = f"{emoji} ${ticker} ({company}): "
+        _prefix = f"${ticker} ({company}): "
         _max_title = max(10, 270 - len(_prefix))
         tweet = f"{_prefix}{title[:_max_title]}"
         return body, summary, tweet
@@ -473,21 +478,21 @@ Tek cümle (max 140 karakter). Varsa sayısal veriyi (tutar, oran, lot, yüzde) 
         """BIST sektör hareketleri için az, öz ve vurucu analiz üretir."""
         direction = "yükseliş" if change_pct >= 0 else "kâr satışı"
         sign = "+" if change_pct >= 0 else ""
-        signal = f"🟢 Pozitif (%{sign}{change_pct:.2f})" if change_pct >= 0 else f"🔴 Negatif (%{sign}{change_pct:.2f})"
+        signal = f"Pozitif (%{sign}{change_pct:.2f})" if change_pct >= 0 else f"Negatif (%{sign}{change_pct:.2f})"
         flow = "güçlü para girişi" if change_pct >= 0 else "kâr realizasyonu ve para çıkışı"
         
         summary = f"BIST {sector_name}: %{sign}{change_pct:.2f} ile {direction} kaydetti."
         
         body = (
-            f"### ⚡ Piyasa Nabzı\n"
+            f"### Piyasa Nabzı\n"
             f"Borsa İstanbul'da **BIST {sector_name} Endeksi**, seans genelinde **%{sign}{change_pct:.2f}** değişerek piyasadan ayrıştı.\n\n"
-            f"### 🎯 Sinyal & Rotasyon: {signal}\n"
+            f"### Sinyal & Rotasyon: {signal}\n"
             f"- **Para Akışı:** Sektör bileşenlerinde gün içi {flow} izlendi; lokomotif hisseler harekete öncülük etti.\n"
             f"- **Sektör Rotasyonu:** Yatırımcı ilgisinin getiri arayışıyla {sector_name} tarafında yoğunlaştığı gözleniyor.\n"
             f"- **Kritik Eşik:** Kısa vadeli hareketli ortalamalar ve göreceli güç (RSI) seviyeleri takip edilmeli."
         )
         
-        tweet = f"📊 BIST {sector_name} sektörü %{sign}{change_pct:.2f} {direction} ile ayrışıyor. Para akışı ve sektör rotasyonu özeti raporda:"
+        tweet = f"BIST {sector_name} sektörü %{sign}{change_pct:.2f} {direction} ile ayrışıyor. Para akışı ve sektör rotasyonu özeti raporda:"
         return body, summary, tweet
 
     def generate_morning_report_and_thread(
@@ -705,8 +710,8 @@ büyüme potansiyeli ve riskleriyle ilgili küçük yatırımcının gözden ka�
 ancak profesyonellerin dikkat edeceği derinlemesine bir analiz yap.
 
 Şu formatta yanıt ver:
-- ✅ **[Olumlu Nokta Başlığı]:** [Neden önemli olduğu, şirkete gelecekteki katkısı ve rakamsal/oransal değerlendirmesi (2-3 cümle)] (En az 3 adet)
-- 🚨 **[Gizli Tehlike / Risk]:** [Bilanço dipnotlarında veya nakit akışında yatan sinsi risk, operasyonel baskı veya borç yükü analizi (2-3 cümle)] (En az 3 adet)
+- **[Olumlu Nokta Başlığı]:** [Neden önemli olduğu, şirkete gelecekteki katkısı ve rakamsal/oransal değerlendirmesi (2-3 cümle)] (En az 3 adet)
+- **[Risk / Olumsuz Nokta]:** [Bilanço dipnotlarında veya nakit akışında yatan sinsi risk, operasyonel baskı veya borç yükü analizi (2-3 cümle)] (En az 3 adet)
 
 Veri: {financial_data_text}
 """

@@ -380,21 +380,28 @@ def run_opening_report(publish_social: bool = False) -> str | None:
     except Exception as exc:
         log.debug("Açılış VİOP verisi alınamadı: %s", exc)
 
-    body = f"""## 🔔 BIST Seans Açılışı
+    open_val = bist.open_price or bist.price
+    open_chg = bist.open_change or bist.change
 
-Borsa İstanbul {bist.index} endeksi seansa **{bist.price}** puan seviyesinde, **{bist.change}** değişim ile başladı.{viop_line}{sector_summary}
+    current_note = ""
+    if bist.open_price and bist.price and bist.open_price != bist.price:
+        current_note = f" (Seans içi güncel seviye: **{bist.price}** / **{bist.change}**)"
 
-### 🔍 Seans İçi Takip Edilecekler
+    body = f"""## BIST Seans Açılışı
+
+Borsa İstanbul {bist.index} endeksi seansa **{open_val}** puan seviyesinde, **{open_chg}** açılış değişimi ile başladı.{current_note}{viop_line}{sector_summary}
+
+### Seans İçi Takip Edilecekler
 - **Likidite ve Para Girişi:** Bankacılık ve Sınai sektörlerindeki kurumsal hacimler.
-- **Teknik Seviyeler:** Endeksin 10.850 destek ve 11.050 psikolojik direnç bölgelerindeki tutunma gücü.
+- **Teknik Seviyeler:** Endeksin destek ve direnç bölgelerindeki tutunma gücü.
 - **Küresel Piyasalar:** ABD vadeli endeksleri ve Avrupa açılışlarındaki risk algısı."""
 
     draft = ReportDraft(
-        title=f"BIST Seans Açılışı: {bist.index} {bist.change}",
+        title=f"BIST Seans Açılışı: {bist.index} {open_chg}",
         category="bist",
-        summary=f"{bist.index} endeksi {bist.price} ({bist.change}) ile yeni seansa başladı.",
+        summary=f"{bist.index} endeksi {open_val} ({open_chg}) ile yeni seansa başladı.{current_note}",
         body=body,
-        sources=["Borsa İstanbul", "Yahoo Finance", "VİOP"],
+        sources=["Borsa İstanbul", "TradingView", "VİOP"],
         tags=["BIST100", "Açılış", "Seans"],
         ai_generated=False,
     )
@@ -403,9 +410,9 @@ Borsa İstanbul {bist.index} endeksi seansa **{bist.price}** puan seviyesinde, *
         CardSpec(
             category="bist",
             kicker=f"{bist.index} Açılış",
-            headline="BIST açılışa hazırlanıyor; son 5 günlük seyir.",
-            stat_value=bist.price,
-            stat_change=bist.change,
+            headline="BIST açılış ve seans seyri.",
+            stat_value=open_val,
+            stat_change=open_chg,
             sparkline=BistSource().fetch_closes("5d", "30m"),
             template="bist",
         )
@@ -419,7 +426,7 @@ Borsa İstanbul {bist.index} endeksi seansa **{bist.price}** puan seviyesinde, *
     slug = draft.resolved_slug()
     if publish_social:
         SocialPublisher().broadcast(
-            f"BIST açılış: {bist.index} {bist.price} ({bist.change})\n"
+            f"BIST açılış: {bist.index} {open_val} ({open_chg})\n"
             f"{settings.site_url}/rapor/{slug} #BIST100",
             image_path=card_path,
         )
@@ -793,7 +800,7 @@ def run_global_report(publish_social: bool = True) -> str | None:
     slug = draft.resolved_slug()
 
     if publish_social:
-        final_tweet = ai_tweet if ai_tweet else f"🌍 Küresel makro: {summary}\n"
+        final_tweet = ai_tweet if ai_tweet else f"Küresel makro: {summary}\n"
         final_tweet += f"\n{settings.site_url}/rapor/{slug}\n#Makro #Borsa #KüreselPiyasalar"
         SocialPublisher().broadcast(
             final_tweet,
@@ -872,7 +879,7 @@ def run_news_report(
         
         if is_mega_deal:
             kicker = "Mega İş Anlaşması"
-            card_kicker = "🔥 MEGA İŞ ANLAŞMASI"
+            card_kicker = "MEGA İŞ ANLAŞMASI"
         elif is_insider:
             kicker = "İçsel İşlem"
             card_kicker = "İÇSEL İŞLEM"
@@ -914,8 +921,8 @@ def run_news_report(
             if tech_snapshot:
                 body = f"{body}\n\n{tech_snapshot.format_table()}"
 
-        if is_mega_deal and not summary.startswith("🔥 MEGA SÖZLEŞME"):
-            summary = f"🔥 MEGA SÖZLEŞME | {summary}"
+        if is_mega_deal and not summary.startswith("MEGA SÖZLEŞME"):
+            summary = f"MEGA SÖZLEŞME | {summary}"
 
     # ---- Makro/sektör olay modu --------------------------------------------------
     else:
@@ -961,9 +968,9 @@ def run_news_report(
 
             src_url = getattr(event, "source_url", "")
             if src_url:
-                source_block = f"\n\n> 📌 **Kaynak:** [{src_label}]({src_url})"
+                source_block = f"\n\n> **Kaynak:** [{src_label}]({src_url})"
             else:
-                source_block = f"\n\n> 📌 **Kaynak:** {src_label}"
+                source_block = f"\n\n> **Kaynak:** {src_label}"
 
             body = f"{ai_body}{source_block}"
         elif event.kind == "SEKTÖR_HAREKET":
@@ -1140,7 +1147,7 @@ def run_weekly_summary(publish_social: bool = True) -> str | None:
     if insider_disclosures:
         kap_section += "### İçsel İşlemler\n\n"
         for d in insider_disclosures[:3]:
-            kap_section += f"- 🚨 **{d.company}** ({d.ticker}): {d.title}\n"
+            kap_section += f"- **{d.company}** ({d.ticker}): {d.title}\n"
         kap_section += "\n"
     if notable_disclosures:
         kap_section += "### Öne Çıkan Bildirimler\n\n"

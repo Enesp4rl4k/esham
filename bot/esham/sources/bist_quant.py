@@ -82,7 +82,7 @@ class KeyLevelsResult:
         sign = "+" if self.change_pct >= 0 else ""
         dist_sign = "+" if self.dist_to_high_pct >= 0 else ""
         return (
-            f"### 🎯 Kurumsal Key Level & Teknik Eşikler (${self.ticker})\n"
+            f"### Kurumsal Key Level & Teknik Eşikler (${self.ticker})\n"
             f"| Metrik | Seviye | Teknik Anlam / Sinyal |\n"
             f"| :--- | :--- | :--- |\n"
             f"| **Son Fiyat** | **{self.last_price:.2f} TL** | Seans Değişimi: %{sign}{self.change_pct:.2f} |\n"
@@ -142,7 +142,7 @@ class FundamentalResult:
         if self.contract_analysis:
             ca = self.contract_analysis
             contract_section = (
-                f"\n\n#### 📑 Sözleşme Büyüklüğü & Ciro Etki Çarpanı\n"
+                f"\n\n#### Sözleşme Büyüklüğü & Ciro Etki Çarpanı\n"
                 f"- **Sözleşme Tutarı:** {ca.get('sozlesme_tutari_str', '—')}\n"
                 f"- **Son 12 Aylık Hasılat:** {self.revenue_str}\n"
                 f"- **Ciroya Göreli Oranı:** **%{ca.get('ciro_orani_yuzde', 0.0):.1f}**\n"
@@ -150,7 +150,7 @@ class FundamentalResult:
             )
 
         return (
-            f"### 🏢 Temel Finansal Çarpanlar (${self.ticker})\n"
+            f"### Temel Finansal Çarpanlar (${self.ticker})\n"
             f"| Temel Gösterge | Değer | Sektör / Açıklama |\n"
             f"| :--- | :--- | :--- |\n"
             f"| **Piyasa Değeri** | **{self.market_cap_str}** | Sektör: {self.sector or 'BIST'} |\n"
@@ -261,7 +261,7 @@ class DcfValuationResult:
         proj_str = ", ".join(f"Y{p['yil']}: {_fmt_money(p['fcf'], fin_curr)}" for p in self.projected_fcfs[:5])
 
         return (
-            f"### 💎 İndirgenmiş Nakit Akışı (İNA / DCF) Değerleme Modeli (${self.ticker})\n"
+            f"### İndirgenmiş Nakit Akışı (İNA / DCF) Değerleme Modeli (${self.ticker})\n"
             f"- **Güncel Piyasa Fiyatı:** {self.current_price:.2f} TL | **Değerleme:** `{self.rating}`\n"
             f"- **Baz Serbest Nakit Akımı (FCF):** {self.base_fcf_str} ({fin_curr})\n"
             f"- **AOSM (WACC):** %{self.wacc*100:.1f} | **İlk 5 Yıl Büyüme:** %{self.growth_rate*100:.1f} | **Uç Büyüme:** %{self.terminal_growth*100:.1f}\n\n"
@@ -273,7 +273,7 @@ class DcfValuationResult:
             f"| **(-) Net Borç / Nakit Köprüsü** | {_fmt_money(self.net_debt, fin_curr)} | Borç: {_fmt_money(self.total_debt, fin_curr)} / Nakit: {_fmt_money(self.total_cash, fin_curr)} |\n"
             f"| **Özsermaye Değeri (Equity Value)** | **{_fmt_money(self.equity_value, fin_curr)}** | Hissedarlara Düşen Değer |\n"
             f"| **Hisse Başına Adil Değer** | **{self.fair_value_try:.2f} TL** | Potansiyel: **%{sign}{self.upside_pct:.1f}** |\n\n"
-            f"#### 📊 WACC vs. Uç Büyüme Duyarlılık Tablosu (Hedef Fiyat TL)\n"
+            f"#### WACC vs. Uç Büyüme Duyarlılık Tablosu (Hedef Fiyat TL)\n"
             f"| WACC \\ Uç Büyüme | {w_headers} |\n"
             f"| :---: | {' :---: |' * len(sm.get('terminal_rates', []))}\n"
             f"{sens_md}\n"
@@ -318,16 +318,16 @@ class FinancialHealthResult:
         crit_str = ", ".join(passed_criteria) if passed_criteria else "Kriter saglanamadi"
 
         return (
-            f"### 🛡️ Kurumsal Finansal Saglik & Skor Karti (${self.ticker})\n"
+            f"### Kurumsal Finansal Saglik & Skor Karti (${self.ticker})\n"
             f"| Analitik Metrik | Deger / Seviye | Degerlendirme & Yorum |\n"
             f"| :--- | :--- | :--- |\n"
             f"| **Piotroski F-Score** | **{self.piotroski_score} / 9** | `{self.piotroski_rating}` |\n"
             f"| **Altman Z-Score** | **{self.altman_z_score:.2f}** | `{self.altman_zone}` |\n"
             f"| **DuPont ROE** | **%{self.dupont.get('hesaplanan_roe', 0.0):.1f}** | Marj: %{self.dupont.get('net_kar_marji', 0.0):.1f} × Devir: {self.dupont.get('aktif_devir_hizi', 0.0):.2f}x × Kaldirac: {self.dupont.get('kaldirac_carpani', 0.0):.2f}x |\n\n"
-            f"#### 🔍 Piotroski Kriterleri & Finansal Teshis\n"
+            f"#### Piotroski Kriterleri & Finansal Teshis\n"
             f"- **Saglanan Pozitif Sinyaller ({self.piotroski_score}/9):** {crit_str}\n"
             f"- **Finansal Ozet:** {self.summary}\n\n"
-            f"#### 📊 DuPont 3 Asamali Karlilik Ayristirmasi\n"
+            f"#### DuPont 3 Asamali Karlilik Ayristirmasi\n"
             f"{dupont_str}\n"
         )
 

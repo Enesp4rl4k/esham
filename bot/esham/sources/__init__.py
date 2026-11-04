@@ -36,6 +36,10 @@ class MarketSummary:
     price: str
     change: str
     volume: str = ""
+    open_price: str = ""
+    open_change: str = ""
+    high: str = ""
+    low: str = ""
 
 
 @dataclass

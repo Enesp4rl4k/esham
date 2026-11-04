@@ -13,7 +13,7 @@ import requests
 from ..config import default_headers, get_logger, settings
 from ..formatting import tr_money as _tr_volume
 from ..formatting import tr_number as _tr_number
-from ..http import retry_get
+from ..http import retry_get, retry_post
 from . import MarketSummary
 
 log = get_logger(__name__)
@@ -44,7 +44,7 @@ class TechnicalSnapshot:
     def format_line(self) -> str:
         sign = "+" if self.change_pct >= 0 else ""
         return (
-            f"📊 **Teknik Görünüm (${self.ticker}):** "
+            f"**Teknik Görünüm (${self.ticker}):** "
             f"Fiyat: `{self.last_price:.2f} TL` (%{sign}{self.change_pct:.2f}) | "
             f"14G RSI: `{self.rsi_14:.1f}` ({self.rsi_zone}) | "
             f"20G HO: `{self.sma_20:.2f} TL` | "
@@ -57,7 +57,7 @@ class TechnicalSnapshot:
         dist_str = f"%{self.dist_to_high:+.1f}" if self.year_high > 0 else "—"
         high_low_str = f"Zirve: {self.year_high:.2f} TL / Dip: {self.year_low:.2f} TL" if self.year_high > 0 else "—"
         return (
-            f"### 📊 Kurumsal Teknik İstihbarat (${self.ticker})\n"
+            f"### Kurumsal Teknik İstihbarat (${self.ticker})\n"
             f"| Gösterge | Değer | Sinyal / Yorum |\n"
             f"| :--- | :--- | :--- |\n"
             f"| **Son Fiyat** | **{self.last_price:.2f} TL** | Günlük Değişim: %{sign}{self.change_pct:.2f} |\n"
@@ -70,6 +70,7 @@ class TechnicalSnapshot:
         )
 
 CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
+TV_SCAN_URL = "https://scanner.tradingview.com/turkey/scan"
 
 
 class BistSource:
@@ -77,37 +78,121 @@ class BistSource:
         self.symbol = symbol
         self.headers = default_headers()
 
+    def _tv_ticker(self, symbol: str) -> str:
+        clean = symbol.replace(".IS", "").strip().upper()
+        if not clean.startswith("BIST:"):
+            return f"BIST:{clean}"
+        return clean
+
     def market_summary(self) -> MarketSummary:
+        # 1. Öncelikli Kaynak: TradingView Turkey Scanner (Anlık, gerçek açılış ve doğru günlük değişim)
         try:
-            resp = retry_get(
-                CHART_URL.format(symbol=self.symbol),
+            tv_sym = self._tv_ticker(self.symbol)
+            resp = retry_post(
+                TV_SCAN_URL,
+                json={
+                    "symbols": {"tickers": [tv_sym]},
+                    "columns": ["name", "close", "change", "open", "high", "low", "volume"],
+                },
                 headers=self.headers,
                 timeout=settings.http_timeout,
             )
             resp.raise_for_status()
-            summary = self._parse(resp.json())
+            summary = self._parse_tv(resp.json(), tv_sym)
             if summary:
                 return summary
-            log.warning("BIST verisi ayrıştırılamadı; örnek veri kullanılıyor.")
+            log.warning("TradingView BIST verisi ayrıştırılamadı; Yahoo deneniyor.")
+        except Exception as exc:
+            log.warning("TradingView BIST verisi alınamadı (%s); Yahoo deneniyor.", exc)
+
+        # 2. İkincil Kaynak: Yahoo Finance chart API (5 günlük mum serisiyle güvenli prevClose hesabı)
+        try:
+            resp = retry_get(
+                f"{CHART_URL.format(symbol=self.symbol)}?range=5d&interval=1d",
+                headers=self.headers,
+                timeout=settings.http_timeout,
+            )
+            resp.raise_for_status()
+            summary = self._parse_yahoo(resp.json())
+            if summary:
+                return summary
+            log.warning("BIST Yahoo verisi ayrıştırılamadı; örnek veri kullanılıyor.")
         except (requests.RequestException, ValueError) as exc:
             log.warning("BIST verisi alınamadı (%s); örnek veri kullanılıyor.", exc)
         return self._sample()
 
-    def _parse(self, payload: dict) -> MarketSummary | None:
+    def _parse_tv(self, payload: dict, tv_sym: str) -> MarketSummary | None:
+        rows = {r["s"]: r["d"] for r in payload.get("data", []) if "s" in r and "d" in r}
+        row = rows.get(tv_sym)
+        if not row or len(row) < 3:
+            return None
+        name, close, change_pct = row[0], row[1], row[2]
+        open_val = row[3] if len(row) > 3 else None
+        high_val = row[4] if len(row) > 4 else None
+        low_val = row[5] if len(row) > 5 else None
+        volume = row[6] if len(row) > 6 else None
+
+        if close is None:
+            return None
+
+        change_str = f"{'+' if float(change_pct) >= 0 else ''}{_tr_number(float(change_pct), 2)}%" if change_pct is not None else ""
+
+        open_price_str = _tr_number(float(open_val)) if open_val is not None else ""
+        open_change_str = ""
+        if open_val is not None and change_pct is not None:
+            try:
+                prev_close = float(close) / (1.0 + (float(change_pct) / 100.0))
+                if prev_close > 0:
+                    open_pct = (float(open_val) - prev_close) / prev_close * 100.0
+                    open_change_str = f"{'+' if open_pct >= 0 else ''}{_tr_number(open_pct, 2)}%"
+            except ZeroDivisionError:
+                pass
+
+        return MarketSummary(
+            index=name or self.symbol.replace(".IS", ""),
+            price=_tr_number(float(close)),
+            change=change_str,
+            volume=_tr_volume(float(volume)) if volume else "—",
+            open_price=open_price_str,
+            open_change=open_change_str,
+            high=_tr_number(float(high_val)) if high_val is not None else "",
+            low=_tr_number(float(low_val)) if low_val is not None else "",
+        )
+
+    def _parse_yahoo(self, payload: dict) -> MarketSummary | None:
         try:
-            meta = payload["chart"]["result"][0]["meta"]
+            res = payload["chart"]["result"][0]
+            meta = res["meta"]
+            quotes = res.get("indicators", {}).get("quote", [{}])[0]
         except (KeyError, IndexError, TypeError):
             return None
 
         price = meta.get("regularMarketPrice")
-        prev = meta.get("chartPreviousClose") or meta.get("previousClose")
         if price is None:
             return None
 
+        # Yahoo'nun bayat 'previousClose' meta alanı yerine 5 günlük mumların sondan bir öncekini (closes[-2]) kullan
+        raw_closes = quotes.get("close", [])
+        valid_closes = [float(c) for c in raw_closes if c is not None]
+        prev = None
+        if len(valid_closes) >= 2:
+            prev = valid_closes[-2]
+        if prev is None or prev <= 0:
+            prev = meta.get("chartPreviousClose") or meta.get("previousClose")
+
         change = ""
-        if prev:
-            pct = (price - prev) / prev * 100
+        if prev and prev > 0:
+            pct = (float(price) - float(prev)) / float(prev) * 100
             change = f"{'+' if pct >= 0 else ''}{_tr_number(pct, 2)}%"
+
+        raw_opens = quotes.get("open", [])
+        valid_opens = [float(o) for o in raw_opens if o is not None]
+        open_val = valid_opens[-1] if valid_opens else meta.get("regularMarketOpen")
+        open_price_str = _tr_number(float(open_val)) if open_val is not None else ""
+        open_change_str = ""
+        if open_val is not None and prev and prev > 0:
+            open_pct = (float(open_val) - float(prev)) / float(prev) * 100
+            open_change_str = f"{'+' if open_pct >= 0 else ''}{_tr_number(open_pct, 2)}%"
 
         volume = (
             meta.get("regularMarketVolume")
@@ -120,6 +205,8 @@ class BistSource:
             price=_tr_number(float(price)),
             change=change,
             volume=_tr_volume(float(volume)) if volume else "—",
+            open_price=open_price_str,
+            open_change=open_change_str,
         )
 
     def _sample(self) -> MarketSummary:

@@ -24,3 +24,8 @@ node_modules/
 # Sistem
 .DS_Store
 Thumbs.db
+
+# Graphify Çıktıları
+graphify-out/
+**/graphify-out/
+graph.html
