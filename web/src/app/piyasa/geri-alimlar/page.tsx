@@ -16,9 +16,20 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "BIST Aktif Pay Geri Alım (Share Buyback) Programları | Esham",
+  title: "BIST Aktif Pay Geri Alım (Buyback) Programları & Maliyetler | Esham",
   description:
     "Borsa İstanbul şirketlerinin KAP'a bildirdikleri aktif hisse geri alım fonları, gerçekleşen pay alımları ve ortalama maliyet tablosu.",
+  alternates: {
+    canonical: "https://esham.pages.dev/piyasa/geri-alimlar",
+  },
+  keywords: [
+    "Pay Geri Alım",
+    "Hisse Geri Alımı",
+    "BIST Buyback",
+    "Geri Alım Fonu",
+    "KAP Geri Alım Bildirimleri",
+    "Şirket Hisse Alımları",
+  ],
 };
 
 async function loadBuybacksData() {

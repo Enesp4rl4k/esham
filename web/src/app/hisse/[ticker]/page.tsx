@@ -45,14 +45,39 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { ticker } = await params;
   const clean = ticker.toUpperCase();
+  const companyName = COMPANY_NAMES[clean] || `${clean} Pay Piyasası`;
 
   return {
-    title: `$${clean} Hisse Analizi & KAP Bildirimleri | Esham Terminal`,
-    description: `Borsa İstanbul $${clean} hissesine ait en son KAP bildirimleri, teknik görünüm, sözleşmeler ve şirket haberleri arşivi.`,
+    title: `$${clean} Hisse Analizi, Hedef Fiyat & KAP Bildirimleri | Esham`,
+    description: `Borsa İstanbul $${clean} (${companyName}) hissesine ait canlı teknik pivot seviyeleri, İNA (DCF) hedef fiyatı, KAP sözleşmeleri, temettü verimi ve bilanço çarpanları.`,
+    keywords: [
+      `$${clean}`,
+      `${clean} hisse`,
+      `${clean} hedef fiyat`,
+      `${clean} analiz`,
+      `${clean} kap`,
+      `${clean} bilanço`,
+      `${clean} temettü`,
+      companyName,
+      "BIST 100",
+      "Borsa İstanbul",
+    ],
+    alternates: {
+      canonical: `https://esham.pages.dev/hisse/${clean}`,
+    },
     openGraph: {
-      title: `$${clean} Hisse Analizi | Esham Piyasa İstihbaratı`,
-      description: `$${clean} hisse analizi, teknik seviyeler ve KAP bildirim geçmişi.`,
+      title: `$${clean} Hisse Analizi & Hedef Değerleme | Esham`,
+      description: `$${clean} (${companyName}) teknik seviyeler, DCF değerlemesi, KAP geçmişi ve temettü takvimi.`,
       url: `https://esham.pages.dev/hisse/${clean}`,
+      siteName: "Esham",
+      locale: "tr_TR",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `$${clean} Hisse Analizi & Hedef Fiyat | Esham`,
+      description: `${companyName} hissesi için teknik pivotlar, DCF adil değer ve güncel KAP haberleri.`,
+      creator: "@eshamcomtr",
     },
   };
 }
@@ -162,8 +187,52 @@ export default async function TickerPage({
 
   const companyName = COMPANY_NAMES[cleanTicker] || `${cleanTicker} Pay Piyasası`;
 
+  const financialProductJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FinancialProduct",
+    name: `${cleanTicker} - ${companyName}`,
+    tickerSymbol: cleanTicker,
+    exchange: "BIST",
+    currency: "TRY",
+    description: `Borsa İstanbul $${cleanTicker} (${companyName}) hisse senedi teknik analizi, KAP bildirimleri, DCF hedef fiyatı ve finansal çarpanları.`,
+    url: `https://esham.pages.dev/hisse/${cleanTicker}`,
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Ana Sayfa",
+        item: "https://esham.pages.dev",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "BIST Piyasaları",
+        item: "https://esham.pages.dev/kategori/bist",
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: `$${cleanTicker} Analizi`,
+        item: `https://esham.pages.dev/hisse/${cleanTicker}`,
+      },
+    ],
+  };
+
   return (
     <div className="container mx-auto px-6 py-12 max-w-6xl">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(financialProductJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       {/* Breadcrumb Navigation */}
       <div className="flex items-center gap-3 mb-8 text-xs text-zinc-500">
         <Link

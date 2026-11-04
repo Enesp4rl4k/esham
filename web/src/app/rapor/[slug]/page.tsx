@@ -64,12 +64,17 @@ export async function generateMetadata({
   return {
     title: report.title,
     description: report.summary,
+    alternates: {
+      canonical: `${SITE_BASE}/rapor/${report.slug}`,
+    },
     openGraph: {
       title: report.title,
       description: report.summary,
       type: "article",
       publishedTime: report.publishedAt,
       url: `${SITE_BASE}/rapor/${report.slug}`,
+      siteName: "Esham",
+      locale: "tr_TR",
       images: [ogImage],
     },
     twitter: {
@@ -77,6 +82,7 @@ export async function generateMetadata({
       title: report.title,
       description: report.summary,
       images: [absoluteImage],
+      creator: "@eshamcomtr",
     },
   };
 }
@@ -103,8 +109,68 @@ export default async function ReportPage({
   const accent = accentClasses(CATEGORIES[report.category].accent);
   const imageUrl = getReportImageUrl(report);
 
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline: report.title,
+    description: report.summary,
+    image: [imageUrl.startsWith("http") ? imageUrl : `${SITE_URL}${imageUrl}`],
+    datePublished: report.publishedAt,
+    dateModified: report.publishedAt,
+    author: {
+      "@type": "Organization",
+      name: "Esham Finansal İstihbarat",
+      url: SITE_URL,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Esham",
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/cards/default-bist.png`,
+      },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${SITE_URL}/rapor/${report.slug}`,
+    },
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Ana Sayfa",
+        item: SITE_URL,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: categoryLabel(report.category),
+        item: `${SITE_URL}/kategori/${report.category}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: report.title,
+        item: `${SITE_URL}/rapor/${report.slug}`,
+      },
+    ],
+  };
+
   return (
     <>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+    />
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+    />
     <ReadingProgress />
     <article className="container mx-auto px-6 py-16 max-w-3xl">
       <Link

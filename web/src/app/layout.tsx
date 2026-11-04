@@ -23,21 +23,78 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   metadataBase: new URL("https://esham.pages.dev"),
   title: {
-    default: "Esham — Yapay Zeka Destekli Piyasa Analizi",
-    template: "%s — Esham",
+    default: "Esham — BIST & Piyasa İstihbarat Platformu",
+    template: "%s | Esham",
   },
   description:
-    "BIST, küresel makro veriler, TÜRİB tarımsal emtia endeksleri ve KAP halka arz raporları her gün yapay zeka tarafından analiz edilir.",
+    "Borsa İstanbul (BIST), VİOP, KAP bildirimleri, TÜRİB tarımsal emtia, temettü takvimi ve kur şoku radarı yapay zeka destekli kantitatif modellerle analiz edilir.",
+  keywords: [
+    "BIST 100",
+    "Borsa İstanbul",
+    "Hisse Analizi",
+    "KAP Bildirimleri",
+    "VİOP",
+    "TÜRİB Tarımsal Emtia",
+    "Et-Yem Paritesi",
+    "Halka Arz Takvimi",
+    "Temettü Takvimi",
+    "Pay Geri Alımları",
+    "Devalüasyon Radarı",
+    "DCF Değerleme",
+    "Finansal İstihbarat",
+    "BIST 30",
+    "Takasbank Teminat",
+    "Ham Petrol ve Tanker Navlun"
+  ],
+  authors: [{ name: "Esham Finansal İstihbarat", url: "https://esham.pages.dev" }],
+  creator: "Esham",
+  publisher: "Esham",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   alternates: {
+    canonical: "/",
     types: { "application/rss+xml": "/feed.xml" },
   },
   openGraph: {
-    title: "Esham — Yapay Zeka Destekli Piyasa Analizi",
+    title: "Esham — BIST & Piyasa İstihbarat Platformu",
     description:
-      "BIST, küresel makro, TÜRİB emtia ve halka arz raporları her gün yapay zeka ile analiz edilir.",
-    type: "website",
+      "Borsa İstanbul, VİOP, KAP bildirimleri, TÜRİB emtia ve makro piyasa analizleri.",
+    url: "https://esham.pages.dev",
+    siteName: "Esham",
     locale: "tr_TR",
+    type: "website",
+    images: [
+      {
+        url: "/cards/default-bist.png",
+        width: 1200,
+        height: 630,
+        alt: "Esham Piyasa İstihbaratı",
+      },
+    ],
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Esham — BIST & Piyasa İstihbarat Platformu",
+    description:
+      "Borsa İstanbul, VİOP, KAP ve TÜRİB piyasalarında yapay zeka destekli finansal istihbarat.",
+    images: ["/cards/default-bist.png"],
+    creator: "@eshamcomtr",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  category: "finance",
 };
 
 const navItems: { href: string; label: string }[] = [
@@ -64,6 +121,43 @@ export default function RootLayout({
       lang="tr"
       className={`${inter.variable} ${outfit.variable} antialiased`}
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  "@id": "https://esham.pages.dev/#organization",
+                  "name": "Esham",
+                  "url": "https://esham.pages.dev",
+                  "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://esham.pages.dev/cards/default-bist.png",
+                    "width": 1200,
+                    "height": 630
+                  },
+                  "description": "Borsa İstanbul, VİOP, KAP bildirimleri, TÜRİB tarımsal emtia ve makroekonomik veriler için yapay zeka destekli finansal istihbarat platformu."
+                },
+                {
+                  "@type": "WebSite",
+                  "@id": "https://esham.pages.dev/#website",
+                  "url": "https://esham.pages.dev",
+                  "name": "Esham",
+                  "publisher": { "@id": "https://esham.pages.dev/#organization" },
+                  "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": "https://esham.pages.dev/arama?q={search_term_string}",
+                    "query-input": "required name=search_term_string"
+                  }
+                }
+              ]
+            }),
+          }}
+        />
+      </head>
       <body
         className="min-h-screen flex flex-col font-sans"
         style={{ background: "var(--background)", color: "var(--text-primary)" }}

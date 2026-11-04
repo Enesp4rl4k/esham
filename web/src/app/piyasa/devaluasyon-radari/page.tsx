@@ -18,9 +18,21 @@ import {
 import { DevaluationRadarCard, DevaluationRadarData } from "@/components/DevaluationRadarCard";
 
 export const metadata = {
-  title: "TRY Kur Şoku & Devalüasyon Basınç Radarı | Esham Finansal İstihbarat",
+  title: "TRY Kur Şoku & Devalüasyon Basınç Radarı | Esham",
   description:
     "TCMB swap hariç net rezerv yanma hızı, Kapalıçarşı ikili kur makası, VİOP ima edilen faiz oranı ve 5Y CDS ile Türkiye kur riski erken uyarı sistemi.",
+  alternates: {
+    canonical: "https://esham.pages.dev/piyasa/devaluasyon-radari",
+  },
+  keywords: [
+    "Devalüasyon Radarı",
+    "Kur Şoku",
+    "TCMB Net Rezerv",
+    "Kapalıçarşı Dolar Makası",
+    "VİOP İma Edilen Faiz",
+    "Türkiye 5Y CDS",
+    "Dolar Kuru Beklentisi",
+  ],
 };
 
 async function loadDevaluationRadarData(): Promise<DevaluationRadarData | null> {

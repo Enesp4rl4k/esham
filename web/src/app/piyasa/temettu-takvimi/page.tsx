@@ -15,9 +15,20 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "BIST Temettü Takvimi & Verim Sıralaması (2026) | Esham",
+  title: "BIST Temettü Takvimi & Temettü Verimi Sıralaması | Esham",
   description:
-    "Borsa İstanbul şirketlerinin 2026 yılı temettü dağıtım takvimi, hak kullanım tarihleri, hisse başına net nakit temettü ve temettü verimi sıralaması.",
+    "Borsa İstanbul şirketlerinin güncel temettü dağıtım takvimi, hak kullanım tarihleri, hisse başına net nakit kâr payı ve temettü verimi sıralaması.",
+  alternates: {
+    canonical: "https://esham.pages.dev/piyasa/temettu-takvimi",
+  },
+  keywords: [
+    "Temettü Takvimi",
+    "Temettü Verimi",
+    "BIST Temettü",
+    "Kâr Payı Dağıtımı",
+    "Temettü Tarihleri",
+    "Temettü Hisseleri",
+  ],
 };
 
 async function loadDividendsData() {
