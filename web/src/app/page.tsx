@@ -20,7 +20,6 @@ import {
 import { ReportCard } from "@/components/ReportCard";
 import { Newsletter } from "@/components/Newsletter";
 import { TickerBand } from "@/components/TickerBand";
-import { MarketMatrix } from "@/components/MarketMatrix";
 import { MacroBarometerCard } from "@/components/MacroBarometerCard";
 import { ViopBasisCard } from "@/components/ViopBasisCard";
 import { DevaluationRadarCard } from "@/components/DevaluationRadarCard";
@@ -112,19 +111,13 @@ export default async function Home() {
       {/* ── Ticker Bant — canlı fiyat (bot tarafından güncellenen JSON) ── */}
       <TickerBand />
 
-      {/* ── Canlı Piyasa Matrisi & Terminal Widget ── */}
-      <section className="border-b bg-zinc-950/40 py-4" style={{ borderColor: "var(--border)" }}>
-        <div className="container mx-auto px-6 space-y-4">
-          <MarketMatrix tickerData={tickerData} turibData={turibData} />
-        </div>
-      </section>
 
       {/* ── Hero — Editorial ────────────────────────────────────── */}
-      <section className="py-16 md:py-24 border-b" style={{ borderColor: "var(--border)" }}>
+      <section className="py-10 md:py-14 border-b" style={{ borderColor: "var(--border)" }}>
         <div className="container mx-auto px-6">
 
           {/* Üst satır — tarih + etiket */}
-          <div className="flex items-center justify-between mb-10">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <span
                 className="text-[10px] font-bold tracking-[0.15em] uppercase px-2.5 py-1 rounded border"
