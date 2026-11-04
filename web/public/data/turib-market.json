@@ -1,107 +1,25 @@
 {
-  "updatedAt": "2026-11-03T23:58:19+03:00",
-  "date": "2026-11-03",
-  "indices": [
-    {
-      "code": "TRBHUB",
-      "name": "TÜRİB Hububat Endeksi",
-      "value": 7937.16,
-      "valueStr": "7.937,16",
-      "change": 26.99,
-      "changePct": 0.34,
-      "changeStr": "+0,34%",
-      "high": 7958.93,
-      "low": 7926.02,
-      "volumeTon": 372754891.88,
-      "volumeStr": "372.754.891,9 Ton"
-    },
-    {
-      "code": "TRBBGD",
-      "name": "TÜRİB Buğday Endeksi",
-      "value": 8231.69,
-      "valueStr": "8.231,69",
-      "change": 32.93,
-      "changePct": 0.4,
-      "changeStr": "+0,40%",
-      "high": 8251.1,
-      "low": 8218.58,
-      "volumeTon": 316430639.75,
-      "volumeStr": "316.430.639,8 Ton"
-    },
-    {
-      "code": "TRBMSR",
-      "name": "TÜRİB Mısır Endeksi",
-      "value": 8268.79,
-      "valueStr": "8.268,79",
-      "change": 90.96,
-      "changePct": 1.1,
-      "changeStr": "+1,10%",
-      "high": 8268.79,
-      "low": 8234.79,
-      "volumeTon": 53357407.13,
-      "volumeStr": "53.357.407,1 Ton"
-    },
-    {
-      "code": "TRBARP",
-      "name": "TÜRİB Arpa Endeksi",
-      "value": 7829.27,
-      "valueStr": "7.829,27",
-      "change": -258.37,
-      "changePct": -3.3,
-      "changeStr": "-3,30%",
-      "high": 7838.16,
-      "low": 7566.33,
-      "volumeTon": 2966845.0,
-      "volumeStr": "2.966.845,0 Ton"
-    }
-  ],
-  "spotCommodities": [
-    {
-      "name": "BUĞDAY EKMEKLİK",
-      "code": "BUĞDAY EKMEKLİK",
-      "avgPrice": 18.18,
-      "avgPriceStr": "18,18 ₺/kg",
-      "minPrice": 13.6,
-      "maxPrice": 18.5,
-      "changePct": -0.03,
-      "changeStr": "-0,03%",
-      "volumeTon": 223407.9,
-      "volumeStr": "223.407,9 Ton",
-      "volumeTl": 4062493512.4,
-      "volumeTlStr": "4.062.493.512 ₺"
-    },
-    {
-      "name": "BUĞDAY MAKARNALIK",
-      "code": "BUĞDAY MAKARNALIK",
-      "avgPrice": 18.49,
-      "avgPriceStr": "18,49 ₺/kg",
-      "minPrice": 14.8,
-      "maxPrice": 18.5,
-      "changePct": 0.06,
-      "changeStr": "+0,06%",
-      "volumeTon": 93022.8,
-      "volumeStr": "93.022,8 Ton",
-      "volumeTl": 1719637401.37,
-      "volumeTlStr": "1.719.637.401 ₺"
-    }
-  ],
+  "updatedAt": "2026-11-04T16:12:56+03:00",
+  "date": "2026-11-04",
+  "indices": [],
+  "spotCommodities": [],
   "bulletinSummary": {
-    "totalVolumeTon": 316430.6398,
-    "totalVolumeTonStr": "316.430,6 Ton",
-    "totalValueTl": 5782130913.77,
-    "totalValueTlStr": "5.782.130.914 ₺",
-    "hububatIndex": 7937.16,
-    "summaryText": "TÜRİB Hububat Endeksi (TRBHUB): 7.937,16 (+0,34%)\nBUĞDAY EKMEKLİK: 18,18 TL/kg (-0,03%) | BUĞDAY MAKARNALIK: 18,49 TL/kg (+0,06%)\nİşlem Hacmi: 316.430,6 Ton (5,8 Milyar TL)"
+    "totalVolumeTon": 0.0,
+    "totalVolumeTonStr": "0,0 Ton",
+    "totalValueTl": 0,
+    "totalValueTlStr": "0 ₺",
+    "hububatIndex": null,
+    "summaryText": ""
   },
   "meatFeed": {
-    "cpiDate": "2026-11-03",
+    "cpiDate": "2026-11-04",
     "meatCpi": 1540.0,
     "headlineCpi": 1210.0,
     "meatCpiAnnualPct": 30.51,
     "headlineCpiAnnualPct": 31.52,
     "meatInflationSpread": -1.01,
     "macroCommentary": "Yıllık Et TÜFE Enflasyonu %30.5 seviyesinde gerçekleşerek, manşet TÜFE'nin (%31.5) -1.0 puan altında seyretti. TÜRİB yem hammaddeleri (Arpa: 11.50 TL, Mısır: 12.00 TL) ile Dana Karkas/Yem paritesi (28.2), önümüzdeki çeyrek et enflasyonu için belirleyici öncü sinyal olmaya devam ediyor.",
-    "bistSectorImpact": "BIST Et & Gıda Hisseleri: BANVT 110,00 (+1,29%) tavuk/yem paritesinden doğrudan etkilenirken; PETUN 8,82 (+0,80%) karkas et ve un maliyet artışını şarküteri ürünlerine fiyatlama gücüyle dengeliyor. BIMAS, MGROS ve SOKM gibi perakendecilerde Et TÜFE artışı sepet büyüklüğünü artırırken brüt kâr marjını hassas tutuyor.",
+    "bistSectorImpact": "BIST Et & Gıda Hisseleri: BANVT 114,00 (+3,64%) tavuk/yem paritesinden doğrudan etkilenirken; PETUN 9,36 (+6,12%) karkas et ve un maliyet artışını şarküteri ürünlerine fiyatlama gücüyle dengeliyor. BIMAS, MGROS ve SOKM gibi perakendecilerde Et TÜFE artışı sepet büyüklüğünü artırırken brüt kâr marjını hassas tutuyor.",
     "parities": [
       {
         "title": "Dana Besi Karkas",
@@ -143,36 +61,6 @@
   },
   "tmoComparison": [
     {
-      "commodity": "BUĞDAY EKMEKLİK",
-      "tmoProductName": "Ekmeklik Buğday (2. Grup)",
-      "year": 2026,
-      "tmoPurchasePrice": 13.5,
-      "farmerPremium": 1.75,
-      "totalFarmerIncome": 15.25,
-      "tmoSalesPrice": 16.0,
-      "turibFreePrice": 18.18,
-      "spreadTl": 4.68,
-      "spreadPct": 34.67,
-      "totalSpreadPct": 19.21,
-      "status": "TMO_USTUNDE_PRIMLI",
-      "commentary": "Serbest piyasa fiyatı (18.18 TL/kg), TMO alım tabanının (13.50 TL/kg) %34.7 üzerinde primli seyrediyor. Özel sektör talebi canlı, üretici ürününü TMO yerine ELÜS borsasında satmayı tercih ediyor."
-    },
-    {
-      "commodity": "BUĞDAY MAKARNALIK",
-      "tmoProductName": "Makarnalık Buğday (2. Grup)",
-      "year": 2026,
-      "tmoPurchasePrice": 14.5,
-      "farmerPremium": 1.75,
-      "totalFarmerIncome": 16.25,
-      "tmoSalesPrice": 17.2,
-      "turibFreePrice": 18.49,
-      "spreadTl": 3.99,
-      "spreadPct": 27.52,
-      "totalSpreadPct": 13.78,
-      "status": "TMO_USTUNDE_PRIMLI",
-      "commentary": "Serbest piyasa fiyatı (18.49 TL/kg), TMO alım tabanının (14.50 TL/kg) %27.5 üzerinde primli seyrediyor. Özel sektör talebi canlı, üretici ürününü TMO yerine ELÜS borsasında satmayı tercih ediyor."
-    },
-    {
       "commodity": "MISIR",
       "tmoProductName": "Mısır",
       "year": 2026,
@@ -205,122 +93,46 @@
   ],
   "storageBacktest": {},
   "regionalArbitrage": {
-    "date": "2026-11-03",
-    "totalScannedTrades": 78,
-    "evaluation": "TÜRİB bülteninde EDİRNE ile MARDİN lisanslı depoları arasında 4.90 TL/kg brüt fiyat farkı tespit edildi. Tahmini 0.50 TL nakliye düşüldükten sonra net %32.4 (4.40 TL/kg) arbitraj marjı bulunmaktadır.",
-    "opportunities": [
-      {
-        "commodity": "BUĞDAY",
-        "cheapCity": "EDİRNE",
-        "cheapLidas": "CEMİL DEMİR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 13.6,
-        "expensiveCity": "MARDİN",
-        "expensiveLidas": "ENS LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "expensivePrice": 18.5,
-        "grossSpread": 4.9,
-        "freightCost": 0.5,
-        "netArbitrage": 4.4,
-        "netArbitragePct": 32.35,
-        "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "EDİRNE (CEMİL DEMİR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 13.60 TL'ye alınıp, MARDİN (ENS LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 4.40 TL/kg kâr kalır."
-      },
-      {
-        "commodity": "BUĞDAY",
-        "cheapCity": "EDİRNE",
-        "cheapLidas": "CEMİL DEMİR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 13.6,
-        "expensiveCity": "KAHRAMANMARAŞ",
-        "expensiveLidas": "KAYNAR AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "expensivePrice": 18.5,
-        "grossSpread": 4.9,
-        "freightCost": 0.5,
-        "netArbitrage": 4.4,
-        "netArbitragePct": 32.35,
-        "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "EDİRNE (CEMİL DEMİR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 13.60 TL'ye alınıp, KAHRAMANMARAŞ (KAYNAR AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 4.40 TL/kg kâr kalır."
-      },
-      {
-        "commodity": "BUĞDAY",
-        "cheapCity": "EDİRNE",
-        "cheapLidas": "CEMİL DEMİR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 13.6,
-        "expensiveCity": "ÇORUM",
-        "expensiveLidas": "ULİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ VE TİCARET A.Ş.",
-        "expensivePrice": 18.5,
-        "grossSpread": 4.9,
-        "freightCost": 0.5,
-        "netArbitrage": 4.4,
-        "netArbitragePct": 32.35,
-        "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "EDİRNE (CEMİL DEMİR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 13.60 TL'ye alınıp, ÇORUM (ULİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ VE TİCARET A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 4.40 TL/kg kâr kalır."
-      },
-      {
-        "commodity": "BUĞDAY",
-        "cheapCity": "KAYSERİ",
-        "cheapLidas": "KUŞAT TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 14.8,
-        "expensiveCity": "MARDİN",
-        "expensiveLidas": "ENS LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "expensivePrice": 18.5,
-        "grossSpread": 3.7,
-        "freightCost": 0.5,
-        "netArbitrage": 3.2,
-        "netArbitragePct": 21.62,
-        "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "KAYSERİ (KUŞAT TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.80 TL'ye alınıp, MARDİN (ENS LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.20 TL/kg kâr kalır."
-      },
-      {
-        "commodity": "BUĞDAY",
-        "cheapCity": "KAYSERİ",
-        "cheapLidas": "KUŞAT TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 14.8,
-        "expensiveCity": "KAHRAMANMARAŞ",
-        "expensiveLidas": "KAYNAR AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "expensivePrice": 18.5,
-        "grossSpread": 3.7,
-        "freightCost": 0.5,
-        "netArbitrage": 3.2,
-        "netArbitragePct": 21.62,
-        "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "KAYSERİ (KUŞAT TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.80 TL'ye alınıp, KAHRAMANMARAŞ (KAYNAR AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.20 TL/kg kâr kalır."
-      }
-    ]
+    "date": "2026-11-04",
+    "totalScannedTrades": 0,
+    "evaluation": "Taranan 0 farklı lisanslı depoda fiyatlar bölgesel lojistik dengede seyretmektedir; nakliye maliyetini aşan belirgin bir net arbitraj boşluğu bulunmamaktadır.",
+    "opportunities": []
   },
   "agriBist": {
-    "date": "2026-11-03",
-    "xgidaPrice": "10.920,23",
-    "xgidaChange": "+0,35%",
-    "turibHububatIndex": "7.937,16",
-    "turibHububatChange": "+0,34%",
-    "macroTakeaway": "BIST Gıda Endeksi (XGIDA) +0,35% hareket ederken, TÜRİB Hububat Endeksi +0,34% seviyesinde. Tarımsal emtia fiyatlarındaki yön, BIST gıda şirketlerinin 1-2 çeyrek sonraki FAVÖK marjlarına doğrudan yansıyacaktır.",
+    "date": "2026-11-04",
+    "xgidaPrice": "11.078,48",
+    "xgidaChange": "+1,45%",
+    "turibHububatIndex": "—",
+    "turibHububatChange": "—",
+    "macroTakeaway": "BIST Gıda Endeksi (XGIDA) +1,45% hareket ederken, TÜRİB Hububat Endeksi — seviyesinde. Tarımsal emtia fiyatlarındaki yön, BIST gıda şirketlerinin 1-2 çeyrek sonraki FAVÖK marjlarına doğrudan yansıyacaktır.",
     "companies": [
       {
         "ticker": "ULUUN",
         "companyName": "Ulusoy Un Sanayi",
-        "stockPrice": "5,99",
-        "stockChange": "+1,87%",
+        "stockPrice": "6,24",
+        "stockChange": "+4,17%",
         "commodity": "BUĞDAY EKMEKLİK",
-        "commodityPrice": 18.18,
-        "commodityChange": -0.03,
+        "commodityPrice": 0.0,
+        "commodityChange": 0.0,
         "marginPressure": "Nötr",
-        "commentary": "TÜRİB BUĞDAY EKMEKLİK fiyatı yatay (18.18 TL/kg). Operasyonel marjlar olağan seyrinde."
+        "commentary": "TÜRİB BUĞDAY EKMEKLİK fiyatı yatay (0.0 TL/kg). Operasyonel marjlar olağan seyrinde."
       },
       {
         "ticker": "PETUN",
         "companyName": "Pınar Et ve Un",
-        "stockPrice": "8,82",
-        "stockChange": "+0,80%",
+        "stockPrice": "9,36",
+        "stockChange": "+6,12%",
         "commodity": "BUĞDAY EKMEKLİK",
-        "commodityPrice": 18.18,
-        "commodityChange": -0.03,
+        "commodityPrice": 0.0,
+        "commodityChange": 0.0,
         "marginPressure": "Nötr",
-        "commentary": "TÜRİB BUĞDAY EKMEKLİK fiyatı yatay (18.18 TL/kg). Operasyonel marjlar olağan seyrinde."
+        "commentary": "TÜRİB BUĞDAY EKMEKLİK fiyatı yatay (0.0 TL/kg). Operasyonel marjlar olağan seyrinde."
       },
       {
         "ticker": "BANVT",
         "companyName": "Banvit",
-        "stockPrice": "110,00",
-        "stockChange": "+1,29%",
+        "stockPrice": "114,00",
+        "stockChange": "+3,64%",
         "commodity": "MISIR",
         "commodityPrice": 0.0,
         "commodityChange": 0.0,
@@ -330,53 +142,26 @@
       {
         "ticker": "TATGD",
         "companyName": "Tat Gıda",
-        "stockPrice": "14,74",
-        "stockChange": "+0,27%",
+        "stockPrice": "15,05",
+        "stockChange": "+2,10%",
         "commodity": "BUĞDAY MAKARNALIK",
-        "commodityPrice": 18.49,
-        "commodityChange": 0.06,
+        "commodityPrice": 0.0,
+        "commodityChange": 0.0,
         "marginPressure": "Nötr",
-        "commentary": "TÜRİB BUĞDAY MAKARNALIK fiyatı yatay (18.49 TL/kg). Operasyonel marjlar olağan seyrinde."
+        "commentary": "TÜRİB BUĞDAY MAKARNALIK fiyatı yatay (0.0 TL/kg). Operasyonel marjlar olağan seyrinde."
       },
       {
         "ticker": "TUKAS",
         "companyName": "Tukaş Gıda",
-        "stockPrice": "1,69",
-        "stockChange": "+1,20%",
+        "stockPrice": "1,79",
+        "stockChange": "+5,92%",
         "commodity": "BUĞDAY EKMEKLİK",
-        "commodityPrice": 18.18,
-        "commodityChange": -0.03,
+        "commodityPrice": 0.0,
+        "commodityChange": 0.0,
         "marginPressure": "Nötr",
-        "commentary": "TÜRİB BUĞDAY EKMEKLİK fiyatı yatay (18.18 TL/kg). Operasyonel marjlar olağan seyrinde."
+        "commentary": "TÜRİB BUĞDAY EKMEKLİK fiyatı yatay (0.0 TL/kg). Operasyonel marjlar olağan seyrinde."
       }
     ]
   },
-  "realReturns": [
-    {
-      "commodityGroup": "BUĞDAY EKMEKLİK",
-      "startDate": "2019-07-26",
-      "endDate": "2026-11-03",
-      "tradingDays": 1803,
-      "startPriceTl": 1.26,
-      "endPriceTl": 18.18,
-      "nominalReturnPct": 1337.49,
-      "usdReturnPct": 101.26,
-      "eurReturnPct": 106.53,
-      "realInflationReturnPct": 8.9,
-      "commentary": "'BUĞDAY EKMEKLİK' 2019-07-26 - 2026-11-03 döneminde nominal TL bazında %1337.5 yükselirken, birikimli TÜFE enflasyonunu aşarak reel alım gücünü %8.9 artırdı. Dolar bazlı getiri %101.3 olarak gerçekleşti; emtia enflasyona karşı koruma sağladı."
-    },
-    {
-      "commodityGroup": "BUĞDAY MAKARNALIK",
-      "startDate": "2019-07-29",
-      "endDate": "2026-11-03",
-      "tradingDays": 1637,
-      "startPriceTl": 1.51,
-      "endPriceTl": 18.49,
-      "nominalReturnPct": 1120.86,
-      "usdReturnPct": 70.87,
-      "eurReturnPct": 75.35,
-      "realInflationReturnPct": -7.51,
-      "commentary": "'BUĞDAY MAKARNALIK' 2019-07-29 - 2026-11-03 döneminde nominal TL bazında %1120.9 prim yapmasına rağmen, TÜFE enflasyonunun gerisinde kalarak reel olarak %7.5 satın alma gücü erimesi yaşadı. Dolar bazlı getiri %70.9 seviyesinde kaldı."
-    }
-  ]
+  "realReturns": []
 }
