@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-05T19:28:52+03:00",
+  "updatedAt": "2026-11-05T23:46:48+03:00",
   "date": "2026-11-05",
   "indices": [
     {
@@ -517,84 +517,84 @@
     ]
   },
   "regionalArbitrage": {
-    "date": "2026-11-05",
-    "totalScannedTrades": 38,
-    "evaluation": "TÜRİB bülteninde YOZGAT ile MARDİN lisanslı depoları arasında 3.75 TL/kg brüt fiyat farkı tespit edildi. Tahmini 0.50 TL nakliye düşüldükten sonra net %22.0 (3.25 TL/kg) arbitraj marjı bulunmaktadır.",
+    "date": "2026-11-02",
+    "totalScannedTrades": 76,
+    "evaluation": "TÜRİB bülteninde KIRŞEHİR ile ŞANLIURFA lisanslı depoları arasında 6.10 TL/kg brüt fiyat farkı tespit edildi. Tahmini 0.50 TL nakliye düşüldükten sonra net %45.2 (5.60 TL/kg) arbitraj marjı bulunmaktadır.",
     "opportunities": [
       {
         "commodity": "BUĞDAY",
-        "cheapCity": "YOZGAT",
-        "cheapLidas": "YENİ PAZAR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 14.75,
-        "expensiveCity": "MARDİN",
-        "expensiveLidas": "AK LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapCity": "KIRŞEHİR",
+        "cheapLidas": "ALKIM LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 12.4,
+        "expensiveCity": "ŞANLIURFA",
+        "expensiveLidas": "MEREK TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
         "expensivePrice": 18.5,
-        "grossSpread": 3.75,
+        "grossSpread": 6.1,
         "freightCost": 0.5,
-        "netArbitrage": 3.25,
-        "netArbitragePct": 22.03,
+        "netArbitrage": 5.6,
+        "netArbitragePct": 45.16,
         "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "YOZGAT (YENİ PAZAR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.75 TL'ye alınıp, MARDİN (AK LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.25 TL/kg kâr kalır."
+        "notes": "KIRŞEHİR (ALKIM LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 12.40 TL'ye alınıp, ŞANLIURFA (MEREK TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 5.60 TL/kg kâr kalır."
       },
       {
         "commodity": "BUĞDAY",
-        "cheapCity": "YOZGAT",
-        "cheapLidas": "YENİ PAZAR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 14.75,
-        "expensiveCity": "BALIKESİR",
-        "expensiveLidas": "BANDIRMA BORSA TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapCity": "KIRŞEHİR",
+        "cheapLidas": "ALKIM LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 12.4,
+        "expensiveCity": "ŞANLIURFA",
+        "expensiveLidas": "TAVŞU LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
         "expensivePrice": 18.5,
-        "grossSpread": 3.75,
+        "grossSpread": 6.1,
         "freightCost": 0.5,
-        "netArbitrage": 3.25,
-        "netArbitragePct": 22.03,
+        "netArbitrage": 5.6,
+        "netArbitragePct": 45.16,
         "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "YOZGAT (YENİ PAZAR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.75 TL'ye alınıp, BALIKESİR (BANDIRMA BORSA TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.25 TL/kg kâr kalır."
+        "notes": "KIRŞEHİR (ALKIM LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 12.40 TL'ye alınıp, ŞANLIURFA (TAVŞU LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 5.60 TL/kg kâr kalır."
       },
       {
         "commodity": "BUĞDAY",
-        "cheapCity": "YOZGAT",
-        "cheapLidas": "YENİ PAZAR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 14.75,
-        "expensiveCity": "ÇORUM",
-        "expensiveLidas": "YEKSAM TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapCity": "KIRŞEHİR",
+        "cheapLidas": "ALKIM LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 12.4,
+        "expensiveCity": "ŞANLIURFA",
+        "expensiveLidas": "SENTİNUS TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
         "expensivePrice": 18.5,
-        "grossSpread": 3.75,
+        "grossSpread": 6.1,
         "freightCost": 0.5,
-        "netArbitrage": 3.25,
-        "netArbitragePct": 22.03,
+        "netArbitrage": 5.6,
+        "netArbitragePct": 45.16,
         "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "YOZGAT (YENİ PAZAR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.75 TL'ye alınıp, ÇORUM (YEKSAM TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.25 TL/kg kâr kalır."
+        "notes": "KIRŞEHİR (ALKIM LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 12.40 TL'ye alınıp, ŞANLIURFA (SENTİNUS TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 5.60 TL/kg kâr kalır."
       },
       {
         "commodity": "BUĞDAY",
-        "cheapCity": "SİVAS",
-        "cheapLidas": "YENİ PAZAR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 15.25,
-        "expensiveCity": "MARDİN",
-        "expensiveLidas": "AK LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapCity": "EDİRNE",
+        "cheapLidas": "TRAKYA EVREN TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 15.0,
+        "expensiveCity": "ŞANLIURFA",
+        "expensiveLidas": "MEREK TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
         "expensivePrice": 18.5,
-        "grossSpread": 3.25,
+        "grossSpread": 3.5,
         "freightCost": 0.5,
-        "netArbitrage": 2.75,
-        "netArbitragePct": 18.03,
+        "netArbitrage": 3.0,
+        "netArbitragePct": 20.0,
         "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "SİVAS (YENİ PAZAR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 15.25 TL'ye alınıp, MARDİN (AK LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 2.75 TL/kg kâr kalır."
+        "notes": "EDİRNE (TRAKYA EVREN TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 15.00 TL'ye alınıp, ŞANLIURFA (MEREK TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.00 TL/kg kâr kalır."
       },
       {
         "commodity": "BUĞDAY",
-        "cheapCity": "SİVAS",
-        "cheapLidas": "YENİ PAZAR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 15.25,
-        "expensiveCity": "BALIKESİR",
-        "expensiveLidas": "BANDIRMA BORSA TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapCity": "EDİRNE",
+        "cheapLidas": "TRAKYA EVREN TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 15.0,
+        "expensiveCity": "ŞANLIURFA",
+        "expensiveLidas": "TAVŞU LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
         "expensivePrice": 18.5,
-        "grossSpread": 3.25,
+        "grossSpread": 3.5,
         "freightCost": 0.5,
-        "netArbitrage": 2.75,
-        "netArbitragePct": 18.03,
+        "netArbitrage": 3.0,
+        "netArbitragePct": 20.0,
         "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "SİVAS (YENİ PAZAR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 15.25 TL'ye alınıp, BALIKESİR (BANDIRMA BORSA TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 2.75 TL/kg kâr kalır."
+        "notes": "EDİRNE (TRAKYA EVREN TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 15.00 TL'ye alınıp, ŞANLIURFA (TAVŞU LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.00 TL/kg kâr kalır."
       }
     ]
   },
@@ -692,31 +692,31 @@
     }
   ],
   "petrolTanker": {
-    "updatedAt": "2026-11-05T19:30:09+03:00",
+    "updatedAt": "2026-11-05T23:47:48+03:00",
     "date": "2026-11-05",
     "oilBenchmarks": {
       "brent": {
-        "price": 96.83,
-        "priceStr": "$96.83",
-        "changePct": 2.335658423166343,
-        "changeStr": "+2.34%"
+        "price": 98.39,
+        "priceStr": "$98.39",
+        "changePct": 3.984358486577886,
+        "changeStr": "+3.98%"
       },
       "wti": {
-        "price": 93.23,
-        "priceStr": "$93.23",
+        "price": 94.79,
+        "priceStr": "$94.79",
         "changePct": 0.35,
         "changeStr": "+0.35%"
       },
       "brentWtiSpread": 3.6,
       "urals": {
-        "price": 84.53,
+        "price": 86.09,
         "discount": 12.3,
-        "priceStr": "$84.53",
+        "priceStr": "$86.09",
         "g7Cap": 60.0
       },
       "crackSpread321": {
-        "value": 18.63,
-        "valueStr": "$18.63 / varil",
+        "value": 18.8,
+        "valueStr": "$18.80 / varil",
         "interpretation": "Akdeniz Rafineri Kârlılığı (Tüpraş Göstergesi)"
       }
     },
