@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-05T18:22:09+03:00",
+  "updatedAt": "2026-11-06T00:11:52+03:00",
   "tickers": [
     {
       "label": "XU100",
@@ -9,20 +9,20 @@
     },
     {
       "label": "S&P 500",
-      "value": "7.507,16",
-      "change": "-2,36%",
+      "value": "7.353,73",
+      "change": "-4,36%",
       "up": false
     },
     {
       "label": "NASDAQ",
-      "value": "24.725,26",
-      "change": "-3,93%",
+      "value": "24.315,00",
+      "change": "-5,52%",
       "up": false
     },
     {
       "label": "DAX",
-      "value": "26.431,22",
-      "change": "-0,02%",
+      "value": "26.325,01",
+      "change": "-0,43%",
       "up": false
     },
     {
@@ -33,14 +33,14 @@
     },
     {
       "label": "ABD 10Y",
-      "value": "4,87%",
-      "change": "-0,59%",
+      "value": "4,84%",
+      "change": "-1,16%",
       "up": false
     },
     {
       "label": "EUR/USD",
       "value": "1,12",
-      "change": "-0,11%",
+      "change": "-0,15%",
       "up": false
     },
     {
@@ -51,20 +51,20 @@
     },
     {
       "label": "ALTIN",
-      "value": "$4.130",
-      "change": "+1,40%",
+      "value": "$4.102",
+      "change": "+0,72%",
       "up": true
     },
     {
       "label": "VIX",
-      "value": "21,38",
-      "change": "+28,72%",
+      "value": "27,26",
+      "change": "+64,12%",
       "up": true
     },
     {
       "label": "BRENT",
-      "value": "$96,61",
-      "change": "+2,10%",
+      "value": "$98,48",
+      "change": "+4,08%",
       "up": true
     },
     {
@@ -86,36 +86,6 @@
       "up": true
     },
     {
-      "label": "THYAO",
-      "value": "₺297.00",
-      "change": "+2.24%",
-      "up": true
-    },
-    {
-      "label": "BIMAS",
-      "value": "₺369.25",
-      "change": "-0.81%",
-      "up": false
-    },
-    {
-      "label": "ASELS",
-      "value": "₺329.00",
-      "change": "-6.93%",
-      "up": false
-    },
-    {
-      "label": "AKBNK",
-      "value": "₺67.20",
-      "change": "+1.36%",
-      "up": true
-    },
-    {
-      "label": "EREGL",
-      "value": "₺30.80",
-      "change": "-3.57%",
-      "up": false
-    },
-    {
       "label": "KCHOL",
       "value": "₺202.30",
       "change": "-0.44%",
@@ -128,9 +98,57 @@
       "up": true
     },
     {
+      "label": "THYAO",
+      "value": "₺297.00",
+      "change": "+2.24%",
+      "up": true
+    },
+    {
+      "label": "ASELS",
+      "value": "₺329.00",
+      "change": "-6.93%",
+      "up": false
+    },
+    {
+      "label": "BIMAS",
+      "value": "₺369.25",
+      "change": "-0.81%",
+      "up": false
+    },
+    {
+      "label": "AKBNK",
+      "value": "₺67.20",
+      "change": "+1.36%",
+      "up": true
+    },
+    {
       "label": "SAHOL",
       "value": "₺85.10",
       "change": "-1.68%",
+      "up": false
+    },
+    {
+      "label": "EREGL",
+      "value": "₺30.80",
+      "change": "-3.57%",
+      "up": false
+    },
+    {
+      "label": "TUPRS",
+      "value": "₺331.75",
+      "change": "-3.00%",
+      "up": false
+    },
+    {
+      "label": "SISE",
+      "value": "₺35.42",
+      "change": "-0.67%",
+      "up": false
+    },
+    {
+      "label": "TCELL",
+      "value": "₺91.80",
+      "change": "-2.29%",
       "up": false
     },
     {
@@ -138,6 +156,12 @@
       "value": "₺36.52",
       "change": "+1.50%",
       "up": true
+    },
+    {
+      "label": "FROTO",
+      "value": "₺67.85",
+      "change": "-1.45%",
+      "up": false
     },
     {
       "label": "TOASO",
@@ -150,30 +174,6 @@
       "value": "₺139.90",
       "change": "+4.64%",
       "up": true
-    },
-    {
-      "label": "TUPRS",
-      "value": "₺331.75",
-      "change": "-3.00%",
-      "up": false
-    },
-    {
-      "label": "FROTO",
-      "value": "₺67.85",
-      "change": "-1.45%",
-      "up": false
-    },
-    {
-      "label": "TCELL",
-      "value": "₺91.80",
-      "change": "-2.29%",
-      "up": false
-    },
-    {
-      "label": "SISE",
-      "value": "₺35.42",
-      "change": "-0.67%",
-      "up": false
     }
   ]
 }
