@@ -1,143 +1,73 @@
 {
-  "updated_at": "2026-11-05T00:16:25+03:00",
+  "updated_at": "2026-11-05T16:26:49+03:00",
   "events": [
     {
-      "time": "13:00",
+      "time": "11:30",
       "country": "Euro Bölgesi",
-      "event": "Core Inflation Rate YoY Flash",
-      "importance": "Orta",
-      "forecast": "2.5"
-    },
-    {
-      "time": "13:00",
-      "country": "Euro Bölgesi",
-      "event": "Core Inflation Rate MoM Flash",
+      "event": "S&P Global Construction PMI",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "13:00",
-      "country": "Euro Bölgesi",
-      "event": "Inflation Rate YoY Flash",
-      "importance": "Yüksek",
-      "forecast": "4"
-    },
-    {
-      "time": "15:00",
-      "country": "ABD",
-      "event": "MBA 5/1 ARM Contract Rate",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "15:00",
-      "country": "ABD",
-      "event": "MBA 5/1 ARM Effective Rate",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "15:00",
-      "country": "ABD",
-      "event": "MBA 15-Year Mortgage Contract Rate",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "15:00",
-      "country": "ABD",
-      "event": "MBA 15-Year Mortgage Effective Rate",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "15:00",
-      "country": "ABD",
-      "event": "MBA 15-Year Mortgage Points",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "15:00",
-      "country": "ABD",
-      "event": "MBA 30-Year Mortgage Rate",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "15:00",
-      "country": "ABD",
-      "event": "MBA 5/1 ARM Points",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "16:15",
-      "country": "ABD",
-      "event": "ADP Employment Change",
-      "importance": "Orta",
-      "forecast": "69"
-    },
-    {
-      "time": "16:30",
-      "country": "ABD",
-      "event": "Goods Trade Balance",
+      "time": "14:30",
+      "country": "Türkiye",
+      "event": "Net Foreign Exchange Reserves",
       "importance": "Orta",
       "forecast": ""
     },
     {
       "time": "16:30",
       "country": "ABD",
-      "event": "Balance of Trade",
+      "event": "Unit Labour Costs QoQ Prel",
       "importance": "Orta",
-      "forecast": "-108"
+      "forecast": "0.6"
     },
     {
       "time": "16:30",
       "country": "ABD",
-      "event": "Exports",
+      "event": "Nonfarm Productivity QoQ Prel",
+      "importance": "Orta",
+      "forecast": "2.8"
+    },
+    {
+      "time": "16:30",
+      "country": "ABD",
+      "event": "Initial Jobless Claims",
+      "importance": "Orta",
+      "forecast": "196"
+    },
+    {
+      "time": "16:30",
+      "country": "ABD",
+      "event": "USDA Pork Net Export Sales",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "18:00",
+      "time": "16:30",
       "country": "ABD",
-      "event": "ISM Services PMI",
-      "importance": "Yüksek",
-      "forecast": "54.8"
-    },
-    {
-      "time": "18:30",
-      "country": "ABD",
-      "event": "EIA Ethanol Production",
+      "event": "USDA Pork Gross Export Sales",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "18:30",
+      "time": "19:30",
       "country": "ABD",
-      "event": "EIA Ethanol Stocks",
+      "event": "4-Week Bill Auction Allotted at High",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "18:30",
+      "time": "19:30",
       "country": "ABD",
-      "event": "EIA Crude Oil Stocks Change",
+      "event": "4-Week Bill Auction Bid-to-Cover",
       "importance": "Orta",
-      "forecast": "1.75"
+      "forecast": ""
     },
     {
-      "time": "18:30",
+      "time": "19:30",
       "country": "ABD",
-      "event": "EIA Gasoline Stocks Change",
-      "importance": "Orta",
-      "forecast": "-0.75"
-    },
-    {
-      "time": "18:30",
-      "country": "ABD",
-      "event": "EIA Crude Oil Exports Change",
+      "event": "4-Week Bill Auction Total Accepted",
       "importance": "Orta",
       "forecast": ""
     }
