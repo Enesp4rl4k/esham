@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-05T16:27:17+03:00",
+  "updatedAt": "2026-11-05T19:28:52+03:00",
   "date": "2026-11-05",
   "indices": [
     {
@@ -101,7 +101,7 @@
     "headlineCpiAnnualPct": 31.52,
     "meatInflationSpread": -1.01,
     "macroCommentary": "Yıllık Et TÜFE Enflasyonu %30.5 seviyesinde gerçekleşerek, manşet TÜFE'nin (%31.5) -1.0 puan altında seyretti. TÜRİB yem hammaddeleri (Arpa: 11.50 TL, Mısır: 12.00 TL) ile Dana Karkas/Yem paritesi (28.2), önümüzdeki çeyrek et enflasyonu için belirleyici öncü sinyal olmaya devam ediyor.",
-    "bistSectorImpact": "BIST Et & Gıda Hisseleri: BANVT 115,30 (+0,96%) tavuk/yem paritesinden doğrudan etkilenirken; PETUN 9,34 (-1,79%) karkas et ve un maliyet artışını şarküteri ürünlerine fiyatlama gücüyle dengeliyor. BIMAS, MGROS ve SOKM gibi perakendecilerde Et TÜFE artışı sepet büyüklüğünü artırırken brüt kâr marjını hassas tutuyor.",
+    "bistSectorImpact": "BIST Et & Gıda Hisseleri: BANVT 115,90 (+1,49%) tavuk/yem paritesinden doğrudan etkilenirken; PETUN 9,33 (-1,89%) karkas et ve un maliyet artışını şarküteri ürünlerine fiyatlama gücüyle dengeliyor. BIMAS, MGROS ve SOKM gibi perakendecilerde Et TÜFE artışı sepet büyüklüğünü artırırken brüt kâr marjını hassas tutuyor.",
     "parities": [
       {
         "title": "Dana Besi Karkas",
@@ -600,17 +600,17 @@
   },
   "agriBist": {
     "date": "2026-11-05",
-    "xgidaPrice": "11.004,91",
-    "xgidaChange": "-0,58%",
+    "xgidaPrice": "11.038,65",
+    "xgidaChange": "-0,28%",
     "turibHububatIndex": "7.864,31",
     "turibHububatChange": "-0,26%",
-    "macroTakeaway": "BIST Gıda Endeksi (XGIDA) -0,58% hareket ederken, TÜRİB Hububat Endeksi -0,26% seviyesinde. Tarımsal emtia fiyatlarındaki yön, BIST gıda şirketlerinin 1-2 çeyrek sonraki FAVÖK marjlarına doğrudan yansıyacaktır.",
+    "macroTakeaway": "BIST Gıda Endeksi (XGIDA) -0,28% hareket ederken, TÜRİB Hububat Endeksi -0,26% seviyesinde. Tarımsal emtia fiyatlarındaki yön, BIST gıda şirketlerinin 1-2 çeyrek sonraki FAVÖK marjlarına doğrudan yansıyacaktır.",
     "companies": [
       {
         "ticker": "ULUUN",
         "companyName": "Ulusoy Un Sanayi",
-        "stockPrice": "6,31",
-        "stockChange": "+0,64%",
+        "stockPrice": "6,32",
+        "stockChange": "+0,80%",
         "commodity": "BUĞDAY EKMEKLİK",
         "commodityPrice": 17.86,
         "commodityChange": -2.55,
@@ -620,8 +620,8 @@
       {
         "ticker": "PETUN",
         "companyName": "Pınar Et ve Un",
-        "stockPrice": "9,34",
-        "stockChange": "-1,79%",
+        "stockPrice": "9,33",
+        "stockChange": "-1,89%",
         "commodity": "BUĞDAY EKMEKLİK",
         "commodityPrice": 17.86,
         "commodityChange": -2.55,
@@ -631,8 +631,8 @@
       {
         "ticker": "BANVT",
         "companyName": "Banvit",
-        "stockPrice": "115,30",
-        "stockChange": "+0,96%",
+        "stockPrice": "115,90",
+        "stockChange": "+1,49%",
         "commodity": "MISIR",
         "commodityPrice": 0.0,
         "commodityChange": 0.0,
@@ -642,8 +642,8 @@
       {
         "ticker": "TATGD",
         "companyName": "Tat Gıda",
-        "stockPrice": "14,96",
-        "stockChange": "-1,06%",
+        "stockPrice": "14,95",
+        "stockChange": "-1,12%",
         "commodity": "BUĞDAY MAKARNALIK",
         "commodityPrice": 18.02,
         "commodityChange": 2.42,
@@ -653,8 +653,8 @@
       {
         "ticker": "TUKAS",
         "companyName": "Tukaş Gıda",
-        "stockPrice": "1,83",
-        "stockChange": "+2,81%",
+        "stockPrice": "1,81",
+        "stockChange": "+1,69%",
         "commodity": "BUĞDAY EKMEKLİK",
         "commodityPrice": 17.86,
         "commodityChange": -2.55,
@@ -676,34 +676,47 @@
       "eurReturnPct": 102.86,
       "realInflationReturnPct": 6.96,
       "commentary": "'BUĞDAY EKMEKLİK' 2019-07-26 - 2026-11-05 döneminde nominal TL bazında %1311.9 yükselirken, birikimli TÜFE enflasyonunu aşarak reel alım gücünü %7.0 artırdı. Dolar bazlı getiri %97.7 olarak gerçekleşti; emtia enflasyona karşı koruma sağladı."
+    },
+    {
+      "commodityGroup": "BUĞDAY MAKARNALIK",
+      "startDate": "2019-07-29",
+      "endDate": "2026-11-05",
+      "tradingDays": 1639,
+      "startPriceTl": 1.51,
+      "endPriceTl": 18.02,
+      "nominalReturnPct": 1090.33,
+      "usdReturnPct": 66.6,
+      "eurReturnPct": 70.99,
+      "realInflationReturnPct": -9.82,
+      "commentary": "'BUĞDAY MAKARNALIK' 2019-07-29 - 2026-11-05 döneminde nominal TL bazında %1090.3 prim yapmasına rağmen, TÜFE enflasyonunun gerisinde kalarak reel olarak %9.8 satın alma gücü erimesi yaşadı. Dolar bazlı getiri %66.6 seviyesinde kaldı."
     }
   ],
   "petrolTanker": {
-    "updatedAt": "2026-11-05T16:28:18+03:00",
+    "updatedAt": "2026-11-05T19:30:09+03:00",
     "date": "2026-11-05",
     "oilBenchmarks": {
       "brent": {
-        "price": 97.37,
-        "priceStr": "$97.37",
-        "changePct": 2.9063622912703444,
-        "changeStr": "+2.91%"
+        "price": 96.83,
+        "priceStr": "$96.83",
+        "changePct": 2.335658423166343,
+        "changeStr": "+2.34%"
       },
       "wti": {
-        "price": 93.77,
-        "priceStr": "$93.77",
+        "price": 93.23,
+        "priceStr": "$93.23",
         "changePct": 0.35,
         "changeStr": "+0.35%"
       },
       "brentWtiSpread": 3.6,
       "urals": {
-        "price": 85.07,
+        "price": 84.53,
         "discount": 12.3,
-        "priceStr": "$85.07",
+        "priceStr": "$84.53",
         "g7Cap": 60.0
       },
       "crackSpread321": {
-        "value": 18.69,
-        "valueStr": "$18.69 / varil",
+        "value": 18.63,
+        "valueStr": "$18.63 / varil",
         "interpretation": "Akdeniz Rafineri Kârlılığı (Tüpraş Göstergesi)"
       }
     },
