@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-06T18:55:42+03:00",
+  "updatedAt": "2026-11-06T23:02:40+03:00",
   "date": "2026-11-06",
   "indices": [
     {
@@ -692,31 +692,31 @@
     }
   ],
   "petrolTanker": {
-    "updatedAt": "2026-11-06T18:56:53+03:00",
+    "updatedAt": "2026-11-06T23:03:42+03:00",
     "date": "2026-11-06",
     "oilBenchmarks": {
       "brent": {
-        "price": 97.2,
-        "priceStr": "$97.20",
-        "changePct": -1.1089632719503544,
-        "changeStr": "-1.11%"
+        "price": 98.44,
+        "priceStr": "$98.44",
+        "changePct": 0.15260962458031485,
+        "changeStr": "+0.15%"
       },
       "wti": {
-        "price": 93.6,
-        "priceStr": "$93.60",
+        "price": 94.84,
+        "priceStr": "$94.84",
         "changePct": 0.35,
         "changeStr": "+0.35%"
       },
       "brentWtiSpread": 3.6,
       "urals": {
-        "price": 84.9,
+        "price": 86.14,
         "discount": 12.3,
-        "priceStr": "$84.90",
+        "priceStr": "$86.14",
         "g7Cap": 60.0
       },
       "crackSpread321": {
-        "value": 18.29,
-        "valueStr": "$18.29 / varil",
+        "value": 18.42,
+        "valueStr": "$18.42 / varil",
         "interpretation": "Akdeniz Rafineri Kârlılığı (Tüpraş Göstergesi)"
       }
     },
