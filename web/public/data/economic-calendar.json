@@ -1,59 +1,80 @@
 {
-  "updated_at": "2026-11-06T23:51:21+03:00",
+  "updated_at": "2026-11-09T17:14:36+03:00",
   "events": [
     {
-      "time": "13:00",
+      "time": "12:30",
       "country": "Euro Bölgesi",
-      "event": "Retail Sales MoM",
+      "event": "Sentix Investor Confidence",
       "importance": "Orta",
-      "forecast": "-0.1"
+      "forecast": "2.1"
     },
     {
-      "time": "16:30",
+      "time": "19:00",
       "country": "ABD",
-      "event": "Average Hourly Earnings MoM",
-      "importance": "Orta",
-      "forecast": "0.3"
-    },
-    {
-      "time": "16:30",
-      "country": "ABD",
-      "event": "Average Hourly Earnings YoY",
-      "importance": "Orta",
-      "forecast": "2.9"
-    },
-    {
-      "time": "16:30",
-      "country": "ABD",
-      "event": "Participation Rate",
+      "event": "United States-NY Fed Consumer Expectation-NY Fed Inflation Expectation 1yr",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "16:30",
+      "time": "19:30",
       "country": "ABD",
-      "event": "Non Farm Payrolls",
-      "importance": "Yüksek",
-      "forecast": "65"
+      "event": "3-Month Bill Auction Allotted at High",
+      "importance": "Orta",
+      "forecast": ""
     },
     {
-      "time": "16:30",
+      "time": "19:30",
       "country": "ABD",
-      "event": "Unemployment Rate",
-      "importance": "Yüksek",
-      "forecast": "4.2"
+      "event": "3-Month Bill Auction Bid-to-Cover",
+      "importance": "Orta",
+      "forecast": ""
     },
     {
-      "time": "18:00",
+      "time": "19:30",
       "country": "ABD",
-      "event": "Michigan Consumer Sentiment Prel",
-      "importance": "Yüksek",
-      "forecast": "48"
+      "event": "3-Month Bill Auction Total Accepted",
+      "importance": "Orta",
+      "forecast": ""
     },
     {
-      "time": "22:00",
+      "time": "19:30",
       "country": "ABD",
-      "event": "Baker Hughes Gas Rig Count",
+      "event": "6-Month Bill Auction Allotted at High",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "19:30",
+      "country": "ABD",
+      "event": "6-Month Bill Auction Bid-to-Cover",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "19:30",
+      "country": "ABD",
+      "event": "6-Month Bill Auction Total Accepted",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "21:00",
+      "country": "ABD",
+      "event": "3-Year Note Auction Allotted at High",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "21:00",
+      "country": "ABD",
+      "event": "3-Year Note Auction Bid-to-Cover",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "21:00",
+      "country": "ABD",
+      "event": "3-Year Note Auction Total Accepted",
       "importance": "Orta",
       "forecast": ""
     }
