@@ -1,80 +1,122 @@
 {
-  "updated_at": "2026-11-10T02:53:09+03:00",
+  "updated_at": "2026-11-10T16:42:53+03:00",
   "events": [
     {
-      "time": "12:30",
-      "country": "Euro Bölgesi",
-      "event": "Sentix Investor Confidence",
+      "time": "00:30",
+      "country": "ABD",
+      "event": "API Crude Oil Stock Change",
       "importance": "Orta",
-      "forecast": "2.1"
+      "forecast": "0.5"
     },
     {
-      "time": "19:00",
-      "country": "ABD",
-      "event": "United States-NY Fed Consumer Expectation-NY Fed Inflation Expectation 1yr *",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "19:30",
-      "country": "ABD",
-      "event": "3-Month Bill Auction Allotted at High",
+      "time": "10:00",
+      "country": "Türkiye",
+      "event": "Industrial Production YoY",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "19:30",
-      "country": "ABD",
-      "event": "3-Month Bill Auction Bid-to-Cover",
+      "time": "10:00",
+      "country": "Türkiye",
+      "event": "Industrial Production MoM NSA",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "19:30",
+      "time": "16:15",
       "country": "ABD",
-      "event": "3-Month Bill Auction Total Accepted",
+      "event": "ADP Employment Change Weekly",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "19:30",
+      "time": "16:30",
       "country": "ABD",
-      "event": "6-Month Bill Auction Allotted at High",
+      "event": "Core Inflation Rate MoM",
+      "importance": "Yüksek",
+      "forecast": "0.2"
+    },
+    {
+      "time": "16:30",
+      "country": "ABD",
+      "event": "Core Inflation Rate YoY",
+      "importance": "Yüksek",
+      "forecast": "2.8"
+    },
+    {
+      "time": "16:30",
+      "country": "ABD",
+      "event": "Inflation Rate MoM",
+      "importance": "Yüksek",
+      "forecast": "0.3"
+    },
+    {
+      "time": "16:30",
+      "country": "ABD",
+      "event": "Inflation Rate MoM NSA",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "19:30",
+      "time": "16:30",
       "country": "ABD",
-      "event": "6-Month Bill Auction Bid-to-Cover",
+      "event": "CPI-W",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "19:30",
+      "time": "16:30",
       "country": "ABD",
-      "event": "6-Month Bill Auction Total Accepted",
+      "event": "CPI",
+      "importance": "Orta",
+      "forecast": "337.042"
+    },
+    {
+      "time": "16:30",
+      "country": "ABD",
+      "event": "Inflation Rate YoY",
+      "importance": "Yüksek",
+      "forecast": "3.9"
+    },
+    {
+      "time": "16:30",
+      "country": "ABD",
+      "event": "CPI seasonally adjusted",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "16:30",
+      "country": "ABD",
+      "event": "Real Average Weekly Earnings MoM",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "20:00",
+      "country": "ABD",
+      "event": "WASDE Poultry Production",
       "importance": "Orta",
       "forecast": ""
     },
     {
       "time": "21:00",
       "country": "ABD",
-      "event": "3-Year Note Auction Allotted at High",
+      "event": "10-Year Note Auction Allotted at High",
       "importance": "Orta",
       "forecast": ""
     },
     {
       "time": "21:00",
       "country": "ABD",
-      "event": "3-Year Note Auction Bid-to-Cover",
+      "event": "10-Year Note Auction Bid-to-Cover",
       "importance": "Orta",
       "forecast": ""
     },
     {
       "time": "21:00",
       "country": "ABD",
-      "event": "3-Year Note Auction Total Accepted",
+      "event": "10-Year Note Auction Total Accepted",
       "importance": "Orta",
       "forecast": ""
     }
