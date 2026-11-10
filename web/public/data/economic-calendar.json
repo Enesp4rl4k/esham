@@ -1,12 +1,12 @@
 {
-  "updated_at": "2026-11-10T18:32:00+03:00",
+  "updated_at": "2026-11-11T00:02:47+03:00",
   "events": [
     {
       "time": "00:30",
       "country": "ABD",
       "event": "API Crude Oil Stock Change",
       "importance": "Orta",
-      "forecast": "0.5"
+      "forecast": "-1.483"
     },
     {
       "time": "10:00",
