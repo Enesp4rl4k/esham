@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-10T16:42:53+03:00",
+  "updated_at": "2026-11-10T17:37:02+03:00",
   "events": [
     {
       "time": "00:30",
@@ -23,6 +23,13 @@
       "forecast": ""
     },
     {
+      "time": "15:15",
+      "country": "ABD",
+      "event": "ADP Employment Change Weekly",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
       "time": "16:15",
       "country": "ABD",
       "event": "ADP Employment Change Weekly",
@@ -35,13 +42,6 @@
       "event": "Core Inflation Rate MoM",
       "importance": "Yüksek",
       "forecast": "0.2"
-    },
-    {
-      "time": "16:30",
-      "country": "ABD",
-      "event": "Core Inflation Rate YoY",
-      "importance": "Yüksek",
-      "forecast": "2.8"
     },
     {
       "time": "16:30",
@@ -70,13 +70,6 @@
       "event": "CPI",
       "importance": "Orta",
       "forecast": "337.042"
-    },
-    {
-      "time": "16:30",
-      "country": "ABD",
-      "event": "Inflation Rate YoY",
-      "importance": "Yüksek",
-      "forecast": "3.9"
     },
     {
       "time": "16:30",
