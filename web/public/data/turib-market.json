@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-10T19:26:16+03:00",
+  "updatedAt": "2026-11-10T23:34:21+03:00",
   "date": "2026-11-10",
   "indices": [
     {
@@ -142,6 +142,21 @@
     ]
   },
   "tmoComparison": [
+    {
+      "commodity": "BUĞDAY EKMEKLİK",
+      "tmoProductName": "Ekmeklik Buğday (2. Grup)",
+      "year": 2026,
+      "tmoPurchasePrice": 13.5,
+      "farmerPremium": 1.75,
+      "totalFarmerIncome": 15.25,
+      "tmoSalesPrice": 16.0,
+      "turibFreePrice": 18.16,
+      "spreadTl": 4.66,
+      "spreadPct": 34.52,
+      "totalSpreadPct": 19.08,
+      "status": "TMO_USTUNDE_PRIMLI",
+      "commentary": "Serbest piyasa fiyatı (18.16 TL/kg), TMO alım tabanının (13.50 TL/kg) %34.5 üzerinde primli seyrediyor. Özel sektör talebi canlı, üretici ürününü TMO yerine ELÜS borsasında satmayı tercih ediyor."
+    },
     {
       "commodity": "BUĞDAY MAKARNALIK",
       "tmoProductName": "Makarnalık Buğday (2. Grup)",
@@ -677,31 +692,31 @@
     }
   ],
   "petrolTanker": {
-    "updatedAt": "2026-11-10T19:27:19+03:00",
+    "updatedAt": "2026-11-10T23:35:23+03:00",
     "date": "2026-11-10",
     "oilBenchmarks": {
       "brent": {
-        "price": 91.03,
-        "priceStr": "$91.03",
-        "changePct": -1.6636059198444335,
-        "changeStr": "-1.66%"
+        "price": 92.02,
+        "priceStr": "$92.02",
+        "changePct": -0.594144971373012,
+        "changeStr": "-0.59%"
       },
       "wti": {
-        "price": 87.43,
-        "priceStr": "$87.43",
+        "price": 88.42,
+        "priceStr": "$88.42",
         "changePct": 0.35,
         "changeStr": "+0.35%"
       },
       "brentWtiSpread": 3.6,
       "urals": {
-        "price": 78.73,
+        "price": 79.72,
         "discount": 12.3,
-        "priceStr": "$78.73",
+        "priceStr": "$79.72",
         "g7Cap": 60.0
       },
       "crackSpread321": {
-        "value": 18.23,
-        "valueStr": "$18.23 / varil",
+        "value": 18.34,
+        "valueStr": "$18.34 / varil",
         "interpretation": "Akdeniz Rafineri Kârlılığı (Tüpraş Göstergesi)"
       }
     },
