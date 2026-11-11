@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-11T00:17:14+03:00",
+  "updatedAt": "2026-11-11T15:55:18+03:00",
   "date": "2026-11-11",
   "indices": [
     {
@@ -59,49 +59,49 @@
     {
       "name": "BUĞDAY EKMEKLİK",
       "code": "BUĞDAY EKMEKLİK",
-      "avgPrice": 18.16,
-      "avgPriceStr": "18,16 ₺/kg",
-      "minPrice": 16.0,
+      "avgPrice": 17.96,
+      "avgPriceStr": "17,96 ₺/kg",
+      "minPrice": 15.6,
       "maxPrice": 18.5,
-      "changePct": -0.72,
-      "changeStr": "-0,72%",
-      "volumeTon": 50655.5,
-      "volumeStr": "50.655,5 Ton",
-      "volumeTl": 920056118.95,
-      "volumeTlStr": "920.056.119 ₺"
+      "changePct": -1.1,
+      "changeStr": "-1,10%",
+      "volumeTon": 34018.0,
+      "volumeStr": "34.018,0 Ton",
+      "volumeTl": 611057749.02,
+      "volumeTlStr": "611.057.749 ₺"
     },
     {
       "name": "BUĞDAY MAKARNALIK",
       "code": "BUĞDAY MAKARNALIK",
-      "avgPrice": 18.39,
-      "avgPriceStr": "18,39 ₺/kg",
-      "minPrice": 14.16,
-      "maxPrice": 18.5,
-      "changePct": 38.98,
-      "changeStr": "+38,98%",
-      "volumeTon": 19441.9,
-      "volumeStr": "19.441,9 Ton",
-      "volumeTl": 357479865.3,
-      "volumeTlStr": "357.479.865 ₺"
+      "avgPrice": 17.51,
+      "avgPriceStr": "17,51 ₺/kg",
+      "minPrice": 11.83,
+      "maxPrice": 17.75,
+      "changePct": -4.77,
+      "changeStr": "-4,77%",
+      "volumeTon": 5039.2,
+      "volumeStr": "5.039,2 Ton",
+      "volumeTl": 88235251.8,
+      "volumeTlStr": "88.235.252 ₺"
     }
   ],
   "bulletinSummary": {
-    "totalVolumeTon": 70097.399,
-    "totalVolumeTonStr": "70.097,4 Ton",
-    "totalValueTl": 1277535984.25,
-    "totalValueTlStr": "1.277.535.984 ₺",
+    "totalVolumeTon": 39057.2065,
+    "totalVolumeTonStr": "39.057,2 Ton",
+    "totalValueTl": 699293000.8199999,
+    "totalValueTlStr": "699.293.001 ₺",
     "hububatIndex": 7816.97,
-    "summaryText": "TÜRİB Hububat Endeksi (TRBHUB): 7.816,97 (+0,69%)\nBUĞDAY EKMEKLİK: 18,16 TL/kg (-0,72%) | BUĞDAY MAKARNALIK: 18,39 TL/kg (+38,98%)\nİşlem Hacmi: 70.097,4 Ton (1,3 Milyar TL)"
+    "summaryText": "TÜRİB Hububat Endeksi (TRBHUB): 7.816,97 (+0,69%)\nBUĞDAY EKMEKLİK: 17,96 TL/kg (-1,10%) | BUĞDAY MAKARNALIK: 17,51 TL/kg (-4,77%)\nİşlem Hacmi: 39.057,2 Ton (699,3 Milyon TL)"
   },
   "meatFeed": {
-    "cpiDate": "2026-11-10",
+    "cpiDate": "2026-11-11",
     "meatCpi": 1540.0,
     "headlineCpi": 1210.0,
     "meatCpiAnnualPct": 30.51,
     "headlineCpiAnnualPct": 31.52,
     "meatInflationSpread": -1.01,
     "macroCommentary": "Yıllık Et TÜFE Enflasyonu %30.5 seviyesinde gerçekleşerek, manşet TÜFE'nin (%31.5) -1.0 puan altında seyretti. TÜRİB yem hammaddeleri (Arpa: 11.50 TL, Mısır: 12.00 TL) ile Dana Karkas/Yem paritesi (28.2), önümüzdeki çeyrek et enflasyonu için belirleyici öncü sinyal olmaya devam ediyor.",
-    "bistSectorImpact": "BIST Et & Gıda Hisseleri: BANVT 114,00 (-2,31%) tavuk/yem paritesinden doğrudan etkilenirken; PETUN 9,56 (-1,44%) karkas et ve un maliyet artışını şarküteri ürünlerine fiyatlama gücüyle dengeliyor. BIMAS, MGROS ve SOKM gibi perakendecilerde Et TÜFE artışı sepet büyüklüğünü artırırken brüt kâr marjını hassas tutuyor.",
+    "bistSectorImpact": "BIST Et & Gıda Hisseleri: BANVT 112,30 (-1,49%) tavuk/yem paritesinden doğrudan etkilenirken; PETUN 9,46 (-1,05%) karkas et ve un maliyet artışını şarküteri ürünlerine fiyatlama gücüyle dengeliyor. BIMAS, MGROS ve SOKM gibi perakendecilerde Et TÜFE artışı sepet büyüklüğünü artırırken brüt kâr marjını hassas tutuyor.",
     "parities": [
       {
         "title": "Dana Besi Karkas",
@@ -150,12 +150,12 @@
       "farmerPremium": 1.75,
       "totalFarmerIncome": 15.25,
       "tmoSalesPrice": 16.0,
-      "turibFreePrice": 18.16,
-      "spreadTl": 4.66,
-      "spreadPct": 34.52,
-      "totalSpreadPct": 19.08,
+      "turibFreePrice": 17.96,
+      "spreadTl": 4.46,
+      "spreadPct": 33.04,
+      "totalSpreadPct": 17.77,
       "status": "TMO_USTUNDE_PRIMLI",
-      "commentary": "Serbest piyasa fiyatı (18.16 TL/kg), TMO alım tabanının (13.50 TL/kg) %34.5 üzerinde primli seyrediyor. Özel sektör talebi canlı, üretici ürününü TMO yerine ELÜS borsasında satmayı tercih ediyor."
+      "commentary": "Serbest piyasa fiyatı (17.96 TL/kg), TMO alım tabanının (13.50 TL/kg) %33.0 üzerinde primli seyrediyor. Özel sektör talebi canlı, üretici ürününü TMO yerine ELÜS borsasında satmayı tercih ediyor."
     },
     {
       "commodity": "BUĞDAY MAKARNALIK",
@@ -165,12 +165,12 @@
       "farmerPremium": 1.75,
       "totalFarmerIncome": 16.25,
       "tmoSalesPrice": 17.2,
-      "turibFreePrice": 18.39,
-      "spreadTl": 3.89,
-      "spreadPct": 26.83,
-      "totalSpreadPct": 13.17,
+      "turibFreePrice": 17.51,
+      "spreadTl": 3.01,
+      "spreadPct": 20.76,
+      "totalSpreadPct": 7.75,
       "status": "TMO_USTUNDE_PRIMLI",
-      "commentary": "Serbest piyasa fiyatı (18.39 TL/kg), TMO alım tabanının (14.50 TL/kg) %26.8 üzerinde primli seyrediyor. Özel sektör talebi canlı, üretici ürününü TMO yerine ELÜS borsasında satmayı tercih ediyor."
+      "commentary": "Serbest piyasa fiyatı (17.51 TL/kg), TMO alım tabanının (14.50 TL/kg) %20.8 üzerinde primli seyrediyor. Özel sektör talebi canlı, üretici ürününü TMO yerine ELÜS borsasında satmayı tercih ediyor."
     },
     {
       "commodity": "MISIR",
@@ -517,122 +517,122 @@
     ]
   },
   "regionalArbitrage": {
-    "date": "2026-11-10",
-    "totalScannedTrades": 52,
-    "evaluation": "TÜRİB bülteninde KAYSERİ ile YOZGAT lisanslı depoları arasında 4.34 TL/kg brüt fiyat farkı tespit edildi. Tahmini 0.50 TL nakliye düşüldükten sonra net %27.1 (3.84 TL/kg) arbitraj marjı bulunmaktadır.",
+    "date": "2026-11-11",
+    "totalScannedTrades": 54,
+    "evaluation": "TÜRİB bülteninde AKSARAY ile KONYA lisanslı depoları arasında 3.45 TL/kg brüt fiyat farkı tespit edildi. Tahmini 0.50 TL nakliye düşüldükten sonra net %19.6 (2.95 TL/kg) arbitraj marjı bulunmaktadır.",
     "opportunities": [
       {
         "commodity": "BUĞDAY",
-        "cheapCity": "KAYSERİ",
-        "cheapLidas": "SENTİNUS TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 14.16,
-        "expensiveCity": "YOZGAT",
-        "expensiveLidas": "BAŞAK SARIKAYA TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "expensivePrice": 18.5,
-        "grossSpread": 4.34,
-        "freightCost": 0.5,
-        "netArbitrage": 3.84,
-        "netArbitragePct": 27.12,
-        "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "KAYSERİ (SENTİNUS TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.16 TL'ye alınıp, YOZGAT (BAŞAK SARIKAYA TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.84 TL/kg kâr kalır."
-      },
-      {
-        "commodity": "BUĞDAY",
-        "cheapCity": "KAYSERİ",
-        "cheapLidas": "SENTİNUS TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 14.16,
-        "expensiveCity": "MARDİN",
-        "expensiveLidas": "AK LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "expensivePrice": 18.5,
-        "grossSpread": 4.34,
-        "freightCost": 0.5,
-        "netArbitrage": 3.84,
-        "netArbitragePct": 27.12,
-        "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "KAYSERİ (SENTİNUS TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.16 TL'ye alınıp, MARDİN (AK LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.84 TL/kg kâr kalır."
-      },
-      {
-        "commodity": "BUĞDAY",
-        "cheapCity": "KAYSERİ",
-        "cheapLidas": "SENTİNUS TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 14.16,
+        "cheapCity": "AKSARAY",
+        "cheapLidas": "ALTUNTAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 15.05,
         "expensiveCity": "KONYA",
         "expensiveLidas": "KAHVECİ AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ TİCARET A.Ş.",
         "expensivePrice": 18.5,
-        "grossSpread": 4.34,
+        "grossSpread": 3.45,
         "freightCost": 0.5,
-        "netArbitrage": 3.84,
-        "netArbitragePct": 27.12,
+        "netArbitrage": 2.95,
+        "netArbitragePct": 19.6,
         "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "KAYSERİ (SENTİNUS TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.16 TL'ye alınıp, KONYA (KAHVECİ AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ TİCARET A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.84 TL/kg kâr kalır."
+        "notes": "AKSARAY (ALTUNTAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 15.05 TL'ye alınıp, KONYA (KAHVECİ AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ TİCARET A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 2.95 TL/kg kâr kalır."
       },
       {
         "commodity": "BUĞDAY",
-        "cheapCity": "ESKİŞEHİR",
-        "cheapLidas": "TEAM TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 16.11,
-        "expensiveCity": "YOZGAT",
-        "expensiveLidas": "BAŞAK SARIKAYA TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapCity": "AKSARAY",
+        "cheapLidas": "ALTUNTAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 15.05,
+        "expensiveCity": "KONYA",
+        "expensiveLidas": "ALTILAR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
         "expensivePrice": 18.5,
-        "grossSpread": 2.39,
+        "grossSpread": 3.45,
         "freightCost": 0.5,
-        "netArbitrage": 1.89,
-        "netArbitragePct": 11.73,
+        "netArbitrage": 2.95,
+        "netArbitragePct": 19.6,
         "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "ESKİŞEHİR (TEAM TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 16.11 TL'ye alınıp, YOZGAT (BAŞAK SARIKAYA TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 1.89 TL/kg kâr kalır."
+        "notes": "AKSARAY (ALTUNTAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 15.05 TL'ye alınıp, KONYA (ALTILAR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 2.95 TL/kg kâr kalır."
       },
       {
         "commodity": "BUĞDAY",
-        "cheapCity": "ESKİŞEHİR",
-        "cheapLidas": "TEAM TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 16.11,
-        "expensiveCity": "MARDİN",
-        "expensiveLidas": "AK LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapCity": "AKSARAY",
+        "cheapLidas": "ALTUNTAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 15.05,
+        "expensiveCity": "KONYA",
+        "expensiveLidas": "EREĞLİ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
         "expensivePrice": 18.5,
-        "grossSpread": 2.39,
+        "grossSpread": 3.45,
         "freightCost": 0.5,
-        "netArbitrage": 1.89,
-        "netArbitragePct": 11.73,
+        "netArbitrage": 2.95,
+        "netArbitragePct": 19.6,
         "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "ESKİŞEHİR (TEAM TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 16.11 TL'ye alınıp, MARDİN (AK LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 1.89 TL/kg kâr kalır."
+        "notes": "AKSARAY (ALTUNTAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 15.05 TL'ye alınıp, KONYA (EREĞLİ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 2.95 TL/kg kâr kalır."
+      },
+      {
+        "commodity": "BUĞDAY",
+        "cheapCity": "KONYA",
+        "cheapLidas": "MİLL STAR LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 16.28,
+        "expensiveCity": "KONYA",
+        "expensiveLidas": "KAHVECİ AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ TİCARET A.Ş.",
+        "expensivePrice": 18.5,
+        "grossSpread": 2.22,
+        "freightCost": 0.5,
+        "netArbitrage": 1.72,
+        "netArbitragePct": 10.57,
+        "opportunityLevel": "YUKSEK_FIRSAT",
+        "notes": "KONYA (MİLL STAR LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 16.28 TL'ye alınıp, KONYA (KAHVECİ AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ TİCARET A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 1.72 TL/kg kâr kalır."
+      },
+      {
+        "commodity": "BUĞDAY",
+        "cheapCity": "KONYA",
+        "cheapLidas": "MİLL STAR LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 16.28,
+        "expensiveCity": "KONYA",
+        "expensiveLidas": "ALTILAR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "expensivePrice": 18.5,
+        "grossSpread": 2.22,
+        "freightCost": 0.5,
+        "netArbitrage": 1.72,
+        "netArbitragePct": 10.57,
+        "opportunityLevel": "YUKSEK_FIRSAT",
+        "notes": "KONYA (MİLL STAR LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 16.28 TL'ye alınıp, KONYA (ALTILAR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 1.72 TL/kg kâr kalır."
       }
     ]
   },
   "agriBist": {
-    "date": "2026-11-10",
-    "xgidaPrice": "11.359,20",
-    "xgidaChange": "-1,26%",
+    "date": "2026-11-11",
+    "xgidaPrice": "11.274,84",
+    "xgidaChange": "-0,74%",
     "turibHububatIndex": "7.816,97",
     "turibHububatChange": "+0,69%",
-    "macroTakeaway": "BIST Gıda Endeksi (XGIDA) -1,26% hareket ederken, TÜRİB Hububat Endeksi +0,69% seviyesinde. Tarımsal emtia fiyatlarındaki yön, BIST gıda şirketlerinin 1-2 çeyrek sonraki FAVÖK marjlarına doğrudan yansıyacaktır.",
+    "macroTakeaway": "BIST Gıda Endeksi (XGIDA) -0,74% hareket ederken, TÜRİB Hububat Endeksi +0,69% seviyesinde. Tarımsal emtia fiyatlarındaki yön, BIST gıda şirketlerinin 1-2 çeyrek sonraki FAVÖK marjlarına doğrudan yansıyacaktır.",
     "companies": [
       {
         "ticker": "ULUUN",
         "companyName": "Ulusoy Un Sanayi",
-        "stockPrice": "6,15",
-        "stockChange": "-4,95%",
+        "stockPrice": "6,09",
+        "stockChange": "-0,98%",
         "commodity": "BUĞDAY EKMEKLİK",
-        "commodityPrice": 18.16,
-        "commodityChange": -0.72,
+        "commodityPrice": 17.96,
+        "commodityChange": -1.1,
         "marginPressure": "Nötr",
-        "commentary": "TÜRİB BUĞDAY EKMEKLİK fiyatı yatay (18.16 TL/kg). Operasyonel marjlar olağan seyrinde."
+        "commentary": "TÜRİB BUĞDAY EKMEKLİK fiyatı yatay (17.96 TL/kg). Operasyonel marjlar olağan seyrinde."
       },
       {
         "ticker": "PETUN",
         "companyName": "Pınar Et ve Un",
-        "stockPrice": "9,56",
-        "stockChange": "-1,44%",
+        "stockPrice": "9,44",
+        "stockChange": "-1,26%",
         "commodity": "BUĞDAY EKMEKLİK",
-        "commodityPrice": 18.16,
-        "commodityChange": -0.72,
+        "commodityPrice": 17.96,
+        "commodityChange": -1.1,
         "marginPressure": "Nötr",
-        "commentary": "TÜRİB BUĞDAY EKMEKLİK fiyatı yatay (18.16 TL/kg). Operasyonel marjlar olağan seyrinde."
+        "commentary": "TÜRİB BUĞDAY EKMEKLİK fiyatı yatay (17.96 TL/kg). Operasyonel marjlar olağan seyrinde."
       },
       {
         "ticker": "BANVT",
         "companyName": "Banvit",
-        "stockPrice": "114,00",
-        "stockChange": "-2,31%",
+        "stockPrice": "112,20",
+        "stockChange": "-1,58%",
         "commodity": "MISIR",
         "commodityPrice": 0.0,
         "commodityChange": 0.0,
@@ -642,24 +642,24 @@
       {
         "ticker": "TATGD",
         "companyName": "Tat Gıda",
-        "stockPrice": "14,96",
-        "stockChange": "-3,05%",
+        "stockPrice": "14,83",
+        "stockChange": "-0,87%",
         "commodity": "BUĞDAY MAKARNALIK",
-        "commodityPrice": 18.39,
-        "commodityChange": 38.98,
-        "marginPressure": "Maliyet & Stok Artışı",
-        "commentary": "TÜRİB BUĞDAY MAKARNALIK fiyatındaki %38,98 yükseliş, hammadde maliyetini artırırken mevcut silo stoklarına kâr yazabilir."
+        "commodityPrice": 17.51,
+        "commodityChange": -4.77,
+        "marginPressure": "Maliyet Rahatlaması",
+        "commentary": "TÜRİB BUĞDAY MAKARNALIK fiyatındaki %-4,77 gerileme, TATGD girdi marjlarını pozitif destekler."
       },
       {
         "ticker": "TUKAS",
         "companyName": "Tukaş Gıda",
-        "stockPrice": "2,14",
-        "stockChange": "+4,39%",
+        "stockPrice": "2,21",
+        "stockChange": "+3,27%",
         "commodity": "BUĞDAY EKMEKLİK",
-        "commodityPrice": 18.16,
-        "commodityChange": -0.72,
+        "commodityPrice": 17.96,
+        "commodityChange": -1.1,
         "marginPressure": "Nötr",
-        "commentary": "TÜRİB BUĞDAY EKMEKLİK fiyatı yatay (18.16 TL/kg). Operasyonel marjlar olağan seyrinde."
+        "commentary": "TÜRİB BUĞDAY EKMEKLİK fiyatı yatay (17.96 TL/kg). Operasyonel marjlar olağan seyrinde."
       }
     ]
   },
@@ -667,56 +667,56 @@
     {
       "commodityGroup": "BUĞDAY EKMEKLİK",
       "startDate": "2019-07-26",
-      "endDate": "2026-11-10",
-      "tradingDays": 1808,
+      "endDate": "2026-11-11",
+      "tradingDays": 1809,
       "startPriceTl": 1.26,
-      "endPriceTl": 18.16,
-      "nominalReturnPct": 1335.81,
-      "usdReturnPct": 101.03,
-      "eurReturnPct": 106.28,
-      "realInflationReturnPct": 8.77,
-      "commentary": "'BUĞDAY EKMEKLİK' 2019-07-26 - 2026-11-10 döneminde nominal TL bazında %1335.8 yükselirken, birikimli TÜFE enflasyonunu aşarak reel alım gücünü %8.8 artırdı. Dolar bazlı getiri %101.0 olarak gerçekleşti; emtia enflasyona karşı koruma sağladı."
+      "endPriceTl": 17.96,
+      "nominalReturnPct": 1319.98,
+      "usdReturnPct": 98.79,
+      "eurReturnPct": 104.02,
+      "realInflationReturnPct": 7.57,
+      "commentary": "'BUĞDAY EKMEKLİK' 2019-07-26 - 2026-11-11 döneminde nominal TL bazında %1320.0 yükselirken, birikimli TÜFE enflasyonunu aşarak reel alım gücünü %7.6 artırdı. Dolar bazlı getiri %98.8 olarak gerçekleşti; emtia enflasyona karşı koruma sağladı."
     },
     {
       "commodityGroup": "BUĞDAY MAKARNALIK",
       "startDate": "2019-07-29",
-      "endDate": "2026-11-10",
-      "tradingDays": 1642,
+      "endDate": "2026-11-11",
+      "tradingDays": 1643,
       "startPriceTl": 1.51,
-      "endPriceTl": 18.39,
-      "nominalReturnPct": 1114.31,
-      "usdReturnPct": 69.97,
-      "eurReturnPct": 74.42,
-      "realInflationReturnPct": -8.0,
-      "commentary": "'BUĞDAY MAKARNALIK' 2019-07-29 - 2026-11-10 döneminde nominal TL bazında %1114.3 prim yapmasına rağmen, TÜFE enflasyonunun gerisinde kalarak reel olarak %8.0 satın alma gücü erimesi yaşadı. Dolar bazlı getiri %70.0 seviyesinde kaldı."
+      "endPriceTl": 17.51,
+      "nominalReturnPct": 1056.36,
+      "usdReturnPct": 61.85,
+      "eurReturnPct": 66.08,
+      "realInflationReturnPct": -12.4,
+      "commentary": "'BUĞDAY MAKARNALIK' 2019-07-29 - 2026-11-11 döneminde nominal TL bazında %1056.4 prim yapmasına rağmen, TÜFE enflasyonunun gerisinde kalarak reel olarak %12.4 satın alma gücü erimesi yaşadı. Dolar bazlı getiri %61.9 seviyesinde kaldı."
     }
   ],
   "petrolTanker": {
-    "updatedAt": "2026-11-11T00:18:36+03:00",
+    "updatedAt": "2026-11-11T15:56:43+03:00",
     "date": "2026-11-11",
     "oilBenchmarks": {
       "brent": {
-        "price": 91.91,
-        "priceStr": "$91.91",
-        "changePct": -0.7129739656476144,
-        "changeStr": "-0.71%"
+        "price": 93.47,
+        "priceStr": "$93.47",
+        "changePct": 2.164170947644556,
+        "changeStr": "+2.16%"
       },
       "wti": {
-        "price": 88.31,
-        "priceStr": "$88.31",
+        "price": 89.87,
+        "priceStr": "$89.87",
         "changePct": 0.35,
         "changeStr": "+0.35%"
       },
       "brentWtiSpread": 3.6,
       "urals": {
-        "price": 79.61,
+        "price": 81.17,
         "discount": 12.3,
-        "priceStr": "$79.61",
+        "priceStr": "$81.17",
         "g7Cap": 60.0
       },
       "crackSpread321": {
-        "value": 18.33,
-        "valueStr": "$18.33 / varil",
+        "value": 18.62,
+        "valueStr": "$18.62 / varil",
         "interpretation": "Akdeniz Rafineri Kârlılığı (Tüpraş Göstergesi)"
       }
     },

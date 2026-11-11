@@ -1,115 +1,52 @@
 {
-  "updated_at": "2026-11-11T00:16:45+03:00",
+  "updated_at": "2026-11-11T15:54:42+03:00",
   "events": [
     {
-      "time": "00:30",
+      "time": "15:00",
       "country": "ABD",
-      "event": "API Crude Oil Stock Change",
-      "importance": "Orta",
-      "forecast": "-1.483"
-    },
-    {
-      "time": "10:00",
-      "country": "Türkiye",
-      "event": "Industrial Production YoY",
+      "event": "MBA 5/1 ARM Contract Rate",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "10:00",
-      "country": "Türkiye",
-      "event": "Industrial Production MoM NSA",
+      "time": "15:00",
+      "country": "ABD",
+      "event": "MBA 5/1 ARM Effective Rate",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "15:15",
+      "time": "15:00",
       "country": "ABD",
-      "event": "ADP Employment Change Weekly",
+      "event": "MBA 15-Year Mortgage Contract Rate",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "16:15",
+      "time": "15:00",
       "country": "ABD",
-      "event": "ADP Employment Change Weekly",
+      "event": "MBA 15-Year Mortgage Effective Rate",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "16:30",
+      "time": "15:00",
       "country": "ABD",
-      "event": "Core Inflation Rate MoM",
-      "importance": "Yüksek",
-      "forecast": "0.2"
-    },
-    {
-      "time": "16:30",
-      "country": "ABD",
-      "event": "Inflation Rate MoM",
-      "importance": "Yüksek",
-      "forecast": "0.3"
-    },
-    {
-      "time": "16:30",
-      "country": "ABD",
-      "event": "Inflation Rate MoM NSA",
+      "event": "MBA 15-Year Mortgage Points",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "16:30",
+      "time": "15:00",
       "country": "ABD",
-      "event": "CPI-W",
+      "event": "MBA 30-Year Mortgage Rate",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "16:30",
+      "time": "15:00",
       "country": "ABD",
-      "event": "CPI",
-      "importance": "Orta",
-      "forecast": "337.042"
-    },
-    {
-      "time": "16:30",
-      "country": "ABD",
-      "event": "CPI seasonally adjusted",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "16:30",
-      "country": "ABD",
-      "event": "Real Average Weekly Earnings MoM",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "20:00",
-      "country": "ABD",
-      "event": "WASDE Poultry Production",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "21:00",
-      "country": "ABD",
-      "event": "10-Year Note Auction Allotted at High",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "21:00",
-      "country": "ABD",
-      "event": "10-Year Note Auction Bid-to-Cover",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "21:00",
-      "country": "ABD",
-      "event": "10-Year Note Auction Total Accepted",
+      "event": "MBA 5/1 ARM Points",
       "importance": "Orta",
       "forecast": ""
     }
