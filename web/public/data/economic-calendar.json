@@ -1,52 +1,115 @@
 {
-  "updated_at": "2026-11-12T00:53:53+03:00",
+  "updated_at": "2026-11-12T16:56:44+03:00",
   "events": [
     {
-      "time": "15:00",
-      "country": "ABD",
-      "event": "MBA 5/1 ARM Contract Rate",
+      "time": "14:30",
+      "country": "Türkiye",
+      "event": "Net Foreign Exchange Reserves",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "15:00",
+      "time": "16:30",
       "country": "ABD",
-      "event": "MBA 5/1 ARM Effective Rate",
+      "event": "Initial Jobless Claims",
+      "importance": "Orta",
+      "forecast": "195"
+    },
+    {
+      "time": "18:00",
+      "country": "ABD",
+      "event": "Existing Home Sales",
+      "importance": "Yüksek",
+      "forecast": "3.85"
+    },
+    {
+      "time": "18:00",
+      "country": "ABD",
+      "event": "Existing Home Sales MoM",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "15:00",
+      "time": "19:30",
       "country": "ABD",
-      "event": "MBA 15-Year Mortgage Contract Rate",
+      "event": "4-Week Bill Auction Allotted at High",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "15:00",
+      "time": "19:30",
       "country": "ABD",
-      "event": "MBA 15-Year Mortgage Effective Rate",
+      "event": "4-Week Bill Auction Bid-to-Cover",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "15:00",
+      "time": "19:30",
       "country": "ABD",
-      "event": "MBA 15-Year Mortgage Points",
+      "event": "4-Week Bill Auction Total Accepted",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "15:00",
+      "time": "20:00",
       "country": "ABD",
-      "event": "MBA 30-Year Mortgage Rate",
+      "event": "EIA Ethanol Production",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "15:00",
+      "time": "20:00",
       "country": "ABD",
-      "event": "MBA 5/1 ARM Points",
+      "event": "EIA Ethanol Stocks",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "20:00",
+      "country": "ABD",
+      "event": "EIA Crude Oil Stocks Change",
+      "importance": "Orta",
+      "forecast": "-1.483"
+    },
+    {
+      "time": "20:00",
+      "country": "ABD",
+      "event": "EIA Gasoline Stocks Change",
+      "importance": "Orta",
+      "forecast": "-0.35"
+    },
+    {
+      "time": "20:00",
+      "country": "ABD",
+      "event": "EIA Crude Oil Exports Change",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "21:00",
+      "country": "ABD",
+      "event": "30-Year Bond Auction Allotted at High",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "21:00",
+      "country": "ABD",
+      "event": "30-Year Bond Auction Bid-to-Cover",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "21:00",
+      "country": "ABD",
+      "event": "30-Year Bond Auction Total Accepted",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "22:00",
+      "country": "ABD",
+      "event": "Monthly Budget Statement",
       "importance": "Orta",
       "forecast": ""
     }
