@@ -95,7 +95,19 @@ export function DesktopNav() {
   const isRadarlarActive = radarlarItems.some((item) => pathname.startsWith(item.href));
 
   return (
-    <nav className="hidden lg:flex items-center gap-1 xl:gap-2 text-xs xl:text-sm font-medium">
+    <nav className="hidden xl:flex items-center gap-1 xl:gap-2 text-sm font-medium whitespace-nowrap">
+      {/* 0. Hisse Tarayıcı */}
+      <Link
+        href="/hisseler"
+        className={`px-3 py-1.5 rounded-lg transition-colors ${
+          pathname === "/hisseler" || pathname.startsWith("/hisse/")
+            ? "text-white bg-zinc-900 border border-zinc-800"
+            : "text-zinc-400 hover:text-white hover:bg-zinc-900/50"
+        }`}
+      >
+        Hisseler
+      </Link>
+
       {/* 1. Raporlar & Akış (Ana Sayfa) */}
       <Link
         href="/"

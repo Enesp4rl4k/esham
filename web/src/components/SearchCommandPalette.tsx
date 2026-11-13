@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { fold } from "@/lib/fold";
 import {
   Search,
   Command,
@@ -55,7 +56,17 @@ const DEFAULT_ITEMS: SearchItem[] = [
   { id: "KAT_GLOBAL", title: "Küresel Makro", subtitle: "Fed, Faiz, CDS Primi ve Dolar Endeksi", category: "kategori", href: "/kategori/global", badge: "Kategori" },
 ];
 
-export function SearchCommandPalette() {
+const TOOL_ITEMS: SearchItem[] = [
+  { id: "SCREENER", title: "Hisse Tarayıcı", subtitle: "F/K, PD/DD, ROE, temettü filtreleri ile tüm BIST hisseleri", category: "arac", href: "/hisseler", badge: "Tarayıcı" },
+];
+
+export interface PaletteStock {
+  ticker: string;
+  name: string;
+  sector: string;
+}
+
+export function SearchCommandPalette({ stocks = [] }: { stocks?: PaletteStock[] }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -89,14 +100,23 @@ export function SearchCommandPalette() {
   }, [open]);
 
   // Filtreleme
-  const cleanQuery = query.trim().toLowerCase();
+  // Evren varsa tüm hisseleri ara; boş sorguda kısa varsayılan liste göster
+  const stockItems: SearchItem[] = stocks.map((s) => ({
+    id: s.ticker,
+    title: s.ticker,
+    subtitle: `${s.name} — ${s.sector}`,
+    category: "hisse",
+    href: `/hisse/${s.ticker}`,
+    badge: "BIST",
+  }));
+  const allItems = [...TOOL_ITEMS, ...DEFAULT_ITEMS.filter((i) => i.category !== "hisse" || !stocks.length), ...stockItems];
+  const cleanQuery = fold(query.trim());
   const filteredItems = cleanQuery
-    ? DEFAULT_ITEMS.filter(
-        (item) =>
-          item.title.toLowerCase().includes(cleanQuery) ||
-          item.subtitle.toLowerCase().includes(cleanQuery)
-      )
-    : DEFAULT_ITEMS;
+    ? allItems
+        .filter((item) => fold(item.title).includes(cleanQuery) || fold(item.subtitle).includes(cleanQuery))
+        .sort((a, b) => Number(fold(b.title).startsWith(cleanQuery)) - Number(fold(a.title).startsWith(cleanQuery)))
+        .slice(0, 12)
+    : [...TOOL_ITEMS, ...DEFAULT_ITEMS];
 
   // Seçim değiştirme ve Enter ile yönlendirme
   const handleKeyDown = (e: React.KeyboardEvent) => {

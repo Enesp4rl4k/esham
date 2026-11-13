@@ -24,6 +24,8 @@ import { MacroBarometerCard } from "@/components/MacroBarometerCard";
 import { ViopBasisCard } from "@/components/ViopBasisCard";
 import { DevaluationRadarCard } from "@/components/DevaluationRadarCard";
 import { MorningCockpit } from "@/components/MorningCockpit";
+import { HomeHero, StockLeaderboards } from "@/components/HomeDiscovery";
+import { loadUniverse } from "@/lib/stocks";
 
 // Kategori etiket renkleri — CSS değişkenleriyle
 const catColors: Record<CategorySlug, string> = {
@@ -107,6 +109,7 @@ async function loadQuantValuation() {
 }
 
 export default async function Home() {
+  const universe = loadUniverse();
   const reports = getAllReports();
   const latest = reports.slice(0, 6);
   const featured = reports[0];
@@ -145,7 +148,12 @@ export default async function Home() {
       <TickerBand />
 
 
-      {/* ── Hero — Editorial ────────────────────────────────────── */}
+      {/* ── Karşılama: değer önerisi + arama ── */}
+      <HomeHero u={universe} />
+
+      {universe && <StockLeaderboards u={universe} />}
+
+      {/* ── Günün Piyasa Özeti (kokpit + öne çıkan rapor) ────────────────────────────────────── */}
       <section className="py-8 md:py-12 border-b" style={{ borderColor: "var(--border)" }}>
         <div className="container mx-auto px-6">
 
@@ -280,6 +288,45 @@ export default async function Home() {
           )}
         </div>
       </section>
+
+
+      {/* ── Son Raporlar Grid ────────────────────────────────────── */}
+      {latest.length > 0 && (
+        <section className="py-20">
+          <div className="container mx-auto px-6">
+            <div className="flex items-baseline justify-between mb-10">
+              <h2 className="text-xs font-bold tracking-[0.15em] uppercase" style={{ color: "var(--text-muted)" }}>
+                Son Yayınlar
+              </h2>
+              <Link
+                href="/arsiv"
+                className="text-xs flex items-center gap-1 transition-opacity hover:opacity-70"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Arşiv <ArrowUpRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {latest.map((report) => (
+                <ReportCard key={report.slug} report={report} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Kur Riski, Makro Radar & VİOP İstihbarat Paneli ── */}
+      {(macroData || viopData || devalData) && (
+        <section className="py-12 border-b bg-zinc-950/20" style={{ borderColor: "var(--border)" }}>
+          <div className="container mx-auto px-6 space-y-6">
+            {devalData && <DevaluationRadarCard data={devalData} />}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {macroData && <MacroBarometerCard data={macroData} />}
+              {viopData && <ViopBasisCard data={viopData} />}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── TÜRİB ELÜS & Tarımsal Emtia Vitrini ─────────────────────── */}
       <section className="py-12 border-b" style={{ borderColor: "var(--border)", background: "rgba(232, 160, 48, 0.02)" }}>
@@ -425,44 +472,6 @@ export default async function Home() {
           </div>
         </div>
       </section>
-
-      {/* ── Son Raporlar Grid ────────────────────────────────────── */}
-      {latest.length > 0 && (
-        <section className="py-20">
-          <div className="container mx-auto px-6">
-            <div className="flex items-baseline justify-between mb-10">
-              <h2 className="text-xs font-bold tracking-[0.15em] uppercase" style={{ color: "var(--text-muted)" }}>
-                Son Yayınlar
-              </h2>
-              <Link
-                href="/arsiv"
-                className="text-xs flex items-center gap-1 transition-opacity hover:opacity-70"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Arşiv <ArrowUpRight className="w-3 h-3" />
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {latest.map((report) => (
-                <ReportCard key={report.slug} report={report} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ── Kur Riski, Makro Radar & VİOP İstihbarat Paneli ── */}
-      {(macroData || viopData || devalData) && (
-        <section className="py-12 border-b bg-zinc-950/20" style={{ borderColor: "var(--border)" }}>
-          <div className="container mx-auto px-6 space-y-6">
-            {devalData && <DevaluationRadarCard data={devalData} />}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {macroData && <MacroBarometerCard data={macroData} />}
-              {viopData && <ViopBasisCard data={viopData} />}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* ── Newsletter ───────────────────────────────────────────── */}
       <Newsletter />

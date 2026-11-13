@@ -27,6 +27,7 @@ export {
   getReportImageUrl,
 } from "./content-utils";
 
+import { getUniverseTickers } from "./stocks";
 import type { CategorySlug, IpoMeta, Report } from "./content-utils";
 import { CATEGORIES } from "./content-utils";
 
@@ -186,6 +187,8 @@ export function getAllTickers(): string[] {
     "VESTL", "VESBE", "ARCLK", "BRSAN", "BERA", "TABGD", "REEDR", "MIATK",
     "ULUUN", "BANVT", "TATGD"
   ];
+  // Evren (bot: `esham stocks`) önce: oran verisi olan her hisse kendi sayfasına sahip olsun
+  getUniverseTickers().forEach((t) => set.add(t));
   POPULAR_BIST.forEach((t) => set.add(t));
 
   for (const r of getAllReports()) {
@@ -204,5 +207,5 @@ export function getAllTickers(): string[] {
       }
     }
   }
-  return Array.from(set).slice(0, 75); // Cloudflare Pages 20.000 dosya sınırını aşmamak için en aktif hisseler
+  return Array.from(set).slice(0, 160); // Cloudflare Pages 20.000 dosya sınırını aşmamak için üst sınır
 }

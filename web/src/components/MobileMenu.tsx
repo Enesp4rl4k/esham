@@ -12,7 +12,7 @@ export function MobileMenu() {
   const close = () => setIsOpen(false);
 
   return (
-    <div className="lg:hidden">
+    <div className="xl:hidden">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="p-2 text-zinc-400 hover:text-white transition-colors"
@@ -25,6 +25,15 @@ export function MobileMenu() {
         <div className="fixed inset-x-0 top-14 bottom-0 bg-zinc-950/98 border-b border-zinc-900 shadow-2xl py-5 px-6 z-50 overflow-y-auto backdrop-blur-2xl flex flex-col gap-6">
           {/* Ana Sayfalar */}
           <div className="space-y-1">
+            <Link
+              href="/hisseler"
+              onClick={close}
+              className={`block py-2 text-base font-semibold transition-colors ${
+                pathname === "/hisseler" ? "text-amber-400" : "text-white hover:text-amber-400"
+              }`}
+            >
+              Hisse Tarayıcı
+            </Link>
             <Link
               href="/"
               onClick={close}

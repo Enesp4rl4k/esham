@@ -324,6 +324,15 @@ def _cmd_publish_turib(_: argparse.Namespace) -> None:
         sys.exit(1)
 
 
+def _cmd_stocks(args: argparse.Namespace) -> None:
+    from .jobs.publish_stocks import run_stocks
+
+    n = run_stocks(tickers=args.tickers, workers=args.workers, with_prices=not args.no_prices)
+    print(f"{n} hisse için veri yazıldı.")
+    if n == 0:
+        sys.exit(1)
+
+
 def _cmd_ipo_pdf(_: argparse.Namespace) -> None:
     generator = IpoPdfGenerator()
     generator.create(
@@ -483,6 +492,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     pt = sub.add_parser("publish-turib", help="TÜRİB & Et-yem verilerini web JSON'a yaz")
     pt.set_defaults(func=_cmd_publish_turib)
+
+    st = sub.add_parser("stocks", help="Hisse finansalları + oranlar (web/public/data/stocks) üret")
+    st.add_argument("--tickers", nargs="*", help="Sadece bu hisseler (varsayılan: tüm evren)")
+    st.add_argument("--workers", type=int, default=4)
+    st.add_argument("--no-prices", action="store_true", help="Fiyat geçmişini atla")
+    st.set_defaults(func=_cmd_stocks)
 
     return parser
 

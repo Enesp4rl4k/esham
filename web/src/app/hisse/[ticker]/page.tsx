@@ -30,6 +30,10 @@ import { WatchlistDrawer } from "@/components/WatchlistDrawer";
 import { InteractiveStockChart } from "@/components/InteractiveStockChart";
 import { StockCorporateActionsCard } from "@/components/StockCorporateActionsCard";
 import { StockPeerComparisonCard } from "@/components/StockPeerComparisonCard";
+import { RatiosCard, type StockRatiosData } from "@/components/RatiosCard";
+import { getStockName, loadUniverse } from "@/lib/stocks";
+import { SectorPeersCard } from "@/components/SectorPeersCard";
+import { RatioTrendCharts } from "@/components/RatioTrendCharts";
 
 type Params = { ticker: string };
 
@@ -45,7 +49,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { ticker } = await params;
   const clean = ticker.toUpperCase();
-  const companyName = COMPANY_NAMES[clean] || `${clean} Pay Piyasası`;
+  const companyName = COMPANY_NAMES[clean] || getStockName(clean) || `${clean} Pay Piyasası`;
 
   return {
     title: `$${clean} Hisse Analizi, Hedef Fiyat & KAP Bildirimleri | Esham`,
@@ -122,6 +126,15 @@ async function loadDividendsData() {
   }
 }
 
+async function loadStockRatios(ticker: string): Promise<StockRatiosData | null> {
+  try {
+    const filePath = path.join(process.cwd(), "public", "data", "stocks", `${ticker}.json`);
+    return JSON.parse(await fs.readFile(filePath, "utf-8"));
+  } catch {
+    return null;
+  }
+}
+
 // BIST Popüler Şirket Adları Sözlüğü
 const COMPANY_NAMES: Record<string, string> = {
   THYAO: "Türk Hava Yolları A.O.",
@@ -167,11 +180,13 @@ export default async function TickerPage({
   const cleanTicker = ticker.toUpperCase();
 
   const reports = getReportsByTicker(cleanTicker);
-  const [tickerData, quantData, buybacksData, dividendsData] = await Promise.all([
+  const universe = loadUniverse();
+  const [tickerData, quantData, buybacksData, dividendsData, stockRatios] = await Promise.all([
     loadMarketTickerData(),
     loadQuantValuationData(),
     loadBuybacksData(),
     loadDividendsData(),
+    loadStockRatios(cleanTicker),
   ]);
   const companyQuant = quantData ? quantData[cleanTicker] : null;
   const companyBuyback = buybacksData?.programs?.find((p: any) => p.ticker === cleanTicker) || null;
@@ -185,7 +200,7 @@ export default async function TickerPage({
     (t: any) => t.label.toUpperCase() === cleanTicker
   );
 
-  const companyName = COMPANY_NAMES[cleanTicker] || `${cleanTicker} Pay Piyasası`;
+  const companyName = COMPANY_NAMES[cleanTicker] || getStockName(cleanTicker) || `${cleanTicker} Pay Piyasası`;
 
   const financialProductJsonLd = {
     "@context": "https://schema.org",
@@ -384,10 +399,11 @@ export default async function TickerPage({
       )}
 
       {/* Teknik Eşikler & Temel Çarpanlar Grid */}
-      {(keyLevelsData || fundamentalData) && (
+      {(keyLevelsData || (fundamentalData && !stockRatios)) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
           {keyLevelsData && <KeyLevelsCard data={keyLevelsData} />}
-          {fundamentalData && <FundamentalMetricsCard data={fundamentalData} />}
+          {/* Yeni oran seti varken eski (14 hisselik, farklı kaynaklı) çarpan kartı gösterilmez: tek kaynak */}
+          {fundamentalData && !stockRatios && <FundamentalMetricsCard data={fundamentalData} />}
         </div>
       )}
 
@@ -400,8 +416,29 @@ export default async function TickerPage({
         />
       </div>
 
-      {/* Sektörel Akran Değerleme & Çarpan Karşılaştırması */}
-      {companyQuant?.fundamental?.sektor && quantData && (
+      {/* Fintables tarzı oran seti (bot: `esham stocks` → public/data/stocks/<T>.json) */}
+      {stockRatios && (
+        <div className="mb-10">
+          <RatiosCard data={stockRatios} />
+        </div>
+      )}
+      {stockRatios?.quarterly_history && (
+        <div className="mb-10">
+          <RatioTrendCharts data={stockRatios.quarterly_history} sector={stockRatios.sector} />
+        </div>
+      )}
+
+      {/* Sektör karşılaştırması: evren verisi varsa aynı kaynaktan (RatiosCard ile tutarlı), yoksa eski kart */}
+      {stockRatios && universe ? (
+        <div className="mb-10">
+          <SectorPeersCard
+            ticker={cleanTicker}
+            sector={stockRatios.sector}
+            stocks={universe.stocks}
+            median={universe.sector_median[stockRatios.sector]}
+          />
+        </div>
+      ) : companyQuant?.fundamental?.sektor && quantData && (
         <div className="mb-10">
           <StockPeerComparisonCard
             currentTicker={cleanTicker}
