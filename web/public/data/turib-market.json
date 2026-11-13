@@ -1,6 +1,6 @@
 {
-  "updatedAt": "2026-11-13T23:37:35+03:00",
-  "date": "2026-11-13",
+  "updatedAt": "2026-11-14T00:25:10+03:00",
+  "date": "2026-11-14",
   "indices": [
     {
       "code": "TRBHUB",
@@ -517,84 +517,84 @@
     ]
   },
   "regionalArbitrage": {
-    "date": "2026-11-13",
-    "totalScannedTrades": 26,
-    "evaluation": "TÜRİB bülteninde KAYSERİ ile EDİRNE lisanslı depoları arasında 4.35 TL/kg brüt fiyat farkı tespit edildi. Tahmini 0.50 TL nakliye düşüldükten sonra net %27.2 (3.85 TL/kg) arbitraj marjı bulunmaktadır.",
+    "date": "2026-11-12",
+    "totalScannedTrades": 35,
+    "evaluation": "TÜRİB bülteninde YOZGAT ile KONYA lisanslı depoları arasında 3.50 TL/kg brüt fiyat farkı tespit edildi. Tahmini 0.50 TL nakliye düşüldükten sonra net %20.0 (3.00 TL/kg) arbitraj marjı bulunmaktadır.",
     "opportunities": [
       {
         "commodity": "BUĞDAY",
-        "cheapCity": "KAYSERİ",
-        "cheapLidas": "SENTİNUS TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 14.15,
-        "expensiveCity": "EDİRNE",
-        "expensiveLidas": "TMO TOBB TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ VE TİCARET A.Ş.",
-        "expensivePrice": 18.5,
-        "grossSpread": 4.35,
-        "freightCost": 0.5,
-        "netArbitrage": 3.85,
-        "netArbitragePct": 27.21,
-        "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "KAYSERİ (SENTİNUS TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.15 TL'ye alınıp, EDİRNE (TMO TOBB TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ VE TİCARET A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.85 TL/kg kâr kalır."
-      },
-      {
-        "commodity": "BUĞDAY",
-        "cheapCity": "KAYSERİ",
-        "cheapLidas": "SENTİNUS TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 14.15,
+        "cheapCity": "YOZGAT",
+        "cheapLidas": "MYSİLO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 15.0,
         "expensiveCity": "KONYA",
-        "expensiveLidas": "KOÇAKER LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "expensiveLidas": "AĞALAR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
         "expensivePrice": 18.5,
-        "grossSpread": 4.35,
+        "grossSpread": 3.5,
         "freightCost": 0.5,
-        "netArbitrage": 3.85,
-        "netArbitragePct": 27.21,
+        "netArbitrage": 3.0,
+        "netArbitragePct": 20.0,
         "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "KAYSERİ (SENTİNUS TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.15 TL'ye alınıp, KONYA (KOÇAKER LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.85 TL/kg kâr kalır."
-      },
-      {
-        "commodity": "BUĞDAY",
-        "cheapCity": "KAYSERİ",
-        "cheapLidas": "SENTİNUS TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 14.15,
-        "expensiveCity": "AKSARAY",
-        "expensiveLidas": "MYSİLO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "expensivePrice": 18.5,
-        "grossSpread": 4.35,
-        "freightCost": 0.5,
-        "netArbitrage": 3.85,
-        "netArbitragePct": 27.21,
-        "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "KAYSERİ (SENTİNUS TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 14.15 TL'ye alınıp, AKSARAY (MYSİLO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.85 TL/kg kâr kalır."
+        "notes": "YOZGAT (MYSİLO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 15.00 TL'ye alınıp, KONYA (AĞALAR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.00 TL/kg kâr kalır."
       },
       {
         "commodity": "BUĞDAY",
         "cheapCity": "YOZGAT",
-        "cheapLidas": "POLAT AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 15.5,
-        "expensiveCity": "EDİRNE",
+        "cheapLidas": "MYSİLO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 15.0,
+        "expensiveCity": "TEKİRDAĞ",
         "expensiveLidas": "TMO TOBB TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ VE TİCARET A.Ş.",
         "expensivePrice": 18.5,
-        "grossSpread": 3.0,
+        "grossSpread": 3.5,
         "freightCost": 0.5,
-        "netArbitrage": 2.5,
-        "netArbitragePct": 16.13,
+        "netArbitrage": 3.0,
+        "netArbitragePct": 20.0,
         "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "YOZGAT (POLAT AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 15.50 TL'ye alınıp, EDİRNE (TMO TOBB TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ VE TİCARET A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 2.50 TL/kg kâr kalır."
+        "notes": "YOZGAT (MYSİLO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 15.00 TL'ye alınıp, TEKİRDAĞ (TMO TOBB TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ VE TİCARET A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.00 TL/kg kâr kalır."
       },
       {
         "commodity": "BUĞDAY",
         "cheapCity": "YOZGAT",
-        "cheapLidas": "POLAT AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
-        "cheapPrice": 15.5,
+        "cheapLidas": "MYSİLO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 15.0,
         "expensiveCity": "KONYA",
-        "expensiveLidas": "KOÇAKER LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "expensiveLidas": "KAHVECİ AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ TİCARET A.Ş.",
         "expensivePrice": 18.5,
-        "grossSpread": 3.0,
+        "grossSpread": 3.5,
         "freightCost": 0.5,
-        "netArbitrage": 2.5,
-        "netArbitragePct": 16.13,
+        "netArbitrage": 3.0,
+        "netArbitragePct": 20.0,
         "opportunityLevel": "YUKSEK_FIRSAT",
-        "notes": "YOZGAT (POLAT AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 15.50 TL'ye alınıp, KONYA (KOÇAKER LİDAŞ TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 2.50 TL/kg kâr kalır."
+        "notes": "YOZGAT (MYSİLO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 15.00 TL'ye alınıp, KONYA (KAHVECİ AGRO TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ TİCARET A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 3.00 TL/kg kâr kalır."
+      },
+      {
+        "commodity": "BUĞDAY",
+        "cheapCity": "ANKARA",
+        "cheapLidas": "SÜPERSON TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 16.1,
+        "expensiveCity": "KONYA",
+        "expensiveLidas": "AĞALAR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "expensivePrice": 18.5,
+        "grossSpread": 2.4,
+        "freightCost": 0.5,
+        "netArbitrage": 1.9,
+        "netArbitragePct": 11.8,
+        "opportunityLevel": "YUKSEK_FIRSAT",
+        "notes": "ANKARA (SÜPERSON TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 16.10 TL'ye alınıp, KONYA (AĞALAR TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 1.90 TL/kg kâr kalır."
+      },
+      {
+        "commodity": "BUĞDAY",
+        "cheapCity": "ANKARA",
+        "cheapLidas": "SÜPERSON TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.",
+        "cheapPrice": 16.1,
+        "expensiveCity": "TEKİRDAĞ",
+        "expensiveLidas": "TMO TOBB TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ VE TİCARET A.Ş.",
+        "expensivePrice": 18.5,
+        "grossSpread": 2.4,
+        "freightCost": 0.5,
+        "netArbitrage": 1.9,
+        "netArbitragePct": 11.8,
+        "opportunityLevel": "YUKSEK_FIRSAT",
+        "notes": "ANKARA (SÜPERSON TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK A.Ş.) deposundan 16.10 TL'ye alınıp, TEKİRDAĞ (TMO TOBB TARIM ÜRÜNLERİ LİSANSLI DEPOCULUK SANAYİ VE TİCARET A.Ş.) deposunda 18.50 TL'ye satıldığında nakliye sonrası net 1.90 TL/kg kâr kalır."
       }
     ]
   },
@@ -692,31 +692,31 @@
     }
   ],
   "petrolTanker": {
-    "updatedAt": "2026-11-13T23:38:49+03:00",
-    "date": "2026-11-13",
+    "updatedAt": "2026-11-14T00:26:23+03:00",
+    "date": "2026-11-14",
     "oilBenchmarks": {
       "brent": {
-        "price": 95.99,
-        "priceStr": "$95.99",
-        "changePct": 0.17741598831141903,
-        "changeStr": "+0.18%"
+        "price": 96.31,
+        "priceStr": "$96.31",
+        "changePct": 0.5113754957211533,
+        "changeStr": "+0.51%"
       },
       "wti": {
-        "price": 92.39,
-        "priceStr": "$92.39",
+        "price": 92.71,
+        "priceStr": "$92.71",
         "changePct": 0.35,
         "changeStr": "+0.35%"
       },
       "brentWtiSpread": 3.6,
       "urals": {
-        "price": 83.69,
+        "price": 84.01,
         "discount": 12.3,
-        "priceStr": "$83.69",
+        "priceStr": "$84.01",
         "g7Cap": 60.0
       },
       "crackSpread321": {
-        "value": 18.42,
-        "valueStr": "$18.42 / varil",
+        "value": 18.45,
+        "valueStr": "$18.45 / varil",
         "interpretation": "Akdeniz Rafineri Kârlılığı (Tüpraş Göstergesi)"
       }
     },
