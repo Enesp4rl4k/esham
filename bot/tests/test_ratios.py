@@ -116,3 +116,19 @@ def test_quarterly_history_series():
     assert h[0]["leverage"] == 60.0            # (500-200)/500
     assert h[0]["roe_annualized"] == 20.0      # 10*4/200
     assert h[1]["gross_margin"] is None and h[1]["leverage"] is None and h[1]["roe_annualized"] is None
+
+
+def test_outlier_flags():
+    ok = R.outlier_flags({"pe": 10, "pb": 1.2, "roe": 20, "dividend_yield": 3}, {"pe": 11}, "TRY")
+    assert ok == []
+    assert "temettu_verimi_uc" in R.outlier_flags({"dividend_yield": 24}, None, "TRY")
+    assert "carpan_uc_deger" in R.outlier_flags({"pe": 1.5}, None, "TRY")
+    assert "roe_uc_deger" in R.outlier_flags({"roe": -208}, None, "TRY")
+    # Yahoo ile >%35 fark → şüpheli; dövizli raporlayanda karşılaştırma yapılmaz
+    assert "pe_yahoo_farkli" in R.outlier_flags({"pe": 10.9}, {"pe": 188}, "TRY")
+    assert R.outlier_flags({"pe": 3.35, "pb": 0.37}, {"pe": 80}, "USD") == []
+
+
+def test_outlier_flag_low_ev_ebitda():
+    assert "carpan_uc_deger" in R.outlier_flags({"ev_ebitda": 0.81}, None, "TRY")
+    assert R.outlier_flags({"ev_ebitda": 4.5}, None, "TRY") == []

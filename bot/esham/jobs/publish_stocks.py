@@ -85,6 +85,7 @@ def build_stock(meta: dict[str, Any]) -> dict[str, Any] | None:
         financial=financial,
     )
     rat["market_cap"] = raw["market_cap"]  # gösterim/tarayıcı için her zaman TL
+    quality = _quality_flags(snap, q, a, financial) + R.outlier_flags(rat, raw.get("yahoo_ref"), raw["currency"], financial)
     keep = ("date", "revenue", "gross_profit", "ebitda", "net_income", "total_assets", "equity", "total_debt", "cash", "cfo", "capex")
     return {
         "ticker": ticker,
@@ -110,7 +111,8 @@ def build_stock(meta: dict[str, Any]) -> dict[str, Any] | None:
         "quarterly_history": R.quarterly_history(q),
         "annual": [{k: p.get(k) for k in keep} for p in a],
         "quarterly": [{k: p.get(k) for k in keep} for p in q],
-        "quality": _quality_flags(snap, q, a, financial),
+        "quality": quality,
+        "suspect": any(f in R.SUSPECT_FLAGS for f in quality),
     }
 
 
@@ -162,7 +164,7 @@ def run_stocks(tickers: list[str] | None = None, workers: int = 4, with_prices: 
     for s in stocks:
         existing[s["ticker"]] = {
             "ticker": s["ticker"], "name": s["name"], "sector": s["sector"], "financial": s["financial"],
-            "price": s["price"], "as_of": s["as_of"],
+            "price": s["price"], "as_of": s["as_of"], "suspect": s["suspect"],
             **{k: s["ratios"].get(k) for k in SCREENER_KEYS},
         }
     _write(uni_path, {

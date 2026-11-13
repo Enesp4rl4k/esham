@@ -10,6 +10,7 @@ name: Esham Yayın Döngüsü
 #   07:00 UTC = 10:00 TR  BIST açılış
 #   10:00 UTC = 13:00 TR  öğle ısı haritası
 #   15:15 UTC = 18:15 TR  kapanış
+#   15:45 UTC = 18:45 TR  hisse finansalları + oranlar (stocks)
 #   15:30 UTC = 18:30 TR  akşam ısı haritası / haftalık özet
 #   Pzt 06:00 UTC = 09:00 TR  haftalık sektör
 #   Her 15 dk (hafta içi seans): KAP/haber taraması (tek tur)
@@ -26,6 +27,7 @@ on:
     - cron: "30 13 * * 1-5"   # TÜRİB kapanış bülteni   16:30 TR
     - cron: "15 15 * * 1-5"   # kapanış                 18:15 TR
     - cron: "30 15 * * 1-4"   # akşam ısı haritası      18:30 TR (Pzt-Per)
+    - cron: "45 15 * * 1-5"   # hisse oranları (stocks)   18:45 TR (kapanış sonrası)
     - cron: "0 6 * * 1"       # haftalık sektör          09:00 TR (Pazartesi)
     - cron: "15 6 * * 1"      # haftalık peer kıyas      09:15 TR (Pazartesi)
     - cron: "30 15 * * 5"     # haftalık özet            18:30 TR (Cuma)
@@ -45,6 +47,7 @@ on:
           - heatmap
           - sector
           - peer
+          - stocks
           - newsletter
           - weekly-summary
           - news-stream
@@ -121,6 +124,7 @@ jobs:
             "30 13 * * 1-5")             CMD="publish-turib" ;;
             "15 15 * * 1-5")             CMD="closing" ;;
             "30 15 * * 1-4")             CMD="heatmap" ;;
+            "45 15 * * 1-5")             CMD="stocks --workers 3" ;;
             "0 6 * * 1")                 CMD="sector" ;;
             "15 6 * * 1")
               # Haftalık peer kıyası — sektör ISO haftasına göre döner

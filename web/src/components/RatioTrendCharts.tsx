@@ -29,7 +29,7 @@ const label = (d: string) => {
 
 const W = 320, H = 150, PL = 16, PR = 40, PT = 14, PB = 22;
 
-function MiniChart({ pts, unit, color }: { pts: { date: string; v: number | null }[]; unit: Unit; color: string }) {
+function MiniChart({ pts, unit, color, name }: { pts: { date: string; v: number | null }[]; unit: Unit; color: string; name: string }) {
   const vals = pts.map((p) => p.v).filter((v): v is number => v !== null);
   let lo = Math.min(...vals), hi = Math.max(...vals);
   if (hi === lo) { hi += 1; lo -= 1; }
@@ -48,7 +48,7 @@ function MiniChart({ pts, unit, color }: { pts: { date: string; v: number | null
   if (cur) segs.push(cur);
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="Çeyreklik trend grafiği">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label={`${name}: ${pts.filter((p) => p.v !== null).map((p) => `${label(p.date)} ${fmt(p.v as number, unit)}`).join(", ")}`}>
       {ticks.map((t, i) => (
         <g key={i}>
           <line x1={PL} x2={W - PR} y1={y(t)} y2={y(t)} stroke="#27272a" strokeDasharray="3 4" />
@@ -116,7 +116,7 @@ export function RatioTrendCharts({ data, sector }: { data: QuarterPoint[]; secto
                   </span>
                 )}
               </p>
-              <MiniChart pts={c.pts} unit={c.unit} color={c.color} />
+              <MiniChart pts={c.pts} unit={c.unit} color={c.color} name={c.title} />
             </figure>
           );
         })}

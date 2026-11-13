@@ -31,7 +31,8 @@ import { InteractiveStockChart } from "@/components/InteractiveStockChart";
 import { StockCorporateActionsCard } from "@/components/StockCorporateActionsCard";
 import { StockPeerComparisonCard } from "@/components/StockPeerComparisonCard";
 import { RatiosCard, type StockRatiosData } from "@/components/RatiosCard";
-import { getStockName } from "@/lib/stocks";
+import { getStockName, loadUniverse } from "@/lib/stocks";
+import { SectorPeersCard } from "@/components/SectorPeersCard";
 import { RatioTrendCharts } from "@/components/RatioTrendCharts";
 
 type Params = { ticker: string };
@@ -179,6 +180,7 @@ export default async function TickerPage({
   const cleanTicker = ticker.toUpperCase();
 
   const reports = getReportsByTicker(cleanTicker);
+  const universe = loadUniverse();
   const [tickerData, quantData, buybacksData, dividendsData, stockRatios] = await Promise.all([
     loadMarketTickerData(),
     loadQuantValuationData(),
@@ -397,10 +399,11 @@ export default async function TickerPage({
       )}
 
       {/* Teknik Eşikler & Temel Çarpanlar Grid */}
-      {(keyLevelsData || fundamentalData) && (
+      {(keyLevelsData || (fundamentalData && !stockRatios)) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
           {keyLevelsData && <KeyLevelsCard data={keyLevelsData} />}
-          {fundamentalData && <FundamentalMetricsCard data={fundamentalData} />}
+          {/* Yeni oran seti varken eski (14 hisselik, farklı kaynaklı) çarpan kartı gösterilmez: tek kaynak */}
+          {fundamentalData && !stockRatios && <FundamentalMetricsCard data={fundamentalData} />}
         </div>
       )}
 
@@ -425,8 +428,17 @@ export default async function TickerPage({
         </div>
       )}
 
-      {/* Sektörel Akran Değerleme & Çarpan Karşılaştırması */}
-      {companyQuant?.fundamental?.sektor && quantData && (
+      {/* Sektör karşılaştırması: evren verisi varsa aynı kaynaktan (RatiosCard ile tutarlı), yoksa eski kart */}
+      {stockRatios && universe ? (
+        <div className="mb-10">
+          <SectorPeersCard
+            ticker={cleanTicker}
+            sector={stockRatios.sector}
+            stocks={universe.stocks}
+            median={universe.sector_median[stockRatios.sector]}
+          />
+        </div>
+      ) : companyQuant?.fundamental?.sektor && quantData && (
         <div className="mb-10">
           <StockPeerComparisonCard
             currentTicker={cleanTicker}

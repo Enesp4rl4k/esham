@@ -33,7 +33,8 @@ _RAW: list[tuple[str, str, str, bool]] = [
     ("VESTL", "Vestel", "Dayanıklı Tüketim", False), ("VESBE", "Vestel Beyaz Eşya", "Dayanıklı Tüketim", False),
     ("EREGL", "Ereğli Demir Çelik", "Metal", False), ("KRDMD", "Kardemir (D)", "Metal", False),
     ("ISDMR", "İskenderun Demir Çelik", "Metal", False), ("BRSAN", "Borusan Boru", "Metal", False),
-    ("KOZAL", "Koza Altın", "Madencilik", False), ("KOZAA", "Koza Anadolu Metal", "Madencilik", False),
+    # KOZAL / KOZAA / KERVT: Yahoo Finance .IS için veri döndürmüyor (404/delisted, 13 Kas 2026) → alternatif kaynak
+    # (KAP, Faz C) gelene kadar evrende yok.
     ("SASA", "Sasa Polyester", "Kimya", False), ("PETKM", "Petkim", "Kimya", False),
     ("GUBRF", "Gübre Fabrikaları", "Kimya", False), ("HEKTS", "Hektaş", "Kimya", False),
     ("AKSA", "Aksa Akrilik", "Kimya", False), ("TUPRS", "Tüpraş", "Enerji", False),
@@ -51,7 +52,7 @@ _RAW: list[tuple[str, str, str, bool]] = [
     ("AEFES", "Anadolu Efes", "İçecek", False), ("CCOLA", "Coca-Cola İçecek", "İçecek", False),
     ("TATGD", "Tat Gıda", "Gıda", False), ("BANVT", "Banvit", "Gıda", False),
     ("ULUUN", "Ulusoy Un", "Gıda", False), ("TUKAS", "Tukaş", "Gıda", False),
-    ("PNSUT", "Pınar Süt", "Gıda", False), ("KERVT", "Kerevitaş", "Gıda", False),
+    ("PNSUT", "Pınar Süt", "Gıda", False),
     ("MAVI", "Mavi Giyim", "Perakende", False), ("BIZIM", "Bizim Toptan", "Perakende", False),
     # Telekom / teknoloji
     ("TCELL", "Turkcell", "Telekomünikasyon", False), ("TTKOM", "Türk Telekom", "Telekomünikasyon", False),

@@ -163,6 +163,12 @@ export default function RootLayout({
         className="min-h-screen flex flex-col font-sans"
         style={{ background: "var(--background)", color: "var(--text-primary)" }}
       >
+        <a
+          href="#icerik"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[200] focus:px-3 focus:py-2 focus:rounded-lg focus:bg-zinc-900 focus:text-white focus:border focus:border-amber-500"
+        >
+          Ana içeriğe geç
+        </a>
         {/* ── Header ──────────────────────────────────────────── */}
         <header
           className="sticky top-0 z-50 w-full backdrop-blur-md"
@@ -194,7 +200,7 @@ export default function RootLayout({
         </header>
 
         {/* ── Main ─────────────────────────────────────────────── */}
-        <main className="flex-1 w-full">{children}</main>
+        <main id="icerik" className="flex-1 w-full">{children}</main>
 
         {/* ── Footer ───────────────────────────────────────────── */}
         <footer

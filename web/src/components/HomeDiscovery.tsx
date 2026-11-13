@@ -16,8 +16,8 @@ export function HomeHero({ u }: { u: Universe | null }) {
   return (
     <section className="py-12 md:py-20 border-b" style={{ borderColor: "var(--border)" }}>
       <div className="container mx-auto px-6">
-        <h1 className="text-4xl md:text-6xl font-display font-bold leading-[1.05] max-w-3xl mb-5">
-          Borsa İstanbul&apos;u <span style={{ color: "var(--accent)" }}>rakamlarla</span> okuyun.
+        <h1 className="text-4xl md:text-6xl font-display font-bold leading-[1.05] max-w-3xl mb-5 [text-wrap:balance]">
+          Borsa İstanbul’u <span style={{ color: "var(--accent)" }}>rakamlarla</span> okuyun.
         </h1>
         <p className="text-base md:text-lg max-w-2xl mb-8" style={{ color: "var(--text-secondary)" }}>
           {u ? `${u.count} hissenin` : "Hisselerin"} F/K, PD/DD, FAVÖK, ROE gibi oranlarını bilançolardan kendimiz hesaplıyor, her gün

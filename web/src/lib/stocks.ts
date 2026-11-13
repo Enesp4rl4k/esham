@@ -12,6 +12,7 @@ export interface UniverseStock {
   financial: boolean;
   price: number | null;
   as_of: string;
+  suspect?: boolean; // bot: uç değer / Yahoo çapraz kontrol bayrağı → liderlik tablolarından elenir
   market_cap: number | null;
   pe: number | null;
   pb: number | null;
@@ -60,7 +61,7 @@ export interface Leaderboard {
 
 /** Ana sayfa liderlik tabloları: anlamsız/uç değerler ve küçük şirketler elenir. */
 export function buildLeaderboards(u: Universe, n = 5): Leaderboard[] {
-  const big = u.stocks.filter((s) => (s.market_cap ?? 0) >= 5e9); // ≥ 5 milyar TL: illikit/uç değerleri ele
+  const big = u.stocks.filter((s) => (s.market_cap ?? 0) >= 5e9 && !s.suspect); // ≥ 5 milyar TL: illikit/uç değerleri ele
   const pick = (
     title: string,
     hint: string,

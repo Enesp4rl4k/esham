@@ -70,6 +70,10 @@ const QUALITY_NOTES: Record<string, string> = {
   bilanco_eski: "Son bilanço 200 günden eski.",
   ttm_yok_yillik_kullanildi: "Çeyreklik veri yetersiz; son yıllık bilanço kullanıldı.",
   ceyreklik_toplam_yillikle_uyusmuyor: "Çeyreklik toplam yıllık rakamla uyuşmuyor; veriyi doğrulayın.",
+  carpan_uc_deger: "Bazı çarpanlar olağandışı düşük; veriyi KAP bilançosuyla doğrulayın.",
+  temettu_verimi_uc: "Temettü verimi olağandışı yüksek; temettü verisi hatalı veya tek seferlik olabilir.",
+  roe_uc_deger: "ROE olağandışı uç değerde (özkaynak çok küçük veya negatife yakın).",
+  pe_yahoo_farkli: "F/K, Yahoo Finance'in kendi değerinden belirgin farklı; kâr tanımı farkı veya veri hatası olabilir.",
   favok_yaklasik_ebit: "FAVÖK, amortisman verisi olmadığından FVÖK ile yaklaşıklanmıştır.",
   enflasyon_muhasebesi_tms29_karsilastirma_dikkat:
     "Tablolar TMS 29 (enflasyon muhasebesi) etkisi taşıyabilir; geçmiş dönem kıyasları dikkatle yorumlanmalıdır.",
@@ -138,7 +142,7 @@ export function RatiosCard({ data }: { data: StockRatiosData }) {
                         <td className={`py-2 text-right font-mono font-semibold tabular-nums ${tone(v, med, r.better)}`}>
                           {fmt(v, r.unit)}
                         </td>
-                        <td className="py-2 pl-3 text-right font-mono text-[11px] text-zinc-600 tabular-nums w-24">
+                        <td className="py-2 pl-3 text-right font-mono text-[11px] text-zinc-500 tabular-nums w-24">
                           {med !== undefined ? `med. ${fmt(med, r.unit)}` : ""}
                         </td>
                       </tr>

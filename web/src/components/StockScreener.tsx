@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowDown, ArrowUp, Search } from "lucide-react";
 import type { UniverseStock } from "@/lib/stocks";
@@ -39,10 +39,20 @@ function fmt(v: number | null, unit?: "x" | "%" | "mcap"): string {
 export function StockScreener({ stocks, sectors }: { stocks: UniverseStock[]; sectors: string[] }) {
   const params = useSearchParams();
   const initialSector = params.get("sector");
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(params.get("q") ?? "");
   const [sector, setSector] = useState(initialSector && sectors.includes(initialSector) ? initialSector : "");
-  const [active, setActive] = useState<string[]>([]);
+  const [active, setActive] = useState<string[]>(() => (params.get("f") ?? "").split(",").filter((id) => PRESETS.some((p) => p.id === id)));
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "market_cap", dir: -1 });
+
+  // Filtre durumu URL'de: paylaşılabilir/geri-ileri uyumlu (history.replaceState, yeniden render yok)
+  useEffect(() => {
+    const u = new URL(window.location.href);
+    const set = (k: string, v: string) => (v ? u.searchParams.set(k, v) : u.searchParams.delete(k));
+    set("q", q.trim());
+    set("sector", sector);
+    set("f", active.join(","));
+    window.history.replaceState(null, "", u.pathname + u.search);
+  }, [q, sector, active]);
 
   const rows = useMemo(() => {
     const fq = fold(q.trim());
@@ -74,7 +84,7 @@ export function StockScreener({ stocks, sectors }: { stocks: UniverseStock[]; se
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Hisse kodu veya şirket adı…"
+            placeholder="Hisse kodu veya şirket adı…" type="search" name="q" spellCheck={false} autoComplete="off"
             className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-amber-500/60"
           />
         </label>
@@ -84,9 +94,9 @@ export function StockScreener({ stocks, sectors }: { stocks: UniverseStock[]; se
           aria-label="Sektör"
           className="px-3 py-2.5 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-zinc-200 focus:outline-none focus:border-amber-500/60"
         >
-          <option value="">Tüm sektörler</option>
+          <option value="" className="bg-zinc-900 text-zinc-200">Tüm sektörler</option>
           {sectors.map((s) => (
-            <option key={s} value={s}>
+            <option key={s} value={s} className="bg-zinc-900 text-zinc-200">
               {s}
             </option>
           ))}
@@ -135,7 +145,7 @@ export function StockScreener({ stocks, sectors }: { stocks: UniverseStock[]; se
         <table className="w-full text-xs min-w-[860px]">
           <thead className="bg-zinc-900/80 text-zinc-400">
             <tr>
-              <th className="text-left font-medium px-3 py-2.5 sticky left-0 bg-zinc-900 z-10">
+              <th aria-sort={sort.key === "ticker" ? (sort.dir === 1 ? "ascending" : "descending") : "none"} className="text-left font-medium px-3 py-2.5 sticky left-0 bg-zinc-900 z-10">
                 <button type="button" onClick={() => toggleSort("ticker")} className="inline-flex items-center gap-1 hover:text-white">
                   Hisse {sort.key === "ticker" && (sort.dir === 1 ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)}
                 </button>
@@ -143,7 +153,7 @@ export function StockScreener({ stocks, sectors }: { stocks: UniverseStock[]; se
               <th className="text-left font-medium px-3 py-2.5 hidden lg:table-cell">Sektör</th>
               <th className="text-right font-medium px-3 py-2.5">Fiyat</th>
               {COLS.map((c) => (
-                <th key={c.key} className="text-right font-medium px-3 py-2.5" title={c.title}>
+                <th key={c.key} aria-sort={sort.key === c.key ? (sort.dir === 1 ? "ascending" : "descending") : "none"} className="text-right font-medium px-3 py-2.5" title={c.title}>
                   <button type="button" onClick={() => toggleSort(c.key)} className="inline-flex items-center gap-1 hover:text-white">
                     {c.label}
                     {sort.key === c.key && (sort.dir === 1 ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)}

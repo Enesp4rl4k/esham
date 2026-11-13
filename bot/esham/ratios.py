@@ -210,6 +210,36 @@ def growth_series(periods: list[Period], key: str, lag: int) -> list[dict[str, A
     return out
 
 
+# Bu bayraklardan biri varsa hisse "şüpheli": ana sayfa liderlik tablolarından elenir.
+SUSPECT_FLAGS = ("carpan_uc_deger", "temettu_verimi_uc", "roe_uc_deger", "pe_yahoo_farkli")
+
+
+def outlier_flags(
+    ratios: dict[str, float | None],
+    yahoo_ref: dict[str, float | None] | None,
+    currency: str,
+    financial: bool = False,
+) -> list[str]:
+    """Mutlak uç değerler + Yahoo'nun kendi F/K'sı ile çapraz kontrol.
+
+    Yahoo F/K'sı yalnızca TL raporlayanlarda karşılaştırılır: dövizli raporlayanlarda Yahoo TL fiyatı
+    ile USD/EUR defter değerini karıştırıyor (THYAO PD/DD 19), bizim kur uyumlu değerimiz doğru.
+    """
+    flags: list[str] = []
+    pe, pb, roe, dy = ratios.get("pe"), ratios.get("pb"), ratios.get("roe"), ratios.get("dividend_yield")
+    eve = ratios.get("ev_ebitda")
+    if (pe is not None and pe < 2) or (pb is not None and pb < 0.15) or (eve is not None and eve < 1):
+        flags.append("carpan_uc_deger")
+    if dy is not None and dy > 15:
+        flags.append("temettu_verimi_uc")
+    if roe is not None and abs(roe) > 100:
+        flags.append("roe_uc_deger")
+    ref_pe = (yahoo_ref or {}).get("pe")
+    if currency == "TRY" and pe is not None and ref_pe and ref_pe > 0 and abs(pe / ref_pe - 1) > 0.35:
+        flags.append("pe_yahoo_farkli")
+    return flags
+
+
 def quarterly_history(quarters: list[Period]) -> list[dict[str, Any]]:
     """Çeyrek bazlı marj ve bilanço oranı serisi (grafikler için).
 

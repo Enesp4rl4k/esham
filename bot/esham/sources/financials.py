@@ -96,6 +96,8 @@ def fetch_financials(ticker: str) -> dict[str, Any] | None:
             "price": info.get("currentPrice") or info.get("regularMarketPrice"),
             "market_cap": info.get("marketCap"),
             "name": info.get("longName") or info.get("shortName"),
+            # Yahoo'nun kendi çarpanı: yalnızca çapraz kontrol için (bkz. ratios.outlier_flags)
+            "yahoo_ref": {"pe": info.get("trailingPE"), "pb": info.get("priceToBook")},
             "currency": info.get("financialCurrency") or "TRY",
             "dividends": [(str(d.date()), float(v)) for d, v in divs.items()] if divs is not None else [],
         }

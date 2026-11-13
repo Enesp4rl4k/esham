@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import { fold } from "@/lib/fold";
@@ -37,6 +38,9 @@ export function HeroSearch({ stocks }: { stocks: StockLite[] }) {
       <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
       <input
         id="hero-search"
+        type="search"
+        name="hisse"
+        spellCheck={false}
         role="combobox"
         aria-expanded={open}
         aria-controls="hero-search-list"
@@ -64,7 +68,7 @@ export function HeroSearch({ stocks }: { stocks: StockLite[] }) {
           }
         }}
         placeholder="Hisse ara: THYAO, Aselsan, bankacılık…"
-        className="w-full pl-12 pr-4 py-4 rounded-xl bg-zinc-900 border border-zinc-800 text-base text-white placeholder:text-zinc-500 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/20"
+        className="w-full pl-12 pr-4 py-4 rounded-xl bg-zinc-900 border border-zinc-800 text-base text-white placeholder:text-zinc-500 focus:outline-none focus-visible:border-amber-500/60 focus-visible:ring-2 focus-visible:ring-amber-500/30"
       />
       {open && (
         <ul
@@ -74,10 +78,9 @@ export function HeroSearch({ stocks }: { stocks: StockLite[] }) {
         >
           {results.map((s, idx) => (
             <li key={s.ticker} role="option" aria-selected={idx === i}>
-              <button
-                type="button"
+              <Link
+                href={`/hisse/${s.ticker}`}
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => go(s.ticker)}
                 className={`w-full flex items-center justify-between gap-3 px-4 py-3 text-left ${idx === i ? "bg-zinc-900" : "hover:bg-zinc-900/60"}`}
               >
                 <span>
@@ -85,7 +88,7 @@ export function HeroSearch({ stocks }: { stocks: StockLite[] }) {
                   <span className="text-sm text-zinc-400">{s.name}</span>
                 </span>
                 <span className="text-[11px] text-zinc-500 shrink-0">{s.sector}</span>
-              </button>
+              </Link>
             </li>
           ))}
         </ul>
