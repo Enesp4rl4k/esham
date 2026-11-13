@@ -6,6 +6,7 @@ import { CATEGORIES, type CategorySlug } from "@/lib/content";
 import { MobileMenu } from "@/components/MobileMenu";
 import { DesktopNav } from "@/components/DesktopNav";
 import { SearchCommandPalette } from "@/components/SearchCommandPalette";
+import { loadUniverse } from "@/lib/stocks";
 import { WatchlistDrawer } from "@/components/WatchlistDrawer";
 
 const inter = Inter({
@@ -185,7 +186,7 @@ export default function RootLayout({
             <DesktopNav />
 
             <div className="flex items-center gap-2">
-              <SearchCommandPalette />
+              <SearchCommandPalette stocks={loadUniverse()?.stocks.map((s) => ({ ticker: s.ticker, name: s.name, sector: s.sector })) ?? []} />
               <WatchlistDrawer />
               <MobileMenu />
             </div>
