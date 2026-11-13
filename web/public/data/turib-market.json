@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-13T16:22:10+03:00",
+  "updatedAt": "2026-11-13T19:21:19+03:00",
   "date": "2026-11-13",
   "indices": [
     {
@@ -101,7 +101,7 @@
     "headlineCpiAnnualPct": 31.52,
     "meatInflationSpread": -1.01,
     "macroCommentary": "Yıllık Et TÜFE Enflasyonu %30.5 seviyesinde gerçekleşerek, manşet TÜFE'nin (%31.5) -1.0 puan altında seyretti. TÜRİB yem hammaddeleri (Arpa: 11.50 TL, Mısır: 12.00 TL) ile Dana Karkas/Yem paritesi (28.2), önümüzdeki çeyrek et enflasyonu için belirleyici öncü sinyal olmaya devam ediyor.",
-    "bistSectorImpact": "BIST Et & Gıda Hisseleri: BANVT 111,20 (-1,42%) tavuk/yem paritesinden doğrudan etkilenirken; PETUN 9,59 (+0,95%) karkas et ve un maliyet artışını şarküteri ürünlerine fiyatlama gücüyle dengeliyor. BIMAS, MGROS ve SOKM gibi perakendecilerde Et TÜFE artışı sepet büyüklüğünü artırırken brüt kâr marjını hassas tutuyor.",
+    "bistSectorImpact": "BIST Et & Gıda Hisseleri: BANVT 111,00 (-1,60%) tavuk/yem paritesinden doğrudan etkilenirken; PETUN 9,73 (+2,42%) karkas et ve un maliyet artışını şarküteri ürünlerine fiyatlama gücüyle dengeliyor. BIMAS, MGROS ve SOKM gibi perakendecilerde Et TÜFE artışı sepet büyüklüğünü artırırken brüt kâr marjını hassas tutuyor.",
     "parities": [
       {
         "title": "Dana Besi Karkas",
@@ -600,17 +600,17 @@
   },
   "agriBist": {
     "date": "2026-11-13",
-    "xgidaPrice": "11.370,11",
-    "xgidaChange": "+0,88%",
+    "xgidaPrice": "11.392,92",
+    "xgidaChange": "+1,08%",
     "turibHububatIndex": "7.690,85",
     "turibHububatChange": "-2,43%",
-    "macroTakeaway": "BIST Gıda Endeksi (XGIDA) +0,88% hareket ederken, TÜRİB Hububat Endeksi -2,43% seviyesinde. Tarımsal emtia fiyatlarındaki yön, BIST gıda şirketlerinin 1-2 çeyrek sonraki FAVÖK marjlarına doğrudan yansıyacaktır.",
+    "macroTakeaway": "BIST Gıda Endeksi (XGIDA) +1,08% hareket ederken, TÜRİB Hububat Endeksi -2,43% seviyesinde. Tarımsal emtia fiyatlarındaki yön, BIST gıda şirketlerinin 1-2 çeyrek sonraki FAVÖK marjlarına doğrudan yansıyacaktır.",
     "companies": [
       {
         "ticker": "ULUUN",
         "companyName": "Ulusoy Un Sanayi",
-        "stockPrice": "6,10",
-        "stockChange": "+0,33%",
+        "stockPrice": "6,06",
+        "stockChange": "-0,33%",
         "commodity": "BUĞDAY EKMEKLİK",
         "commodityPrice": 17.64,
         "commodityChange": -1.85,
@@ -620,8 +620,8 @@
       {
         "ticker": "PETUN",
         "companyName": "Pınar Et ve Un",
-        "stockPrice": "9,59",
-        "stockChange": "+0,95%",
+        "stockPrice": "9,73",
+        "stockChange": "+2,42%",
         "commodity": "BUĞDAY EKMEKLİK",
         "commodityPrice": 17.64,
         "commodityChange": -1.85,
@@ -631,8 +631,8 @@
       {
         "ticker": "BANVT",
         "companyName": "Banvit",
-        "stockPrice": "111,20",
-        "stockChange": "-1,42%",
+        "stockPrice": "111,00",
+        "stockChange": "-1,60%",
         "commodity": "MISIR",
         "commodityPrice": 0.0,
         "commodityChange": 0.0,
@@ -642,8 +642,8 @@
       {
         "ticker": "TATGD",
         "companyName": "Tat Gıda",
-        "stockPrice": "14,60",
-        "stockChange": "-0,48%",
+        "stockPrice": "14,50",
+        "stockChange": "-1,16%",
         "commodity": "BUĞDAY MAKARNALIK",
         "commodityPrice": 14.83,
         "commodityChange": -16.43,
@@ -653,8 +653,8 @@
       {
         "ticker": "TUKAS",
         "companyName": "Tukaş Gıda",
-        "stockPrice": "2,09",
-        "stockChange": "-4,57%",
+        "stockPrice": "1,98",
+        "stockChange": "-9,59%",
         "commodity": "BUĞDAY EKMEKLİK",
         "commodityPrice": 17.64,
         "commodityChange": -1.85,
@@ -692,31 +692,31 @@
     }
   ],
   "petrolTanker": {
-    "updatedAt": "2026-11-13T16:23:19+03:00",
+    "updatedAt": "2026-11-13T19:22:28+03:00",
     "date": "2026-11-13",
     "oilBenchmarks": {
       "brent": {
-        "price": 96.08,
-        "priceStr": "$96.08",
-        "changePct": 0.2713420997704082,
-        "changeStr": "+0.27%"
+        "price": 96.55,
+        "priceStr": "$96.55",
+        "changePct": 0.7618451262784429,
+        "changeStr": "+0.76%"
       },
       "wti": {
-        "price": 92.48,
-        "priceStr": "$92.48",
+        "price": 92.95,
+        "priceStr": "$92.95",
         "changePct": 0.35,
         "changeStr": "+0.35%"
       },
       "brentWtiSpread": 3.6,
       "urals": {
-        "price": 83.78,
+        "price": 84.25,
         "discount": 12.3,
-        "priceStr": "$83.78",
+        "priceStr": "$84.25",
         "g7Cap": 60.0
       },
       "crackSpread321": {
-        "value": 18.43,
-        "valueStr": "$18.43 / varil",
+        "value": 18.48,
+        "valueStr": "$18.48 / varil",
         "interpretation": "Akdeniz Rafineri Kârlılığı (Tüpraş Göstergesi)"
       }
     },
