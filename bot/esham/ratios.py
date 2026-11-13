@@ -13,6 +13,7 @@ Kurallar
 """
 from __future__ import annotations
 
+import math
 from typing import Any
 
 Period = dict[str, Any]  # {"date": "2025-12-31", "revenue": ..., ...}; eksik kalem = anahtar yok/None
@@ -36,7 +37,7 @@ def _num(v: Any) -> float | None:
         f = float(v)
     except (TypeError, ValueError):
         return None
-    return None if f != f else f  # NaN -> None
+    return None if math.isnan(f) else f  # NaN -> None
 
 
 def div(a: Any, b: Any, *, positive_denominator: bool = False) -> float | None:

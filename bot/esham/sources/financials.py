@@ -6,6 +6,7 @@ Ağ gerektirmeyen kısım (``normalize_frames``) pandas DataFrame alır → test
 """
 from __future__ import annotations
 
+import math
 from typing import Any
 
 from ..config import get_logger
@@ -49,7 +50,7 @@ def _cell(df: Any, rows: list[str], col: Any) -> float | None:
                 f = float(v)
             except (TypeError, ValueError):
                 continue
-            if f == f:  # NaN değil
+            if not math.isnan(f):
                 return f
     return None
 
