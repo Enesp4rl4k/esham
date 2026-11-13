@@ -1,115 +1,80 @@
 {
-  "updated_at": "2026-11-13T00:52:01+03:00",
+  "updated_at": "2026-11-13T16:21:43+03:00",
   "events": [
     {
-      "time": "14:30",
-      "country": "Türkiye",
-      "event": "Net Foreign Exchange Reserves",
+      "time": "13:00",
+      "country": "Euro Bölgesi",
+      "event": "Employed Persons Flash",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "13:00",
+      "country": "Euro Bölgesi",
+      "event": "Employment Change QoQ Prel",
+      "importance": "Orta",
+      "forecast": "0.1"
+    },
+    {
+      "time": "13:00",
+      "country": "Euro Bölgesi",
+      "event": "Employment Change YoY Prel",
+      "importance": "Orta",
+      "forecast": "0.4"
+    },
+    {
+      "time": "13:00",
+      "country": "Euro Bölgesi",
+      "event": "Balance of Trade",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "13:00",
+      "country": "Euro Bölgesi",
+      "event": "Balance of Trade s.a",
       "importance": "Orta",
       "forecast": ""
     },
     {
       "time": "16:30",
       "country": "ABD",
-      "event": "Initial Jobless Claims",
-      "importance": "Orta",
-      "forecast": "195"
-    },
-    {
-      "time": "18:00",
-      "country": "ABD",
-      "event": "Existing Home Sales",
+      "event": "PPI MoM",
       "importance": "Yüksek",
-      "forecast": "3.85"
+      "forecast": "0.4"
     },
     {
-      "time": "18:00",
+      "time": "16:30",
       "country": "ABD",
-      "event": "Existing Home Sales MoM",
+      "event": "Core PPI MoM",
+      "importance": "Orta",
+      "forecast": "0.3"
+    },
+    {
+      "time": "16:30",
+      "country": "ABD",
+      "event": "PPI Machinery Manufacturing",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "19:30",
+      "time": "16:30",
       "country": "ABD",
-      "event": "4-Week Bill Auction Allotted at High",
+      "event": "USDA Pork Net Export Sales",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "19:30",
+      "time": "16:30",
       "country": "ABD",
-      "event": "4-Week Bill Auction Bid-to-Cover",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "19:30",
-      "country": "ABD",
-      "event": "4-Week Bill Auction Total Accepted",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "20:00",
-      "country": "ABD",
-      "event": "EIA Ethanol Production",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "20:00",
-      "country": "ABD",
-      "event": "EIA Ethanol Stocks",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "20:00",
-      "country": "ABD",
-      "event": "EIA Crude Oil Stocks Change",
-      "importance": "Orta",
-      "forecast": "-1.483"
-    },
-    {
-      "time": "20:00",
-      "country": "ABD",
-      "event": "EIA Gasoline Stocks Change",
-      "importance": "Orta",
-      "forecast": "-0.35"
-    },
-    {
-      "time": "20:00",
-      "country": "ABD",
-      "event": "EIA Crude Oil Exports Change",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "21:00",
-      "country": "ABD",
-      "event": "30-Year Bond Auction Allotted at High",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "21:00",
-      "country": "ABD",
-      "event": "30-Year Bond Auction Bid-to-Cover",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "21:00",
-      "country": "ABD",
-      "event": "30-Year Bond Auction Total Accepted",
+      "event": "USDA Pork Gross Export Sales",
       "importance": "Orta",
       "forecast": ""
     },
     {
       "time": "22:00",
       "country": "ABD",
-      "event": "Monthly Budget Statement",
+      "event": "Baker Hughes Gas Rig Count",
       "importance": "Orta",
       "forecast": ""
     }
