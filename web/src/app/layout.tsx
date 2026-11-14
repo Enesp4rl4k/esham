@@ -184,7 +184,7 @@ export default function RootLayout({
               >
                 <span style={{ color: "var(--accent)" }}>Es</span>ham
               </Link>
-              <span className="text-[10px] font-mono tracking-wider uppercase px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hidden xl:inline ml-2.5">
+              <span className="text-xs font-mono tracking-wider uppercase px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hidden xl:inline ml-2.5">
                 Finansal İstihbarat
               </span>
             </div>
@@ -215,7 +215,7 @@ export default function RootLayout({
             <div className="container mx-auto px-6">
               <div className="flex flex-wrap gap-x-8 gap-y-3">
                 <span
-                  className="text-[10px] font-bold tracking-[0.15em] uppercase self-center mr-2"
+                  className="text-xs font-bold tracking-[0.15em] uppercase self-center mr-2"
                   style={{ color: "var(--text-muted)" }}
                 >
                   Piyasalar & Veri
@@ -266,7 +266,7 @@ export default function RootLayout({
 
               {/* Easter Egg */}
               <span
-                className="text-[10px] font-mono tracking-[0.22em] text-zinc-600/80 hover:text-zinc-400 transition-colors duration-300 select-none cursor-default"
+                className="text-xs font-mono tracking-[0.22em] text-zinc-600/80 hover:text-zinc-400 transition-colors duration-300 select-none cursor-default"
                 title="OODA Loop"
               >
                 observe orient decide act

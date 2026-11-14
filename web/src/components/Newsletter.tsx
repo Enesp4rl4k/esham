@@ -95,7 +95,7 @@ export function Newsletter() {
 
         {feedback}
 
-        <p className="text-zinc-600 text-sm mt-4">
+        <p className="text-zinc-400 text-sm mt-4">
           İstediğiniz zaman tek tıkla abonelikten çıkabilirsiniz. Spam yok.
         </p>
       </div>

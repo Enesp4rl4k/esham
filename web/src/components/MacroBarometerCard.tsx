@@ -45,7 +45,7 @@ export function MacroBarometerCard({ data }: MacroBarometerCardProps) {
           <div>
             <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
               Türkiye Makro Risk & Rezerv Barometresi
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
+              <span className="text-xs font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
                 TCMB & CDS
               </span>
             </h3>
@@ -70,15 +70,15 @@ export function MacroBarometerCard({ data }: MacroBarometerCardProps) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono mb-5">
         {/* 1. Türkiye 5Y CDS */}
         <div className="bg-zinc-900/60 p-3.5 rounded-xl border border-zinc-800">
-          <span className="text-[10px] text-zinc-500 block uppercase">5Y CDS Primi</span>
+          <span className="text-xs text-zinc-400 block uppercase">5Y CDS Primi</span>
           <div className="flex items-baseline gap-1.5 mt-1">
             <span className="text-xl font-extrabold text-white">
               {data.cds_5y_bps.toFixed(0)}
             </span>
-            <span className="text-xs text-zinc-500 font-mono">bps</span>
+            <span className="text-xs text-zinc-400 font-mono">bps</span>
           </div>
           <span
-            className={`flex items-center gap-1 text-[10px] font-bold mt-1.5 ${
+            className={`flex items-center gap-1 text-xs font-bold mt-1.5 ${
               isCdsDown ? "text-emerald-400" : "text-rose-400"
             }`}
           >
@@ -89,42 +89,42 @@ export function MacroBarometerCard({ data }: MacroBarometerCardProps) {
 
         {/* 2. Swap Hariç Net Rezerv */}
         <div className="bg-zinc-900/60 p-3.5 rounded-xl border border-zinc-800">
-          <span className="text-[10px] text-zinc-500 block uppercase">TCMB Swap Hariç Net</span>
+          <span className="text-xs text-zinc-400 block uppercase">TCMB Swap Hariç Net</span>
           <div className="flex items-baseline gap-1 mt-1">
             <span className="text-xl font-extrabold text-emerald-400">
               +${data.tcmb_swap_haric_net_rezerv_milyar_dolar.toFixed(1)}
             </span>
-            <span className="text-[10px] text-zinc-500 font-mono">Milyar $</span>
+            <span className="text-xs text-zinc-400 font-mono">Milyar $</span>
           </div>
-          <span className="text-[10px] text-zinc-400 block mt-1.5 font-sans">
+          <span className="text-xs text-zinc-400 block mt-1.5 font-sans">
             Brüt: ${data.tcmb_brut_rezerv_milyar_dolar} Milyar
           </span>
         </div>
 
         {/* 3. Hisse Risk Primi (ERP) */}
         <div className="bg-zinc-900/60 p-3.5 rounded-xl border border-zinc-800">
-          <span className="text-[10px] text-zinc-500 block uppercase">Hisse Risk Primi (ERP)</span>
+          <span className="text-xs text-zinc-400 block uppercase">Hisse Risk Primi (ERP)</span>
           <div className="flex items-baseline gap-1 mt-1">
             <span className="text-xl font-extrabold text-cyan-400">
               %{data.hisse_risk_primi_erp_yuzde.toFixed(1)}
             </span>
-            <span className="text-[10px] text-zinc-500 font-mono">Cazip</span>
+            <span className="text-xs text-zinc-400 font-mono">Cazip</span>
           </div>
-          <span className="text-[10px] text-zinc-400 block mt-1.5 font-sans">
+          <span className="text-xs text-zinc-400 block mt-1.5 font-sans">
             BIST Beklenen vs Tahvil
           </span>
         </div>
 
         {/* 4. Politika Faizi */}
         <div className="bg-zinc-900/60 p-3.5 rounded-xl border border-zinc-800">
-          <span className="text-[10px] text-zinc-500 block uppercase">TCMB Politika Faizi</span>
+          <span className="text-xs text-zinc-400 block uppercase">TCMB Politika Faizi</span>
           <div className="flex items-baseline gap-1 mt-1">
             <span className="text-xl font-extrabold text-white">
               %{data.politika_faizi_yuzde.toFixed(0)}
             </span>
-            <span className="text-[10px] text-zinc-500 font-mono">1 Hafta Repo</span>
+            <span className="text-xs text-zinc-400 font-mono">1 Hafta Repo</span>
           </div>
-          <span className="text-[10px] text-zinc-400 block mt-1.5 font-sans">
+          <span className="text-xs text-zinc-400 block mt-1.5 font-sans">
             Mevduat: %{data.mevduat_faizi_yuzde}
           </span>
         </div>

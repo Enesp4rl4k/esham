@@ -67,9 +67,9 @@ export default async function DevaluationRadarPage() {
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Ana Sayfa
         </Link>
-        <span className="text-zinc-600">/</span>
+        <span className="text-zinc-400">/</span>
         <span className="text-xs text-zinc-400">Piyasalar</span>
-        <span className="text-zinc-600">/</span>
+        <span className="text-zinc-400">/</span>
         <span className="text-xs text-amber-400 font-medium">Kur Şoku & Devalüasyon Radarı</span>
       </div>
 
@@ -81,7 +81,7 @@ export default async function DevaluationRadarPage() {
           <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
             TRY Kur Şoku & Devalüasyon Basınç Radarı
           </h1>
-          <span className="text-[11px] font-mono px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
+          <span className="text-xs font-mono px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
             Hazine Erken Uyarı Sistemi
           </span>
         </div>
@@ -132,11 +132,11 @@ export default async function DevaluationRadarPage() {
                 >
                   <td className="py-3.5 px-4">
                     <span className="font-bold text-white block">{bm.period}</span>
-                    <span className="text-[11px] text-zinc-400">{bm.label}</span>
+                    <span className="text-xs text-zinc-400">{bm.label}</span>
                   </td>
                   <td className="py-3.5 px-4">
                     <span
-                      className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                      className={`px-2 py-0.5 rounded text-xs font-bold ${
                         bm.score >= 80
                           ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
                           : bm.score >= 50
@@ -168,7 +168,7 @@ export default async function DevaluationRadarPage() {
                       {bm.net_reserves}
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 text-[11px] text-zinc-300">{bm.result}</td>
+                  <td className="py-3.5 px-4 text-xs text-zinc-300">{bm.result}</td>
                 </tr>
               ))}
             </tbody>
@@ -196,7 +196,7 @@ export default async function DevaluationRadarPage() {
               (%50-55) oldukça altındadır. Bu durum, döviz borcu veya hammadde ithalat yükümlülüğü bulunan
               şirketler için VİOP üzerinden kur riskini sabitlemeyi (long hedge) son derece avantajlı kılmaktadır.
             </p>
-            <div className="text-[11px] font-mono text-zinc-400 bg-zinc-900/80 p-2.5 rounded border border-zinc-800">
+            <div className="text-xs font-mono text-zinc-400 bg-zinc-900/80 p-2.5 rounded border border-zinc-800">
               Strateji: Kredili spot döviz almak yerine VİOP USD/TRY vadeli kontratı ile forward sabitleme.
             </div>
           </div>
@@ -211,7 +211,7 @@ export default async function DevaluationRadarPage() {
               döviz ataklarına karşı birinci savunma kalkanıdır. Eğer rezervlerde haftalık $4-5 Milyar üzeri
               hızlı bir erime (burn rate) başlarsa, model riski otomatik olarak &quot;Yüksek Basınç&quot; seviyesine çeker.
             </p>
-            <div className="text-[11px] font-mono text-zinc-400 bg-zinc-900/80 p-2.5 rounded border border-zinc-800">
+            <div className="text-xs font-mono text-zinc-400 bg-zinc-900/80 p-2.5 rounded border border-zinc-800">
               Kritik Eşik: Swap hariç rezervlerin $0 seviyesinin altına inmesi ve Kapalıçarşı makasının %1.5&apos;i aşması.
             </div>
           </div>
@@ -230,37 +230,37 @@ export default async function DevaluationRadarPage() {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 text-xs font-mono">
           <div className="p-3 rounded-lg bg-zinc-950/80 border border-zinc-800">
-            <span className="text-[10px] text-zinc-500 block">Ağırlık: %25</span>
+            <span className="text-xs text-zinc-400 block">Ağırlık: %25</span>
             <span className="font-bold text-white">VİOP FX Spread</span>
-            <span className="text-[10px] text-zinc-400 block mt-1">
+            <span className="text-xs text-zinc-400 block mt-1">
               İma Edilen Faiz vs TCMB Politika
             </span>
           </div>
           <div className="p-3 rounded-lg bg-zinc-950/80 border border-zinc-800">
-            <span className="text-[10px] text-zinc-500 block">Ağırlık: %25</span>
+            <span className="text-xs text-zinc-400 block">Ağırlık: %25</span>
             <span className="font-bold text-white">Rezerv Yanma Hızı</span>
-            <span className="text-[10px] text-zinc-400 block mt-1">
+            <span className="text-xs text-zinc-400 block mt-1">
               Swap Hariç Rezerv & &Delta; Rezerv
             </span>
           </div>
           <div className="p-3 rounded-lg bg-zinc-950/80 border border-zinc-800">
-            <span className="text-[10px] text-zinc-500 block">Ağırlık: %20</span>
+            <span className="text-xs text-zinc-400 block">Ağırlık: %20</span>
             <span className="font-bold text-white">Tahtakale Makası</span>
-            <span className="text-[10px] text-zinc-400 block mt-1">
+            <span className="text-xs text-zinc-400 block mt-1">
               Kapalıçarşı vs Banka Spotu
             </span>
           </div>
           <div className="p-3 rounded-lg bg-zinc-950/80 border border-zinc-800">
-            <span className="text-[10px] text-zinc-500 block">Ağırlık: %15</span>
+            <span className="text-xs text-zinc-400 block">Ağırlık: %15</span>
             <span className="font-bold text-white">Türkiye 5Y CDS</span>
-            <span className="text-[10px] text-zinc-400 block mt-1">
+            <span className="text-xs text-zinc-400 block mt-1">
               Kredi Temerrüt Takası Primi
             </span>
           </div>
           <div className="p-3 rounded-lg bg-zinc-950/80 border border-zinc-800">
-            <span className="text-[10px] text-zinc-500 block">Ağırlık: %15</span>
+            <span className="text-xs text-zinc-400 block">Ağırlık: %15</span>
             <span className="font-bold text-white">TÜFE REER</span>
-            <span className="text-[10px] text-zinc-400 block mt-1">
+            <span className="text-xs text-zinc-400 block mt-1">
               Reel Efektif Döviz Kuru
             </span>
           </div>
@@ -268,7 +268,7 @@ export default async function DevaluationRadarPage() {
       </section>
 
       {/* Yasal Uyarı */}
-      <div className="p-4 rounded-xl border border-zinc-800/60 bg-zinc-950/40 text-[11px] text-zinc-500 leading-relaxed">
+      <div className="p-4 rounded-xl border border-zinc-800/60 bg-zinc-950/40 text-xs text-zinc-400 leading-relaxed">
         <strong>Yasal Uyarı (SPK Mevzuatı):</strong> Bu sayfada yer alan Kur Şoku & Devalüasyon Basınç Radarı,
         piyasa göstergeleri ve nicel analizler yalnızca genel bilgilendirme ve analitik takip amacıyla
         üretilmiştir. Hiçbir surette yatırım tavsiyesi, portföy yöneticiliği veya döviz alım/satım önerisi

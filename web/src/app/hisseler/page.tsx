@@ -26,14 +26,14 @@ export default function HisselerPage() {
       </header>
 
       {u ? (
-        <Suspense fallback={<p className="text-sm text-zinc-500">Yükleniyor…</p>}>
+        <Suspense fallback={<p className="text-sm text-zinc-400">Yükleniyor…</p>}>
           <StockScreener stocks={u.stocks} sectors={sectors} />
         </Suspense>
       ) : (
-        <p className="text-sm text-zinc-500">Hisse verisi henüz üretilmedi.</p>
+        <p className="text-sm text-zinc-400">Hisse verisi henüz üretilmedi.</p>
       )}
 
-      <p className="mt-6 text-[11px] text-zinc-500 leading-relaxed max-w-3xl">
+      <p className="mt-6 text-xs text-zinc-400 leading-relaxed max-w-3xl">
         Kaynak: Yahoo Finance bilanço verisi; oranlar Esham tarafından hesaplanır. Zarar eden şirketlerde F/K gösterilmez.
         Bazı şirketlerin tabloları USD/EUR cinsindendir; çarpanlar kurla tutarlı hale getirilmiştir. Enflasyon muhasebesi
         (TMS 29) etkisi karşılaştırmaları bozabilir. Bu sayfa yatırım tavsiyesi değildir.{" "}

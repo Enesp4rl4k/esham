@@ -52,7 +52,7 @@ export function ReportCard({ report }: { report: Report }) {
         {/* Alt solda kategori etiketi */}
         <div className="absolute bottom-3 left-3">
           <span
-            className={`text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded ${color}`}
+            className={`text-xs font-bold tracking-wider uppercase px-2 py-0.5 rounded ${color}`}
             style={{ background: "rgba(10,10,10,0.75)", backdropFilter: "blur(4px)" }}
           >
             {CATEGORIES[report.category].label}

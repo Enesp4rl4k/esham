@@ -47,7 +47,7 @@ export function PriceChart({ ticker }: { ticker: string }) {
   if (state === "loading") return <div className="h-72 rounded-2xl border border-zinc-800 bg-zinc-950/80 animate-pulse" aria-busy="true" />;
   if (state === "missing" || pts.length < 2)
     return (
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-6 text-sm text-zinc-500">
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-6 text-sm text-zinc-400">
         Bu hisse için fiyat geçmişi henüz yok.
       </div>
     );
@@ -80,7 +80,7 @@ export function PriceChart({ ticker }: { ticker: string }) {
       <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
         <div>
           <p className="font-mono text-2xl font-bold text-white tabular-nums">{nf.format(act[1])} ₺</p>
-          <p className="text-xs text-zinc-500 mt-0.5">
+          <p className="text-xs text-zinc-400 mt-0.5">
             {fmtDate(act[0])} ·{" "}
             <span style={{ color }} className="font-mono font-semibold">
               {up ? "▲" : "▼"} %{nf.format(Math.abs(change))}
@@ -125,17 +125,17 @@ export function PriceChart({ ticker }: { ticker: string }) {
         {ticks.map((t, i) => (
           <g key={i}>
             <line x1={PL} x2={W - PR} y1={y(t)} y2={y(t)} stroke="#27272a" strokeDasharray="3 4" />
-            <text x={W - PR + 6} y={y(t) + 3} fontSize="10" fill="#a1a1aa" fontFamily="monospace">
+            <text x={W - PR + 6} y={y(t) + 3} fontSize="12" fill="#a1a1aa" fontFamily="monospace">
               {nf.format(t)}
             </text>
           </g>
         ))}
         <path d={area} fill={`url(#pc-${ticker})`} />
         <path d={line} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" />
-        <text x={PL} y={H - 8} fontSize="10" fill="#a1a1aa" fontFamily="monospace">
+        <text x={PL} y={H - 8} fontSize="12" fill="#a1a1aa" fontFamily="monospace">
           {fmtDate(pts[0][0])}
         </text>
-        <text x={W - PR} y={H - 8} fontSize="10" fill="#a1a1aa" fontFamily="monospace" textAnchor="end">
+        <text x={W - PR} y={H - 8} fontSize="12" fill="#a1a1aa" fontFamily="monospace" textAnchor="end">
           {fmtDate(pts[pts.length - 1][0])}
         </text>
         {hover !== null && (
@@ -145,7 +145,7 @@ export function PriceChart({ ticker }: { ticker: string }) {
           </g>
         )}
       </svg>
-      <p className="mt-2 text-[11px] text-zinc-500">
+      <p className="mt-2 text-xs text-zinc-400">
         Haftalık kapanış fiyatları, Yahoo Finance. Bölünme (bedelsiz) düzeltmeli, temettü düzeltmesiz. Gün içi fiyat değildir.
       </p>
     </div>

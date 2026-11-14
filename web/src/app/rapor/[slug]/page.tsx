@@ -175,7 +175,7 @@ export default async function ReportPage({
     <article className="container mx-auto px-6 py-16 max-w-3xl">
       <Link
         href={`/kategori/${report.category}`}
-        className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-white transition-colors mb-8"
+        className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors mb-8"
       >
         <ArrowLeft className="w-4 h-4" /> {categoryLabel(report.category)}
       </Link>
@@ -197,8 +197,8 @@ export default async function ReportPage({
         <span className={`text-sm font-medium ${accent.text}`}>
           {categoryLabel(report.category)}
         </span>
-        <span className="text-zinc-600 mx-2">•</span>
-        <span className="text-sm text-zinc-500">
+        <span className="text-zinc-400 mx-2">•</span>
+        <span className="text-sm text-zinc-400">
           {formatDate(report.publishedAt)} · {readingMinutes(report.body)} dk okuma
         </span>
       </div>
@@ -212,7 +212,7 @@ export default async function ReportPage({
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-4 border-y border-zinc-800 py-4 mb-10">
-        <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-400">
           {report.aiGenerated && (
             <span className="inline-flex items-center gap-1.5 text-cyan-400">
               <Sparkles className="w-3.5 h-3.5" /> Yapay zeka ile üretildi

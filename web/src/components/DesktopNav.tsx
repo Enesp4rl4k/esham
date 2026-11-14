@@ -137,14 +137,14 @@ export function DesktopNav() {
           <span>Piyasalar</span>
           <ChevronDown
             className={`w-3.5 h-3.5 transition-transform duration-200 ${
-              openDropdown === "piyasalar" ? "rotate-180 text-amber-400" : "text-zinc-500"
+              openDropdown === "piyasalar" ? "rotate-180 text-amber-400" : "text-zinc-400"
             }`}
           />
         </button>
 
         {openDropdown === "piyasalar" && (
           <div className="absolute top-full left-0 mt-1 w-72 rounded-xl border border-zinc-800 bg-zinc-950/95 p-2 shadow-2xl backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150">
-            <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 px-2.5 py-1.5">
+            <div className="text-xs font-mono uppercase tracking-wider text-zinc-400 px-2.5 py-1.5">
               Piyasa Kapsamı
             </div>
             {piyasalarItems.map((item) => {
@@ -167,7 +167,7 @@ export function DesktopNav() {
                   <div>
                     <span className="text-xs font-semibold block">{item.label}</span>
                     {item.description && (
-                      <span className="text-[11px] text-zinc-500 line-clamp-1 mt-0.5 font-normal">
+                      <span className="text-xs text-zinc-400 line-clamp-1 mt-0.5 font-normal">
                         {item.description}
                       </span>
                     )}
@@ -196,14 +196,14 @@ export function DesktopNav() {
           <span>Radarlar & Takvim</span>
           <ChevronDown
             className={`w-3.5 h-3.5 transition-transform duration-200 ${
-              openDropdown === "radarlar" ? "rotate-180 text-amber-400" : "text-zinc-500"
+              openDropdown === "radarlar" ? "rotate-180 text-amber-400" : "text-zinc-400"
             }`}
           />
         </button>
 
         {openDropdown === "radarlar" && (
           <div className="absolute top-full left-0 mt-1 w-80 rounded-xl border border-zinc-800 bg-zinc-950/95 p-2 shadow-2xl backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150">
-            <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 px-2.5 py-1.5">
+            <div className="text-xs font-mono uppercase tracking-wider text-zinc-400 px-2.5 py-1.5">
               Analitik Radarlar
             </div>
             {radarlarItems.map((item) => {
@@ -226,7 +226,7 @@ export function DesktopNav() {
                   <div>
                     <span className="text-xs font-semibold block">{item.label}</span>
                     {item.description && (
-                      <span className="text-[11px] text-zinc-500 line-clamp-1 mt-0.5 font-normal">
+                      <span className="text-xs text-zinc-400 line-clamp-1 mt-0.5 font-normal">
                         {item.description}
                       </span>
                     )}

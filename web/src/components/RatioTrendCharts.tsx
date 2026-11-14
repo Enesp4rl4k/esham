@@ -52,7 +52,7 @@ function MiniChart({ pts, unit, color, name }: { pts: { date: string; v: number 
       {ticks.map((t, i) => (
         <g key={i}>
           <line x1={PL} x2={W - PR} y1={y(t)} y2={y(t)} stroke="#27272a" strokeDasharray="3 4" />
-          <text x={W - PR + 6} y={y(t) + 3} fontSize="9" fill="#71717a" fontFamily="monospace">{nf.format(t)}</text>
+          <text x={W - PR + 6} y={y(t) + 3} fontSize="11" fill="#71717a" fontFamily="monospace">{nf.format(t)}</text>
         </g>
       ))}
       {lo < 0 && hi > 0 && <line x1={PL} x2={W - PR} y1={y(0)} y2={y(0)} stroke="#52525b" />}
@@ -65,7 +65,7 @@ function MiniChart({ pts, unit, color, name }: { pts: { date: string; v: number 
         ),
       )}
       {pts.map((p, i) => (
-        <text key={i} x={x(i)} y={H - 6} fontSize="9" textAnchor="middle" fill="#71717a" fontFamily="monospace">
+        <text key={i} x={x(i)} y={H - 6} fontSize="11" textAnchor="middle" fill="#71717a" fontFamily="monospace">
           {label(p.date)}
         </text>
       ))}
@@ -92,7 +92,7 @@ export function RatioTrendCharts({ data, sector }: { data: QuarterPoint[]; secto
           <LineChart className="w-4 h-4" />
         </span>
         <h3 className="text-sm font-bold text-white tracking-tight">Çeyreklik Trendler</h3>
-        {sector && <span className="text-[11px] text-zinc-500">· {sector}</span>}
+        {sector && <span className="text-xs text-zinc-400">· {sector}</span>}
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((c) => {
@@ -107,7 +107,7 @@ export function RatioTrendCharts({ data, sector }: { data: QuarterPoint[]; secto
                   {fmt(last, c.unit)}
                 </span>
               </figcaption>
-              <p className="text-[10px] text-zinc-500 mb-2 h-3">
+              <p className="text-xs text-zinc-400 mb-2 h-3">
                 {c.note ?? ""}
                 {delta !== null && (
                   <span className="ml-1">

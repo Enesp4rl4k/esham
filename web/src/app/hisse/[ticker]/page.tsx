@@ -28,6 +28,9 @@ import { FundamentalMetricsCard } from "@/components/FundamentalMetricsCard";
 import { FinancialHealthCard } from "@/components/FinancialHealthCard";
 import { WatchlistDrawer } from "@/components/WatchlistDrawer";
 import { PriceChart } from "@/components/PriceChart";
+import { DcfCalculator } from "@/components/DcfCalculator";
+import { NavCalculator } from "@/components/NavCalculator";
+import { SectorComparison } from "@/components/SectorComparison";
 import { FinancialStatements } from "@/components/FinancialStatements";
 import { StockTabs, type TabDef } from "@/components/StockTabs";
 import { StockCorporateActionsCard } from "@/components/StockCorporateActionsCard";
@@ -128,6 +131,15 @@ async function loadDividendsData() {
   }
 }
 
+async function loadNav(ticker: string): Promise<{ source: string; fetched_at: string; stakes: { title: string; pct: number; relation: string; ticker: string | null }[] } | null> {
+  try {
+    const raw = await fs.readFile(path.join(process.cwd(), "public", "data", "nav", `${ticker}.json`), "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 async function loadPrices(ticker: string): Promise<[string, number][] | null> {
   try {
     const raw = await fs.readFile(path.join(process.cwd(), "public", "data", "prices", `${ticker}.json`), "utf-8");
@@ -211,6 +223,7 @@ export default async function TickerPage({
   const companyName = COMPANY_NAMES[cleanTicker] || getStockName(cleanTicker) || `${cleanTicker} Pay Piyasası`;
 
   const prices = await loadPrices(cleanTicker);
+  const navData = await loadNav(cleanTicker);
   const r = stockRatios?.ratios;
   const fmtX = (v: number | null | undefined) => (v === null || v === undefined ? "—" : `${v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}x`);
   const fmtP = (v: number | null | undefined) => (v === null || v === undefined ? "—" : `%${v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
@@ -231,12 +244,25 @@ export default async function TickerPage({
       ]
     : [{ label: "Kapsamdaki Rapor", value: `${reports.length} Analiz & Bildirim` }];
 
+  const stockRow = universe?.stocks.find((s) => s.ticker === cleanTicker) ?? null;
   const peersNode =
     stockRatios && universe ? (
       <SectorPeersCard ticker={cleanTicker} sector={stockRatios.sector} stocks={universe.stocks} median={universe.sector_median[stockRatios.sector]} />
     ) : companyQuant?.fundamental?.sektor && quantData ? (
       <StockPeerComparisonCard currentTicker={cleanTicker} currentSector={companyQuant.fundamental.sektor} quantData={quantData} />
     ) : null;
+
+  const navStakes =
+    navData && universe
+      ? navData.stakes.map((st) => ({
+          title: st.title,
+          pct: st.pct,
+          relation: st.relation,
+          ticker: st.ticker,
+          mcap: (st.ticker && universe.stocks.find((u) => u.ticker === st.ticker)?.market_cap) || null,
+        }))
+      : [];
+  const navHoldingMcap = stockRow?.market_cap ?? null;
 
   const tabs: TabDef[] = [
     {
@@ -245,7 +271,6 @@ export default async function TickerPage({
       content: (
         <>
           <PriceChart ticker={cleanTicker} />
-          {peersNode}
           <StockCorporateActionsCard ticker={cleanTicker} buyback={companyBuyback} dividend={companyDividend} />
         </>
       ),
@@ -275,14 +300,63 @@ export default async function TickerPage({
           },
         ]
       : []),
-    ...(dcfData || financialHealthData
+    ...(peersNode || stockRow
+      ? [
+          {
+            id: "sektor",
+            label: "Sektör",
+            content: (
+              <>
+                {stockRow && universe && <SectorComparison stock={stockRow} universe={universe.stocks} />}
+                {peersNode}
+              </>
+            ),
+          },
+        ]
+      : []),
+    ...(stockRatios || dcfData || financialHealthData
       ? [
           {
             id: "degerleme",
             label: "Değerleme",
             content: (
               <>
-                {dcfData && <DcfTerminalCard dcf={dcfData} />}
+                {stockRatios && !stockRatios.financial ? (
+                  <DcfCalculator
+                    ticker={cleanTicker}
+                    currency={stockRatios.currency}
+                    fxToTry={stockRatios.fx_to_try ?? null}
+                    price={stockRatios.price ?? null}
+                    shares={stockRatios.ttm.shares ?? null}
+                    netDebt={stockRatios.ratios.net_debt ?? null}
+                    fcf={
+                      stockRatios.ttm.cfo !== null && stockRatios.ttm.cfo !== undefined && stockRatios.ttm.capex !== null && stockRatios.ttm.capex !== undefined
+                        ? stockRatios.ttm.cfo - Math.abs(stockRatios.ttm.capex)
+                        : null
+                    }
+                    netIncome={stockRatios.ttm.net_income ?? null}
+                  />
+                ) : stockRatios?.financial ? (
+                  <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-6">
+                    <h3 className="text-base font-bold text-white mb-2">DCF Değerleme</h3>
+                    <p className="text-sm text-zinc-300">
+                      Bankalar ve sigorta şirketlerinde borç operasyonun ham maddesidir; serbest nakit akışı ve firma değeri anlamlı değildir. Bu şirketler için
+                      PD/DD, F/K ve ROE birlikte değerlendirilir (Oranlar sekmesi).
+                    </p>
+                  </div>
+                ) : (
+                  dcfData && <DcfTerminalCard dcf={dcfData} />
+                )}
+                {navStakes.length > 0 && navHoldingMcap && headerPrice !== null && navData && (
+                  <NavCalculator
+                    ticker={cleanTicker}
+                    price={headerPrice}
+                    holdingMcap={navHoldingMcap}
+                    stakes={navStakes}
+                    source={navData.source}
+                    fetchedAt={navData.fetched_at}
+                  />
+                )}
                 {financialHealthData && <FinancialHealthCard health={financialHealthData} />}
               </>
             ),
@@ -307,9 +381,9 @@ export default async function TickerPage({
             </div>
           ) : (
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-12 text-center">
-              <Building2 className="w-10 h-10 text-zinc-600 mx-auto mb-3" />
+              <Building2 className="w-10 h-10 text-zinc-400 mx-auto mb-3" />
               <h3 className="text-sm font-semibold text-zinc-300">Bu hisse için henüz arşiv kaydı bulunmuyor</h3>
-              <p className="text-xs text-zinc-500 mt-1 max-w-md mx-auto">
+              <p className="text-xs text-zinc-400 mt-1 max-w-md mx-auto">
                 ${cleanTicker} için yeni bir KAP bildirimi geldiğinde analiz edilerek burada listelenecektir.
               </p>
               <Link href="/kategori/bist" className="inline-flex items-center gap-1.5 text-xs text-cyan-400 hover:underline mt-6">
@@ -369,7 +443,7 @@ export default async function TickerPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       {/* Breadcrumb Navigation */}
-      <div className="flex items-center gap-3 mb-8 text-xs text-zinc-500">
+      <div className="flex items-center gap-3 mb-8 text-xs text-zinc-400">
         <Link
           href="/"
           className="inline-flex items-center gap-1.5 hover:text-white transition-colors"
@@ -396,7 +470,7 @@ export default async function TickerPage({
               {stockRatios && (
                 <Link
                   href={`/hisseler?sector=${encodeURIComponent(stockRatios.sector)}`}
-                  className="text-[11px] font-semibold tracking-wider uppercase px-2.5 py-1 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 hover:border-sky-400/50"
+                  className="text-xs font-semibold tracking-wider uppercase px-2.5 py-1 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 hover:border-sky-400/50"
                 >
                   {stockRatios.sector}
                 </Link>
@@ -408,7 +482,7 @@ export default async function TickerPage({
 
           <div className="flex items-center gap-4 bg-zinc-900/80 border border-zinc-800 rounded-xl p-4 self-start lg:self-auto min-w-[200px]">
             <div>
-              <p className="text-[10px] uppercase font-bold tracking-wider text-zinc-500">
+              <p className="text-xs uppercase font-bold tracking-wider text-zinc-400">
                 {liveQuote?.value ? "Anlık Fiyat" : "Son Fiyat"}
               </p>
               <p className="text-2xl font-mono font-bold text-white mt-0.5 tabular-nums">
@@ -433,7 +507,7 @@ export default async function TickerPage({
         <dl className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-8 pt-6 border-t border-zinc-800/80 text-xs">
           {summary.map((m) => (
             <div key={m.label}>
-              <dt className="text-zinc-500 mb-1">{m.label}</dt>
+              <dt className="text-zinc-400 mb-1">{m.label}</dt>
               <dd className="font-mono font-semibold text-zinc-100 tabular-nums">{m.value}</dd>
             </div>
           ))}

@@ -31,7 +31,7 @@ export function SearchClient({ reports }: { reports: Report[] }) {
       {/* Arama kutusu */}
       <div className="relative mb-10">
         <Search
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500"
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400"
           aria-hidden="true"
         />
         <input
@@ -46,7 +46,7 @@ export function SearchClient({ reports }: { reports: Report[] }) {
           <button
             onClick={() => setQuery("")}
             aria-label="Aramayı temizle"
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -56,7 +56,7 @@ export function SearchClient({ reports }: { reports: Report[] }) {
       {/* Sonuçlar */}
       {hasQuery && (
         <>
-          <p className="text-sm text-zinc-500 mb-8">
+          <p className="text-sm text-zinc-400 mb-8">
             {results.length > 0
               ? `${results.length} sonuç bulundu`
               : "Sonuç bulunamadı"}
@@ -73,7 +73,7 @@ export function SearchClient({ reports }: { reports: Report[] }) {
               <p className="text-zinc-400">
                 &ldquo;{query}&rdquo; için rapor bulunamadı.
               </p>
-              <p className="text-zinc-600 text-sm mt-2">
+              <p className="text-zinc-400 text-sm mt-2">
                 Farklı bir anahtar kelime deneyin.
               </p>
             </div>
@@ -85,7 +85,7 @@ export function SearchClient({ reports }: { reports: Report[] }) {
       {!hasQuery && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/20 p-12 text-center">
           <Search className="w-8 h-8 text-zinc-700 mx-auto mb-4" aria-hidden="true" />
-          <p className="text-zinc-500">
+          <p className="text-zinc-400">
             Arama yapmak için yukarıya bir şeyler yazın.
           </p>
         </div>

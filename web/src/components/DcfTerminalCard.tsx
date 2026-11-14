@@ -232,7 +232,7 @@ export function DcfTerminalCard({ dcf }: DcfTerminalCardProps) {
             <span className="text-xs font-mono font-bold tracking-wider uppercase text-cyan-400">
               İndirgenmiş Nakit Akışı (İNA / DCF) Değerleme Modeli
             </span>
-            <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
+            <span className="text-xs font-semibold tracking-wider uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
               5 Yıllık Projeksiyon
             </span>
           </div>
@@ -245,7 +245,7 @@ export function DcfTerminalCard({ dcf }: DcfTerminalCardProps) {
               {dcf.finansal_para_birimi}
             </span>{" "}
             {isUsd && (
-              <span className="text-zinc-500 text-[11px]">
+              <span className="text-zinc-400 text-xs">
                 (USD/TRY: {fxMultiplier.toFixed(2)} ile dönüştürülmüştür)
               </span>
             )}
@@ -258,7 +258,7 @@ export function DcfTerminalCard({ dcf }: DcfTerminalCardProps) {
         {/* Big Target Valuation Badge */}
         <div className="flex items-center gap-4 bg-zinc-900/90 border border-zinc-800 rounded-xl p-4 self-start lg:self-auto min-w-[260px]">
           <div>
-            <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-500 block">
+            <span className="text-xs uppercase font-bold tracking-wider text-zinc-400 block">
               Model Hedef Değeri
             </span>
             <div className="flex items-baseline gap-2 mt-0.5">
@@ -291,7 +291,7 @@ export function DcfTerminalCard({ dcf }: DcfTerminalCardProps) {
       {/* Scenario Presets & Mode Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 border-b border-zinc-800/60">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-500 font-medium mr-1">Senaryo:</span>
+          <span className="text-xs text-zinc-400 font-medium mr-1">Senaryo:</span>
           {(["bear", "base", "bull"] as const).map((sc) => (
             <button
               key={sc}
@@ -370,7 +370,7 @@ export function DcfTerminalCard({ dcf }: DcfTerminalCardProps) {
             }}
             className="w-full accent-cyan-400 h-1.5 bg-zinc-800 rounded-lg cursor-pointer"
           />
-          <span className="text-[10px] text-zinc-500 block mt-1">
+          <span className="text-xs text-zinc-400 block mt-1">
             {isUsd ? "Global/Gelişmekte olan USD iskonto bandı (%8-%22)" : "Türkiye faiz/enflasyon dengeli nominal WACC (%15-%40)"}
           </span>
         </div>
@@ -398,7 +398,7 @@ export function DcfTerminalCard({ dcf }: DcfTerminalCardProps) {
             }}
             className="w-full accent-amber-400 h-1.5 bg-zinc-800 rounded-lg cursor-pointer"
           />
-          <span className="text-[10px] text-zinc-500 block mt-1">
+          <span className="text-xs text-zinc-400 block mt-1">
             5 yıl boyunca kademeli normalleşen nakit akım büyümesi
           </span>
         </div>
@@ -426,7 +426,7 @@ export function DcfTerminalCard({ dcf }: DcfTerminalCardProps) {
             }}
             className="w-full accent-emerald-400 h-1.5 bg-zinc-800 rounded-lg cursor-pointer"
           />
-          <span className="text-[10px] text-zinc-500 block mt-1">
+          <span className="text-xs text-zinc-400 block mt-1">
             5. yıldan sonraki sonsuz vadeli sürdürülebilir büyüme oranı
           </span>
         </div>
@@ -438,25 +438,25 @@ export function DcfTerminalCard({ dcf }: DcfTerminalCardProps) {
           {/* Key Metric Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-3.5">
-              <span className="text-[11px] text-zinc-500 block mb-1">5 Yıllık PV(FCF)</span>
+              <span className="text-xs text-zinc-400 block mb-1">5 Yıllık PV(FCF)</span>
               <span className="text-sm font-mono font-bold text-zinc-200">
                 {formatMoney(calculation.pvFcfs)}
               </span>
             </div>
             <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-3.5">
-              <span className="text-[11px] text-zinc-500 block mb-1">İndirgenmiş Uç Değer</span>
+              <span className="text-xs text-zinc-400 block mb-1">İndirgenmiş Uç Değer</span>
               <span className="text-sm font-mono font-bold text-zinc-200">
                 {formatMoney(calculation.pvTerminalVal)}
               </span>
             </div>
             <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-3.5">
-              <span className="text-[11px] text-zinc-500 block mb-1">Firma Değeri (EV)</span>
+              <span className="text-xs text-zinc-400 block mb-1">Firma Değeri (EV)</span>
               <span className="text-sm font-mono font-bold text-cyan-400">
                 {formatMoney(calculation.enterpriseValue)}
               </span>
             </div>
             <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-3.5">
-              <span className="text-[11px] text-zinc-500 block mb-1">Özsermaye Değeri</span>
+              <span className="text-xs text-zinc-400 block mb-1">Özsermaye Değeri</span>
               <span className="text-sm font-mono font-bold text-emerald-400">
                 {formatMoney(calculation.equityValue)}
               </span>
@@ -474,14 +474,14 @@ export function DcfTerminalCard({ dcf }: DcfTerminalCardProps) {
                   key={p.year}
                   className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-3 flex flex-col justify-between"
                 >
-                  <span className="text-[10px] text-zinc-500 font-mono font-bold uppercase">
+                  <span className="text-xs text-zinc-400 font-mono font-bold uppercase">
                     Yıl {p.year} (+%{(p.growth * 100).toFixed(0)})
                   </span>
                   <div className="my-2">
                     <span className="text-xs font-mono font-bold text-white block">
                       {formatMoney(p.fcf)}
                     </span>
-                    <span className="text-[10px] font-mono text-zinc-400 block mt-0.5">
+                    <span className="text-xs font-mono text-zinc-400 block mt-0.5">
                       PV: {formatMoney(p.pvFcf)}
                     </span>
                   </div>
@@ -506,11 +506,11 @@ export function DcfTerminalCard({ dcf }: DcfTerminalCardProps) {
               <h4 className="text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider">
                 WACC vs. Uç Büyüme (gt) Duyarlılık Matrisi (Hedef Fiyat ₺)
               </h4>
-              <p className="text-[11px] text-zinc-500">
+              <p className="text-xs text-zinc-400">
                 Farklı iskonto ve kalıcı büyüme senaryolarında modelin ürettiği hedef hisse fiyatları
               </p>
             </div>
-            <div className="flex items-center gap-3 text-[10px] font-mono">
+            <div className="flex items-center gap-3 text-xs font-mono">
               <span className="flex items-center gap-1 text-emerald-400">
                 <span className="w-2.5 h-2.5 rounded bg-emerald-500/30 border border-emerald-500/50" /> Yüksek Prim Potansiyeli
               </span>
@@ -523,7 +523,7 @@ export function DcfTerminalCard({ dcf }: DcfTerminalCardProps) {
           <div className="overflow-x-auto rounded-xl border border-zinc-800">
             <table className="w-full text-xs text-center border-collapse">
               <thead>
-                <tr className="bg-zinc-900/90 text-zinc-400 font-mono text-[11px] border-b border-zinc-800">
+                <tr className="bg-zinc-900/90 text-zinc-400 font-mono text-xs border-b border-zinc-800">
                   <th className="p-3 text-left font-bold border-r border-zinc-800">WACC \ gt</th>
                   {calculation.sensitivity.tgList.map((tg, idx) => (
                     <th key={idx} className="p-3 font-semibold">
@@ -578,27 +578,27 @@ export function DcfTerminalCard({ dcf }: DcfTerminalCardProps) {
           </h4>
           <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-zinc-900/60 p-5 rounded-xl border border-zinc-800 text-xs font-mono">
             <div className="text-center md:text-left">
-              <span className="text-[10px] text-zinc-500 block uppercase font-bold">Toplam Firma Değeri</span>
+              <span className="text-xs text-zinc-400 block uppercase font-bold">Toplam Firma Değeri</span>
               <span className="text-base font-bold text-cyan-400">{formatMoney(calculation.enterpriseValue)}</span>
             </div>
-            <span className="text-zinc-600 text-lg font-bold">+</span>
+            <span className="text-zinc-400 text-lg font-bold">+</span>
             <div className="text-center">
-              <span className="text-[10px] text-zinc-500 block uppercase font-bold">Nakit & Benzerleri</span>
+              <span className="text-xs text-zinc-400 block uppercase font-bold">Nakit & Benzerleri</span>
               <span className="text-base font-bold text-emerald-400">{formatMoney(dcf.nakit_ve_benzerleri)}</span>
             </div>
-            <span className="text-zinc-600 text-lg font-bold">-</span>
+            <span className="text-zinc-400 text-lg font-bold">-</span>
             <div className="text-center">
-              <span className="text-[10px] text-zinc-500 block uppercase font-bold">Toplam Finansal Borç</span>
+              <span className="text-xs text-zinc-400 block uppercase font-bold">Toplam Finansal Borç</span>
               <span className="text-base font-bold text-rose-400">{formatMoney(dcf.toplam_borc)}</span>
             </div>
-            <span className="text-zinc-600 text-lg font-bold">=</span>
+            <span className="text-zinc-400 text-lg font-bold">=</span>
             <div className="text-center md:text-right bg-zinc-800/50 p-3 rounded-lg border border-zinc-700/60">
-              <span className="text-[10px] text-zinc-400 block uppercase font-bold">Net Özsermaye Değeri</span>
+              <span className="text-xs text-zinc-400 block uppercase font-bold">Net Özsermaye Değeri</span>
               <span className="text-base font-extrabold text-white">{formatMoney(calculation.equityValue)}</span>
             </div>
           </div>
-          <div className="text-[11px] text-zinc-400 bg-zinc-900/40 p-4 rounded-xl border border-zinc-800/60 flex items-start gap-2">
-            <Info className="w-4 h-4 text-zinc-500 shrink-0 mt-0.5" />
+          <div className="text-xs text-zinc-400 bg-zinc-900/40 p-4 rounded-xl border border-zinc-800/60 flex items-start gap-2">
+            <Info className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
             <p>
               Net Borç köprüsü, şirketin sahip olduğu nakit varlıkları eklerken tüm finansal yükümlülüklerini düşerek hisse senedi sahiplerine kalan gerçek nakit yaratma potansiyelini izole eder. Dolaşımdaki toplam <strong>{dcf.hisse_adedi.toLocaleString("tr-TR")}</strong> adet hisseye bölünerek hisse başına <strong>{calculation.fairValueTry.toFixed(2)} TL</strong> adil değere ulaşılır.
             </p>
@@ -607,14 +607,14 @@ export function DcfTerminalCard({ dcf }: DcfTerminalCardProps) {
       )}
 
       {/* SPK Disclaimer */}
-      <div className="mt-6 pt-4 border-t border-zinc-800/60 text-[11px] text-zinc-500 flex items-center justify-between">
+      <div className="mt-6 pt-4 border-t border-zinc-800/60 text-xs text-zinc-400 flex items-center justify-between">
         <span className="flex items-center gap-1.5">
           <ShieldCheck className="w-3.5 h-3.5 text-zinc-400" />
           İNA Değerleme Modeli kamuya açık konsolide finansallardan otomatik türetilmiştir. Yatırım tavsiyesi değildir.
         </span>
         <button
           onClick={() => handleScenarioSelect("base")}
-          className="hover:text-zinc-300 text-zinc-500 flex items-center gap-1 transition-colors"
+          className="hover:text-zinc-300 text-zinc-400 flex items-center gap-1 transition-colors"
         >
           <RotateCcw className="w-3 h-3" /> Varsayılana Dön
         </button>

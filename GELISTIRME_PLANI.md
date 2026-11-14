@@ -47,6 +47,12 @@ Hedef: Her BIST hissesi ve her TEFAS fonu için kendi sayfası; Fintables tarzı
 **Bulgular:** (1) KAP `byCriteria` en fazla 2000 satır döndürür; rapor sezonunda pencere bölünmeli (uygulandı). (2) Çeyreklik akım için raporun kendi "3 Aylık" sütunu kullanılır (TMS 29 fiyat seviyesi tutarlı); Ç4 = yıllık − 9 ay türetilir (`derived`). (3) Rapor başına ~5 MB HTML → bildirim numarasıyla önbellek şart.
 **Sırada:** KAP'ı birincil kaynak yap (Yahoo yedek) · Actions'ta kalıcı önbellek (`actions/cache`) ve ilk doldurma (backfill) için ayrı iş · banka/sigorta taksonomisi · tüm evren.
 
+### Değerleme ve sektör (14 Kasım 2026)
+
+**Yapıldı:** etkileşimli reel DCF (tüm bankasız hisseler; kaydırıcılar, senaryolar, duyarlılık tablosu, `lib/dcf.ts` + 6 test) · sektörde konum bileşeni (sıra, medyan, %10–%90 aralık çubuğu, şüpheli hisseler istatistikten hariç, `lib/sector.ts` + 6 test) · NAV (KAP Genel Bilgi Formu'ndan doğrudan iştirak payları, 9 holding; `sources/kap_holdings.py`, `esham nav`, `lib/nav.ts` + 4 test) · yazı okunabilirliği (288 küçük px yazı → ölçek, 316 düşük kontrastlı gri açıldı, kök 17px).
+**NAV sınırı:** KAP yalnızca DOĞRUDAN payları veriyor; ara holdingler (ör. KCHOL → Enerji Yatırımları → Tüpraş) ünvan aramasıyla güvenilir bulunamadığından dolaylı paylar yok. Bu yüzden NAV "kısmi" etiketli, listelenmeyen değer ve holding borcu kullanıcı girdisi; girdi yokken prim/iskonto gösterilmez.
+**Sırada:** dolaylı pay zinciri (ara şirket sayfaları için KAP şirket OID haritası) · NAV'da listelenmeyen iştirakler için defter değeri · `npm test`'i CI'ya ekle · DCF'de kira yükümlülükleri ve azınlık payı.
+
 ### Faz C — Veri derinliği ve kapsam (1-2 hafta) 🟠
 1. **KAP finansal rapor ingestion** (XBRL/FR): 5-10 yıllık çeyreklik geçmiş, gerçek TTM-ROE serisi, kalem bazlı doğruluk. Yahoo yedek kalsın; kaynak alanı JSON'a yazılsın.
 2. **TMS 29 yaklaşımı:** enflasyon düzeltmeli tabloların dönemler arası karşılaştırma kuralı; UI'da uyarı yerine düzeltilmiş seri.

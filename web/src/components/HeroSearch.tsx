@@ -35,7 +35,7 @@ export function HeroSearch({ stocks }: { stocks: StockLite[] }) {
       <label className="sr-only" htmlFor="hero-search">
         Hisse ara
       </label>
-      <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+      <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
       <input
         id="hero-search"
         type="search"
@@ -87,7 +87,7 @@ export function HeroSearch({ stocks }: { stocks: StockLite[] }) {
                   <span className="font-mono font-bold text-white mr-2">{s.ticker}</span>
                   <span className="text-sm text-zinc-400">{s.name}</span>
                 </span>
-                <span className="text-[11px] text-zinc-500 shrink-0">{s.sector}</span>
+                <span className="text-xs text-zinc-400 shrink-0">{s.sector}</span>
               </Link>
             </li>
           ))}

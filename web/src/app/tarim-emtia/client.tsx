@@ -323,7 +323,7 @@ export function TuribMarketClient({
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <span
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold border"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border"
                 style={{
                   background: "var(--accent-glow)",
                   borderColor: "var(--accent-dim)",
@@ -391,7 +391,7 @@ export function TuribMarketClient({
         {/* Bülten Hızlı İstatistikleri */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-6 border-t" style={{ borderColor: "var(--border)" }}>
           <div>
-            <p className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--text-muted)" }}>
+            <p className="text-xs uppercase tracking-wider font-semibold" style={{ color: "var(--text-muted)" }}>
               Toplam Günlük Hacim
             </p>
             <p className="text-lg md:text-xl font-bold mt-1" style={{ color: "var(--text-primary)" }}>
@@ -399,7 +399,7 @@ export function TuribMarketClient({
             </p>
           </div>
           <div>
-            <p className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--text-muted)" }}>
+            <p className="text-xs uppercase tracking-wider font-semibold" style={{ color: "var(--text-muted)" }}>
               İşlem Tutarı
             </p>
             <p className="text-lg md:text-xl font-bold mt-1" style={{ color: "var(--accent)" }}>
@@ -407,7 +407,7 @@ export function TuribMarketClient({
             </p>
           </div>
           <div>
-            <p className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--text-muted)" }}>
+            <p className="text-xs uppercase tracking-wider font-semibold" style={{ color: "var(--text-muted)" }}>
               Dana / Yem Paritesi
             </p>
             <p className="text-lg md:text-xl font-bold mt-1 text-emerald-400 flex items-center gap-1.5">
@@ -420,7 +420,7 @@ export function TuribMarketClient({
             </p>
           </div>
           <div>
-            <p className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--text-muted)" }}>
+            <p className="text-xs uppercase tracking-wider font-semibold" style={{ color: "var(--text-muted)" }}>
               Yıllık Et TÜFE
             </p>
             <p className="text-lg md:text-xl font-bold mt-1" style={{ color: "var(--text-primary)" }}>
@@ -498,7 +498,7 @@ export function TuribMarketClient({
                 >
                   <div className="flex items-center justify-between mb-3">
                     <span
-                      className="px-2.5 py-0.5 rounded text-[11px] font-mono font-bold tracking-wider"
+                      className="px-2.5 py-0.5 rounded text-xs font-mono font-bold tracking-wider"
                       style={{ background: "var(--surface-2)", color: "var(--accent)" }}
                     >
                       {idx.code}
@@ -518,7 +518,7 @@ export function TuribMarketClient({
                   <p className="text-2xl font-bold font-display" style={{ color: "var(--text-primary)" }}>
                     {idx.valueStr}
                   </p>
-                  <div className="mt-4 pt-3 border-t flex items-center justify-between text-[11px]" style={{ borderColor: "var(--border)" }}>
+                  <div className="mt-4 pt-3 border-t flex items-center justify-between text-xs" style={{ borderColor: "var(--border)" }}>
                     <span style={{ color: "var(--text-muted)" }}>Hacim: {idx.volumeStr}</span>
                     <span style={{ color: "var(--text-muted)" }}>
                       {idx.low > 0 ? `${idx.low.toFixed(1)} - ${idx.high.toFixed(1)}` : "Seans Aktif"}
@@ -542,7 +542,7 @@ export function TuribMarketClient({
               </div>
 
               <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
                 <input
                   type="text"
                   placeholder="Ürün ara (buğday, mısır, arpa)..."
@@ -557,7 +557,7 @@ export function TuribMarketClient({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs md:text-sm">
                 <thead>
-                  <tr className="border-b text-[11px] uppercase tracking-wider" style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}>
+                  <tr className="border-b text-xs uppercase tracking-wider" style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}>
                     <th className="py-3 px-4 md:px-6">Emtia Ürünü</th>
                     <th className="py-3 px-4">Ort. Fiyat</th>
                     <th className="py-3 px-4">Değişim</th>
@@ -602,7 +602,7 @@ export function TuribMarketClient({
                     })
                   ) : (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-zinc-500">
+                      <td colSpan={6} className="py-8 text-center text-zinc-400">
                         Eşleşen ürün kaydı bulunamadı.
                       </td>
                     </tr>
@@ -701,7 +701,7 @@ export function TuribMarketClient({
                         {p.title}
                       </span>
                       <span
-                        className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
+                        className={`text-xs font-semibold px-2 py-0.5 rounded border ${
                           isOk
                             ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
                             : "bg-red-500/10 border-red-500/30 text-red-400"
@@ -730,11 +730,11 @@ export function TuribMarketClient({
 
                     <div className="grid grid-cols-2 gap-2 text-xs py-2 px-3 rounded-lg bg-zinc-900/60 mb-3 border border-zinc-800/80">
                       <div>
-                        <span className="text-zinc-500 block text-[10px]">Karkas Fiyatı</span>
+                        <span className="text-zinc-400 block text-xs">Karkas Fiyatı</span>
                         <span className="font-semibold text-zinc-200">{p.meatPrice.toFixed(2)} ₺/kg</span>
                       </div>
                       <div>
-                        <span className="text-zinc-500 block text-[10px]">Rasyon Yem</span>
+                        <span className="text-zinc-400 block text-xs">Rasyon Yem</span>
                         <span className="font-semibold text-zinc-200">{p.feedPrice.toFixed(2)} ₺/kg</span>
                       </div>
                     </div>
@@ -788,7 +788,7 @@ export function TuribMarketClient({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs md:text-sm">
                 <thead>
-                  <tr className="border-b text-[11px] uppercase tracking-wider" style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}>
+                  <tr className="border-b text-xs uppercase tracking-wider" style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}>
                     <th className="py-3 px-4 md:px-6">Emtia</th>
                     <th className="py-3 px-4">TMO Taban Alım</th>
                     <th className="py-3 px-4">Bakanlık Primi</th>
@@ -820,7 +820,7 @@ export function TuribMarketClient({
                         </td>
                         <td className="py-3.5 px-4 md:px-6 text-right">
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${
+                            className={`px-2 py-0.5 rounded text-xs font-semibold border ${
                               isPremium
                                 ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
                                 : "bg-red-500/10 border-red-500/30 text-red-400"
@@ -863,35 +863,35 @@ export function TuribMarketClient({
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800">
-                  <span className="text-[11px] text-zinc-500 uppercase tracking-wider block">
+                  <span className="text-xs text-zinc-400 uppercase tracking-wider block">
                     3 Ay Saklama Başarısı
                   </span>
                   <p className="text-2xl font-bold font-display mt-1 text-zinc-200">
                     %{dataset.storageBacktest.winRate3mPct?.toFixed(1)}
                   </p>
-                  <p className="text-[11px] text-zinc-500 mt-1">Hasat spot satışını geçme oranı</p>
+                  <p className="text-xs text-zinc-400 mt-1">Hasat spot satışını geçme oranı</p>
                 </div>
 
                 <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800">
-                  <span className="text-[11px] text-zinc-500 uppercase tracking-wider block">
+                  <span className="text-xs text-zinc-400 uppercase tracking-wider block">
                     6 Ay Saklama Başarısı
                   </span>
                   <p className="text-2xl font-bold font-display mt-1 text-zinc-200">
                     %{dataset.storageBacktest.winRate6mPct?.toFixed(1)}
                   </p>
-                  <p className="text-[11px] text-zinc-500 mt-1">
+                  <p className="text-xs text-zinc-400 mt-1">
                     Ort. Net Getiri: {dataset.storageBacktest.avgNetReturn6mPct?.toFixed(1)}%
                   </p>
                 </div>
 
                 <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800">
-                  <span className="text-[11px] text-zinc-500 uppercase tracking-wider block">
+                  <span className="text-xs text-zinc-400 uppercase tracking-wider block">
                     9 Ay Saklama Başarısı
                   </span>
                   <p className="text-2xl font-bold font-display mt-1 text-zinc-200">
                     %{dataset.storageBacktest.winRate9mPct?.toFixed(1)}
                   </p>
-                  <p className="text-[11px] text-zinc-500 mt-1">Yüksek faiz taşıma maliyeti baskısı</p>
+                  <p className="text-xs text-zinc-400 mt-1">Yüksek faiz taşıma maliyeti baskısı</p>
                 </div>
               </div>
 
@@ -929,7 +929,7 @@ export function TuribMarketClient({
                 <h3 className="font-display font-bold text-base md:text-lg">
                   En Yüksek Net Arbitraj Fırsatları
                 </h3>
-                <span className="text-xs text-zinc-500 font-mono">
+                <span className="text-xs text-zinc-400 font-mono">
                   Referans Nakliye: 0,50 ₺/kg
                 </span>
               </div>
@@ -938,7 +938,7 @@ export function TuribMarketClient({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs md:text-sm">
                 <thead>
-                  <tr className="border-b text-[11px] uppercase tracking-wider" style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}>
+                  <tr className="border-b text-xs uppercase tracking-wider" style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}>
                     <th className="py-3 px-4 md:px-6">Emtia</th>
                     <th className="py-3 px-4">Kaynak (Ucuz) İl & Depo</th>
                     <th className="py-3 px-4">Hedef (Pahalı) İl & Depo</th>
@@ -957,19 +957,19 @@ export function TuribMarketClient({
                         </td>
                         <td className="py-3.5 px-4">
                           <span className="font-semibold block text-zinc-200">{op.cheapCity}</span>
-                          <span className="text-[11px] text-zinc-500">{op.cheapPrice.toFixed(2)} ₺/kg ({op.cheapLidas})</span>
+                          <span className="text-xs text-zinc-400">{op.cheapPrice.toFixed(2)} ₺/kg ({op.cheapLidas})</span>
                         </td>
                         <td className="py-3.5 px-4">
                           <span className="font-semibold block text-zinc-200">{op.expensiveCity}</span>
-                          <span className="text-[11px] text-zinc-500">{op.expensivePrice.toFixed(2)} ₺/kg ({op.expensiveLidas})</span>
+                          <span className="text-xs text-zinc-400">{op.expensivePrice.toFixed(2)} ₺/kg ({op.expensiveLidas})</span>
                         </td>
                         <td className="py-3.5 px-4 font-mono">{op.grossSpread.toFixed(2)} ₺</td>
-                        <td className="py-3.5 px-4 font-mono text-zinc-500">-{op.freightCost.toFixed(2)} ₺</td>
+                        <td className="py-3.5 px-4 font-mono text-zinc-400">-{op.freightCost.toFixed(2)} ₺</td>
                         <td className="py-3.5 px-4 font-mono font-bold text-emerald-400">
                           +{op.netArbitrage.toFixed(2)} ₺/kg (%{op.netArbitragePct.toFixed(1)})
                         </td>
                         <td className="py-3.5 px-4 md:px-6 text-right">
-                          <span className="px-2.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                          <span className="px-2.5 py-0.5 rounded text-xs font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
                             {op.opportunityLevel}
                           </span>
                         </td>
@@ -977,7 +977,7 @@ export function TuribMarketClient({
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-zinc-500">
+                      <td colSpan={7} className="py-8 text-center text-zinc-400">
                         Arbitraj kaydı bulunamadı.
                       </td>
                     </tr>
@@ -1006,7 +1006,7 @@ export function TuribMarketClient({
             </div>
 
             <div className="text-xs px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center gap-2">
-              <span className="text-zinc-500">XGIDA Endeksi:</span>
+              <span className="text-zinc-400">XGIDA Endeksi:</span>
               <strong className="text-zinc-200">{dataset.agriBist.xgidaPrice || "11.240,50"}</strong>
               <span className="text-emerald-400 font-semibold">{dataset.agriBist.xgidaChange || "+2,59%"}</span>
             </div>
@@ -1036,19 +1036,19 @@ export function TuribMarketClient({
 
                     <div className="p-3 rounded-lg bg-zinc-900/60 border border-zinc-800 text-xs mb-3 space-y-1.5">
                       <div className="flex justify-between">
-                        <span className="text-zinc-500">Hisse Fiyatı:</span>
+                        <span className="text-zinc-400">Hisse Fiyatı:</span>
                         <span className="font-semibold text-zinc-200">{c.stockPrice} ₺</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-zinc-500">Girdi Emtia:</span>
+                        <span className="text-zinc-400">Girdi Emtia:</span>
                         <span className="font-semibold text-amber-400">{c.commodity}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-zinc-500">Emtia Değişim:</span>
+                        <span className="text-zinc-400">Emtia Değişim:</span>
                         <span className="font-semibold text-zinc-300">{c.commodityChange}</span>
                       </div>
                       <div className="flex justify-between pt-1 border-t border-zinc-800">
-                        <span className="text-zinc-500">Marj Baskısı:</span>
+                        <span className="text-zinc-400">Marj Baskısı:</span>
                         <span className="font-semibold text-zinc-200">{c.marginPressure}</span>
                       </div>
                     </div>
@@ -1102,9 +1102,9 @@ export function TuribMarketClient({
                 </p>
 
                 <div className="rounded-lg bg-zinc-950 p-4 font-mono text-xs text-zinc-300 border border-zinc-800 overflow-x-auto space-y-2">
-                  <p className="text-zinc-500"># cURL ile indirme:</p>
+                  <p className="text-zinc-400"># cURL ile indirme:</p>
                   <p className="text-amber-400">curl -s https://esham.pages.dev/data/turib-market.json</p>
-                  <p className="text-zinc-500 pt-2"># Python ile okuma:</p>
+                  <p className="text-zinc-400 pt-2"># Python ile okuma:</p>
                   <p className="text-zinc-400">
                     import requests<br />
                     data = requests.get(&quot;https://esham.pages.dev/data/turib-market.json&quot;).json()<br />
@@ -1176,7 +1176,7 @@ export function TuribMarketClient({
         }}
       >
         <div className="flex items-start gap-3">
-          <ShieldCheck className="w-5 h-5 text-zinc-500 shrink-0 mt-0.5" />
+          <ShieldCheck className="w-5 h-5 text-zinc-400 shrink-0 mt-0.5" />
           <p>
             <strong>Yasal Uyarı (SPK & TÜRİB Çekincesi):</strong> Bu sayfada yer alan TÜRİB endeksleri,
             lisanslı depoculuk işlem verileri, et-yem pariteleri, TÜİK enflasyon hesaplamaları ve BIST hisse

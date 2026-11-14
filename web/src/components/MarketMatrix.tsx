@@ -163,7 +163,7 @@ export function MarketMatrix({ tickerData, turibData }: MarketMatrixProps) {
             Canlı Piyasa Matrisi & Terminal Verisi
           </h3>
         </div>
-        <span className="text-[11px] text-zinc-500 font-mono">
+        <span className="text-xs text-zinc-400 font-mono">
           Otomatik Senkronize · BIST & TÜRİB & Global
         </span>
       </div>
@@ -196,7 +196,7 @@ export function MarketMatrix({ tickerData, turibData }: MarketMatrixProps) {
                         <p className="text-xs font-semibold text-white tracking-tight">
                           {it.label}
                         </p>
-                        <p className="text-[10px] text-zinc-500 font-mono">
+                        <p className="text-xs text-zinc-400 font-mono">
                           {it.sublabel}
                         </p>
                       </div>
@@ -205,7 +205,7 @@ export function MarketMatrix({ tickerData, turibData }: MarketMatrixProps) {
                           {it.value}
                         </p>
                         <p
-                          className={`text-[10px] font-mono font-semibold flex items-center justify-end gap-0.5 ${
+                          className={`text-xs font-mono font-semibold flex items-center justify-end gap-0.5 ${
                             it.up ? "text-emerald-400" : "text-rose-400"
                           }`}
                         >

@@ -5,7 +5,7 @@
 export function Disclaimer({ compact = false }: { compact?: boolean }) {
   if (compact) {
     return (
-      <p className="text-xs text-zinc-600 leading-relaxed">
+      <p className="text-xs text-zinc-400 leading-relaxed">
         Bu içerik yapay zeka tarafından üretilmiştir ve yatırım tavsiyesi niteliği
         taşımaz. Yatırım kararlarınızı yetkili bir danışmana danışarak veriniz.
       </p>

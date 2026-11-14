@@ -55,7 +55,7 @@ export function RelatedReports({
                   className={`absolute inset-0 bg-gradient-to-tr ${accent.gradient}`}
                 />
               </div>
-              <p className="text-xs text-zinc-500 mb-1">
+              <p className="text-xs text-zinc-400 mb-1">
                 {formatDate(report.publishedAt)} •{" "}
                 {readingMinutes(report.body)} dk
               </p>
@@ -64,7 +64,7 @@ export function RelatedReports({
               >
                 {report.title}
               </h3>
-              <p className="text-xs text-zinc-500 mt-1">
+              <p className="text-xs text-zinc-400 mt-1">
                 {categoryLabel(report.category)}
               </p>
             </Link>

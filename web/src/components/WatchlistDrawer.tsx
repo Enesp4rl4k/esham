@@ -112,7 +112,7 @@ export function WatchlistDrawer({ currentTicker }: WatchlistDrawerProps) {
       >
         <Bookmark className="w-3.5 h-3.5 text-amber-400" />
         <span className="hidden sm:inline">İzleme Listem</span>
-        <span className="px-1.5 py-0.2 rounded-full font-mono text-[10px] bg-amber-500/20 text-amber-400 font-bold border border-amber-500/30">
+        <span className="px-1.5 py-0.2 rounded-full font-mono text-xs bg-amber-500/20 text-amber-400 font-bold border border-amber-500/30">
           {watchlist.length}
         </span>
       </button>
@@ -132,14 +132,14 @@ export function WatchlistDrawer({ currentTicker }: WatchlistDrawerProps) {
                 </span>
                 <div>
                   <h3 className="text-sm font-bold text-white tracking-tight">Kişisel İzleme Listem</h3>
-                  <span className="text-[10px] font-mono text-zinc-500">
+                  <span className="text-xs font-mono text-zinc-400">
                     Tarayıcı Hafızası (Gizli & Güvenli)
                   </span>
                 </div>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1 rounded-lg text-zinc-500 hover:text-white hover:bg-zinc-900 transition-colors"
+                className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -148,10 +148,10 @@ export function WatchlistDrawer({ currentTicker }: WatchlistDrawerProps) {
             {/* Liste Alanı */}
             <div className="flex-1 overflow-y-auto p-4 space-y-2.5">
               {watchlist.length === 0 ? (
-                <div className="py-16 text-center text-xs text-zinc-500">
+                <div className="py-16 text-center text-xs text-zinc-400">
                   <Bookmark className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
                   <p className="font-semibold text-zinc-400">İzleme listeniz henüz boş.</p>
-                  <p className="mt-1 text-[11px] text-zinc-600">
+                  <p className="mt-1 text-xs text-zinc-400">
                     Hisse sayfalarındaki "Listeye Ekle" butonuna basarak hisseleri buraya ekleyebilirsiniz.
                   </p>
                 </div>
@@ -172,13 +172,13 @@ export function WatchlistDrawer({ currentTicker }: WatchlistDrawerProps) {
                           <span className="font-mono font-bold text-sm text-white">
                             ${ticker}
                           </span>
-                          <ExternalLink className="w-3 h-3 text-zinc-500 opacity-60" />
+                          <ExternalLink className="w-3 h-3 text-zinc-400 opacity-60" />
                         </div>
                         {quote ? (
                           <div className="flex items-center gap-2 mt-0.5 text-xs font-mono">
                             <span className="text-zinc-200 font-semibold">{quote.value}</span>
                             <span
-                              className={`flex items-center gap-0.5 text-[11px] ${
+                              className={`flex items-center gap-0.5 text-xs ${
                                 quote.up ? "text-emerald-400" : "text-rose-400"
                               }`}
                             >
@@ -191,7 +191,7 @@ export function WatchlistDrawer({ currentTicker }: WatchlistDrawerProps) {
                             </span>
                           </div>
                         ) : (
-                          <span className="text-[10px] text-zinc-500 font-mono block mt-0.5">
+                          <span className="text-xs text-zinc-400 font-mono block mt-0.5">
                             Terminal Verisi Hazır
                           </span>
                         )}
@@ -199,7 +199,7 @@ export function WatchlistDrawer({ currentTicker }: WatchlistDrawerProps) {
 
                       <button
                         onClick={() => toggleTicker(ticker)}
-                        className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors shrink-0"
+                        className="p-1.5 rounded-lg text-zinc-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors shrink-0"
                         title="Listeden Çıkar"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -212,7 +212,7 @@ export function WatchlistDrawer({ currentTicker }: WatchlistDrawerProps) {
 
             {/* Hızlı Ekleme ve Alt Bilgi */}
             <div className="p-4 border-t border-zinc-800 bg-zinc-900/40">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-500 block mb-2">
+              <span className="text-xs uppercase font-bold tracking-wider text-zinc-400 block mb-2">
                 Hızlı Ekle (BIST 30)
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -222,7 +222,7 @@ export function WatchlistDrawer({ currentTicker }: WatchlistDrawerProps) {
                     <button
                       key={sym}
                       onClick={() => toggleTicker(sym)}
-                      className={`text-[10px] font-mono px-2 py-1 rounded border transition-all ${
+                      className={`text-xs font-mono px-2 py-1 rounded border transition-all ${
                         added
                           ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
                           : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white"

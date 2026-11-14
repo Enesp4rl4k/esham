@@ -21,7 +21,7 @@ export function SectorPeersCard({
   const peers = stocks
     .filter((s) => s.sector === sector)
     .sort((a, b) => (b.market_cap ?? 0) - (a.market_cap ?? 0))
-    .slice(0, 8);
+    .slice(0, 12);
   if (peers.length < 3 || !peers.some((s) => s.ticker === ticker)) return null;
 
   return (
@@ -31,15 +31,15 @@ export function SectorPeersCard({
           <span className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
             <Scale className="w-4 h-4" />
           </span>
-          <h3 className="text-sm font-bold text-white tracking-tight">Sektör Karşılaştırması · {sector}</h3>
+          <h3 className="text-base font-bold text-white tracking-tight">Sektör Hisseleri · {sector}</h3>
         </div>
-        <Link href={`/hisseler?sector=${encodeURIComponent(sector)}`} className="text-xs text-zinc-400 hover:text-white">
+        <Link href={`/hisseler?sector=${encodeURIComponent(sector)}`} className="text-sm text-zinc-300 hover:text-white">
           Tüm {sector} hisseleri
         </Link>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-xs min-w-[520px]">
-          <thead className="text-zinc-500">
+        <table className="w-full text-sm min-w-[560px]">
+          <thead className="text-zinc-400">
             <tr>
               <th className="text-left font-medium py-2">Hisse</th>
               <th className="text-right font-medium py-2">F/K</th>
@@ -58,7 +58,7 @@ export function SectorPeersCard({
                     <Link href={`/hisse/${s.ticker}`} className={`font-bold ${me ? "text-amber-300" : "text-white"}`}>
                       {s.ticker}
                     </Link>
-                    <span className="ml-2 font-sans text-[11px] text-zinc-500">{s.name}</span>
+                    <span className="ml-2 font-sans text-xs text-zinc-400">{s.name}</span>{s.suspect && <span title="Veri tutarsızlığı bayrağı: sektör istatistiğine dâhil edilmez" className="ml-1 text-amber-400">⚠</span>}
                   </td>
                   <td className="py-2.5 text-right text-zinc-300">{x(s.pe)}</td>
                   <td className="py-2.5 text-right text-zinc-300">{x(s.pb)}</td>
@@ -69,7 +69,7 @@ export function SectorPeersCard({
               );
             })}
             {median && (
-              <tr className="text-zinc-500">
+              <tr className="text-zinc-400">
                 <td className="py-2.5 font-sans">Sektör medyanı</td>
                 <td className="py-2.5 text-right">{x(median.pe ?? null)}</td>
                 <td className="py-2.5 text-right">{x(median.pb ?? null)}</td>

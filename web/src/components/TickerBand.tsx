@@ -69,7 +69,7 @@ export async function TickerBand() {
                     style={{ color: "var(--text-secondary)" }}
                   >
                     <span
-                      className="font-bold tracking-wider text-[10px] uppercase"
+                      className="font-bold tracking-wider text-xs uppercase"
                       style={{ color: "var(--text-muted)" }}
                     >
                       {item.label}
@@ -78,7 +78,7 @@ export async function TickerBand() {
                       {item.value}
                     </span>
                     <span
-                      className="flex items-center gap-0.5 text-[10px]"
+                      className="flex items-center gap-0.5 text-xs"
                       style={{ color }}
                     >
                       {item.change.startsWith("+") ? (
@@ -101,7 +101,7 @@ export async function TickerBand() {
               })}
               <span
                 style={{ color: "var(--accent)" }}
-                className="font-medium text-[10px]"
+                className="font-medium text-xs"
                 aria-hidden="true"
               >
                 Esham — Yapay Zeka Piyasa Analizi
@@ -148,7 +148,7 @@ export async function TickerBand() {
                 href={`/kategori/${slug}`}
                 className={`flex items-center gap-2 hover:opacity-70 transition-opacity ${catColors[slug]}`}
               >
-                <span className="font-semibold uppercase tracking-wider text-[10px]">
+                <span className="font-semibold uppercase tracking-wider text-xs">
                   {CATEGORIES[slug].label}
                 </span>
               </Link>

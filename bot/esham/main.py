@@ -342,6 +342,15 @@ def _cmd_kap_financials(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
+def _cmd_nav(args: argparse.Namespace) -> None:
+    from .jobs.publish_nav import run_nav
+
+    n = run_nav(tickers=args.tickers)
+    print(f"{n} şirket için KAP iştirak payları yazıldı.")
+    if n == 0:
+        sys.exit(1)
+
+
 def _cmd_ipo_pdf(_: argparse.Namespace) -> None:
     generator = IpoPdfGenerator()
     generator.create(
@@ -513,6 +522,10 @@ def build_parser() -> argparse.ArgumentParser:
     kf.add_argument("--months", type=int, default=18, help="Geriye dönük ay (varsayılan 18)")
     kf.add_argument("--workers", type=int, default=3)
     kf.set_defaults(func=_cmd_kap_financials)
+
+    nv = sub.add_parser("nav", help="Holdinglerin KAP iştirak pay tablosu (web/public/data/nav) — NAV girdisi")
+    nv.add_argument("--tickers", nargs="*", help="Sadece bu şirketler (varsayılan: Holding sektörü + ALARK, TKFEN)")
+    nv.set_defaults(func=_cmd_nav)
 
     return parser
 

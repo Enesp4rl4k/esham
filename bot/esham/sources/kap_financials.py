@@ -298,6 +298,34 @@ def build_periods(snapshots: list[dict[str, Any]]) -> tuple[list[Period], list[P
     return quarterly, annual
 
 
+def iter_fr_rows(headers: dict[str, str], w_start: date, w_end: date) -> list[dict[str, Any]]:
+    """[w_start, w_end] aralığındaki tüm "Finansal Rapor" sınıfı (FR) bildirim satırları.
+
+    KAP tek sorguda en fazla 2000 satır döndürür (rapor sezonunda aşılır) → dolan pencere ikiye bölünür.
+    """
+    payload = {
+        "fromDate": w_start.isoformat(), "toDate": w_end.isoformat(), "memberType": "IGS",
+        "mkkMemberOidList": [], "inactiveMkkMemberOidList": [], "disclosureClass": "FR", "subjectList": [],
+        "isLate": "", "mainSector": "", "sector": "", "subSector": "", "marketOid": "", "index": "",
+        "bdkReview": "", "bdkMemberOidList": [], "year": "", "term": "", "ruleType": "", "period": "",
+        "fromSrc": False, "srcCategory": "", "disclosureIndexList": [],
+    }
+    try:
+        resp = retry_post(QUERY_URL, json=payload, headers=headers, timeout=max(settings.http_timeout, 40))
+        resp.raise_for_status()
+        rows = resp.json()
+    except Exception as exc:
+        log.warning("KAP FR listesi alınamadı (%s – %s): %s", w_start, w_end, exc)
+        return []
+    rows = rows if isinstance(rows, list) else rows.get("data", [])
+    if len(rows) >= MAX_ROWS and w_end > w_start:
+        mid = w_start + (w_end - w_start) // 2
+        return iter_fr_rows(headers, w_start, mid) + iter_fr_rows(headers, mid + timedelta(days=1), w_end)
+    if len(rows) >= MAX_ROWS:
+        log.warning("KAP: %s günü %d satır — kesilmiş olabilir", w_start, len(rows))
+    return rows
+
+
 class KapFinancials:
     """Bildirim listesi + rapor indirme (önbellekli)."""
 
@@ -310,31 +338,10 @@ class KapFinancials:
         found: dict[str, dict[str, Any]] = {}
         start = end - timedelta(days=int(months * 30.5))
 
-        def fetch(w_start: date, w_end: date) -> None:
-            """KAP tek sorguda en fazla 2000 satır döndürür (rapor sezonunda aşılır) → dolunca pencereyi böl."""
-            payload = {
-                "fromDate": w_start.isoformat(), "toDate": w_end.isoformat(), "memberType": "IGS",
-                "mkkMemberOidList": [], "inactiveMkkMemberOidList": [], "disclosureClass": "FR", "subjectList": [],
-                "isLate": "", "mainSector": "", "sector": "", "subSector": "", "marketOid": "", "index": "",
-                "bdkReview": "", "bdkMemberOidList": [], "year": "", "term": "", "ruleType": "", "period": "",
-                "fromSrc": False, "srcCategory": "", "disclosureIndexList": [],
-            }
-            try:
-                resp = retry_post(QUERY_URL, json=payload, headers=self.headers, timeout=max(settings.http_timeout, 40))
-                resp.raise_for_status()
-                rows = resp.json()
-            except Exception as exc:
-                log.warning("KAP FR listesi alınamadı (%s – %s): %s", w_start, w_end, exc)
-                return
-            rows = rows if isinstance(rows, list) else rows.get("data", [])
-            if len(rows) >= MAX_ROWS and w_end > w_start:
-                mid = w_start + (w_end - w_start) // 2
-                fetch(w_start, mid)
-                fetch(mid + timedelta(days=1), w_end)
-                return
-            if len(rows) >= MAX_ROWS:
-                log.warning("KAP: %s günü %d satır — kesilmiş olabilir", w_start, len(rows))
-            for r in rows:
+        w_start = start
+        while w_start < end:
+            w_end = min(w_start + timedelta(days=60), end)
+            for r in iter_fr_rows(self.headers, w_start, w_end):
                 subj = str(r.get("subject") or "")
                 if not subj.startswith("Finansal Rapor"):
                     continue
@@ -345,11 +352,6 @@ class KapFinancials:
                 r["_ticker"] = sorted(hit)[0]
                 r["_consolidated"] = "Konsolide Olmayan" not in subj
                 found[str(r["disclosureIndex"])] = r
-
-        w_start = start
-        while w_start < end:
-            w_end = min(w_start + timedelta(days=60), end)
-            fetch(w_start, w_end)
             w_start = w_end + timedelta(days=1)
         # aynı (ticker, yıl, dönem) için konsolide olanı tercih et, sonra en yeni bildirim (düzeltme)
         best: dict[tuple[str, Any, Any], dict[str, Any]] = {}

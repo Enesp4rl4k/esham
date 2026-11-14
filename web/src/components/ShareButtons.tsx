@@ -31,7 +31,7 @@ export function ShareButtons({ title, url }: ShareButtonsProps) {
 
   return (
     <div className="flex items-center gap-3">
-      <span className="text-xs text-zinc-600 mr-1">Paylaş</span>
+      <span className="text-xs text-zinc-400 mr-1">Paylaş</span>
 
       {/* Kopyala */}
       <button
