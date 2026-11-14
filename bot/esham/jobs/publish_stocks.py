@@ -86,7 +86,8 @@ def build_stock(meta: dict[str, Any]) -> dict[str, Any] | None:
     )
     rat["market_cap"] = raw["market_cap"]  # gösterim/tarayıcı için her zaman TL
     quality = _quality_flags(snap, q, a, financial) + R.outlier_flags(rat, raw.get("yahoo_ref"), raw["currency"], financial)
-    keep = ("date", "revenue", "gross_profit", "ebitda", "net_income", "total_assets", "equity", "total_debt", "cash", "cfo", "capex")
+    # Finansallar sekmesi tabloları için tüm normalize kalemler (eksik = null)
+    keep = ("date",) + R.FLOW_KEYS + R.STOCK_KEYS
     return {
         "ticker": ticker,
         "name": meta["name"],

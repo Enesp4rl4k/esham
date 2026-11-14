@@ -13,6 +13,9 @@ export interface StockRatiosData {
   sector_median: Record<string, number>;
   quality: string[];
   quarterly_history?: QuarterPoint[];
+  price?: number | null;
+  annual?: Record<string, number | string | null>[];
+  quarterly?: Record<string, number | string | null>[];
 }
 
 type Unit = "x" | "%" | "gün";
