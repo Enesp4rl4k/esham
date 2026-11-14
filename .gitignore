@@ -31,3 +31,7 @@ Thumbs.db
 graphify-out/
 **/graphify-out/
 graph.html
+
+# KAP finansal rapor önbelleği ve henüz siteye bağlanmamış ham KAP çıktısı
+bot/cache/kap/
+web/public/data/kap/

@@ -333,6 +333,15 @@ def _cmd_stocks(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
+def _cmd_kap_financials(args: argparse.Namespace) -> None:
+    from .jobs.publish_kap import run_kap
+
+    n = run_kap(tickers=args.tickers, months=args.months, workers=args.workers)
+    print(f"{n} hisse için KAP finansalları yazıldı.")
+    if n == 0:
+        sys.exit(1)
+
+
 def _cmd_ipo_pdf(_: argparse.Namespace) -> None:
     generator = IpoPdfGenerator()
     generator.create(
@@ -498,6 +507,12 @@ def build_parser() -> argparse.ArgumentParser:
     st.add_argument("--workers", type=int, default=4)
     st.add_argument("--no-prices", action="store_true", help="Fiyat geçmişini atla")
     st.set_defaults(func=_cmd_stocks)
+
+    kf = sub.add_parser("kap-financials", help="KAP finansal raporlarından IFRS tabloları (web/public/data/kap) üret")
+    kf.add_argument("--tickers", nargs="*", help="Sadece bu hisseler (varsayılan: bankasız tüm evren)")
+    kf.add_argument("--months", type=int, default=18, help="Geriye dönük ay (varsayılan 18)")
+    kf.add_argument("--workers", type=int, default=3)
+    kf.set_defaults(func=_cmd_kap_financials)
 
     return parser
 
