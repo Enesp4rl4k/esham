@@ -17,7 +17,7 @@ function BoardRow({ s, metric, unit, rank }: { s: UniverseStock; metric: keyof U
           <span className="block font-mono font-bold text-sm text-white">{s.ticker}</span>
           <span className="block text-xs text-zinc-400 truncate">{s.name}</span>
         </span>
-        <span className="font-mono text-sm font-semibold tabular-nums" style={{ color: "var(--accent)" }}>
+        <span className="font-mono text-sm font-semibold tabular-nums text-zinc-100">
           {val(s[metric], unit)}
         </span>
       </Link>
@@ -43,7 +43,7 @@ export function HomeStrip({ u }: { u: Universe | null }) {
               <Link
                 key={t}
                 href={`/hisse/${t}`}
-                className="px-2.5 py-1 rounded-md text-xs font-mono font-semibold bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-600 transition-colors"
+                className="inline-flex items-center min-h-9 px-3 rounded-md text-sm font-semibold bg-zinc-900 border border-zinc-800 text-zinc-200 hover:text-white hover:border-zinc-600 transition-colors"
               >
                 {t}
               </Link>
@@ -66,7 +66,7 @@ export function StockLeaderboards({ u, rows = 4 }: { u: Universe; rows?: number 
     <section className="py-8 border-b" style={{ borderColor: "var(--border)" }}>
       <div className="container mx-auto px-6">
         <div className="flex items-baseline justify-between mb-5">
-          <h2 className="text-xs font-bold tracking-[0.15em] uppercase" style={{ color: "var(--text-muted)" }}>
+          <h2 className="text-lg font-display font-semibold text-white">
             Hisse Liderlik Tabloları
           </h2>
           <Link href="/hisseler" className="text-xs flex items-center gap-1 hover:opacity-70" style={{ color: "var(--text-secondary)" }}>
@@ -107,7 +107,7 @@ export function SectorCards({ u }: { u: Universe }) {
   return (
     <section className="py-8 border-b" style={{ borderColor: "var(--border)" }}>
       <div className="container mx-auto px-6">
-        <h2 className="text-xs font-bold tracking-[0.15em] uppercase mb-4" style={{ color: "var(--text-muted)" }}>
+        <h2 className="text-lg font-display font-semibold text-white mb-4">
           Sektörlere Göre
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

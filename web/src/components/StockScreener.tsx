@@ -85,7 +85,7 @@ export function StockScreener({ stocks, sectors }: { stocks: UniverseStock[]; se
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Hisse kodu veya şirket adı…" type="search" name="q" spellCheck={false} autoComplete="off"
-            className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-amber-500/60"
+            className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-white placeholder:text-zinc-400 focus:outline-none focus:border-amber-500/60"
           />
         </label>
         <select

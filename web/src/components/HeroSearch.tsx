@@ -68,7 +68,7 @@ export function HeroSearch({ stocks, compact = false }: { stocks: StockLite[]; c
           }
         }}
         placeholder="Hisse ara: THYAO, Aselsan, bankacılık…"
-        className={`w-full rounded-xl ${compact ? "pl-9 pr-3 py-2.5 text-sm" : "pl-12 pr-4 py-4 text-base"} bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-500 focus:outline-none focus-visible:border-amber-500/60 focus-visible:ring-2 focus-visible:ring-amber-500/30`}
+        className={`w-full rounded-xl ${compact ? "pl-9 pr-3 py-2.5 text-sm" : "pl-12 pr-4 py-4 text-base"} bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-400 focus:outline-none focus-visible:border-amber-500/60 focus-visible:ring-2 focus-visible:ring-amber-500/30`}
       />
       {open && (
         <ul

@@ -11,13 +11,13 @@ import { WatchlistDrawer } from "@/components/WatchlistDrawer";
 
 const inter = Inter({
   variable: "--font-inter",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   display: "swap",
 });
 
 const outfit = Outfit({
   variable: "--font-outfit",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   display: "swap",
 });
 
@@ -184,9 +184,6 @@ export default function RootLayout({
               >
                 <span style={{ color: "var(--accent)" }}>Es</span>ham
               </Link>
-              <span className="text-xs font-mono tracking-wider uppercase px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hidden xl:inline ml-2.5">
-                Finansal İstihbarat
-              </span>
             </div>
 
             <DesktopNav />

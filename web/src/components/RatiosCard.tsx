@@ -91,11 +91,11 @@ function fmt(v: number | null | undefined, unit: Unit): string {
   return unit === "%" ? `%${nf.format(v)}` : `${nf.format(v)}x`;
 }
 
-function tone(v: number | null | undefined, median: number | undefined, better?: "low" | "high"): string {
-  if (v === null || v === undefined || median === undefined || !better) return "text-zinc-200";
-  const good = better === "low" ? v < median * 0.9 : v > median * 1.1;
-  const bad = better === "low" ? v > median * 1.1 : v < median * 0.9;
-  return good ? "text-emerald-400" : bad ? "text-rose-400" : "text-zinc-200";
+/** Medyana göre konum: renk değil glif + ekran okuyucu metni (yeşil/kırmızı yalnızca fiyat yönü içindir). */
+function position(v: number | null | undefined, median: number | undefined) {
+  if (v === null || v === undefined || median === undefined) return null;
+  if (Math.abs(v - median) < 1e-9) return { glyph: "=", text: "medyana eşit" };
+  return v < median ? { glyph: "▼", text: "medyanın altında" } : { glyph: "▲", text: "medyanın üstünde" };
 }
 
 export function RatiosCard({ data }: { data: StockRatiosData }) {
@@ -106,7 +106,7 @@ export function RatiosCard({ data }: { data: StockRatiosData }) {
     <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-6 shadow-xl">
       <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-zinc-800/80 mb-5">
         <div className="flex items-center gap-2">
-          <span className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          <span className="p-1.5 rounded-lg bg-zinc-800/80 text-zinc-200 border border-zinc-700">
             <Calculator className="w-4 h-4" />
           </span>
           <h3 className="text-sm font-bold text-white tracking-tight">Finansal Oranlar</h3>
@@ -117,7 +117,7 @@ export function RatiosCard({ data }: { data: StockRatiosData }) {
       </div>
 
       {lossMaking && (
-        <p className="mb-4 text-xs text-amber-300/90">
+        <p className="mb-4 text-sm text-zinc-200 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2">
           Son 12 ayda net zarar var; F/K anlamsız olduğundan gösterilmiyor.
         </p>
       )}
@@ -125,7 +125,7 @@ export function RatiosCard({ data }: { data: StockRatiosData }) {
       <div className="grid gap-6 md:grid-cols-2">
         {GROUPS.filter((g) => !(data.financial && g.skipForFinancial)).map((g) => (
           <section key={g.title}>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">{g.title}</h4>
+            <h4 className="text-sm font-semibold text-zinc-200 mb-2">{g.title}</h4>
             <table className="w-full text-xs">
               <thead className="sr-only">
                 <tr>
@@ -143,11 +143,23 @@ export function RatiosCard({ data }: { data: StockRatiosData }) {
                     return (
                       <tr key={r.key} title={r.hint}>
                         <td className="py-2 text-zinc-400">{r.label}</td>
-                        <td className={`py-2 text-right font-mono font-semibold tabular-nums ${tone(v, med, r.better)}`}>
+                        <td className="py-2 text-right font-mono font-semibold tabular-nums text-zinc-100">
                           {fmt(v, r.unit)}
                         </td>
                         <td className="py-2 pl-3 text-right font-mono text-xs text-zinc-400 tabular-nums w-24">
-                          {med !== undefined ? `med. ${fmt(med, r.unit)}` : ""}
+                          {med !== undefined ? (
+                            <>
+                              {position(v, med) && (
+                                <>
+                                  <span aria-hidden="true" className="mr-1">{position(v, med)!.glyph}</span>
+                                  <span className="sr-only">{position(v, med)!.text}, </span>
+                                </>
+                              )}
+                              med. {fmt(med, r.unit)}
+                            </>
+                          ) : (
+                            ""
+                          )}
                         </td>
                       </tr>
                     );

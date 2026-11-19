@@ -24,7 +24,7 @@
   --cat-global: #a78bfa;  /* violet-400 — macro */
   --cat-ipo:    #34d399;  /* emerald-400 — IPO */
   --cat-viop:   #fb923c;  /* orange-400 — derivatives */
-  --cat-gundem: #e8a030;  /* amber — news */
+  --cat-gundem: #2dd4bf;  /* teal — gündem (amber yalnızca marka/birincil eylem) */
 
   /* Piyasa renkleri — yükseliş/düşüş */
   --color-up:   #22c55e;  /* green-500 */
@@ -43,6 +43,13 @@
   --color-foreground: var(--text-primary);
   --font-sans: var(--font-inter);
   --font-display: var(--font-outfit);
+  /* Veri yazısı: ayrı bir mono aile yerine Inter'in tabular rakamları (tek gövde ailesi) */
+  --font-mono: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-mono {
+  font-feature-settings: "tnum" 1, "zero" 1;
+  letter-spacing: 0;
 }
 
 /* ─── Base ────────────────────────────────────────────────────────────────── */
