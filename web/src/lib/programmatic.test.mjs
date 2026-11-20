@@ -33,3 +33,28 @@ test("tarama: şüpheli elenir, sıralama yönü doğru", () => {
 test("tarama slug ve kimlikleri benzersiz", () => {
   assert.equal(new Set(SCANS.map((s) => s.slug)).size, SCANS.length);
 });
+
+import { pairSlug, comparePairs, comparePair } from "./programmatic.ts";
+
+test("çift slug alfabetik ve tekil", () => {
+  assert.equal(pairSlug("thyao", "PGSUS"), "PGSUS-vs-THYAO");
+  assert.equal(pairSlug("PGSUS", "THYAO"), "PGSUS-vs-THYAO");
+});
+
+test("çiftler aynı sektörden, tekrarsız ve sıralı slug", () => {
+  const mk = (t, mc, sector = "Enerji") => ({ ticker: t, name: t, sector, financial: false, price: 1, as_of: "", market_cap: mc, pe: 5, pb: 1, ev_ebitda: 4, roe: 10, net_margin: 5, dividend_yield: 1, net_debt_ebitda: 1 });
+  const u = { stocks: [mk("D", 4), mk("C", 3), mk("B", 2), mk("A", 1), mk("Z", 9, "Cam")] };
+  const p = comparePairs(u, 3);
+  assert.equal(p.length, 3);
+  assert.equal(new Set(p.map((x) => x.slug)).size, 3);
+  for (const x of p) assert.ok(x.a.ticker < x.b.ticker);
+});
+
+test("karşılaştırma: düşük iyi/yüksek iyi kazananı ve finansal elemesi", () => {
+  const base = { ticker: "A", name: "A", sector: "S", financial: false, price: 1, as_of: "", market_cap: 1, pe: 5, pb: 1, ev_ebitda: 4, roe: 10, net_margin: 5, dividend_yield: 1, net_debt_ebitda: 1 };
+  const r = comparePair(base, { ...base, ticker: "B", pe: 8, roe: 20 });
+  assert.equal(r.find((x) => x.metric.key === "pe").winner, "a");
+  assert.equal(r.find((x) => x.metric.key === "roe").winner, "b");
+  const f = comparePair({ ...base, financial: true }, base);
+  assert.ok(!f.some((x) => x.metric.key === "ev_ebitda"));
+});

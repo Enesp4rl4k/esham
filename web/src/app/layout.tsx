@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/config";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Inter, Outfit } from "next/font/google";
@@ -26,7 +27,7 @@ const CF_ANALYTICS_TOKEN = process.env.NEXT_PUBLIC_CF_ANALYTICS_TOKEN;
 const GSC_VERIFICATION = process.env.NEXT_PUBLIC_GSC_VERIFICATION;
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://esham.pages.dev"),
+  metadataBase: new URL(`${SITE_URL}`),
   ...(GSC_VERIFICATION ? { verification: { google: GSC_VERIFICATION } } : {}),
   title: {
     default: "Esham — BIST & Piyasa İstihbarat Platformu",
@@ -52,7 +53,7 @@ export const metadata: Metadata = {
     "Takasbank Teminat",
     "Ham Petrol ve Tanker Navlun"
   ],
-  authors: [{ name: "Esham Finansal İstihbarat", url: "https://esham.pages.dev" }],
+  authors: [{ name: "Esham Finansal İstihbarat", url: `${SITE_URL}` }],
   creator: "Esham",
   publisher: "Esham",
   formatDetection: {
@@ -68,7 +69,7 @@ export const metadata: Metadata = {
     title: "Esham — BIST & Piyasa İstihbarat Platformu",
     description:
       "Borsa İstanbul, VİOP, KAP bildirimleri, TÜRİB emtia ve makro piyasa analizleri.",
-    url: "https://esham.pages.dev",
+    url: `${SITE_URL}`,
     siteName: "Esham",
     locale: "tr_TR",
     type: "website",
@@ -142,12 +143,12 @@ export default function RootLayout({
               "@graph": [
                 {
                   "@type": "Organization",
-                  "@id": "https://esham.pages.dev/#organization",
+                  "@id": `${SITE_URL}/#organization`,
                   "name": "Esham",
-                  "url": "https://esham.pages.dev",
+                  "url": `${SITE_URL}`,
                   "logo": {
                     "@type": "ImageObject",
-                    "url": "https://esham.pages.dev/cards/default-bist.png",
+                    "url": `${SITE_URL}/cards/default-bist.png`,
                     "width": 1200,
                     "height": 630
                   },
@@ -155,13 +156,13 @@ export default function RootLayout({
                 },
                 {
                   "@type": "WebSite",
-                  "@id": "https://esham.pages.dev/#website",
-                  "url": "https://esham.pages.dev",
+                  "@id": `${SITE_URL}/#website`,
+                  "url": `${SITE_URL}`,
                   "name": "Esham",
-                  "publisher": { "@id": "https://esham.pages.dev/#organization" },
+                  "publisher": { "@id": `${SITE_URL}/#organization` },
                   "potentialAction": {
                     "@type": "SearchAction",
-                    "target": "https://esham.pages.dev/arama?q={search_term_string}",
+                    "target": `${SITE_URL}/arama?q={search_term_string}`,
                     "query-input": "required name=search_term_string"
                   }
                 }
@@ -267,6 +268,13 @@ export default function RootLayout({
                   style={{ color: "var(--text-secondary)" }}
                 >
                   Arşiv
+                </Link>
+                <Link
+                  href="/yontem"
+                  className="text-sm transition-opacity hover:opacity-70"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Yöntem ve Kaynaklar
                 </Link>
               </div>
             </div>

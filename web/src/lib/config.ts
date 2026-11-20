@@ -15,3 +15,9 @@ export const BOT_API_URL = (process.env.NEXT_PUBLIC_ESHAM_BOT_URL ?? "").replace
 
 /** Formspree yedeği — bot uç noktası henüz bağlanmamışsa kullanılır. */
 export const FORMSPREE_FALLBACK = "https://formspree.io/f/xnjkwdkr";
+
+/**
+ * Sitenin kanonik adresi. Özel alan adına geçişte yalnızca `NEXT_PUBLIC_SITE_URL`
+ * (ör. https://esham.com.tr) ayarlanır; canonical, sitemap, robots, JSON-LD ve OG URL'leri buradan beslenir.
+ */
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://esham.pages.dev").replace(/\/+$/, "");

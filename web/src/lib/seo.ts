@@ -16,7 +16,7 @@ export const seoTitle = (t: string) => truncate(t, TITLE_MAX);
 export const seoDescription = (d: string) => truncate(d, DESC_MAX);
 
 export const DEFAULT_OG_IMAGE = {
-  url: "https://esham.pages.dev/cards/default-bist.png",
+  url: "/cards/default-bist.png" /* metadataBase ile mutlaklaşır */,
   width: 1200,
   height: 600,
   alt: "Esham — BIST hisse analizi",

@@ -112,3 +112,67 @@ export function runScan(u: Universe, sc: Scan): UniverseStock[] {
     .filter((s) => !s.suspect && sc.test(s))
     .sort((a, b) => sc.dir * ((a[sc.metric] as number) - (b[sc.metric] as number)));
 }
+
+// ─── Karşılaştırma çiftleri ────────────────────────────────────────────────
+export interface PairMetric {
+  key: "pe" | "pb" | "ev_ebitda" | "roe" | "net_margin" | "dividend_yield" | "net_debt_ebitda";
+  label: string;
+  unit: "x" | "%";
+  better: "low" | "high";
+  /** yalnızca finansal olmayan şirketlerde anlamlı */
+  nonFinancialOnly?: boolean;
+  valid: (v: number) => boolean;
+}
+
+export const PAIR_METRICS: PairMetric[] = [
+  { key: "pe", label: "F/K", unit: "x", better: "low", valid: (v) => v > 0 },
+  { key: "pb", label: "PD/DD", unit: "x", better: "low", valid: (v) => v > 0 },
+  { key: "ev_ebitda", label: "FD/FAVÖK", unit: "x", better: "low", nonFinancialOnly: true, valid: (v) => v > 0 },
+  { key: "roe", label: "ROE", unit: "%", better: "high", valid: (v) => Math.abs(v) < 200 },
+  { key: "net_margin", label: "Net marj", unit: "%", better: "high", valid: () => true },
+  { key: "dividend_yield", label: "Temettü verimi", unit: "%", better: "high", valid: () => true },
+  { key: "net_debt_ebitda", label: "Net borç/FAVÖK", unit: "x", better: "low", nonFinancialOnly: true, valid: (v) => v > -50 && v < 50 },
+];
+
+export function pairSlug(a: string, b: string): string {
+  const [x, y] = [a.toUpperCase(), b.toUpperCase()].sort();
+  return `${x}-vs-${y}`;
+}
+
+/** Aynı sektörde piyasa değeri en büyük `top` hissenin tüm ikilileri (şüpheli olanlar hariç). */
+export function comparePairs(u: Universe, top = 4): { a: UniverseStock; b: UniverseStock; slug: string }[] {
+  const out: { a: UniverseStock; b: UniverseStock; slug: string }[] = [];
+  for (const g of sectorGroups(u)) {
+    const pool = g.stocks.filter((s) => !s.suspect).slice(0, top);
+    if (pool.length < 2 || g.stocks.length < 4) continue;
+    for (let i = 0; i < pool.length; i++)
+      for (let j = i + 1; j < pool.length; j++) {
+        const slug = pairSlug(pool[i].ticker, pool[j].ticker);
+        const [first] = slug.split("-vs-");
+        const [a, b] = pool[i].ticker === first ? [pool[i], pool[j]] : [pool[j], pool[i]];
+        out.push({ a, b, slug });
+      }
+  }
+  return out;
+}
+
+export interface PairRow {
+  metric: PairMetric;
+  a: number | null;
+  b: number | null;
+  winner: "a" | "b" | null;
+}
+
+export function comparePair(a: UniverseStock, b: UniverseStock): PairRow[] {
+  const fin = a.financial || b.financial;
+  return PAIR_METRICS.filter((m) => !(m.nonFinancialOnly && fin)).map((m) => {
+    const get = (s: UniverseStock) => {
+      const v = s[m.key] as number | null;
+      return v !== null && m.valid(v) ? v : null;
+    };
+    const va = get(a), vb = get(b);
+    let winner: "a" | "b" | null = null;
+    if (va !== null && vb !== null && va !== vb) winner = (m.better === "low" ? va < vb : va > vb) ? "a" : "b";
+    return { metric: m, a: va, b: vb, winner };
+  });
+}

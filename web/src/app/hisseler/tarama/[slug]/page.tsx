@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/config";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,7 +8,6 @@ import { DEFAULT_OG_IMAGE, seoDescription } from "@/lib/seo";
 import { StockTable } from "@/components/StockTable";
 
 type Params = { slug: string };
-const BASE = "https://esham.pages.dev";
 
 export const dynamicParams = false;
 
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const rows = runScan(u, sc);
   const title = `${sc.title}: BIST ${sc.hint} Listesi`;
   const description = seoDescription(`${sc.hint} koşulunu sağlayan ${rows.length} BIST hissesi, ${u.updated_at.slice(0, 10)} itibarıyla. F/K, PD/DD, ROE ve temettü ile birlikte listelenir.`);
-  const url = `${BASE}/hisseler/tarama/${sc.slug}`;
+  const url = `${SITE_URL}/hisseler/tarama/${sc.slug}`;
   return {
     title,
     description,
@@ -51,12 +51,12 @@ export default async function ScanPage({ params }: { params: Promise<Params> }) 
       {
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Esham", item: BASE },
-          { "@type": "ListItem", position: 2, name: "Hisseler", item: `${BASE}/hisseler` },
-          { "@type": "ListItem", position: 3, name: sc.title, item: `${BASE}/hisseler/tarama/${sc.slug}` },
+          { "@type": "ListItem", position: 1, name: "Esham", item: SITE_URL },
+          { "@type": "ListItem", position: 2, name: "Hisseler", item: `${SITE_URL}/hisseler` },
+          { "@type": "ListItem", position: 3, name: sc.title, item: `${SITE_URL}/hisseler/tarama/${sc.slug}` },
         ],
       },
-      { "@type": "ItemList", name: sc.title, itemListElement: rows.map((s, i) => ({ "@type": "ListItem", position: i + 1, url: `${BASE}/hisse/${s.ticker}`, name: s.name })) },
+      { "@type": "ItemList", name: sc.title, itemListElement: rows.map((s, i) => ({ "@type": "ListItem", position: i + 1, url: `${SITE_URL}/hisse/${s.ticker}`, name: s.name })) },
     ],
   };
 

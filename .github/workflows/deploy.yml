@@ -49,6 +49,9 @@ jobs:
         working-directory: web
         env:
           NEXT_PUBLIC_ESHAM_BOT_URL: ${{ secrets.ESHAM_BOT_URL }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL }}
+          NEXT_PUBLIC_CF_ANALYTICS_TOKEN: ${{ vars.CF_ANALYTICS_TOKEN }}
+          NEXT_PUBLIC_GSC_VERIFICATION: ${{ vars.GSC_VERIFICATION }}
         run: npm run build
 
       - name: Cloudflare Pages'e gönder

@@ -1,9 +1,9 @@
+import { SITE_URL } from "@/lib/config";
 import { getAllReports, categoryLabel, getReportImageUrl } from "@/lib/content";
 
 export const dynamic = "force-static";
 
 // Tek kaynak — layout.tsx ve sitemap.ts ile senkron.
-const SITE_URL = "https://esham.pages.dev";
 
 function escapeXml(value: string): string {
   return value

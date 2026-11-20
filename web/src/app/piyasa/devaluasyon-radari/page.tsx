@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/config";
 import React from "react";
 import Link from "next/link";
 import { promises as fs } from "fs";
@@ -22,7 +23,7 @@ export const metadata = {
   description:
     "TCMB swap hariç net rezerv yanma hızı, Kapalıçarşı ikili kur makası, VİOP ima edilen faiz oranı ve 5Y CDS ile Türkiye kur riski erken uyarı sistemi.",
   alternates: {
-    canonical: "https://esham.pages.dev/piyasa/devaluasyon-radari",
+    canonical: `${SITE_URL}/piyasa/devaluasyon-radari`,
   },
   keywords: [
     "Devalüasyon Radarı",

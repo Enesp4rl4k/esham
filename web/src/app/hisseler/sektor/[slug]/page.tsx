@@ -1,13 +1,13 @@
+import { SITE_URL } from "@/lib/config";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { loadUniverse } from "@/lib/stocks";
-import { MIN_INDEXABLE, SCANS, sectorGroups, sectorStats } from "@/lib/programmatic";
+import { MIN_INDEXABLE, SCANS, comparePairs, sectorGroups, sectorStats } from "@/lib/programmatic";
 import { DEFAULT_OG_IMAGE, seoDescription } from "@/lib/seo";
 import { StockTable } from "@/components/StockTable";
 
 type Params = { slug: string };
-const BASE = "https://esham.pages.dev";
 const nf = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const fx = (v: number | null) => (v === null ? "—" : `${nf.format(v)}x`);
 const fp = (v: number | null) => (v === null ? "—" : `%${nf.format(v)}`);
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const description = seoDescription(
     `Borsa İstanbul ${g.name} sektöründeki ${g.stocks.length} hisse: medyan F/K ${fx(st.pe)}, medyan ROE ${fp(st.roe)}. Oranlar bilançodan hesaplanır, ${u.updated_at.slice(0, 10)} itibarıyla.`,
   );
-  const url = `${BASE}/hisseler/sektor/${g.slug}`;
+  const url = `${SITE_URL}/hisseler/sektor/${g.slug}`;
   return {
     title,
     description,
@@ -59,6 +59,7 @@ export default async function SectorPage({ params }: { params: Promise<Params> }
   const topYield = [...ok].filter((s) => (s.dividend_yield ?? 0) > 0).sort((a, b) => b.dividend_yield! - a.dividend_yield!)[0];
   const others = groups.filter((x) => x.slug !== g.slug && x.stocks.length >= MIN_INDEXABLE);
   const date = u.updated_at.slice(0, 10);
+  const pairs = comparePairs(u).filter((p) => p.a.sector === g.name);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -66,15 +67,15 @@ export default async function SectorPage({ params }: { params: Promise<Params> }
       {
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Esham", item: BASE },
-          { "@type": "ListItem", position: 2, name: "Hisseler", item: `${BASE}/hisseler` },
-          { "@type": "ListItem", position: 3, name: g.name, item: `${BASE}/hisseler/sektor/${g.slug}` },
+          { "@type": "ListItem", position: 1, name: "Esham", item: SITE_URL },
+          { "@type": "ListItem", position: 2, name: "Hisseler", item: `${SITE_URL}/hisseler` },
+          { "@type": "ListItem", position: 3, name: g.name, item: `${SITE_URL}/hisseler/sektor/${g.slug}` },
         ],
       },
       {
         "@type": "ItemList",
         name: `${g.name} hisseleri`,
-        itemListElement: g.stocks.map((s, i) => ({ "@type": "ListItem", position: i + 1, url: `${BASE}/hisse/${s.ticker}`, name: s.name })),
+        itemListElement: g.stocks.map((s, i) => ({ "@type": "ListItem", position: i + 1, url: `${SITE_URL}/hisse/${s.ticker}`, name: s.name })),
       },
     ],
   };
@@ -146,6 +147,18 @@ export default async function SectorPage({ params }: { params: Promise<Params> }
             </Link>
           ))}
         </div>
+        {pairs.length > 0 && (
+          <>
+            <h2 className="text-xl font-display font-semibold mt-8 mb-3">Hisse karşılaştırmaları</h2>
+            <div className="flex flex-wrap gap-2">
+              {pairs.map((p) => (
+                <Link key={p.slug} href={`/karsilastir/${p.slug}`} className="inline-flex items-center min-h-11 px-3.5 rounded-lg text-sm bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white">
+                  {p.a.ticker} - {p.b.ticker}
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
         {others.length > 0 && (
           <>
             <h2 className="text-xl font-display font-semibold mt-8 mb-3">Diğer sektörler</h2>
