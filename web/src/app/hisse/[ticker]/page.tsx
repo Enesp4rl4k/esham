@@ -1,3 +1,4 @@
+import { DEFAULT_OG_IMAGE } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -57,7 +58,7 @@ export async function generateMetadata({
   const companyName = COMPANY_NAMES[clean] || getStockName(clean) || `${clean} Pay Piyasası`;
 
   return {
-    title: `$${clean} Hisse Analizi, Hedef Fiyat & KAP Bildirimleri | Esham`,
+    title: `$${clean} Hisse Analizi, Hedef Fiyat & KAP Bildirimleri`,
     description: `Borsa İstanbul $${clean} (${companyName}) hissesine ait canlı teknik pivot seviyeleri, İNA (DCF) hedef fiyatı, KAP sözleşmeleri, temettü verimi ve bilanço çarpanları.`,
     keywords: [
       `$${clean}`,
@@ -81,12 +82,14 @@ export async function generateMetadata({
       siteName: "Esham",
       locale: "tr_TR",
       type: "website",
+      images: [DEFAULT_OG_IMAGE],
     },
     twitter: {
       card: "summary_large_image",
       title: `$${clean} Hisse Analizi & Hedef Fiyat | Esham`,
       description: `${companyName} hissesi için teknik pivotlar, DCF adil değer ve güncel KAP haberleri.`,
       creator: "@eshamcomtr",
+      images: [DEFAULT_OG_IMAGE.url],
     },
   };
 }

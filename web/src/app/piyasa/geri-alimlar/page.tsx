@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "BIST Aktif Pay Geri Alım (Buyback) Programları & Maliyetler | Esham",
+  title: "BIST Aktif Pay Geri Alım (Buyback) Programları & Maliyetler",
   description:
     "Borsa İstanbul şirketlerinin KAP'a bildirdikleri aktif hisse geri alım fonları, gerçekleşen pay alımları ve ortalama maliyet tablosu.",
   alternates: {

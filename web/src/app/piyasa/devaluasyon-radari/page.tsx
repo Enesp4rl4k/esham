@@ -18,7 +18,7 @@ import {
 import { DevaluationRadarCard, DevaluationRadarData } from "@/components/DevaluationRadarCard";
 
 export const metadata = {
-  title: "TRY Kur Şoku & Devalüasyon Basınç Radarı | Esham",
+  title: "TRY Kur Şoku & Devalüasyon Basınç Radarı",
   description:
     "TCMB swap hariç net rezerv yanma hızı, Kapalıçarşı ikili kur makası, VİOP ima edilen faiz oranı ve 5Y CDS ile Türkiye kur riski erken uyarı sistemi.",
   alternates: {
