@@ -35,7 +35,7 @@ export default function HisselerPage() {
       )}
 
       <p className="mt-6 text-xs text-zinc-400 leading-relaxed max-w-3xl">
-        Kaynak: Yahoo Finance bilanço verisi; oranlar Esham tarafından hesaplanır. Zarar eden şirketlerde F/K gösterilmez.
+        Kaynak: KAP bilançoları (kapsanan şirketlerde) ve Yahoo Finance; her hisse sayfasında kullanılan kaynak yazar. Oranlar Esham tarafından hesaplanır. Zarar eden şirketlerde F/K gösterilmez.
         Bazı şirketlerin tabloları USD/EUR cinsindendir; çarpanlar kurla tutarlı hale getirilmiştir. Enflasyon muhasebesi
         (TMS 29) etkisi karşılaştırmaları bozabilir. Bu sayfa yatırım tavsiyesi değildir.{" "}
         <Link href="/" className="underline hover:text-white">

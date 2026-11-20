@@ -315,7 +315,7 @@ export default async function TickerPage({
             id: "finansallar",
             label: "Finansallar",
             content: (
-              <FinancialStatements annual={stockRatios.annual} quarterly={stockRatios.quarterly ?? []} currency={stockRatios.currency} asOf={stockRatios.as_of} />
+              <FinancialStatements source={stockRatios.data_source} annual={stockRatios.annual} quarterly={stockRatios.quarterly ?? []} currency={stockRatios.currency} asOf={stockRatios.as_of} />
             ),
           },
         ]

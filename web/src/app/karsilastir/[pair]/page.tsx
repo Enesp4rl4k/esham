@@ -139,7 +139,7 @@ export default async function ComparePage({ params }: Readonly<{ params: Promise
         )}
       </section>
       <p className="text-sm text-zinc-400 mt-8 border-t border-zinc-800 pt-4">
-        Veriler Yahoo Finance bilançolarına dayanır, KAP ile teyit edilmemiştir; hesaplama kuralları için <Link href="/yontem" className="underline">Yöntem ve Kaynaklar</Link> sayfasına bakın. Yatırım tavsiyesi değildir.
+        Veriler KAP bilançolarına (kapsanan şirketlerde) ve Yahoo Finance'e dayanır, kaynak her hisse sayfasında belirtilir; hesaplama kuralları için <Link href="/yontem" className="underline">Yöntem ve Kaynaklar</Link> sayfasına bakın. Yatırım tavsiyesi değildir.
       </p>
     </div>
   );
