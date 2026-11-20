@@ -1,0 +1,32 @@
+name: Esham Health
+
+# Günlük sağlık denetimi (çok ucuz: ~20 sn, yalnızca requests + python-dotenv).
+# Başarısızsa iş kırmızı olur ve depo sahibine GitHub e-postası gider. Yakaladığı sessiz arızalar:
+#  - bot veri/rapor üretmeyi bırakmış (Actions çalışmıyor, faturalama, kota)
+#  - içerik üretiliyor ama dağıtım duruyor (en yeni rapor canlıda 404)
+on:
+  schedule:
+    - cron: "30 7 * * *"   # her gün 10:30 TR
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Bağımlılıklar (yalnızca gerekenler)
+        run: pip install requests==2.31.0 python-dotenv==1.0.1
+      - name: Sağlık denetimi
+        working-directory: bot
+        env:
+          ESHAM_SITE_URL: https://esham.pages.dev
+        run: python -m esham.jobs.health

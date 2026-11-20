@@ -1,0 +1,64 @@
+name: Esham Deploy
+
+# Web kodu `master`'a birleşince siteyi derleyip Cloudflare Pages'e gönderir.
+# (Eskiden dağıtım yalnızca zamanlanmış içerik akışının içindeydi: bir PR birleşince site güncellenmiyordu.)
+# Bot içerik commit'leri `[skip ci]` taşır ve zaten kendi akışında dağıtılır; bu yüzden burayı tetiklemez.
+on:
+  push:
+    branches: [master]
+    paths:
+      - "web/**"
+      - "!web/content/**"
+      - "!web/public/data/**"
+      - "!web/public/cards/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch: {}
+
+# Zamanlanmış yayınla aynı grup: iki dağıtım aynı anda koşup birbirini ezmesin
+concurrency:
+  group: esham-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Bağımlılıklar
+        working-directory: web
+        run: npm ci
+
+      - name: Testler
+        working-directory: web
+        run: npx tsc --noEmit && npm test
+
+      - name: Derle + dosya bütçesi
+        working-directory: web
+        env:
+          NEXT_PUBLIC_ESHAM_BOT_URL: ${{ secrets.ESHAM_BOT_URL }}
+        run: npm run build
+
+      - name: Cloudflare Pages'e gönder
+        working-directory: web
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::warning title=Dağıtım atlandı::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID tanımlı değil (build başarılı)"
+            exit 0
+          fi
+          npx wrangler pages deploy out --project-name esham --commit-dirty=true

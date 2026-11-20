@@ -334,7 +334,7 @@ export function TuribMarketClient({
                 CANLI TÜRİB & ELÜS VERİ SETİ
               </span>
               <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-                Son Güncelleme: {new Date(dataset.updatedAt).toLocaleString("tr-TR")}
+                Son Güncelleme: {new Date(dataset.updatedAt).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })}
               </span>
             </div>
             <h1 className="text-2xl md:text-4xl font-display font-bold tracking-tight mb-2">

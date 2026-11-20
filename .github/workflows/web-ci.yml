@@ -1,0 +1,51 @@
+name: Web CI
+
+# Web kodu değişince: tip denetimi + birim testler + statik derleme + dosya bütçesi.
+# Dakika tasarrufu: yalnızca web/ yolları, aynı PR'ın eski çalışması iptal edilir, içerik/veri commit'leri tetiklemez.
+on:
+  pull_request:
+    paths:
+      - "web/**"
+      - "!web/content/**"
+      - "!web/public/data/**"
+      - "!web/public/cards/**"
+      - ".github/workflows/web-ci.yml"
+  workflow_dispatch: {}
+
+concurrency:
+  group: web-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Bağımlılıklar
+        run: npm ci
+
+      - name: Tip denetimi
+        run: npx tsc --noEmit
+
+      - name: Birim testler
+        run: npm test
+
+      - name: Derle + dosya bütçesi
+        # postbuild: Next segment dosyalarını budar ve 19.000 dosya üstünde hata verir (Cloudflare sınırı 20.000)
+        run: npm run build

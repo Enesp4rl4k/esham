@@ -146,11 +146,10 @@ export function MorningCockpit({
 
           <div className="flex items-center gap-3">
             <span className="text-xs font-mono text-zinc-400 hidden md:inline">
-              {new Date().toLocaleDateString("tr-TR", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-              })}
+              {/* Bugünün tarihi yalnızca istemcide: statik HTML derleme gününün tarihini taşır (hydration #418) */}
+              {isClient
+                ? new Date().toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Istanbul" })
+                : ""}
             </span>
             <button
               onClick={toggleOpen}
