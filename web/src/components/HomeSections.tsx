@@ -84,6 +84,7 @@ export function HomeSections({ sections, defaults, presets }: { sections: HomeSe
       <dialog
         ref={dialog}
         onClick={(e) => e.target === dialog.current && close()}
+        onKeyDown={(e) => e.key === "Escape" && close()}
         onClose={() => opener.current?.focus()}
         aria-labelledby="home-edit-title"
         className="m-auto w-[min(40rem,calc(100vw-2rem))] max-h-[85vh] overflow-y-auto rounded-2xl border border-zinc-800 bg-zinc-950 p-0 text-zinc-100 shadow-2xl backdrop:bg-black/70"
