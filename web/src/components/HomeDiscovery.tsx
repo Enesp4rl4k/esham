@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { HeroSearch } from "./HeroSearch";
+import { slugify } from "@/lib/programmatic";
 import { buildLeaderboards, type Universe, type UniverseStock } from "@/lib/stocks";
 
 const POPULAR = ["THYAO", "ASELS", "BIMAS", "GARAN", "EREGL", "KCHOL", "TUPRS", "FROTO"];
@@ -114,7 +115,7 @@ export function SectorCards({ u }: { u: Universe }) {
           {sectorRows.map((s) => (
             <Link
               key={s.name}
-              href={`/hisseler?sector=${encodeURIComponent(s.name)}`}
+              href={`/hisseler/sektor/${slugify(s.name)}`}
               className="rounded-xl border p-4 hover:border-zinc-600 transition-colors"
               style={{ borderColor: "var(--border)", background: "var(--surface)" }}
             >

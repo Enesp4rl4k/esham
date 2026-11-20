@@ -2,19 +2,12 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { HeroSearch } from "./HeroSearch";
 import type { Universe, UniverseStock } from "@/lib/stocks";
+import { SCANS, runScan } from "@/lib/programmatic";
 
 const POPULAR = ["THYAO", "ASELS", "BIMAS", "GARAN", "EREGL", "TUPRS"];
 const nf = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const x = (v: number | null) => (typeof v === "number" ? `${nf.format(v)}x` : "—");
 const pct = (v: number | null) => (typeof v === "number" ? `%${nf.format(v)}` : "—");
-
-/** Hazır taramalar: StockScreener'daki ön ayar kimlikleriyle (?f=) aynı; sayılar evrenden hesaplanır. */
-const SCANS: { id: string; title: string; hint: string; test: (s: UniverseStock) => boolean }[] = [
-  { id: "ucuz", title: "Düşük F/K", hint: "F/K 8'in altı", test: (s) => s.pe !== null && s.pe > 0 && s.pe < 8 },
-  { id: "roe", title: "Yüksek ROE", hint: "%25 üzeri", test: (s) => s.roe !== null && s.roe > 25 && s.roe < 200 },
-  { id: "temettu", title: "Temettü", hint: "Verim %3 üzeri", test: (s) => (s.dividend_yield ?? 0) > 3 },
-  { id: "borc", title: "Düşük borç", hint: "ND/FAVÖK < 1", test: (s) => s.net_debt_ebitda !== null && s.net_debt_ebitda < 1 },
-];
 
 function PreviewCard({ s, median }: { s: UniverseStock; median?: number }) {
   const rel = typeof s.pe === "number" && typeof median === "number" && median > 0 ? s.pe / median : null;
@@ -68,7 +61,7 @@ function PreviewCard({ s, median }: { s: UniverseStock; median?: number }) {
 /** Ana sayfa ilk ekranı: vaat + arama + gerçek hisse önizlemesi + hazır taramalar. */
 export function HomeHero({ u }: { u: Universe | null }) {
   const preview = u?.stocks.find((s) => s.ticker === "BIMAS" && !s.suspect) ?? u?.stocks.find((s) => !s.suspect && s.pe !== null);
-  const scans = u ? SCANS.map((sc) => ({ ...sc, n: u.stocks.filter((s) => !s.suspect && sc.test(s)).length })) : [];
+  const scans = u ? SCANS.slice(0, 4).map((sc) => ({ ...sc, n: runScan(u, sc).length })) : [];
   return (
     <section className="border-b" style={{ borderColor: "var(--border)" }}>
       <div className="container mx-auto px-6 py-8 md:py-12">
@@ -114,7 +107,7 @@ export function HomeHero({ u }: { u: Universe | null }) {
               {scans.map((sc) => (
                 <Link
                   key={sc.id}
-                  href={`/hisseler?f=${sc.id}`}
+                  href={`/hisseler/tarama/${sc.slug}`}
                   className="rounded-xl border p-4 min-h-11 hover:border-zinc-600 transition-colors"
                   style={{ borderColor: "var(--border)", background: "var(--surface)" }}
                 >
