@@ -13,7 +13,7 @@ export interface StockLite {
 }
 
 /** Ana sayfa hero arama kutusu: hisse kodu/adıyla anında öneri, Enter ile ilk sonuca git. */
-export function HeroSearch({ stocks }: { stocks: StockLite[] }) {
+export function HeroSearch({ stocks, compact = false }: { stocks: StockLite[]; compact?: boolean }) {
   const router = useRouter();
   const [q, setQ] = useState("");
   const [i, setI] = useState(0);
@@ -35,7 +35,7 @@ export function HeroSearch({ stocks }: { stocks: StockLite[] }) {
       <label className="sr-only" htmlFor="hero-search">
         Hisse ara
       </label>
-      <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+      <Search className={`absolute top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none ${compact ? "w-4 h-4 left-3" : "w-5 h-5 left-4"}`} />
       <input
         id="hero-search"
         type="search"
@@ -68,7 +68,7 @@ export function HeroSearch({ stocks }: { stocks: StockLite[] }) {
           }
         }}
         placeholder="Hisse ara: THYAO, Aselsan, bankacılık…"
-        className="w-full pl-12 pr-4 py-4 rounded-xl bg-zinc-900 border border-zinc-800 text-base text-white placeholder:text-zinc-500 focus:outline-none focus-visible:border-amber-500/60 focus-visible:ring-2 focus-visible:ring-amber-500/30"
+        className={`w-full rounded-xl ${compact ? "pl-9 pr-3 py-2.5 text-sm" : "pl-12 pr-4 py-4 text-base"} bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-500 focus:outline-none focus-visible:border-amber-500/60 focus-visible:ring-2 focus-visible:ring-amber-500/30`}
       />
       {open && (
         <ul

@@ -8,64 +8,6 @@ const nf = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFra
 
 const val = (v: unknown, unit: "x" | "%") => (typeof v === "number" ? (unit === "%" ? `%${nf.format(v)}` : `${nf.format(v)}x`) : "—");
 
-/** Ana sayfanın ilk ekranı: değer önerisi + arama + veriden türetilen keşif bölümleri. */
-export function HomeHero({ u }: { u: Universe | null }) {
-  const sectors = u ? new Set(u.stocks.map((s) => s.sector)).size : 0;
-  const asOf = u ? new Date(u.updated_at).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" }) : null;
-
-  return (
-    <section className="py-12 md:py-20 border-b" style={{ borderColor: "var(--border)" }}>
-      <div className="container mx-auto px-6">
-        <h1 className="text-4xl md:text-6xl font-display font-bold leading-[1.05] max-w-3xl mb-5 [text-wrap:balance]">
-          Borsa İstanbul’u <span style={{ color: "var(--accent)" }}>rakamlarla</span> okuyun.
-        </h1>
-        <p className="text-base md:text-lg max-w-2xl mb-8" style={{ color: "var(--text-secondary)" }}>
-          {u ? `${u.count} hissenin` : "Hisselerin"} F/K, PD/DD, FAVÖK, ROE gibi oranlarını bilançolardan kendimiz hesaplıyor, her gün
-          güncel raporlarla birlikte tek yerde sunuyoruz.
-        </p>
-
-        {u && <HeroSearch stocks={u.stocks.map((s) => ({ ticker: s.ticker, name: s.name, sector: s.sector }))} />}
-
-        <div className="flex flex-wrap items-center gap-2 mt-5">
-          <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-            Popüler:
-          </span>
-          {POPULAR.map((t) => (
-            <Link
-              key={t}
-              href={`/hisse/${t}`}
-              className="px-2.5 py-1 rounded-md text-xs font-mono font-semibold bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-600 transition-colors"
-            >
-              {t}
-            </Link>
-          ))}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3 mt-8">
-          <Link
-            href="/hisseler"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
-            style={{ background: "var(--accent)" }}
-          >
-            Hisse Tarayıcıyı Aç <ArrowRight className="w-4 h-4" />
-          </Link>
-          <Link
-            href="/arsiv"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold border border-zinc-700 text-zinc-200 hover:border-zinc-500 transition-colors"
-          >
-            Günlük Raporlar
-          </Link>
-          {u && (
-            <span className="text-xs ml-1" style={{ color: "var(--text-muted)" }}>
-              {u.count} hisse · {sectors} sektör · veri: {asOf}
-            </span>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function BoardRow({ s, metric, unit, rank }: { s: UniverseStock; metric: keyof UniverseStock; unit: "x" | "%"; rank: number }) {
   return (
     <li>
@@ -83,35 +25,59 @@ function BoardRow({ s, metric, unit, rank }: { s: UniverseStock; metric: keyof U
   );
 }
 
-export function StockLeaderboards({ u }: { u: Universe }) {
-  const boards = buildLeaderboards(u, 5).filter((b) => b.rows.length > 0);
-  if (boards.length === 0) return null;
-
-  // Sektör özeti: hisse sayısı + medyan F/K, ROE (en kalabalık 8 sektör)
-  const counts = new Map<string, number>();
-  u.stocks.forEach((s) => counts.set(s.sector, (counts.get(s.sector) ?? 0) + 1));
-  const sectorRows = [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 8)
-    .map(([name, n]) => ({ name, n, med: u.sector_median[name] ?? {} }));
-
+/** İlk ekran şeridi: kompakt hisse arama + popüler kısayollar. (H1 görünmez; arama motorları ve ekran okuyucu için.) */
+export function HomeStrip({ u }: { u: Universe | null }) {
   return (
-    <section className="py-12 border-b" style={{ borderColor: "var(--border)" }}>
+    <section className="border-b" style={{ borderColor: "var(--border)" }}>
+      <div className="container mx-auto px-6 py-3.5">
+        <h1 className="sr-only">Esham: Borsa İstanbul’u rakamlarla okuyun</h1>
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-5">
+          {u && (
+            <div className="lg:flex-1 lg:max-w-lg">
+              <HeroSearch compact stocks={u.stocks.map((s) => ({ ticker: s.ticker, name: s.name, sector: s.sector }))} />
+            </div>
+          )}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Popüler:</span>
+            {POPULAR.slice(0, 6).map((t) => (
+              <Link
+                key={t}
+                href={`/hisse/${t}`}
+                className="px-2.5 py-1 rounded-md text-xs font-mono font-semibold bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-600 transition-colors"
+              >
+                {t}
+              </Link>
+            ))}
+            <Link href="/hisseler" className="ml-1 inline-flex items-center gap-1 text-sm font-semibold hover:opacity-80" style={{ color: "var(--accent)" }}>
+              Hisse tarayıcı <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Hisse liderlik tabloları (kompakt: varsayılan 4 satır). */
+export function StockLeaderboards({ u, rows = 4 }: { u: Universe; rows?: number }) {
+  const boards = buildLeaderboards(u, rows).filter((b) => b.rows.length > 0);
+  if (boards.length === 0) return null;
+  return (
+    <section className="py-8 border-b" style={{ borderColor: "var(--border)" }}>
       <div className="container mx-auto px-6">
-        <div className="flex items-baseline justify-between mb-8">
+        <div className="flex items-baseline justify-between mb-5">
           <h2 className="text-xs font-bold tracking-[0.15em] uppercase" style={{ color: "var(--text-muted)" }}>
-            Verinin Öne Çıkardıkları
+            Hisse Liderlik Tabloları
           </h2>
           <Link href="/hisseler" className="text-xs flex items-center gap-1 hover:opacity-70" style={{ color: "var(--text-secondary)" }}>
             Tüm hisseler <ArrowUpRight className="w-3 h-3" />
           </Link>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {boards.map((b) => (
-            <div key={b.title} className="rounded-2xl border p-5" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
+            <div key={b.title} className="rounded-2xl border p-4" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
               <h3 className="text-sm font-bold font-display">{b.title}</h3>
-              <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>
+              <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>
                 {b.hint}
               </p>
               <ol className="divide-y divide-zinc-900">
@@ -122,10 +88,28 @@ export function StockLeaderboards({ u }: { u: Universe }) {
             </div>
           ))}
         </div>
+        <p className="text-xs mt-3" style={{ color: "var(--text-muted)" }}>
+          Piyasa değeri 5 milyar TL altı şirketler ve veri tutarsızlığı bayrağı taşıyanlar yer almaz. Veriler Yahoo Finance bilançolarına dayanır, KAP ile teyit edilmemiştir; yatırım tavsiyesi değildir.
+        </p>
+      </div>
+    </section>
+  );
+}
 
-        <h3 className="text-xs font-bold tracking-[0.15em] uppercase mt-12 mb-4" style={{ color: "var(--text-muted)" }}>
+/** Sektör kartları: hisse sayısı + medyan F/K ve ROE (en kalabalık 8 sektör). */
+export function SectorCards({ u }: { u: Universe }) {
+  const counts = new Map<string, number>();
+  u.stocks.forEach((s) => counts.set(s.sector, (counts.get(s.sector) ?? 0) + 1));
+  const sectorRows = [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([name, n]) => ({ name, n, med: u.sector_median[name] ?? {} }));
+  return (
+    <section className="py-8 border-b" style={{ borderColor: "var(--border)" }}>
+      <div className="container mx-auto px-6">
+        <h2 className="text-xs font-bold tracking-[0.15em] uppercase mb-4" style={{ color: "var(--text-muted)" }}>
           Sektörlere Göre
-        </h3>
+        </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {sectorRows.map((s) => (
             <Link
@@ -145,7 +129,7 @@ export function StockLeaderboards({ u }: { u: Universe }) {
           ))}
         </div>
         <p className="text-xs mt-3" style={{ color: "var(--text-muted)" }}>
-          Sektör değerleri medyandır; en az 3 hisseli sektörlerde gösterilir. Liderlik tablolarında piyasa değeri 5 milyar TL altı şirketler yer almaz. Veriler Yahoo Finance bilançolarına dayanır, KAP ile teyit edilmemiştir; yatırım tavsiyesi değildir.
+          Sektör değerleri medyandır; en az 3 hisseli sektörlerde gösterilir.
         </p>
       </div>
     </section>
