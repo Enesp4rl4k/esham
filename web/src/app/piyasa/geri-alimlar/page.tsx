@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/config";
 import React from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
   description:
     "Borsa İstanbul şirketlerinin KAP'a bildirdikleri aktif hisse geri alım fonları, gerçekleşen pay alımları ve ortalama maliyet tablosu.",
   alternates: {
-    canonical: "https://esham.pages.dev/piyasa/geri-alimlar",
+    canonical: `${SITE_URL}/piyasa/geri-alimlar`,
   },
   keywords: [
     "Pay Geri Alım",

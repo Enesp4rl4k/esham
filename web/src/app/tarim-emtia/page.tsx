@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/config";
 import { DEFAULT_OG_IMAGE } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
   description:
     "Ham petrol göstergeleri (Brent, WTI, Urals, Crack Spread), VLCC/Aframax tanker kiralama ücretleri (TCE), Türk Boğazları demurraj süreleri ve TÜRİB tarımsal emtia terminali.",
   alternates: {
-    canonical: "https://esham.pages.dev/tarim-emtia",
+    canonical: `${SITE_URL}/tarim-emtia`,
   },
   keywords: [
     "TÜRİB",
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
     title: "Emtia, Petrol & Tanker Navlun Terminali | Esham",
     description:
       "Ham petrol piyasaları, tanker kiralama ücretleri (TCE), Türk Boğazları transit süreleri, TÜRİB lisanslı depo ürün fiyatları ve BIST rafineri-denizcilik etkisi.",
-    url: "https://esham.pages.dev/tarim-emtia",
+    url: `${SITE_URL}/tarim-emtia`,
     images: [DEFAULT_OG_IMAGE],
   },
 };

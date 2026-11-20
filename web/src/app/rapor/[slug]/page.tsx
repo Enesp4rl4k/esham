@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/config";
 import { seoTitle, seoDescription } from "@/lib/seo";
 import Link from "next/link";
 import Image from "next/image";
@@ -20,7 +21,6 @@ import { RelatedReports } from "@/components/RelatedReports";
 import { ShareButtons } from "@/components/ShareButtons";
 import { ReadingProgress } from "@/components/ReadingProgress";
 
-const SITE_URL = "https://esham.pages.dev";
 
 type Params = { slug: string };
 
@@ -37,7 +37,6 @@ export async function generateStaticParams(): Promise<Params[]> {
   return reports.map((r) => ({ slug: r.slug }));
 }
 
-const SITE_BASE = "https://esham.pages.dev";
 
 export async function generateMetadata({
   params,
@@ -53,7 +52,7 @@ export async function generateMetadata({
   const rawImage = getReportImageUrl(report);
   const absoluteImage = rawImage.startsWith("http")
     ? rawImage
-    : `${SITE_BASE}${rawImage}`;
+    : `${SITE_URL}${rawImage}`;
 
   const ogImage = {
     url: absoluteImage,
@@ -66,14 +65,14 @@ export async function generateMetadata({
     title: seoTitle(report.title),
     description: seoDescription(report.summary),
     alternates: {
-      canonical: `${SITE_BASE}/rapor/${report.slug}`,
+      canonical: `${SITE_URL}/rapor/${report.slug}`,
     },
     openGraph: {
       title: seoTitle(report.title),
       description: seoDescription(report.summary),
       type: "article",
       publishedTime: report.publishedAt,
-      url: `${SITE_BASE}/rapor/${report.slug}`,
+      url: `${SITE_URL}/rapor/${report.slug}`,
       siteName: "Esham",
       locale: "tr_TR",
       images: [ogImage],

@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/config";
 import React from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
   description:
     "Borsa İstanbul şirketlerinin güncel temettü dağıtım takvimi, hak kullanım tarihleri, hisse başına net nakit kâr payı ve temettü verimi sıralaması.",
   alternates: {
-    canonical: "https://esham.pages.dev/piyasa/temettu-takvimi",
+    canonical: `${SITE_URL}/piyasa/temettu-takvimi`,
   },
   keywords: [
     "Temettü Takvimi",

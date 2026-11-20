@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/config";
 import { DEFAULT_OG_IMAGE } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -75,12 +76,12 @@ export async function generateMetadata({
       "Borsa İstanbul",
     ],
     alternates: {
-      canonical: `https://esham.pages.dev/hisse/${clean}`,
+      canonical: `${SITE_URL}/hisse/${clean}`,
     },
     openGraph: {
       title: `$${clean} Hisse Analizi & Hedef Değerleme | Esham`,
       description: `$${clean} (${companyName}) teknik seviyeler, DCF değerlemesi, KAP geçmişi ve temettü takvimi.`,
-      url: `https://esham.pages.dev/hisse/${clean}`,
+      url: `${SITE_URL}/hisse/${clean}`,
       siteName: "Esham",
       locale: "tr_TR",
       type: "website",
@@ -437,7 +438,7 @@ export default async function TickerPage({
     exchange: "BIST",
     currency: "TRY",
     description: `Borsa İstanbul $${cleanTicker} (${companyName}) hisse senedi teknik analizi, KAP bildirimleri, DCF hedef fiyatı ve finansal çarpanları.`,
-    url: `https://esham.pages.dev/hisse/${cleanTicker}`,
+    url: `${SITE_URL}/hisse/${cleanTicker}`,
   };
 
   const breadcrumbJsonLd = {
@@ -448,19 +449,19 @@ export default async function TickerPage({
         "@type": "ListItem",
         position: 1,
         name: "Ana Sayfa",
-        item: "https://esham.pages.dev",
+        item: `${SITE_URL}`,
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "BIST Piyasaları",
-        item: "https://esham.pages.dev/kategori/bist",
+        item: `${SITE_URL}/kategori/bist`,
       },
       {
         "@type": "ListItem",
         position: 3,
         name: `$${cleanTicker} Analizi`,
-        item: `https://esham.pages.dev/hisse/${cleanTicker}`,
+        item: `${SITE_URL}/hisse/${cleanTicker}`,
       },
     ],
   };

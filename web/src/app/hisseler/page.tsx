@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/config";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
   title: "BIST Hisse Tarayıcı — F/K, PD/DD, ROE, Temettü",
   description:
     "Borsa İstanbul hisselerini F/K, PD/DD, FD/FAVÖK, ROE, net marj ve temettü verimine göre filtreleyin ve sıralayın. Oranlar bilançolardan hesaplanır.",
-  alternates: { canonical: "https://esham.pages.dev/hisseler" },
+  alternates: { canonical: `${SITE_URL}/hisseler` },
 };
 
 export default function HisselerPage() {

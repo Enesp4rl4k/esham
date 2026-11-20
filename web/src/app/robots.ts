@@ -1,9 +1,9 @@
+import { SITE_URL } from "@/lib/config";
 import type { MetadataRoute } from "next";
 
 export const dynamic = "force-static";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = "https://esham.pages.dev";
 
   return {
     rules: [
@@ -21,7 +21,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
-    host: baseUrl,
+    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: SITE_URL,
   };
 }
