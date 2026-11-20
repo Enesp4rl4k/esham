@@ -1,3 +1,4 @@
+import { seoTitle, seoDescription } from "@/lib/seo";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -62,14 +63,14 @@ export async function generateMetadata({
   };
 
   return {
-    title: report.title,
-    description: report.summary,
+    title: seoTitle(report.title),
+    description: seoDescription(report.summary),
     alternates: {
       canonical: `${SITE_BASE}/rapor/${report.slug}`,
     },
     openGraph: {
-      title: report.title,
-      description: report.summary,
+      title: seoTitle(report.title),
+      description: seoDescription(report.summary),
       type: "article",
       publishedTime: report.publishedAt,
       url: `${SITE_BASE}/rapor/${report.slug}`,
@@ -79,8 +80,8 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: report.title,
-      description: report.summary,
+      title: seoTitle(report.title),
+      description: seoDescription(report.summary),
       images: [absoluteImage],
       creator: "@eshamcomtr",
     },

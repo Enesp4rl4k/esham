@@ -21,8 +21,12 @@ const outfit = Outfit({
   display: "swap",
 });
 
+const CF_ANALYTICS_TOKEN = process.env.NEXT_PUBLIC_CF_ANALYTICS_TOKEN;
+const GSC_VERIFICATION = process.env.NEXT_PUBLIC_GSC_VERIFICATION;
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://esham.pages.dev"),
+  ...(GSC_VERIFICATION ? { verification: { google: GSC_VERIFICATION } } : {}),
   title: {
     default: "Esham — BIST & Piyasa İstihbarat Platformu",
     template: "%s | Esham",
@@ -195,6 +199,14 @@ export default function RootLayout({
             </div>
           </div>
         </header>
+
+        {CF_ANALYTICS_TOKEN ? (
+          <script
+            defer
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon={JSON.stringify({ token: CF_ANALYTICS_TOKEN })}
+          />
+        ) : null}
 
         {/* ── Main ─────────────────────────────────────────────── */}
         <main id="icerik" className="flex-1 w-full">{children}</main>

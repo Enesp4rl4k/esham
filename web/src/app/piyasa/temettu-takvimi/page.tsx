@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "BIST Temettü Takvimi & Temettü Verimi Sıralaması | Esham",
+  title: "BIST Temettü Takvimi & Temettü Verimi Sıralaması",
   description:
     "Borsa İstanbul şirketlerinin güncel temettü dağıtım takvimi, hak kullanım tarihleri, hisse başına net nakit kâr payı ve temettü verimi sıralaması.",
   alternates: {

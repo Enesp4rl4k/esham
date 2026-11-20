@@ -5,7 +5,7 @@ import { StockScreener } from "@/components/StockScreener";
 import { loadUniverse } from "@/lib/stocks";
 
 export const metadata: Metadata = {
-  title: "BIST Hisse Tarayıcı — F/K, PD/DD, ROE, Temettü | Esham",
+  title: "BIST Hisse Tarayıcı — F/K, PD/DD, ROE, Temettü",
   description:
     "Borsa İstanbul hisselerini F/K, PD/DD, FD/FAVÖK, ROE, net marj ve temettü verimine göre filtreleyin ve sıralayın. Oranlar bilançolardan hesaplanır.",
   alternates: { canonical: "https://esham.pages.dev/hisseler" },
