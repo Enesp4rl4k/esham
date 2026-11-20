@@ -36,7 +36,7 @@ jobs:
           cache-dependency-path: "bot/requirements*.txt"
       - name: Bağımlılıklar
         working-directory: bot
-        run: pip install --only-binary :all: -r requirements.txt -r requirements-dev.txt
+        run: pip install --only-binary=:all: -r requirements.txt -r requirements-dev.txt
       - name: pytest
         working-directory: bot
         # `network` işaretli testler dış kaynağa gider ve repo içi veri dosyası yazar; CI'da atlanır.
