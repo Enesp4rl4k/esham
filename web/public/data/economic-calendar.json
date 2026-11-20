@@ -1,75 +1,33 @@
 {
-  "updated_at": "2026-11-14T00:24:44+03:00",
+  "updated_at": "2026-11-20T17:18:00+03:00",
   "events": [
     {
-      "time": "13:00",
-      "country": "Euro Bölgesi",
-      "event": "Employed Persons Flash",
+      "time": "10:00",
+      "country": "Türkiye",
+      "event": "Consumer Confidence",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "13:00",
-      "country": "Euro Bölgesi",
-      "event": "Employment Change QoQ Prel",
-      "importance": "Orta",
-      "forecast": "0.1"
-    },
-    {
-      "time": "13:00",
-      "country": "Euro Bölgesi",
-      "event": "Employment Change YoY Prel",
-      "importance": "Orta",
-      "forecast": "0.4"
-    },
-    {
-      "time": "13:00",
-      "country": "Euro Bölgesi",
-      "event": "Balance of Trade",
+      "time": "10:00",
+      "country": "Türkiye",
+      "event": "Business Confidence",
       "importance": "Orta",
       "forecast": ""
     },
     {
-      "time": "13:00",
-      "country": "Euro Bölgesi",
-      "event": "Balance of Trade s.a",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "16:30",
+      "time": "18:00",
       "country": "ABD",
-      "event": "PPI MoM",
-      "importance": "Yüksek",
-      "forecast": "0.4"
+      "event": "Michigan Consumer Sentiment Final",
+      "importance": "Orta",
+      "forecast": "51.5"
     },
     {
-      "time": "16:30",
-      "country": "ABD",
-      "event": "Core PPI MoM",
+      "time": "18:00",
+      "country": "Euro Bölgesi",
+      "event": "Consumer Confidence Flash",
       "importance": "Orta",
-      "forecast": "0.3"
-    },
-    {
-      "time": "16:30",
-      "country": "ABD",
-      "event": "PPI Machinery Manufacturing",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "16:30",
-      "country": "ABD",
-      "event": "USDA Pork Net Export Sales",
-      "importance": "Orta",
-      "forecast": ""
-    },
-    {
-      "time": "16:30",
-      "country": "ABD",
-      "event": "USDA Pork Gross Export Sales",
-      "importance": "Orta",
-      "forecast": ""
+      "forecast": "-17.9"
     },
     {
       "time": "22:00",
