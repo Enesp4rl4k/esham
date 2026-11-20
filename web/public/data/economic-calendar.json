@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-20T17:18:00+03:00",
+  "updated_at": "2026-11-20T18:07:51+03:00",
   "events": [
     {
       "time": "10:00",
@@ -27,7 +27,7 @@
       "country": "Euro Bölgesi",
       "event": "Consumer Confidence Flash",
       "importance": "Orta",
-      "forecast": "-17.9"
+      "forecast": "-18"
     },
     {
       "time": "22:00",
