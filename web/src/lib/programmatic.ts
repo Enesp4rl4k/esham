@@ -1,0 +1,114 @@
+/**
+ * Programatik SEO sayfaları (sektör + hazır tarama) için saf yardımcılar.
+ * Evren verisinden türetilir; şüpheli (suspect) satırlar istatistik ve listelerden hariçtir.
+ */
+import type { Universe, UniverseStock } from "./stocks";
+
+export const MIN_INDEXABLE = 3;
+
+// Not: sade Node test koşucusu uzantısız göreli import çözemediği için küçük yardımcılar burada tekrarlanır.
+const fold = (s: string) =>
+  s.replace(/İ/g, "i").replace(/I/g, "i").toLowerCase().replace(/ı/g, "i").normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+function median(values: number[]): number | null {
+  if (values.length === 0) return null;
+  const s = [...values].sort((a, b) => a - b);
+  const m = s.length >> 1;
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+
+export function slugify(s: string): string {
+  return fold(s).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+export interface SectorGroup {
+  name: string;
+  slug: string;
+  stocks: UniverseStock[];
+}
+
+export function sectorGroups(u: Universe): SectorGroup[] {
+  const map = new Map<string, UniverseStock[]>();
+  for (const s of u.stocks) {
+    if (!map.has(s.sector)) map.set(s.sector, []);
+    map.get(s.sector)!.push(s);
+  }
+  return [...map.entries()]
+    .map(([name, stocks]) => ({
+      name,
+      slug: slugify(name),
+      stocks: [...stocks].sort((a, b) => (b.market_cap ?? 0) - (a.market_cap ?? 0)),
+    }))
+    .sort((a, b) => b.stocks.length - a.stocks.length || a.name.localeCompare(b.name, "tr"));
+}
+
+export function sectorStats(stocks: UniverseStock[]) {
+  const ok = stocks.filter((s) => !s.suspect);
+  const pick = (k: keyof UniverseStock, valid: (v: number) => boolean) =>
+    median(ok.map((s) => s[k] as number | null).filter((v): v is number => typeof v === "number" && valid(v)));
+  return {
+    count: stocks.length,
+    pe: pick("pe", (v) => v > 0),
+    pb: pick("pb", (v) => v > 0),
+    roe: pick("roe", (v) => Math.abs(v) < 200),
+    dividend_yield: pick("dividend_yield", () => true),
+  };
+}
+
+export interface Scan {
+  slug: string;
+  /** StockScreener ön ayar kimliği (?f=) */
+  id: string;
+  title: string;
+  h1: string;
+  hint: string;
+  metric: "pe" | "roe" | "dividend_yield" | "net_debt_ebitda" | "pb" | "net_margin";
+  dir: 1 | -1;
+  explain: string;
+  test: (s: UniverseStock) => boolean;
+}
+
+export const SCANS: Scan[] = [
+  {
+    slug: "dusuk-fk", id: "ucuz", title: "Düşük F/K'lı Hisseler", h1: "F/K oranı düşük BIST hisseleri", hint: "F/K 8'in altı",
+    metric: "pe", dir: 1,
+    explain: "F/K (fiyat/kazanç), hissenin fiyatının son 12 aylık net kârının kaç katı olduğunu gösterir. Düşük F/K ucuzluk işareti olabilir, ancak kârın geçici yükselmesi, sektörün yapısı ya da enflasyon muhasebesi etkisi de düşük F/K üretir; mutlaka sektör medyanıyla birlikte okuyun.",
+    test: (s) => s.pe !== null && s.pe > 0 && s.pe < 8,
+  },
+  {
+    slug: "yuksek-roe", id: "roe", title: "Yüksek ROE'li Hisseler", h1: "Özkaynak kârlılığı (ROE) yüksek BIST hisseleri", hint: "ROE %25 üzeri",
+    metric: "roe", dir: -1,
+    explain: "ROE (özkaynak kârlılığı), şirketin özkaynağıyla ne kadar kâr ürettiğini gösterir. Yüksek ROE verimli sermaye kullanımına işaret eder; yüksek borçla şişirilmiş ROE'ye karşı net borç/FAVÖK ile birlikte bakın. %200 üzerindeki değerler anlamsız kabul edilip listeden çıkarılır.",
+    test: (s) => s.roe !== null && s.roe > 25 && s.roe < 200,
+  },
+  {
+    slug: "yuksek-temettu", id: "temettu", title: "Temettü Verimi Yüksek Hisseler", h1: "Temettü verimi yüksek BIST hisseleri", hint: "Verim %3 üzeri",
+    metric: "dividend_yield", dir: -1,
+    explain: "Temettü verimi, son 12 ayda ödenen nakit kâr payının hisse fiyatına oranıdır. Geçmiş ödeme gelecekte tekrarlanacağını garanti etmez; dağıtım politikasını ve kârın sürdürülebilirliğini şirketin KAP açıklamalarından doğrulayın.",
+    test: (s) => (s.dividend_yield ?? 0) > 3,
+  },
+  {
+    slug: "dusuk-borc", id: "borc", title: "Düşük Borçlu Hisseler", h1: "Net borcu düşük BIST hisseleri", hint: "Net borç/FAVÖK 1'in altı",
+    metric: "net_debt_ebitda", dir: 1,
+    explain: "Net borç/FAVÖK, şirketin net borcunu kaç yılda faaliyet kârıyla kapatabileceğini yaklaşık gösterir. Negatif değer net nakit pozisyonu demektir. Bankalar ve finansal kuruluşlar için bu oran anlamlı olmadığından listede yer almaz.",
+    test: (s) => !s.financial && s.net_debt_ebitda !== null && s.net_debt_ebitda < 1,
+  },
+  {
+    slug: "defter-degerinin-altinda", id: "iskonto", title: "PD/DD 1'in Altındaki Hisseler", h1: "Defter değerinin altında işlem gören BIST hisseleri", hint: "PD/DD 1'in altı",
+    metric: "pb", dir: 1,
+    explain: "PD/DD, piyasa değerinin defter değerine (özkaynak) oranıdır. 1'in altı, piyasanın şirketi muhasebe özkaynağından düşük fiyatladığı anlamına gelir; varlıkların gerçek değeri defterdekinden düşük olabileceği için tek başına alım sinyali değildir.",
+    test: (s) => s.pb !== null && s.pb > 0 && s.pb < 1,
+  },
+  {
+    slug: "yuksek-net-marj", id: "marj", title: "Net Kâr Marjı Yüksek Hisseler", h1: "Net kâr marjı yüksek BIST hisseleri", hint: "Net marj %20 üzeri",
+    metric: "net_margin", dir: -1,
+    explain: "Net marj, satış gelirinin ne kadarının net kâra dönüştüğünü gösterir. Bankalarda ve holdinglerde gelir tanımı farklı olduğundan marjlar sektörler arasında doğrudan kıyaslanmamalıdır.",
+    test: (s) => s.net_margin !== null && s.net_margin > 20 && s.net_margin < 100,
+  },
+];
+
+export function runScan(u: Universe, sc: Scan): UniverseStock[] {
+  return u.stocks
+    .filter((s) => !s.suspect && sc.test(s))
+    .sort((a, b) => sc.dir * ((a[sc.metric] as number) - (b[sc.metric] as number)));
+}

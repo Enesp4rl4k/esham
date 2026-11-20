@@ -1,4 +1,6 @@
 import type { MetadataRoute } from "next";
+import { loadUniverse } from "@/lib/stocks";
+import { MIN_INDEXABLE, SCANS, runScan, sectorGroups } from "@/lib/programmatic";
 import { getAllReports, getAllTickers, CATEGORIES, type CategorySlug } from "@/lib/content";
 
 export const dynamic = "force-static";
@@ -93,5 +95,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  return [...staticRoutes, ...categoryRoutes, ...stockRoutes, ...reportRoutes];
+  // 5. Programatik sayfalar: yalnızca indekslenebilir (yeterli veri) olanlar
+  const u = loadUniverse();
+  const dataDate = u ? new Date(u.updated_at) : new Date();
+  const sectorRoutes: MetadataRoute.Sitemap = u
+    ? sectorGroups(u)
+        .filter((g) => g.stocks.length >= MIN_INDEXABLE)
+        .map((g) => ({ url: `${BASE_URL}/hisseler/sektor/${g.slug}`, lastModified: dataDate, changeFrequency: "daily" as const, priority: 0.8 }))
+    : [];
+  const scanRoutes: MetadataRoute.Sitemap = u
+    ? SCANS.filter((sc) => runScan(u, sc).length >= MIN_INDEXABLE).map((sc) => ({
+        url: `${BASE_URL}/hisseler/tarama/${sc.slug}`,
+        lastModified: dataDate,
+        changeFrequency: "daily" as const,
+        priority: 0.8,
+      }))
+    : [];
+
+  return [...staticRoutes, ...categoryRoutes, ...stockRoutes, ...sectorRoutes, ...scanRoutes, ...reportRoutes];
 }

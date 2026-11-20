@@ -33,6 +33,7 @@ import { DcfCalculator } from "@/components/DcfCalculator";
 import { NavCalculator } from "@/components/NavCalculator";
 import { SectorComparison } from "@/components/SectorComparison";
 import { FinancialStatements } from "@/components/FinancialStatements";
+import { slugify } from "@/lib/programmatic";
 import { Newsletter } from "@/components/Newsletter";
 import { StockTabs, type TabDef } from "@/components/StockTabs";
 import { StockCorporateActionsCard } from "@/components/StockCorporateActionsCard";
@@ -501,7 +502,7 @@ export default async function TickerPage({
               <span className="text-2xl md:text-3xl font-mono font-bold tracking-tight text-white">${cleanTicker}</span>
               {stockRatios && (
                 <Link
-                  href={`/hisseler?sector=${encodeURIComponent(stockRatios.sector)}`}
+                  href={`/hisseler/sektor/${slugify(stockRatios.sector)}`}
                   className="text-xs font-semibold tracking-wider uppercase px-2.5 py-1 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 hover:border-sky-400/50"
                 >
                   {stockRatios.sector}
