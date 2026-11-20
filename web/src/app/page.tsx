@@ -347,7 +347,7 @@ export default async function Home() {
                 alt=""
                 className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
               />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(10,10,10,0.6) 0%, transparent 60%)" }} />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, var(--overlay-strong) 0%, transparent 60%)" }} />
               <span className={`absolute bottom-3 left-3 text-xs font-bold tracking-wider uppercase px-2 py-1 rounded border ${catColors[featured.category]}`}>
                 {CATEGORIES[featured.category].label}
               </span>

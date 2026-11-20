@@ -53,7 +53,7 @@ export function ReportCard({ report }: { report: Report }) {
         <div className="absolute bottom-3 left-3">
           <span
             className={`text-xs font-bold tracking-wider uppercase px-2 py-0.5 rounded ${color}`}
-            style={{ background: "rgba(10,10,10,0.75)", backdropFilter: "blur(4px)" }}
+            style={{ background: "var(--overlay-chip)", backdropFilter: "blur(4px)" }}
           >
             {CATEGORIES[report.category].label}
           </span>

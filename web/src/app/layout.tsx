@@ -7,6 +7,7 @@ import { MobileMenu } from "@/components/MobileMenu";
 import { DesktopNav } from "@/components/DesktopNav";
 import { SearchCommandPalette } from "@/components/SearchCommandPalette";
 import { loadUniverse } from "@/lib/stocks";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { WatchlistDrawer } from "@/components/WatchlistDrawer";
 
 const inter = Inter({
@@ -125,8 +126,14 @@ export default function RootLayout({
     <html
       lang="tr"
       className={`${inter.variable} ${outfit.variable} antialiased`}
+      suppressHydrationWarning
     >
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem("esham-theme");if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme="dark"}`,
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -176,7 +183,7 @@ export default function RootLayout({
         {/* ── Header ──────────────────────────────────────────── */}
         <header
           className="sticky top-0 z-50 w-full backdrop-blur-md"
-          style={{ borderBottom: "1px solid var(--border)", background: "rgba(10,10,10,0.85)" }}
+          style={{ borderBottom: "1px solid var(--border)", background: "var(--header-bg)" }}
         >
           <div className="container mx-auto px-6 h-14 flex items-center justify-between">
             {/* Wordmark */}
@@ -195,6 +202,7 @@ export default function RootLayout({
             <div className="flex items-center gap-2">
               <SearchCommandPalette stocks={loadUniverse()?.stocks.map((s) => ({ ticker: s.ticker, name: s.name, sector: s.sector })) ?? []} />
               <WatchlistDrawer />
+              <ThemeToggle />
               <MobileMenu />
             </div>
           </div>

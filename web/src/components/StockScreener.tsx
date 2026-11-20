@@ -165,7 +165,7 @@ export function StockScreener({ stocks, sectors }: { stocks: UniverseStock[]; se
           <tbody className="divide-y divide-zinc-900">
             {rows.map((s) => (
               <tr key={s.ticker} className="hover:bg-zinc-900/50">
-                <td className="px-3 py-2.5 sticky left-0 bg-[#0a0a0a] z-10">
+                <td className="px-3 py-2.5 sticky left-0 bg-[var(--background)] z-10">
                   <Link href={`/hisse/${s.ticker}`} className="block">
                     <span className="font-mono font-bold text-white">{s.ticker}</span>
                     <span className="block text-xs text-zinc-400 truncate max-w-[150px]">{s.name}</span>
