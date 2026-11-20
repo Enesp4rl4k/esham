@@ -27,7 +27,9 @@ import { KeyLevelsCard } from "@/components/KeyLevelsCard";
 import { FundamentalMetricsCard } from "@/components/FundamentalMetricsCard";
 import { FinancialHealthCard } from "@/components/FinancialHealthCard";
 import { WatchlistDrawer } from "@/components/WatchlistDrawer";
-import { InteractiveStockChart } from "@/components/InteractiveStockChart";
+import { PriceChart } from "@/components/PriceChart";
+import { FinancialStatements } from "@/components/FinancialStatements";
+import { StockTabs, type TabDef } from "@/components/StockTabs";
 import { StockCorporateActionsCard } from "@/components/StockCorporateActionsCard";
 import { StockPeerComparisonCard } from "@/components/StockPeerComparisonCard";
 import { RatiosCard, type StockRatiosData } from "@/components/RatiosCard";
@@ -126,6 +128,16 @@ async function loadDividendsData() {
   }
 }
 
+async function loadPrices(ticker: string): Promise<[string, number][] | null> {
+  try {
+    const raw = await fs.readFile(path.join(process.cwd(), "public", "data", "prices", `${ticker}.json`), "utf-8");
+    const d = JSON.parse(raw);
+    return Array.isArray(d) && d.length > 4 ? d : null;
+  } catch {
+    return null;
+  }
+}
+
 async function loadStockRatios(ticker: string): Promise<StockRatiosData | null> {
   try {
     const filePath = path.join(process.cwd(), "public", "data", "stocks", `${ticker}.json`);
@@ -166,10 +178,6 @@ const COMPANY_NAMES: Record<string, string> = {
   TATGD: "Tat Gıda Sanayi A.Ş.",
 };
 
-const BIST30_PILLS = [
-  "THYAO", "ASELS", "GARAN", "EREGL", "KCHOL", "TUPRS",
-  "BIMAS", "AKBNK", "ISCTR", "SISE", "SAHOL", "YKBNK",
-];
 
 export default async function TickerPage({
   params,
@@ -201,6 +209,118 @@ export default async function TickerPage({
   );
 
   const companyName = COMPANY_NAMES[cleanTicker] || getStockName(cleanTicker) || `${cleanTicker} Pay Piyasası`;
+
+  const prices = await loadPrices(cleanTicker);
+  const r = stockRatios?.ratios;
+  const fmtX = (v: number | null | undefined) => (v === null || v === undefined ? "—" : `${v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}x`);
+  const fmtP = (v: number | null | undefined) => (v === null || v === undefined ? "—" : `%${v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+  const fmtMcap = (v: number | null | undefined) => (!v ? "—" : v >= 1e9 ? `${(v / 1e9).toLocaleString("tr-TR", { maximumFractionDigits: 1 })} Mr ₺` : `${(v / 1e6).toLocaleString("tr-TR", { maximumFractionDigits: 0 })} Mn ₺`);
+  const last52 = prices ? prices.slice(-52).map((p) => p[1]) : [];
+  const headerPrice: number | null = stockRatios?.price ?? (prices ? prices[prices.length - 1][1] : null);
+  const summary: { label: string; value: string }[] = stockRatios && r
+    ? [
+        { label: "Piyasa Değeri", value: fmtMcap(r.market_cap) },
+        { label: "F/K", value: fmtX(r.pe) },
+        { label: "PD/DD", value: fmtX(r.pb) },
+        { label: "FD/FAVÖK", value: stockRatios.financial ? "—" : fmtX(r.ev_ebitda) },
+        { label: "Temettü Verimi", value: fmtP(r.dividend_yield) },
+        {
+          label: "52 Hafta (kapanış)",
+          value: last52.length ? `${Math.min(...last52).toLocaleString("tr-TR", { maximumFractionDigits: 2 })} – ${Math.max(...last52).toLocaleString("tr-TR", { maximumFractionDigits: 2 })} ₺` : "—",
+        },
+      ]
+    : [{ label: "Kapsamdaki Rapor", value: `${reports.length} Analiz & Bildirim` }];
+
+  const peersNode =
+    stockRatios && universe ? (
+      <SectorPeersCard ticker={cleanTicker} sector={stockRatios.sector} stocks={universe.stocks} median={universe.sector_median[stockRatios.sector]} />
+    ) : companyQuant?.fundamental?.sektor && quantData ? (
+      <StockPeerComparisonCard currentTicker={cleanTicker} currentSector={companyQuant.fundamental.sektor} quantData={quantData} />
+    ) : null;
+
+  const tabs: TabDef[] = [
+    {
+      id: "ozet",
+      label: "Özet",
+      content: (
+        <>
+          <PriceChart ticker={cleanTicker} />
+          {peersNode}
+          <StockCorporateActionsCard ticker={cleanTicker} buyback={companyBuyback} dividend={companyDividend} />
+        </>
+      ),
+    },
+    ...(stockRatios && stockRatios.annual?.length
+      ? [
+          {
+            id: "finansallar",
+            label: "Finansallar",
+            content: (
+              <FinancialStatements annual={stockRatios.annual} quarterly={stockRatios.quarterly ?? []} currency={stockRatios.currency} asOf={stockRatios.as_of} />
+            ),
+          },
+        ]
+      : []),
+    ...(stockRatios || fundamentalData
+      ? [
+          {
+            id: "oranlar",
+            label: "Oranlar",
+            content: (
+              <>
+                {stockRatios ? <RatiosCard data={stockRatios} /> : fundamentalData && <FundamentalMetricsCard data={fundamentalData} />}
+                {stockRatios?.quarterly_history && <RatioTrendCharts data={stockRatios.quarterly_history} sector={stockRatios.sector} />}
+              </>
+            ),
+          },
+        ]
+      : []),
+    ...(dcfData || financialHealthData
+      ? [
+          {
+            id: "degerleme",
+            label: "Değerleme",
+            content: (
+              <>
+                {dcfData && <DcfTerminalCard dcf={dcfData} />}
+                {financialHealthData && <FinancialHealthCard health={financialHealthData} />}
+              </>
+            ),
+          },
+        ]
+      : []),
+    ...(keyLevelsData ? [{ id: "teknik", label: "Teknik", content: <KeyLevelsCard data={keyLevelsData} /> }] : []),
+    {
+      id: "haberler",
+      label: `KAP & Haberler (${reports.length})`,
+      content: (
+        <div>
+          <div className="flex items-center gap-2 mb-6">
+            <Activity className="w-4 h-4 text-cyan-400" />
+            <h2 className="text-lg font-display font-bold text-white">{cleanTicker} İstihbarat & Analiz Arşivi</h2>
+          </div>
+          {reports.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {reports.map((report) => (
+                <ReportCard key={report.slug} report={report} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-12 text-center">
+              <Building2 className="w-10 h-10 text-zinc-600 mx-auto mb-3" />
+              <h3 className="text-sm font-semibold text-zinc-300">Bu hisse için henüz arşiv kaydı bulunmuyor</h3>
+              <p className="text-xs text-zinc-500 mt-1 max-w-md mx-auto">
+                ${cleanTicker} için yeni bir KAP bildirimi geldiğinde analiz edilerek burada listelenecektir.
+              </p>
+              <Link href="/kategori/bist" className="inline-flex items-center gap-1.5 text-xs text-cyan-400 hover:underline mt-6">
+                Tüm BIST analizlerini incele <ArrowUpRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          )}
+        </div>
+      ),
+    },
+  ];
 
   const financialProductJsonLd = {
     "@context": "https://schema.org",
@@ -264,41 +384,35 @@ export default async function TickerPage({
         <span className="text-zinc-300 font-mono font-semibold">${cleanTicker}</span>
       </div>
 
-      {/* Şirket Başlık & Finansal Özet Kartı */}
+      {/* Şirket başlığı: yalnızca veriden gelen bilgiler (sektör, fiyat, çarpanlar) */}
       <div
-        className="rounded-2xl border p-6 md:p-8 mb-10 relative overflow-hidden"
-        style={{
-          background: "linear-gradient(145deg, var(--surface) 0%, rgba(15, 23, 42, 0.4) 100%)",
-          borderColor: "var(--border)",
-        }}
+        className="rounded-2xl border p-6 md:p-8 mb-8"
+        style={{ background: "linear-gradient(145deg, var(--surface) 0%, rgba(15, 23, 42, 0.4) 100%)", borderColor: "var(--border)" }}
       >
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-2xl md:text-3xl font-mono font-bold tracking-tight text-white">
-                ${cleanTicker}
-              </span>
-              <span className="text-[11px] font-semibold tracking-wider uppercase px-2.5 py-1 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20">
-                BIST Yıldız Pazar
-              </span>
-              <span className="text-[11px] font-semibold tracking-wider uppercase px-2.5 py-1 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
-                Takasbank Saklama
-              </span>
+            <div className="flex flex-wrap items-center gap-3 mb-2">
+              <span className="text-2xl md:text-3xl font-mono font-bold tracking-tight text-white">${cleanTicker}</span>
+              {stockRatios && (
+                <Link
+                  href={`/hisseler?sector=${encodeURIComponent(stockRatios.sector)}`}
+                  className="text-[11px] font-semibold tracking-wider uppercase px-2.5 py-1 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 hover:border-sky-400/50"
+                >
+                  {stockRatios.sector}
+                </Link>
+              )}
               <WatchlistDrawer currentTicker={cleanTicker} />
             </div>
-            <h1 className="text-base md:text-lg font-medium text-zinc-300">
-              {companyName}
-            </h1>
+            <h1 className="text-base md:text-lg font-medium text-zinc-300">{companyName}</h1>
           </div>
 
-          {/* Canlı Fiyat Kutusu */}
           <div className="flex items-center gap-4 bg-zinc-900/80 border border-zinc-800 rounded-xl p-4 self-start lg:self-auto min-w-[200px]">
             <div>
               <p className="text-[10px] uppercase font-bold tracking-wider text-zinc-500">
-                Anlık Seans Fiyatı
+                {liveQuote?.value ? "Anlık Fiyat" : "Son Fiyat"}
               </p>
-              <p className="text-2xl font-mono font-bold text-white mt-0.5">
-                {liveQuote?.value ? `${liveQuote.value} ₺` : "—"}
+              <p className="text-2xl font-mono font-bold text-white mt-0.5 tabular-nums">
+                {liveQuote?.value ? `${liveQuote.value} ₺` : headerPrice !== null ? `${headerPrice.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺` : "—"}
               </p>
             </div>
             {liveQuote?.change && (
@@ -309,185 +423,24 @@ export default async function TickerPage({
                     : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
                 }`}
               >
-                {liveQuote.up ? (
-                  <TrendingUp className="w-3.5 h-3.5" />
-                ) : (
-                  <TrendingDown className="w-3.5 h-3.5" />
-                )}
+                {liveQuote.up ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
                 {liveQuote.change}
               </div>
             )}
           </div>
         </div>
 
-        {/* Kurumsal Bilgi Şeridi */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-6 border-t border-zinc-800/80 text-xs">
-          <div>
-            <span className="text-zinc-500 block mb-1">Kapsamdaki Rapor</span>
-            <span className="font-mono font-semibold text-zinc-200">
-              {reports.length} Analiz & Bildirim
-            </span>
-          </div>
-          <div>
-            <span className="text-zinc-500 block mb-1">İşlem Para Birimi</span>
-            <span className="font-mono font-semibold text-zinc-200">TRY (Türk Lirası)</span>
-          </div>
-          <div>
-            <span className="text-zinc-500 block mb-1">Takas Süresi</span>
-            <span className="font-mono font-semibold text-zinc-200">T+2 Valör</span>
-          </div>
-          <div>
-            <span className="text-zinc-500 block mb-1">Veri Kaynağı</span>
-            <span className="font-mono font-semibold text-zinc-200">KAP + Borsa İstanbul</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Diğer BIST 30 Hisseleri Hızlı Geçiş Barı */}
-      <div className="mb-10">
-        <p className="text-xs uppercase font-bold tracking-[0.15em] text-zinc-500 mb-3">
-          Hızlı Hisse Terminali
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {BIST30_PILLS.map((p) => (
-            <Link
-              key={p}
-              href={`/hisse/${p}`}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold border transition-all ${
-                p === cleanTicker
-                  ? "bg-cyan-500/10 border-cyan-500 text-cyan-400 shadow-sm"
-                  : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-white"
-              }`}
-            >
-              ${p}
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Etkileşimli Fiyat Grafiği & Trend Görünümü ── */}
-      <div className="mb-10">
-        <InteractiveStockChart
-          ticker={cleanTicker}
-          currentPrice={
-            liveQuote?.value
-              ? parseFloat(liveQuote.value.replace("₺", "").replace(".", "").replace(",", ".")) || (keyLevelsData?.son_fiyat || 100)
-              : (keyLevelsData?.son_fiyat || 100)
-          }
-          changePct={
-            liveQuote?.change
-              ? parseFloat(liveQuote.change.replace("%", "").replace("+", "").replace(",", ".")) || (keyLevelsData?.gunluk_degisim_yuzde || 0)
-              : (keyLevelsData?.gunluk_degisim_yuzde || 0)
-          }
-          sma20={keyLevelsData?.hareketli_ortalamalar?.sma_20}
-          sma50={keyLevelsData?.hareketli_ortalamalar?.sma_50}
-        />
-      </div>
-
-      {/* İndirgenmiş Nakit Akışı (İNA / DCF) Değerleme Modeli */}
-      {dcfData && (
-        <div className="mb-10">
-          <DcfTerminalCard dcf={dcfData} />
-        </div>
-      )}
-
-      {/* Kurumsal Finansal Sağlık & Skor Kartı (Piotroski, Altman Z, DuPont) */}
-      {financialHealthData && (
-        <div className="mb-10">
-          <FinancialHealthCard health={financialHealthData} />
-        </div>
-      )}
-
-      {/* Teknik Eşikler & Temel Çarpanlar Grid */}
-      {(keyLevelsData || (fundamentalData && !stockRatios)) && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-          {keyLevelsData && <KeyLevelsCard data={keyLevelsData} />}
-          {/* Yeni oran seti varken eski (14 hisselik, farklı kaynaklı) çarpan kartı gösterilmez: tek kaynak */}
-          {fundamentalData && !stockRatios && <FundamentalMetricsCard data={fundamentalData} />}
-        </div>
-      )}
-
-      {/* Kurumsal Sermaye Eylemleri (Pay Geri Alımı & Nakit Kâr Payı) */}
-      <div className="mb-10">
-        <StockCorporateActionsCard
-          ticker={cleanTicker}
-          buyback={companyBuyback}
-          dividend={companyDividend}
-        />
-      </div>
-
-      {/* Fintables tarzı oran seti (bot: `esham stocks` → public/data/stocks/<T>.json) */}
-      {stockRatios && (
-        <div className="mb-10">
-          <RatiosCard data={stockRatios} />
-        </div>
-      )}
-      {stockRatios?.quarterly_history && (
-        <div className="mb-10">
-          <RatioTrendCharts data={stockRatios.quarterly_history} sector={stockRatios.sector} />
-        </div>
-      )}
-
-      {/* Sektör karşılaştırması: evren verisi varsa aynı kaynaktan (RatiosCard ile tutarlı), yoksa eski kart */}
-      {stockRatios && universe ? (
-        <div className="mb-10">
-          <SectorPeersCard
-            ticker={cleanTicker}
-            sector={stockRatios.sector}
-            stocks={universe.stocks}
-            median={universe.sector_median[stockRatios.sector]}
-          />
-        </div>
-      ) : companyQuant?.fundamental?.sektor && quantData && (
-        <div className="mb-10">
-          <StockPeerComparisonCard
-            currentTicker={cleanTicker}
-            currentSector={companyQuant.fundamental.sektor}
-            quantData={quantData}
-          />
-        </div>
-      )}
-
-      {/* Şirkete Ait Raporlar & Bildirim Arşivi */}
-      <div>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-cyan-400" />
-            <h2 className="text-lg font-display font-bold text-white">
-              {cleanTicker} İstihbarat & Analiz Arşivi
-            </h2>
-          </div>
-          <span className="text-xs text-zinc-500">
-            Toplam {reports.length} kayıt listeleniyor
-          </span>
-        </div>
-
-        {reports.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {reports.map((report) => (
-              <ReportCard key={report.slug} report={report} />
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-12 text-center">
-            <Building2 className="w-10 h-10 text-zinc-600 mx-auto mb-3" />
-            <h3 className="text-sm font-semibold text-zinc-300">
-              Bu hisse için henüz arşiv kaydı bulunmuyor
-            </h3>
-            <p className="text-xs text-zinc-500 mt-1 max-w-md mx-auto">
-              ${cleanTicker} kodlu şirkete ait yeni bir KAP bildirimi, iş sözleşmesi veya teknik fiyat hareketi gerçekleştiğinde otomatik olarak analiz edilerek burada listelenecektir.
-            </p>
-            <div className="mt-6">
-              <Link
-                href="/kategori/bist"
-                className="inline-flex items-center gap-1.5 text-xs text-cyan-400 hover:underline"
-              >
-                Tüm BIST analizlerini incele <ArrowUpRight className="w-3.5 h-3.5" />
-              </Link>
+        <dl className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-8 pt-6 border-t border-zinc-800/80 text-xs">
+          {summary.map((m) => (
+            <div key={m.label}>
+              <dt className="text-zinc-500 mb-1">{m.label}</dt>
+              <dd className="font-mono font-semibold text-zinc-100 tabular-nums">{m.value}</dd>
             </div>
-          </div>
-        )}
+          ))}
+        </dl>
       </div>
+
+      <StockTabs tabs={tabs} />
     </div>
   );
 }

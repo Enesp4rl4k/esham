@@ -41,6 +41,12 @@ Hedef: Her BIST hissesi ve her TEFAS fonu için kendi sayfası; Fintables tarzı
 5. Üst özet şeridi: fiyat, değişim, piyasa değeri, 52H, F/K · PD/DD · FD/FAVÖK rozetleri.
 6. SEO: sayfa başına `FinancialProduct` JSON-LD'yi gerçek verilerle (fiyat, piyasa değeri) güncelle; `generateMetadata` açıklamasına gerçek oranları koy.
 
+### Faz C — Durum (14 Kasım 2026)
+
+**Yapıldı:** KAP finansal rapor ayrıştırıcısı (`sources/kap_financials.py`, `esham kap-financials`). KAP bildirim sayfası IFRS/XBRL kavram kodlarıyla (`ifrs-full_Revenue`…) tabloları veriyor; birim/para birimi/konsolide bilgisi sayfada. 25 hissede Yahoo ile çapraz kontrol: **11'inde birebir aynı**, geri kalanında fark çoğunlukla **Yahoo'nun hatası** (PETKM 2026 Ç3 hasılatı Yahoo'da 82,7 mr, KAP 32,0 mr; DOAS 2026 Ç3 Yahoo'da yok; Yahoo THYAO'yu USD, KAP TL gösteriyor).
+**Bulgular:** (1) KAP `byCriteria` en fazla 2000 satır döndürür; rapor sezonunda pencere bölünmeli (uygulandı). (2) Çeyreklik akım için raporun kendi "3 Aylık" sütunu kullanılır (TMS 29 fiyat seviyesi tutarlı); Ç4 = yıllık − 9 ay türetilir (`derived`). (3) Rapor başına ~5 MB HTML → bildirim numarasıyla önbellek şart.
+**Sırada:** KAP'ı birincil kaynak yap (Yahoo yedek) · Actions'ta kalıcı önbellek (`actions/cache`) ve ilk doldurma (backfill) için ayrı iş · banka/sigorta taksonomisi · tüm evren.
+
 ### Faz C — Veri derinliği ve kapsam (1-2 hafta) 🟠
 1. **KAP finansal rapor ingestion** (XBRL/FR): 5-10 yıllık çeyreklik geçmiş, gerçek TTM-ROE serisi, kalem bazlı doğruluk. Yahoo yedek kalsın; kaynak alanı JSON'a yazılsın.
 2. **TMS 29 yaklaşımı:** enflasyon düzeltmeli tabloların dönemler arası karşılaştırma kuralı; UI'da uyarı yerine düzeltilmiş seri.
