@@ -5,7 +5,7 @@ import { Link2, Check } from "lucide-react";
 
 interface ShareButtonsProps {
   title: string;
-  /** Tam sayfa URL'i (ör. https://esham.pages.dev/rapor/slug) */
+  /** Tam sayfa URL'i (ör. `${SITE_URL}/rapor/slug`) */
   url: string;
 }
 
