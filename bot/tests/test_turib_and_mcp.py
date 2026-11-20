@@ -150,6 +150,7 @@ async def test_mcp_all_tools_registered():
     assert len(tool_names) == 27
 
 
+@pytest.mark.network
 def test_turib_market_data_publishing():
     from esham.publishing.turib_data import update_turib_market_data, TURIB_JSON
     import json
