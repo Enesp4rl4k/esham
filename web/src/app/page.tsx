@@ -24,7 +24,8 @@ import { MacroBarometerCard } from "@/components/MacroBarometerCard";
 import { ViopBasisCard } from "@/components/ViopBasisCard";
 import { DevaluationRadarCard } from "@/components/DevaluationRadarCard";
 import { MorningCockpit } from "@/components/MorningCockpit";
-import { HomeStrip, SectorCards, StockLeaderboards } from "@/components/HomeDiscovery";
+import { SectorCards, StockLeaderboards } from "@/components/HomeDiscovery";
+import { HomeHero } from "@/components/HomeHero";
 import { HomeSections, type HomePreset, type HomeSection } from "@/components/HomeSections";
 import { loadUniverse } from "@/lib/stocks";
 
@@ -438,8 +439,8 @@ export default async function Home() {
       {/* Canlı fiyat bandı (bot tarafından güncellenen JSON) */}
       <TickerBand />
 
-      {/* İlk ekran: kompakt arama şeridi; bölümler kullanıcının düzeniyle */}
-      <HomeStrip u={universe} />
+      {/* İlk ekran: vaat + arama + önizleme + hazır taramalar; bölümler kullanıcının düzeniyle */}
+      <HomeHero u={universe} />
       <HomeSections sections={sections} defaults={DEFAULT_LAYOUT} presets={PRESETS} />
     </div>
   );

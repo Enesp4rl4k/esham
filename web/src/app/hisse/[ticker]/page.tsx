@@ -33,6 +33,7 @@ import { DcfCalculator } from "@/components/DcfCalculator";
 import { NavCalculator } from "@/components/NavCalculator";
 import { SectorComparison } from "@/components/SectorComparison";
 import { FinancialStatements } from "@/components/FinancialStatements";
+import { Newsletter } from "@/components/Newsletter";
 import { StockTabs, type TabDef } from "@/components/StockTabs";
 import { StockCorporateActionsCard } from "@/components/StockCorporateActionsCard";
 import { StockPeerComparisonCard } from "@/components/StockPeerComparisonCard";
@@ -551,6 +552,10 @@ export default async function TickerPage({
       </div>
 
       <StockTabs tabs={tabs} />
+
+      <div className="mt-10">
+        <Newsletter />
+      </div>
     </div>
   );
 }
