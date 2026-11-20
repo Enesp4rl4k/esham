@@ -276,6 +276,27 @@ export default function RootLayout({
                 >
                   Yöntem ve Kaynaklar
                 </Link>
+                <Link
+                  href="/gizlilik"
+                  className="text-sm transition-opacity hover:opacity-70"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Gizlilik ve KVKK
+                </Link>
+                <Link
+                  href="/kullanim-sartlari"
+                  className="text-sm transition-opacity hover:opacity-70"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Kullanım Şartları
+                </Link>
+                <Link
+                  href="/iletisim"
+                  className="text-sm transition-opacity hover:opacity-70"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  İletişim
+                </Link>
               </div>
             </div>
           </div>
