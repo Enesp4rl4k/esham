@@ -1,5 +1,5 @@
 /** Fon sayfalarında zorunlu uyarı: yatırım tavsiyesi değildir + veri kaynağı atfı. */
-export function FundDisclaimer({ updatedAt }: { updatedAt?: string }) {
+export function FundDisclaimer({ updatedAt }: Readonly<{ updatedAt?: string }>) {
   return (
     <div className="rounded-2xl border border-amber-900/30 bg-amber-950/10 p-5" role="note">
       <p className="text-sm font-medium text-amber-400 mb-2">Yatırım tavsiyesi değildir</p>

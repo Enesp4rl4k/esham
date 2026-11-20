@@ -6,10 +6,19 @@ import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import { PERIODS, categoryGroups, describeFund, fmtInt, fmtMoney, fmtPct, fmtPrice, fmtSigned, riskLabel, topBy } from "@/lib/funds";
 import { getFundCodes, loadFund, loadFundUniverse } from "@/lib/funds-data";
-import { FundChart } from "@/components/FundChart";
+import { PriceChart, type ChartRange } from "@/components/PriceChart";
 import { FundDisclaimer } from "@/components/FundDisclaimer";
 
 type Params = { kod: string };
+
+const FUND_RANGES: ChartRange[] = [
+  { id: "3A", label: "3 Ay", days: 92 },
+  { id: "6A", label: "6 Ay", days: 183 },
+  { id: "1Y", label: "1 Yıl", days: 366 },
+  { id: "3Y", label: "3 Yıl", days: 1096 },
+  { id: "5Y", label: "5 Yıl", days: 99999 },
+];
+const FUND_CAPTION = "Günlük birim fiyat (TEFAS). Son 1 yıl günlük, daha eski dönem seyreltilmiş örnektir. Geçmiş performans gelecekteki getiriyi garanti etmez.";
 
 export const dynamicParams = false;
 
@@ -36,9 +45,13 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   };
 }
 
+const returnTone = (v: number | null) => {
+  if (v === null) return "text-zinc-400";
+  return v >= 0 ? "text-emerald-400" : "text-red-400";
+};
 const cell = "px-3 py-2 text-right font-mono tabular-nums whitespace-nowrap";
 
-export default async function FundPage({ params }: { params: Promise<Params> }) {
+export default async function FundPage({ params }: Readonly<{ params: Promise<Params> }>) {
   const { kod } = await params;
   const code = kod.toUpperCase();
   const f = loadFund(code);
@@ -114,7 +127,7 @@ export default async function FundPage({ params }: { params: Promise<Params> }) 
       </section>
 
       <section aria-label="Fiyat grafiği" className="mb-8">
-        <FundChart code={code} series={f.prices} />
+        <PriceChart ticker={code} series={f.prices} ranges={FUND_RANGES} digits={6} caption={FUND_CAPTION} />
       </section>
 
       <section aria-labelledby="getiriler" className="mb-8">
@@ -135,7 +148,7 @@ export default async function FundPage({ params }: { params: Promise<Params> }) 
                 return (
                   <tr key={p.key}>
                     <th scope="row" className="text-left px-3 py-2 font-normal text-zinc-300">{p.label}</th>
-                    <td className={`${cell} ${v === null ? "text-zinc-400" : v >= 0 ? "text-emerald-400" : "text-red-400"}`}>{fmtSigned(v)}</td>
+                    <td className={`${cell} ${returnTone(v)}`}>{fmtSigned(v)}</td>
                   </tr>
                 );
               })}
@@ -193,8 +206,8 @@ export default async function FundPage({ params }: { params: Promise<Params> }) 
       <section aria-labelledby="yorum" className="mb-8">
         <h2 id="yorum" className="text-xl font-display font-bold mb-3">{code} fonu verilerle</h2>
         <div className="space-y-3 text-sm text-zinc-300 leading-relaxed max-w-3xl">
-          {paragraphs.map((p, i) => (
-            <p key={i}>{p}</p>
+          {paragraphs.map((p) => (
+            <p key={p}>{p}</p>
           ))}
         </div>
       </section>

@@ -105,6 +105,39 @@ def summary_row(f: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _collect(
+    client: T.TefasClient,
+    chosen: list[dict[str, Any]],
+    sizes: dict[str, dict[str, float | None]],
+    fees: dict[str, float | None],
+    bench: dict[str, float],
+    ranks: dict[str, tuple[int, int]],
+    medians: dict[str, float],
+) -> list[dict[str, Any]]:
+    """Seçilen fonların ayrıntısını sırayla çeker ve yazar; engelde durur, tek fon hatasında atlar."""
+    funds: list[dict[str, Any]] = []
+    for i, base in enumerate(chosen, 1):
+        code = base["code"]
+        try:
+            prices = T.fetch_prices(client, code)
+            info = T.fetch_fund_info(client, code)
+            fund = build_fund(base, prices, info, sizes.get(code, {}), fees.get(code), bench, ranks.get(code), medians.get(base["category"]))
+        except T.TefasBlocked as exc:
+            log.error("TEFAS engeli, kalan fonlar atlandı (%d/%d): %s", i, len(chosen), exc)
+            break
+        except T.TefasError as exc:
+            log.warning("Fon atlandı %s: %s", code, exc)
+            continue
+        if not fund["prices"]:
+            log.warning("Fiyat serisi yok, atlandı: %s", code)
+            continue
+        funds.append(fund)
+        _write(DATA_DIR / "funds" / f"{code}.json", fund)
+        if i % 25 == 0:
+            log.info("Fon ilerleme: %d/%d", i, len(chosen))
+    return funds
+
+
 def run_funds(limit: int = 200, codes: list[str] | None = None, min_interval: float = 0.4) -> int:
     client = T.TefasClient(min_interval=min_interval)
     table = T.fetch_return_table(client)
@@ -134,27 +167,7 @@ def run_funds(limit: int = 200, codes: list[str] | None = None, min_interval: fl
     except T.TefasError as exc:
         log.warning("Kıyas getirileri alınamadı: %s", exc)
 
-    funds: list[dict[str, Any]] = []
-    for i, base in enumerate(chosen, 1):
-        code = base["code"]
-        try:
-            prices = T.fetch_prices(client, code)
-            info = T.fetch_fund_info(client, code)
-            fund = build_fund(base, prices, info, sizes.get(code, {}), fees.get(code), bench, ranks.get(code), medians.get(base["category"]))
-        except T.TefasBlocked as exc:
-            log.error("TEFAS engeli, kalan fonlar atlandı (%d/%d): %s", i, len(chosen), exc)
-            break
-        except T.TefasError as exc:
-            log.warning("Fon atlandı %s: %s", code, exc)
-            continue
-        if not fund["prices"]:
-            log.warning("Fiyat serisi yok, atlandı: %s", code)
-            continue
-        funds.append(fund)
-        _write(DATA_DIR / "funds" / f"{code}.json", fund)
-        if i % 25 == 0:
-            log.info("Fon ilerleme: %d/%d", i, len(chosen))
-
+    funds = _collect(client, chosen, sizes, fees, bench, ranks, medians)
     if not funds:
         return 0
     _merge_universe(funds, medians, partial=bool(codes), chosen={c['code'] for c in chosen})
