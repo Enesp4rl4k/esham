@@ -103,7 +103,7 @@ export function FinancialStatements({
   return (
     <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-5 shadow-xl">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-zinc-400">
           Tutarlar {unitNote}; Mn = milyon, Mr = milyar. Son bilanço: {asOf}
         </p>
         <div className="flex gap-1" role="group" aria-label="Dönem türü">
@@ -134,8 +134,8 @@ export function FinancialStatements({
           return (
             <div key={sec.title} className="overflow-x-auto">
               <table className="w-full text-xs min-w-[560px]">
-                <caption className="text-left text-[11px] font-bold uppercase tracking-wider text-zinc-500 pb-2">{sec.title}</caption>
-                <thead className="text-zinc-500">
+                <caption className="text-left text-xs font-bold uppercase tracking-wider text-zinc-400 pb-2">{sec.title}</caption>
+                <thead className="text-zinc-400">
                   <tr>
                     <th scope="col" className="text-left font-medium py-2 sticky left-0 bg-zinc-950">
                       Kalem
@@ -172,7 +172,7 @@ export function FinancialStatements({
                           );
                         })}
                         {showYoy && (
-                          <td className={`py-2 pl-3 text-right ${g === null ? "text-zinc-600" : r.cost ? "text-zinc-300" : g >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                          <td className={`py-2 pl-3 text-right ${g === null ? "text-zinc-400" : r.cost ? "text-zinc-300" : g >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                             {g === null ? "—" : `${g >= 0 ? "+" : "−"}%${nf1.format(Math.abs(g))}`}
                           </td>
                         )}
@@ -185,7 +185,7 @@ export function FinancialStatements({
           );
         })}
       </div>
-      <p className="mt-5 text-[11px] text-zinc-500 leading-relaxed">
+      <p className="mt-5 text-xs text-zinc-400 leading-relaxed">
         Kaynak: Yahoo Finance; KAP ile teyit edilmemiştir. Çeyrek değerleri o çeyreğin tek başına rakamıdır. Tablolar TMS 29 (enflasyon
         muhasebesi) etkisi taşıyabilir, dönemler arası kıyaslarda dikkatli olun. Önceki dönem sıfır ya da negatifse değişim yüzdesi gösterilmez.
       </p>

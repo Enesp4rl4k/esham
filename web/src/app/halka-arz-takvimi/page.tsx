@@ -84,34 +84,34 @@ function IpoCard({ report }: { report: Report }) {
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-[10px] font-bold tracking-widest uppercase text-emerald-400 border border-emerald-900/50 rounded px-2 py-0.5">
+            <span className="text-xs font-bold tracking-widest uppercase text-emerald-400 border border-emerald-900/50 rounded px-2 py-0.5">
               {ticker}
             </span>
-            <span className="text-[10px] text-zinc-500">{formatDate(eventDate)}</span>
+            <span className="text-xs text-zinc-400">{formatDate(eventDate)}</span>
           </div>
           <h3 className="text-sm font-semibold leading-snug text-zinc-100 group-hover:text-white transition-colors line-clamp-2">
             {report.title}
           </h3>
         </div>
-        <ArrowUpRight className="w-4 h-4 text-zinc-600 group-hover:text-emerald-400 flex-shrink-0 transition-colors" />
+        <ArrowUpRight className="w-4 h-4 text-zinc-400 group-hover:text-emerald-400 flex-shrink-0 transition-colors" />
       </div>
 
       {/* Metrik satırı */}
       <div className="flex items-center gap-4 text-xs">
         <div className="flex flex-col">
-          <span className="text-zinc-500 mb-0.5">Fiyat</span>
+          <span className="text-zinc-400 mb-0.5">Fiyat</span>
           <span className="font-semibold text-zinc-200">{price}</span>
         </div>
         <div className="w-px h-8 bg-zinc-800" />
         <div className="flex flex-col">
-          <span className="text-zinc-500 mb-0.5">İskonto</span>
+          <span className="text-zinc-400 mb-0.5">İskonto</span>
           <span className={`font-bold ${dcColor}`}>{discount}</span>
         </div>
         {verdict && (
           <>
             <div className="w-px h-8 bg-zinc-800" />
             <div className="flex-1 min-w-0">
-              <span className="text-zinc-500 block mb-0.5">Karar</span>
+              <span className="text-zinc-400 block mb-0.5">Karar</span>
               <span className="text-zinc-300 truncate block">{verdict}</span>
             </div>
           </>
@@ -120,7 +120,7 @@ function IpoCard({ report }: { report: Report }) {
 
       {/* Özet */}
       {report.summary && (
-        <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2">
+        <p className="text-xs text-zinc-400 leading-relaxed line-clamp-2">
           {report.summary}
         </p>
       )}
@@ -132,10 +132,10 @@ function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center">
       <div className="mb-4 rounded-full bg-zinc-900 p-4 border border-zinc-800">
-        <Clock className="h-8 w-8 text-zinc-600" />
+        <Clock className="h-8 w-8 text-zinc-400" />
       </div>
       <h3 className="text-lg font-semibold text-zinc-300">Henüz halka arz analizi yok</h3>
-      <p className="mt-2 text-sm text-zinc-500 max-w-sm">
+      <p className="mt-2 text-sm text-zinc-400 max-w-sm">
         KAP&apos;ta yeni bir fiyat tespit raporu yayınlandığında bot otomatik olarak
         analiz üretir ve burada görüntülenir.
       </p>
@@ -197,11 +197,11 @@ export default function HalkaArzTakvimiPage() {
       {ipoReports.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-10">
           <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
-            <p className="text-xs text-zinc-500 mb-1">Toplam Analiz</p>
+            <p className="text-xs text-zinc-400 mb-1">Toplam Analiz</p>
             <p className="text-3xl font-bold text-emerald-400">{ipoReports.length}</p>
           </div>
           <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
-            <p className="text-xs text-zinc-500 mb-1">Son 30 Gün</p>
+            <p className="text-xs text-zinc-400 mb-1">Son 30 Gün</p>
             <p className="text-3xl font-bold text-zinc-100">
               {ipoReports.filter((r) => {
                 const d = new Date(r.publishedAt);
@@ -213,7 +213,7 @@ export default function HalkaArzTakvimiPage() {
           <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5 col-span-2 sm:col-span-1">
             <div className="flex items-center gap-2 mb-2">
               <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
-              <p className="text-xs text-zinc-500">Not</p>
+              <p className="text-xs text-zinc-400">Not</p>
             </div>
             <p className="text-xs text-zinc-400 leading-relaxed">
               Tüm analizler AI tarafından üretilir ve yatırım tavsiyesi niteliği taşımaz.
@@ -225,7 +225,7 @@ export default function HalkaArzTakvimiPage() {
       {/* Açıklama — iskonto renkleri */}
       {ipoReports.length > 0 && (
         <div className="flex flex-wrap items-center gap-4 mb-8 px-1">
-          <span className="text-xs text-zinc-500">İskonto rengi:</span>
+          <span className="text-xs text-zinc-400">İskonto rengi:</span>
           <span className="flex items-center gap-1.5 text-xs">
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
             <span className="text-zinc-400">&gt;%25 — cazip</span>
@@ -272,7 +272,7 @@ export default function HalkaArzTakvimiPage() {
             <TrendingUp className="w-4 h-4 text-emerald-400" />
             <span className="text-sm font-semibold text-zinc-200">Yeni halka arz bildirimlerini takip et</span>
           </div>
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-zinc-400">
             Bot KAP&apos;ı sürekli tarar; yeni fiyat tespit raporu yayınlandığında otomatik analiz üretir.
           </p>
         </div>

@@ -104,7 +104,7 @@ export function StockPeerComparisonCard({
             <h3 className="text-sm font-bold text-white tracking-tight">
               Sektörel Akran Değerleme Matrisi
             </h3>
-            <p className="text-[11px] text-zinc-500 font-mono">
+            <p className="text-xs text-zinc-400 font-mono">
               {currentSector} sektörü çarpanları ve nispi değerleme kıyaslaması
             </p>
           </div>
@@ -127,7 +127,7 @@ export function StockPeerComparisonCard({
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse text-xs font-mono">
           <thead>
-            <tr className="border-b border-zinc-800 text-zinc-500 text-[10px] uppercase tracking-wider">
+            <tr className="border-b border-zinc-800 text-zinc-400 text-xs uppercase tracking-wider">
               <th className="py-2.5 px-3">Hisse</th>
               <th className="py-2.5 px-3 text-right">Son Fiyat</th>
               <th className="py-2.5 px-3 text-right">Piyasa Değeri</th>
@@ -161,12 +161,12 @@ export function StockPeerComparisonCard({
                         ${peer.ticker}
                       </span>
                       {isCurrent && (
-                        <span className="text-[9px] uppercase px-1.5 py-0.2 rounded bg-sky-400/20 text-sky-300 border border-sky-400/30">
+                        <span className="text-xs uppercase px-1.5 py-0.2 rounded bg-sky-400/20 text-sky-300 border border-sky-400/30">
                           Aktif
                         </span>
                       )}
                     </div>
-                    <span className="text-[10px] text-zinc-500 block truncate max-w-[130px] font-sans">
+                    <span className="text-xs text-zinc-400 block truncate max-w-[130px] font-sans">
                       {peer.sirket}
                     </span>
                   </td>
@@ -189,7 +189,7 @@ export function StockPeerComparisonCard({
                           ? medianPE && peer.fiyat_kazanc_fk < medianPE
                             ? "text-emerald-400 font-bold"
                             : "text-zinc-300"
-                          : "text-zinc-600"
+                          : "text-zinc-400"
                       }
                     >
                       {peer.fiyat_kazanc_fk ? `${peer.fiyat_kazanc_fk.toFixed(1)}x` : "—"}
@@ -204,7 +204,7 @@ export function StockPeerComparisonCard({
                           ? medianPB && peer.piyasa_defter_pddd < medianPB
                             ? "text-emerald-400 font-bold"
                             : "text-zinc-300"
-                          : "text-zinc-600"
+                          : "text-zinc-400"
                       }
                     >
                       {peer.piyasa_defter_pddd ? `${peer.piyasa_defter_pddd.toFixed(1)}x` : "—"}
@@ -246,18 +246,18 @@ export function StockPeerComparisonCard({
                         {peer.dcf_potansiyel.toFixed(1)}
                       </span>
                     ) : (
-                      <span className="text-zinc-600">—</span>
+                      <span className="text-zinc-400">—</span>
                     )}
                   </td>
 
                   {/* İncele Linki */}
                   <td className="py-3 px-3 text-center">
                     {isCurrent ? (
-                      <span className="text-zinc-600">—</span>
+                      <span className="text-zinc-400">—</span>
                     ) : (
                       <Link
                         href={`/hisse/${peer.ticker}`}
-                        className="inline-flex items-center gap-1 text-[11px] text-sky-400 hover:text-sky-300 transition-colors p-1 rounded hover:bg-sky-500/10"
+                        className="inline-flex items-center gap-1 text-xs text-sky-400 hover:text-sky-300 transition-colors p-1 rounded hover:bg-sky-500/10"
                         title={`${peer.ticker} detaylı analizi`}
                       >
                         <span>İncele</span>
@@ -272,7 +272,7 @@ export function StockPeerComparisonCard({
         </table>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-zinc-500 font-mono gap-2 pt-2 border-t border-zinc-800/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-zinc-400 font-mono gap-2 pt-2 border-t border-zinc-800/80">
         <span>* Yeşil renkli F/K ve PD/DD değerleri, sektör medyanına göre iskontolu çarpanı gösterir.</span>
         <span>Kaynak: Borsa İstanbul, KAP ve Esham Quant Modeli</span>
       </div>

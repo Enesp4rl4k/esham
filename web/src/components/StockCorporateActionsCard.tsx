@@ -75,12 +75,12 @@ export function StockCorporateActionsCard({
             <h3 className="text-sm font-bold text-white tracking-tight">
               Kurumsal Sermaye Eylemleri
             </h3>
-            <p className="text-[11px] text-zinc-500 font-mono">
+            <p className="text-xs text-zinc-400 font-mono">
               Pay geri alım fonu ve nakit kâr payı dağıtım parametreleri
             </p>
           </div>
         </div>
-        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
+        <span className="text-xs font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
           KAP Doğrulamalı
         </span>
       </div>
@@ -96,14 +96,14 @@ export function StockCorporateActionsCard({
                   Aktif Pay Geri Alım Programı
                 </span>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span className="text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                 {buyback.durum}
               </span>
             </div>
 
             {/* İlerleme Çubuğu */}
             <div>
-              <div className="flex justify-between text-[11px] font-mono text-zinc-400 mb-1.5">
+              <div className="flex justify-between text-xs font-mono text-zinc-400 mb-1.5">
                 <span>Tamamlanma Oranı</span>
                 <span className="text-white font-bold">%{buyback.tamamlanma_orani_yuzde.toFixed(1)}</span>
               </div>
@@ -118,23 +118,23 @@ export function StockCorporateActionsCard({
             {/* Metrikler Grid */}
             <div className="grid grid-cols-2 gap-2 text-xs font-mono">
               <div className="bg-zinc-950/70 p-2.5 rounded-lg border border-zinc-800/80">
-                <span className="text-[10px] text-zinc-500 block uppercase">Tahsis Edilen Fon</span>
+                <span className="text-xs text-zinc-400 block uppercase">Tahsis Edilen Fon</span>
                 <span className="font-bold text-white mt-0.5 block">{buyback.ayrilan_fon_fmt}</span>
               </div>
               <div className="bg-zinc-950/70 p-2.5 rounded-lg border border-zinc-800/80">
-                <span className="text-[10px] text-zinc-500 block uppercase">Geri Alınan Pay</span>
+                <span className="text-xs text-zinc-400 block uppercase">Geri Alınan Pay</span>
                 <span className="font-bold text-zinc-200 mt-0.5 block">
                   {(buyback.geri_alinan_lot / 1_000_000).toFixed(1)}M Lot
                 </span>
               </div>
               <div className="bg-zinc-950/70 p-2.5 rounded-lg border border-zinc-800/80">
-                <span className="text-[10px] text-zinc-500 block uppercase">Ortalama Maliyet</span>
+                <span className="text-xs text-zinc-400 block uppercase">Ortalama Maliyet</span>
                 <span className="font-bold text-zinc-300 mt-0.5 block">
                   {buyback.ortalama_maliyet_tl.toFixed(2)} ₺
                 </span>
               </div>
               <div className="bg-zinc-950/70 p-2.5 rounded-lg border border-zinc-800/80">
-                <span className="text-[10px] text-zinc-500 block uppercase">Maliyet Performansı</span>
+                <span className="text-xs text-zinc-400 block uppercase">Maliyet Performansı</span>
                 <span
                   className={`font-bold mt-0.5 block ${
                     isBuybackProfitable ? "text-emerald-400" : "text-rose-400"
@@ -147,17 +147,17 @@ export function StockCorporateActionsCard({
             </div>
 
             {buyback.amac && (
-              <p className="text-[11px] text-zinc-400 bg-zinc-950/50 p-2 rounded border border-zinc-800/60 leading-relaxed">
-                <span className="text-zinc-500 font-mono mr-1">Amaç:</span>
+              <p className="text-xs text-zinc-400 bg-zinc-950/50 p-2 rounded border border-zinc-800/60 leading-relaxed">
+                <span className="text-zinc-400 font-mono mr-1">Amaç:</span>
                 {buyback.amac}
               </p>
             )}
           </div>
         ) : (
           <div className="rounded-xl border border-zinc-800/60 bg-zinc-900/30 p-5 flex flex-col justify-center items-center text-center">
-            <RefreshCcw className="w-8 h-8 text-zinc-600 mb-2" />
+            <RefreshCcw className="w-8 h-8 text-zinc-400 mb-2" />
             <span className="text-xs font-semibold text-zinc-300">Aktif Geri Alım Yok</span>
-            <span className="text-[11px] text-zinc-500 mt-1">
+            <span className="text-xs text-zinc-400 mt-1">
               Şirket adına açılmış yürürlükte bir hisse geri alım programı bildirilmemiştir.
             </span>
           </div>
@@ -173,7 +173,7 @@ export function StockCorporateActionsCard({
                   Nakit Kâr Payı (Temettü)
                 </span>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">
+              <span className="text-xs font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">
                 {dividend.durum}
               </span>
             </div>
@@ -181,7 +181,7 @@ export function StockCorporateActionsCard({
             {/* Verim Vurgusu */}
             <div className="flex items-center justify-between bg-zinc-950/80 p-3 rounded-lg border border-zinc-800">
               <div>
-                <span className="text-[10px] text-zinc-500 block uppercase font-mono">Temettü Verimi</span>
+                <span className="text-xs text-zinc-400 block uppercase font-mono">Temettü Verimi</span>
                 <span className="text-xs text-zinc-400">Son Fiyata Göre Net Getiri</span>
               </div>
               <span className="text-xl font-mono font-black text-amber-400">
@@ -192,41 +192,41 @@ export function StockCorporateActionsCard({
             {/* Temettü Detay Grid */}
             <div className="grid grid-cols-2 gap-2 text-xs font-mono">
               <div className="bg-zinc-950/70 p-2.5 rounded-lg border border-zinc-800/80">
-                <span className="text-[10px] text-zinc-500 block uppercase">Hisse Başı Net</span>
+                <span className="text-xs text-zinc-400 block uppercase">Hisse Başı Net</span>
                 <span className="font-bold text-emerald-400 mt-0.5 block">
                   {dividend.net_temettu_tl.toFixed(2)} ₺
                 </span>
               </div>
               <div className="bg-zinc-950/70 p-2.5 rounded-lg border border-zinc-800/80">
-                <span className="text-[10px] text-zinc-500 block uppercase">Hisse Başı Brüt</span>
+                <span className="text-xs text-zinc-400 block uppercase">Hisse Başı Brüt</span>
                 <span className="font-bold text-zinc-300 mt-0.5 block">
                   {dividend.brut_temettu_tl.toFixed(2)} ₺
                 </span>
               </div>
               <div className="bg-zinc-950/70 p-2.5 rounded-lg border border-zinc-800/80">
-                <span className="text-[10px] text-zinc-500 block uppercase">Hak Kullanım</span>
+                <span className="text-xs text-zinc-400 block uppercase">Hak Kullanım</span>
                 <span className="font-bold text-zinc-300 mt-0.5 block">
                   {dividend.hak_kullanim_tarihi}
                 </span>
               </div>
               <div className="bg-zinc-950/70 p-2.5 rounded-lg border border-zinc-800/80">
-                <span className="text-[10px] text-zinc-500 block uppercase">Hesaba Geçiş</span>
+                <span className="text-xs text-zinc-400 block uppercase">Hesaba Geçiş</span>
                 <span className="font-bold text-zinc-300 mt-0.5 block">
                   {dividend.odeme_tarihi}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400 px-1 pt-1">
+            <div className="flex items-center justify-between text-xs font-mono text-zinc-400 px-1 pt-1">
               <span>Dağıtım Oranı (Payout)</span>
               <span className="text-white font-semibold">%{dividend.kar_dagitim_orani_yuzde.toFixed(1)}</span>
             </div>
           </div>
         ) : (
           <div className="rounded-xl border border-zinc-800/60 bg-zinc-900/30 p-5 flex flex-col justify-center items-center text-center">
-            <Calendar className="w-8 h-8 text-zinc-600 mb-2" />
+            <Calendar className="w-8 h-8 text-zinc-400 mb-2" />
             <span className="text-xs font-semibold text-zinc-300">Açıklanmış Temettü Yok</span>
-            <span className="text-[11px] text-zinc-500 mt-1">
+            <span className="text-xs text-zinc-400 mt-1">
               Mevcut takvim dönemi için genel kurul onaylı kâr payı tarihi ilan edilmemiştir.
             </span>
           </div>

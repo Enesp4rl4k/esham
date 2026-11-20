@@ -101,7 +101,7 @@ export function DevaluationRadarCard({ data, compact = false }: DevaluationRadar
           <div>
             <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
               TRY Kur Şoku & Devalüasyon Basınç Radarı
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
+              <span className="text-xs font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
                 0-100 Endeks
               </span>
             </h3>
@@ -127,7 +127,7 @@ export function DevaluationRadarCard({ data, compact = false }: DevaluationRadar
           <span className="text-zinc-400">Kur Basınç Skoru</span>
           <span className="font-bold text-white">
             %{score.toFixed(1)}{" "}
-            <span className="text-[10px] text-zinc-500 font-normal">
+            <span className="text-xs text-zinc-400 font-normal">
               (0 = Tam İstikrar, 100 = Ani Kur Şoku)
             </span>
           </span>
@@ -148,7 +148,7 @@ export function DevaluationRadarCard({ data, compact = false }: DevaluationRadar
         </div>
 
         {/* Eşik etiketleri */}
-        <div className="flex justify-between text-[10px] font-mono text-zinc-500 mt-1.5">
+        <div className="flex justify-between text-xs font-mono text-zinc-400 mt-1.5">
           <span>0 (Sakin)</span>
           <span>30 (Düşük)</span>
           <span>60 (Dengeli)</span>
@@ -161,7 +161,7 @@ export function DevaluationRadarCard({ data, compact = false }: DevaluationRadar
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs font-mono mb-5">
         {/* 1. Kapalıçarşı Makası */}
         <div className="p-3 rounded-xl bg-zinc-900/70 border border-zinc-800 flex flex-col justify-between">
-          <span className="text-[11px] text-zinc-400 flex items-center gap-1">
+          <span className="text-xs text-zinc-400 flex items-center gap-1">
             <Scale className="w-3 h-3 text-amber-400" />
             Tahtakale Makası
           </span>
@@ -169,7 +169,7 @@ export function DevaluationRadarCard({ data, compact = false }: DevaluationRadar
             <span className="text-sm font-bold text-white">
               %{data.components.grand_bazaar_spread.spread_pct.toFixed(2)}
             </span>
-            <span className="text-[10px] block text-emerald-400 mt-0.5">
+            <span className="text-xs block text-emerald-400 mt-0.5">
               Normal (&le; %0.4)
             </span>
           </div>
@@ -177,7 +177,7 @@ export function DevaluationRadarCard({ data, compact = false }: DevaluationRadar
 
         {/* 2. VİOP İma Edilen Faiz */}
         <div className="p-3 rounded-xl bg-zinc-900/70 border border-zinc-800 flex flex-col justify-between">
-          <span className="text-[11px] text-zinc-400 flex items-center gap-1">
+          <span className="text-xs text-zinc-400 flex items-center gap-1">
             <Percent className="w-3 h-3 text-sky-400" />
             VİOP İma Edilen Faiz
           </span>
@@ -185,7 +185,7 @@ export function DevaluationRadarCard({ data, compact = false }: DevaluationRadar
             <span className="text-sm font-bold text-white">
               %{data.components.viop_implied_yield.implied_rate_pct.toFixed(1)}
             </span>
-            <span className="text-[10px] block text-zinc-400 mt-0.5">
+            <span className="text-xs block text-zinc-400 mt-0.5">
               TCMB %{data.components.viop_implied_yield.policy_rate_pct.toFixed(0)} altı
             </span>
           </div>
@@ -193,7 +193,7 @@ export function DevaluationRadarCard({ data, compact = false }: DevaluationRadar
 
         {/* 3. TCMB Swap Hariç Rezerv */}
         <div className="p-3 rounded-xl bg-zinc-900/70 border border-zinc-800 flex flex-col justify-between">
-          <span className="text-[11px] text-zinc-400 flex items-center gap-1">
+          <span className="text-xs text-zinc-400 flex items-center gap-1">
             <Landmark className="w-3 h-3 text-emerald-400" />
             Swap Hariç Rezerv
           </span>
@@ -201,7 +201,7 @@ export function DevaluationRadarCard({ data, compact = false }: DevaluationRadar
             <span className="text-sm font-bold text-emerald-400">
               +${data.components.tcmb_reserves.swap_free_net_usd_bn.toFixed(1)} Mrd
             </span>
-            <span className="text-[10px] block text-emerald-500 mt-0.5">
+            <span className="text-xs block text-emerald-500 mt-0.5">
               +{data.components.tcmb_reserves.monthly_change_usd_bn.toFixed(1)} Mrd$/ay
             </span>
           </div>
@@ -209,7 +209,7 @@ export function DevaluationRadarCard({ data, compact = false }: DevaluationRadar
 
         {/* 4. Türkiye 5Y CDS */}
         <div className="p-3 rounded-xl bg-zinc-900/70 border border-zinc-800 flex flex-col justify-between">
-          <span className="text-[11px] text-zinc-400 flex items-center gap-1">
+          <span className="text-xs text-zinc-400 flex items-center gap-1">
             <ShieldCheck className="w-3 h-3 text-violet-400" />
             5Y CDS Primi
           </span>
@@ -217,7 +217,7 @@ export function DevaluationRadarCard({ data, compact = false }: DevaluationRadar
             <span className="text-sm font-bold text-white">
               {data.components.cds_5y.value_bps.toFixed(0)} bps
             </span>
-            <span className="text-[10px] block text-emerald-400 mt-0.5">
+            <span className="text-xs block text-emerald-400 mt-0.5">
               Düşük Risk (&lt; 280)
             </span>
           </div>
@@ -225,7 +225,7 @@ export function DevaluationRadarCard({ data, compact = false }: DevaluationRadar
 
         {/* 5. TÜFE REER */}
         <div className="p-3 rounded-xl bg-zinc-900/70 border border-zinc-800 flex flex-col justify-between col-span-2 md:col-span-1">
-          <span className="text-[11px] text-zinc-400 flex items-center gap-1">
+          <span className="text-xs text-zinc-400 flex items-center gap-1">
             <Gauge className="w-3 h-3 text-pink-400" />
             TÜFE REER Endeksi
           </span>
@@ -233,7 +233,7 @@ export function DevaluationRadarCard({ data, compact = false }: DevaluationRadar
             <span className="text-sm font-bold text-white">
               {data.components.reer.value.toFixed(1)}
             </span>
-            <span className="text-[10px] block text-zinc-400 mt-0.5">
+            <span className="text-xs block text-zinc-400 mt-0.5">
               Dengeli Bant (55-68)
             </span>
           </div>
@@ -248,7 +248,7 @@ export function DevaluationRadarCard({ data, compact = false }: DevaluationRadar
       {/* Alt Link */}
       {!compact && (
         <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60 text-xs">
-          <span className="text-zinc-500 font-mono text-[11px]">
+          <span className="text-zinc-400 font-mono text-xs">
             Son Güncelleme: {data.updated_at}
           </span>
           <Link

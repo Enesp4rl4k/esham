@@ -70,10 +70,10 @@ function BoardRow({ s, metric, unit, rank }: { s: UniverseStock; metric: keyof U
   return (
     <li>
       <Link href={`/hisse/${s.ticker}`} className="flex items-center gap-3 py-2.5 hover:bg-zinc-900/50 -mx-2 px-2 rounded-lg transition-colors">
-        <span className="w-4 text-[11px] font-mono text-zinc-600">{rank}</span>
+        <span className="w-4 text-xs font-mono text-zinc-400">{rank}</span>
         <span className="flex-1 min-w-0">
           <span className="block font-mono font-bold text-sm text-white">{s.ticker}</span>
-          <span className="block text-[11px] text-zinc-500 truncate">{s.name}</span>
+          <span className="block text-xs text-zinc-400 truncate">{s.name}</span>
         </span>
         <span className="font-mono text-sm font-semibold tabular-nums" style={{ color: "var(--accent)" }}>
           {val(s[metric], unit)}
@@ -111,7 +111,7 @@ export function StockLeaderboards({ u }: { u: Universe }) {
           {boards.map((b) => (
             <div key={b.title} className="rounded-2xl border p-5" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
               <h3 className="text-sm font-bold font-display">{b.title}</h3>
-              <p className="text-[11px] mb-3" style={{ color: "var(--text-muted)" }}>
+              <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>
                 {b.hint}
               </p>
               <ol className="divide-y divide-zinc-900">
@@ -135,16 +135,16 @@ export function StockLeaderboards({ u }: { u: Universe }) {
               style={{ borderColor: "var(--border)", background: "var(--surface)" }}
             >
               <span className="block text-sm font-semibold">{s.name}</span>
-              <span className="block text-[11px] mb-2" style={{ color: "var(--text-muted)" }}>
+              <span className="block text-xs mb-2" style={{ color: "var(--text-muted)" }}>
                 {s.n} hisse
               </span>
-              <span className="block text-[11px] font-mono text-zinc-400">
+              <span className="block text-xs font-mono text-zinc-400">
                 F/K {val(s.med.pe, "x")} · ROE {val(s.med.roe, "%")}
               </span>
             </Link>
           ))}
         </div>
-        <p className="text-[11px] mt-3" style={{ color: "var(--text-muted)" }}>
+        <p className="text-xs mt-3" style={{ color: "var(--text-muted)" }}>
           Sektör değerleri medyandır; en az 3 hisseli sektörlerde gösterilir. Liderlik tablolarında piyasa değeri 5 milyar TL altı şirketler yer almaz. Veriler Yahoo Finance bilançolarına dayanır, KAP ile teyit edilmemiştir; yatırım tavsiyesi değildir.
         </p>
       </div>

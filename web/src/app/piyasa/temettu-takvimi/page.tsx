@@ -49,7 +49,7 @@ export default async function DividendsPage() {
   return (
     <div className="container mx-auto px-6 py-12 max-w-6xl">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-3 mb-8 text-xs text-zinc-500">
+      <div className="flex items-center gap-3 mb-8 text-xs text-zinc-400">
         <Link href="/" className="inline-flex items-center gap-1.5 hover:text-white transition-colors">
           <ArrowLeft className="w-3.5 h-3.5" /> Ana Sayfa
         </Link>
@@ -81,13 +81,13 @@ export default async function DividendsPage() {
           </div>
 
           <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-4 min-w-[220px]">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 block">
+            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400 block">
               Ortalama Temettü Verimi
             </span>
             <span className="text-2xl font-mono font-bold text-emerald-400 mt-1 block">
               %{avgYield}
             </span>
-            <span className="text-[11px] font-mono text-zinc-400 mt-0.5 block">
+            <span className="text-xs font-mono text-zinc-400 mt-0.5 block">
               {records.length} Şirket Açıklaması
             </span>
           </div>
@@ -98,7 +98,7 @@ export default async function DividendsPage() {
       <div className="rounded-2xl border border-zinc-800 bg-zinc-950/90 overflow-hidden shadow-2xl mb-10">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-zinc-900/80 border-b border-zinc-800 text-[11px] uppercase tracking-wider text-zinc-400">
+            <thead className="bg-zinc-900/80 border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-400">
               <tr>
                 <th className="py-4 px-5">Şirket / Kod</th>
                 <th className="py-4 px-4">Temettü Verimi</th>
@@ -134,7 +134,7 @@ export default async function DividendsPage() {
                   </td>
                   <td className="py-4 px-4 text-zinc-200">
                     <div className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-zinc-500" />
+                      <Calendar className="w-3.5 h-3.5 text-zinc-400" />
                       <span>{r.hak_kullanim_tarihi}</span>
                     </div>
                   </td>
@@ -147,7 +147,7 @@ export default async function DividendsPage() {
                   <td className="py-4 px-4 text-right">
                     <Link
                       href={`/hisse/${r.ticker}`}
-                      className="inline-flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 transition-colors font-sans"
+                      className="inline-flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition-colors font-sans"
                     >
                       Terminal <ArrowUpRight className="w-3.5 h-3.5" />
                     </Link>

@@ -138,14 +138,14 @@ export function MorningCockpit({
               <span className="text-xs font-mono font-bold uppercase tracking-wider text-white">
                 Günün Seans Açılış Kokpiti
               </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 hidden sm:inline">
+              <span className="text-xs font-mono px-2 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 hidden sm:inline">
                 {sessionPhase}
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-[11px] font-mono text-zinc-400 hidden md:inline">
+            <span className="text-xs font-mono text-zinc-400 hidden md:inline">
               {new Date().toLocaleDateString("tr-TR", {
                 weekday: "long",
                 day: "numeric",
@@ -166,18 +166,18 @@ export function MorningCockpit({
         {!isOpen && (
           <div className="px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono bg-zinc-950/60">
             <div className="flex items-center gap-3 text-zinc-400">
-              <span className="text-zinc-500">Açılış Görünümü:</span>
-              <span className={`px-2 py-0.5 rounded text-[11px] font-bold border ${openingSentiment.badgeClass}`}>
+              <span className="text-zinc-400">Açılış Görünümü:</span>
+              <span className={`px-2 py-0.5 rounded text-xs font-bold border ${openingSentiment.badgeClass}`}>
                 {openingSentiment.label}
               </span>
-              <span className="hidden md:inline text-zinc-500">•</span>
+              <span className="hidden md:inline text-zinc-400">•</span>
               <span className="hidden md:inline text-zinc-300">
                 VİOP Basis: <strong className="text-emerald-400">+{basisPuan.toFixed(1)} Puan Contango</strong>
               </span>
             </div>
             <button
               onClick={toggleOpen}
-              className="text-[11px] text-amber-400 hover:text-amber-300 inline-flex items-center gap-1 self-start sm:self-auto"
+              className="text-xs text-amber-400 hover:text-amber-300 inline-flex items-center gap-1 self-start sm:self-auto"
             >
               <span>4 Kritik Seans Verisini Gör</span>
               <ArrowRight className="w-3 h-3" />
@@ -200,30 +200,30 @@ export function MorningCockpit({
                       Açılış & VİOP
                     </h3>
                   </div>
-                  <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${openingSentiment.badgeClass}`}>
+                  <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${openingSentiment.badgeClass}`}>
                     {openingSentiment.label}
                   </span>
                 </div>
 
                 <div className="space-y-2 mb-3 font-mono text-xs">
                   <div className="flex justify-between items-center bg-zinc-950/70 p-2 rounded border border-zinc-800/60">
-                    <span className="text-zinc-500">F_XU030 Vadeli</span>
+                    <span className="text-zinc-400">F_XU030 Vadeli</span>
                     <span className="font-bold text-white">{vadeliFiyat.toFixed(1)} ₺</span>
                   </div>
                   <div className="flex justify-between items-center bg-zinc-950/70 p-2 rounded border border-zinc-800/60">
-                    <span className="text-zinc-500">Basis Makası</span>
+                    <span className="text-zinc-400">Basis Makası</span>
                     <span className="font-bold text-emerald-400">
                       +{basisPuan.toFixed(1)} pt (%{basisYuzde.toFixed(2)})
                     </span>
                   </div>
                 </div>
 
-                <p className="text-[11px] text-zinc-400 leading-relaxed font-sans">
+                <p className="text-xs text-zinc-400 leading-relaxed font-sans">
                   {openingSentiment.summary}
                 </p>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-zinc-800/70 flex items-center justify-between text-[10px] font-mono text-zinc-500">
+              <div className="mt-4 pt-3 border-t border-zinc-800/70 flex items-center justify-between text-xs font-mono text-zinc-400">
                 <span>Vade Sonu: 32 Gün</span>
                 <span className="text-zinc-400">Contango Primli</span>
               </div>
@@ -241,7 +241,7 @@ export function MorningCockpit({
                       Kritik Pivotlar
                     </h3>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
+                  <span className="text-xs font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
                     BIST-30
                   </span>
                 </div>
@@ -256,19 +256,19 @@ export function MorningCockpit({
                       <span className="font-bold text-white group-hover:text-cyan-400">
                         ${item.ticker}
                       </span>
-                      <span className="text-[10px] text-zinc-400">
+                      <span className="text-xs text-zinc-400">
                         P: <strong className="text-cyan-300">{item.pivot.toFixed(1)}</strong>
                       </span>
                     </Link>
                   ))}
                 </div>
 
-                <p className="text-[10px] text-zinc-500 font-sans mt-2">
+                <p className="text-xs text-zinc-400 font-sans mt-2">
                   * Pivot üzeri fiyatlamalar alıcılı trendi, altı ise S1 destek testini tetikler.
                 </p>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-zinc-800/70 flex items-center justify-between text-[10px] font-mono text-zinc-500">
+              <div className="mt-4 pt-3 border-t border-zinc-800/70 flex items-center justify-between text-xs font-mono text-zinc-400">
                 <span>XU100 Pivot: 11.380 ₺</span>
                 <span className="text-cyan-400">Canlı Eşikler</span>
               </div>
@@ -286,7 +286,7 @@ export function MorningCockpit({
                       Sabah KAP Akışı
                     </h3>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  <span className="text-xs font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
                     Son 24 Saat
                   </span>
                 </div>
@@ -299,10 +299,10 @@ export function MorningCockpit({
                       className="block group border-b border-zinc-800/50 pb-2 last:border-0 last:pb-0"
                     >
                       <div className="flex items-center gap-1.5 mb-0.5">
-                        <span className="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300">
+                        <span className="text-xs font-mono uppercase px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300">
                           {r.ipo?.ticker ? `$${r.ipo.ticker}` : r.tags?.[0] ? `$${r.tags[0].toUpperCase()}` : "BIST"}
                         </span>
-                        <span className="text-[10px] font-mono text-zinc-500">
+                        <span className="text-xs font-mono text-zinc-400">
                           #{i + 1}
                         </span>
                       </div>
@@ -314,7 +314,7 @@ export function MorningCockpit({
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-zinc-800/70 flex items-center justify-between text-[10px] font-mono text-zinc-500">
+              <div className="mt-4 pt-3 border-t border-zinc-800/70 flex items-center justify-between text-xs font-mono text-zinc-400">
                 <Link href="/kategori/bist" className="text-amber-400 hover:underline flex items-center gap-1">
                   <span>Tüm KAP bildirimleri</span>
                   <ArrowRight className="w-3 h-3" />
@@ -334,7 +334,7 @@ export function MorningCockpit({
                       Günün Ajandası
                     </h3>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
+                  <span className="text-xs font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
                     Ekonomik Takvim
                   </span>
                 </div>
@@ -345,14 +345,14 @@ export function MorningCockpit({
                       key={idx}
                       className="flex items-start gap-2.5 p-1.5 rounded bg-zinc-950/70 border border-zinc-800/60"
                     >
-                      <span className="text-amber-400 font-bold shrink-0 text-[11px] mt-0.5">
+                      <span className="text-amber-400 font-bold shrink-0 text-xs mt-0.5">
                         {evt.time}
                       </span>
                       <div className="min-w-0">
-                        <span className="text-[10px] text-zinc-500 block">
+                        <span className="text-xs text-zinc-400 block">
                           {evt.country}
                         </span>
-                        <span className="text-zinc-300 block truncate text-[11px] font-sans">
+                        <span className="text-zinc-300 block truncate text-xs font-sans">
                           {evt.event}
                         </span>
                       </div>
@@ -361,7 +361,7 @@ export function MorningCockpit({
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-zinc-800/70 flex items-center justify-between text-[10px] font-mono text-zinc-500">
+              <div className="mt-4 pt-3 border-t border-zinc-800/70 flex items-center justify-between text-xs font-mono text-zinc-400">
                 <span>Saat Dilimi: GMT+3 (TSİ)</span>
                 <span className="text-indigo-400">TradingView API</span>
               </div>

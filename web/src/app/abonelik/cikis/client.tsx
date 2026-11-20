@@ -75,7 +75,7 @@ export function UnsubscribeClient() {
       {status === "ok" && (
         <>
           <p className="text-emerald-400 text-lg mb-2">{message}</p>
-          <p className="text-zinc-500 text-sm">
+          <p className="text-zinc-400 text-sm">
             Artık bülten e-postaları gönderilmeyecek. Dilerseniz daha sonra
             tekrar abone olabilirsiniz.
           </p>

@@ -42,7 +42,7 @@ export function ViopBasisCard({ data }: ViopBasisCardProps) {
           <div>
             <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
               VİOP BIST 30 Basis & Likidite Radarı
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
+              <span className="text-xs font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
                 F_XU030
               </span>
             </h3>
@@ -61,43 +61,43 @@ export function ViopBasisCard({ data }: ViopBasisCardProps) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono mb-5">
         {/* 1. Basis Farkı */}
         <div className="bg-zinc-900/60 p-3.5 rounded-xl border border-zinc-800">
-          <span className="text-[10px] text-zinc-500 block uppercase">Basis (Fark Puan)</span>
+          <span className="text-xs text-zinc-400 block uppercase">Basis (Fark Puan)</span>
           <div className="flex items-baseline gap-1 mt-1">
             <span className="text-xl font-extrabold text-white">
               {data.basis_puan > 0 ? `+${data.basis_puan}` : data.basis_puan}
             </span>
-            <span className="text-xs text-zinc-500">puan</span>
+            <span className="text-xs text-zinc-400">puan</span>
           </div>
-          <span className="text-[10px] text-cyan-400 block mt-1.5 font-sans">
+          <span className="text-xs text-cyan-400 block mt-1.5 font-sans">
             %{data.basis_yuzde.toFixed(2)} Vadeli Primi
           </span>
         </div>
 
         {/* 2. İma Edilen Yıllık Faiz */}
         <div className="bg-zinc-900/60 p-3.5 rounded-xl border border-zinc-800">
-          <span className="text-[10px] text-zinc-500 block uppercase">İma Edilen Taşıma Faizi</span>
+          <span className="text-xs text-zinc-400 block uppercase">İma Edilen Taşıma Faizi</span>
           <div className="flex items-baseline gap-1 mt-1">
             <span className="text-xl font-extrabold text-emerald-400">
               %{data.ima_edilen_yillik_faiz_yuzde.toFixed(1)}
             </span>
-            <span className="text-[10px] text-zinc-500 font-mono">Yıllık</span>
+            <span className="text-xs text-zinc-400 font-mono">Yıllık</span>
           </div>
-          <span className="text-[10px] text-zinc-400 block mt-1.5 font-sans">
+          <span className="text-xs text-zinc-400 block mt-1.5 font-sans">
             Vadeye {data.vadeye_kalan_gun} Gün Kaldı
           </span>
         </div>
 
         {/* 3. Açık Pozisyon (Open Interest) */}
         <div className="bg-zinc-900/60 p-3.5 rounded-xl border border-zinc-800">
-          <span className="text-[10px] text-zinc-500 block uppercase">Açık Pozisyon Sayısı</span>
+          <span className="text-xs text-zinc-400 block uppercase">Açık Pozisyon Sayısı</span>
           <div className="flex items-baseline gap-1 mt-1">
             <span className="text-xl font-extrabold text-white">
               {(data.acik_pozisyon_lot / 1000).toFixed(1)}K
             </span>
-            <span className="text-xs text-zinc-500">lot</span>
+            <span className="text-xs text-zinc-400">lot</span>
           </div>
           <span
-            className={`flex items-center gap-1 text-[10px] font-bold mt-1.5 ${
+            className={`flex items-center gap-1 text-xs font-bold mt-1.5 ${
               isOiUp ? "text-emerald-400" : "text-rose-400"
             }`}
           >
@@ -108,13 +108,13 @@ export function ViopBasisCard({ data }: ViopBasisCardProps) {
 
         {/* 4. Takasbank Margin Call */}
         <div className="bg-zinc-900/60 p-3.5 rounded-xl border border-zinc-800">
-          <span className="text-[10px] text-zinc-500 block uppercase">Takasbank Margin Call</span>
+          <span className="text-xs text-zinc-400 block uppercase">Takasbank Margin Call</span>
           <div className="flex items-baseline gap-1 mt-1">
             <span className="text-lg font-bold text-white">
               {data.teminat_tamamlama_tutari}
             </span>
           </div>
-          <span className="text-[10px] text-emerald-400 block mt-1.5 font-sans">
+          <span className="text-xs text-emerald-400 block mt-1.5 font-sans">
             {data.teminat_tamamlama_durumu}
           </span>
         </div>

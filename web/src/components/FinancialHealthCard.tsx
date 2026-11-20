@@ -113,10 +113,10 @@ export function FinancialHealthCard({ health }: FinancialHealthCardProps) {
         {/* 1. Piotroski F-Score */}
         <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900/40 relative overflow-hidden">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
               Piotroski F-Skoru
             </span>
-            <span className="text-xs font-mono text-zinc-500">9 Kriter</span>
+            <span className="text-xs font-mono text-zinc-400">9 Kriter</span>
           </div>
           <div className="flex items-baseline gap-2">
             <span
@@ -126,7 +126,7 @@ export function FinancialHealthCard({ health }: FinancialHealthCardProps) {
             >
               {score}
             </span>
-            <span className="text-zinc-500 text-sm font-mono">/ 9</span>
+            <span className="text-zinc-400 text-sm font-mono">/ 9</span>
           </div>
 
           {/* 9 Segmentli Bar */}
@@ -146,7 +146,7 @@ export function FinancialHealthCard({ health }: FinancialHealthCardProps) {
               />
             ))}
           </div>
-          <p className="text-[11px] text-zinc-400 mt-2 line-clamp-1">
+          <p className="text-xs text-zinc-400 mt-2 line-clamp-1">
             {isStrong
               ? "Sağlam bilanço ve operasyonel nakit üretimi."
               : isModerate
@@ -158,11 +158,11 @@ export function FinancialHealthCard({ health }: FinancialHealthCardProps) {
         {/* 2. Altman Z-Score */}
         <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900/40">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
               Altman Z-Skoru
             </span>
             <span
-              className={`text-[10px] px-2 py-0.5 rounded font-mono font-semibold ${
+              className={`text-xs px-2 py-0.5 rounded font-mono font-semibold ${
                 isZSafe
                   ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                   : isZGrey
@@ -181,7 +181,7 @@ export function FinancialHealthCard({ health }: FinancialHealthCardProps) {
             >
               {z > 0 ? z.toFixed(2) : "—"}
             </span>
-            <span className="text-zinc-500 text-xs font-mono">Eşik: 2.99</span>
+            <span className="text-zinc-400 text-xs font-mono">Eşik: 2.99</span>
           </div>
 
           {/* Mini Kadran Görseli */}
@@ -190,7 +190,7 @@ export function FinancialHealthCard({ health }: FinancialHealthCardProps) {
             <div className="w-[33%] bg-amber-500/60" />
             <div className="w-[34%] bg-emerald-500/60" />
           </div>
-          <div className="flex justify-between text-[9px] font-mono text-zinc-500 mt-1">
+          <div className="flex justify-between text-xs font-mono text-zinc-400 mt-1">
             <span>&lt;1.81 İflas Riski</span>
             <span>1.81-2.99 Gri</span>
             <span>&gt;2.99 Güvenli</span>
@@ -200,7 +200,7 @@ export function FinancialHealthCard({ health }: FinancialHealthCardProps) {
         {/* 3. DuPont 3 Aşamalı ROE */}
         <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900/40">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
               DuPont Hesaplanmış ROE
             </span>
             <span className="text-xs font-mono text-cyan-400">Sermaye Verimi</span>
@@ -209,22 +209,22 @@ export function FinancialHealthCard({ health }: FinancialHealthCardProps) {
             <span className="text-3xl font-extrabold font-mono text-cyan-400">
               %{dupont.hesaplanan_roe.toFixed(1)}
             </span>
-            <span className="text-zinc-500 text-xs font-mono">Yıllık</span>
+            <span className="text-zinc-400 text-xs font-mono">Yıllık</span>
           </div>
 
-          <div className="mt-3 flex items-center justify-between text-[11px] font-mono text-zinc-400 border-t border-zinc-800 pt-2">
+          <div className="mt-3 flex items-center justify-between text-xs font-mono text-zinc-400 border-t border-zinc-800 pt-2">
             <div>
-              <span className="text-zinc-500 block text-[9px]">KÂR MARJI</span>
+              <span className="text-zinc-400 block text-xs">KÂR MARJI</span>
               <span>%{dupont.net_kar_marji.toFixed(1)}</span>
             </div>
-            <span className="text-zinc-600">×</span>
+            <span className="text-zinc-400">×</span>
             <div>
-              <span className="text-zinc-500 block text-[9px]">DEVİR HIZI</span>
+              <span className="text-zinc-400 block text-xs">DEVİR HIZI</span>
               <span>{dupont.aktif_devir_hizi.toFixed(2)}x</span>
             </div>
-            <span className="text-zinc-600">×</span>
+            <span className="text-zinc-400">×</span>
             <div>
-              <span className="text-zinc-500 block text-[9px]">KALDIRAÇ</span>
+              <span className="text-zinc-400 block text-xs">KALDIRAÇ</span>
               <span>{dupont.kaldirac_carpani.toFixed(2)}x</span>
             </div>
           </div>
@@ -276,7 +276,7 @@ export function FinancialHealthCard({ health }: FinancialHealthCardProps) {
               <div key={idx} className="rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-4">
                 <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-zinc-400 mb-3 flex items-center justify-between">
                   <span>{cat.name}</span>
-                  <span className="text-[11px] text-zinc-500">
+                  <span className="text-xs text-zinc-400">
                     {list.filter((c) => c.gecerli).length} / {list.length} Puan
                   </span>
                 </h4>
@@ -294,12 +294,12 @@ export function FinancialHealthCard({ health }: FinancialHealthCardProps) {
                         {crit.gecerli ? (
                           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                         ) : (
-                          <XCircle className="w-4 h-4 text-zinc-600" />
+                          <XCircle className="w-4 h-4 text-zinc-400" />
                         )}
                       </span>
                       <div className="min-w-0 flex-1">
                         <span className="font-medium text-white block">{crit.aciklama}</span>
-                        <span className="text-[10px] font-mono text-zinc-500 block mt-0.5">
+                        <span className="text-xs font-mono text-zinc-400 block mt-0.5">
                           Metrik: {crit.deger}
                         </span>
                       </div>
@@ -326,56 +326,56 @@ export function FinancialHealthCard({ health }: FinancialHealthCardProps) {
           <div className="grid grid-cols-1 md:grid-cols-7 items-center gap-4 text-center">
             {/* 1. Net Marj */}
             <div className="md:col-span-2 p-4 rounded-xl border border-zinc-800 bg-zinc-950/70">
-              <span className="text-[10px] font-bold text-zinc-500 uppercase block mb-1">
+              <span className="text-xs font-bold text-zinc-400 uppercase block mb-1">
                 Adım 1: Kâr Marjı
               </span>
               <span className="text-2xl font-extrabold font-mono text-white block">
                 %{dupont.net_kar_marji.toFixed(1)}
               </span>
-              <span className="text-[11px] text-zinc-400 mt-1 block">
+              <span className="text-xs text-zinc-400 mt-1 block">
                 Net Kâr / Toplam Hasılat
               </span>
-              <span className="text-[10px] text-emerald-400 block mt-2 font-mono">
+              <span className="text-xs text-emerald-400 block mt-2 font-mono">
                 Fiyatlama & Maliyet Gücü
               </span>
             </div>
 
-            <div className="hidden md:flex justify-center text-zinc-600 font-mono text-xl">
+            <div className="hidden md:flex justify-center text-zinc-400 font-mono text-xl">
               ×
             </div>
 
             {/* 2. Aktif Devir Hızı */}
             <div className="md:col-span-2 p-4 rounded-xl border border-zinc-800 bg-zinc-950/70">
-              <span className="text-[10px] font-bold text-zinc-500 uppercase block mb-1">
+              <span className="text-xs font-bold text-zinc-400 uppercase block mb-1">
                 Adım 2: Devir Hızı
               </span>
               <span className="text-2xl font-extrabold font-mono text-white block">
                 {dupont.aktif_devir_hizi.toFixed(2)}x
               </span>
-              <span className="text-[11px] text-zinc-400 mt-1 block">
+              <span className="text-xs text-zinc-400 mt-1 block">
                 Hasılat / Toplam Varlıklar
               </span>
-              <span className="text-[10px] text-cyan-400 block mt-2 font-mono">
+              <span className="text-xs text-cyan-400 block mt-2 font-mono">
                 Operasyonel Varlık Verimi
               </span>
             </div>
 
-            <div className="hidden md:flex justify-center text-zinc-600 font-mono text-xl">
+            <div className="hidden md:flex justify-center text-zinc-400 font-mono text-xl">
               ×
             </div>
 
             {/* 3. Finansal Kaldıraç */}
             <div className="md:col-span-2 p-4 rounded-xl border border-zinc-800 bg-zinc-950/70">
-              <span className="text-[10px] font-bold text-zinc-500 uppercase block mb-1">
+              <span className="text-xs font-bold text-zinc-400 uppercase block mb-1">
                 Adım 3: Kaldıraç Çarpanı
               </span>
               <span className="text-2xl font-extrabold font-mono text-white block">
                 {dupont.kaldirac_carpani.toFixed(2)}x
               </span>
-              <span className="text-[11px] text-zinc-400 mt-1 block">
+              <span className="text-xs text-zinc-400 mt-1 block">
                 Toplam Varlık / Özkaynak
               </span>
-              <span className="text-[10px] text-amber-400 block mt-2 font-mono">
+              <span className="text-xs text-amber-400 block mt-2 font-mono">
                 Finansal Risk / Borçlanma
               </span>
             </div>
@@ -418,7 +418,7 @@ export function FinancialHealthCard({ health }: FinancialHealthCardProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 text-xs font-mono">
             {Object.entries(health.altman_bilesenler || {}).map(([key, val]) => (
               <div key={key} className="p-3 rounded-lg border border-zinc-800 bg-zinc-950/70">
-                <span className="text-[10px] text-zinc-500 block uppercase truncate">
+                <span className="text-xs text-zinc-400 block uppercase truncate">
                   {key.replace(/_/g, " ")}
                 </span>
                 <span className="text-base font-bold text-white mt-1 block">
@@ -436,12 +436,12 @@ export function FinancialHealthCard({ health }: FinancialHealthCardProps) {
       )}
 
       {/* Özet ve SPK Yasal Uyarısı */}
-      <div className="mt-6 pt-4 border-t border-zinc-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[11px] text-zinc-500">
+      <div className="mt-6 pt-4 border-t border-zinc-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-zinc-400">
         <p className="flex items-center gap-1.5">
           <Info className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
           <span>{health.ozet}</span>
         </p>
-        <span className="shrink-0 font-mono text-[10px] text-zinc-600">
+        <span className="shrink-0 font-mono text-xs text-zinc-400">
           SPK 2026 Uyumlu Algoritma
         </span>
       </div>

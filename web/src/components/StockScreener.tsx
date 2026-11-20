@@ -80,7 +80,7 @@ export function StockScreener({ stocks, sectors }: { stocks: UniverseStock[]; se
       <div className="flex flex-col md:flex-row gap-3 mb-4">
         <label className="relative flex-1">
           <span className="sr-only">Hisse ara</span>
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -130,14 +130,14 @@ export function StockScreener({ stocks, sectors }: { stocks: UniverseStock[]; se
               setSector("");
               setQ("");
             }}
-            className="px-3 py-1.5 text-xs text-zinc-500 hover:text-white"
+            className="px-3 py-1.5 text-xs text-zinc-400 hover:text-white"
           >
             Temizle
           </button>
         )}
       </div>
 
-      <p className="text-xs text-zinc-500 mb-2" aria-live="polite">
+      <p className="text-xs text-zinc-400 mb-2" aria-live="polite">
         {rows.length} hisse
       </p>
 
@@ -168,10 +168,10 @@ export function StockScreener({ stocks, sectors }: { stocks: UniverseStock[]; se
                 <td className="px-3 py-2.5 sticky left-0 bg-[#0a0a0a] z-10">
                   <Link href={`/hisse/${s.ticker}`} className="block">
                     <span className="font-mono font-bold text-white">{s.ticker}</span>
-                    <span className="block text-[11px] text-zinc-500 truncate max-w-[150px]">{s.name}</span>
+                    <span className="block text-xs text-zinc-400 truncate max-w-[150px]">{s.name}</span>
                   </Link>
                 </td>
-                <td className="px-3 py-2.5 text-zinc-500 hidden lg:table-cell">{s.sector}</td>
+                <td className="px-3 py-2.5 text-zinc-400 hidden lg:table-cell">{s.sector}</td>
                 <td className="px-3 py-2.5 text-right font-mono tabular-nums text-zinc-200">
                   {s.price !== null ? `${nf.format(s.price)} ₺` : "—"}
                 </td>
@@ -184,7 +184,7 @@ export function StockScreener({ stocks, sectors }: { stocks: UniverseStock[]; se
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={COLS.length + 3} className="px-3 py-10 text-center text-zinc-500">
+                <td colSpan={COLS.length + 3} className="px-3 py-10 text-center text-zinc-400">
                   Filtrelere uyan hisse yok.
                 </td>
               </tr>

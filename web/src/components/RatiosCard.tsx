@@ -14,6 +14,7 @@ export interface StockRatiosData {
   quality: string[];
   quarterly_history?: QuarterPoint[];
   price?: number | null;
+  fx_to_try?: number | null;
   annual?: Record<string, number | string | null>[];
   quarterly?: Record<string, number | string | null>[];
 }
@@ -110,7 +111,7 @@ export function RatiosCard({ data }: { data: StockRatiosData }) {
           </span>
           <h3 className="text-sm font-bold text-white tracking-tight">Finansal Oranlar</h3>
         </div>
-        <span className="text-[11px] font-mono text-zinc-400 bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
+        <span className="text-xs font-mono text-zinc-400 bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
           {data.basis === "TTM" ? "Son 12 ay" : "Yıllık"} · {asOf} · tablolar {data.currency}
         </span>
       </div>
@@ -124,7 +125,7 @@ export function RatiosCard({ data }: { data: StockRatiosData }) {
       <div className="grid gap-6 md:grid-cols-2">
         {GROUPS.filter((g) => !(data.financial && g.skipForFinancial)).map((g) => (
           <section key={g.title}>
-            <h4 className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-2">{g.title}</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">{g.title}</h4>
             <table className="w-full text-xs">
               <thead className="sr-only">
                 <tr>
@@ -145,7 +146,7 @@ export function RatiosCard({ data }: { data: StockRatiosData }) {
                         <td className={`py-2 text-right font-mono font-semibold tabular-nums ${tone(v, med, r.better)}`}>
                           {fmt(v, r.unit)}
                         </td>
-                        <td className="py-2 pl-3 text-right font-mono text-[11px] text-zinc-500 tabular-nums w-24">
+                        <td className="py-2 pl-3 text-right font-mono text-xs text-zinc-400 tabular-nums w-24">
                           {med !== undefined ? `med. ${fmt(med, r.unit)}` : ""}
                         </td>
                       </tr>
@@ -157,7 +158,7 @@ export function RatiosCard({ data }: { data: StockRatiosData }) {
         ))}
       </div>
 
-      <ul className="mt-5 space-y-1 text-[11px] text-zinc-500 border-t border-zinc-800/80 pt-4">
+      <ul className="mt-5 space-y-1 text-xs text-zinc-400 border-t border-zinc-800/80 pt-4">
         {data.quality.map((q) => QUALITY_NOTES[q] && <li key={q}>• {QUALITY_NOTES[q]}</li>)}
         <li>• Kaynak: Yahoo Finance bilanço verisi; oranlar Esham tarafından hesaplanır. Yatırım tavsiyesi değildir.</li>
       </ul>

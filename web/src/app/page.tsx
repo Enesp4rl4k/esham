@@ -170,7 +170,7 @@ export default async function Home() {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <span
-                className="text-[10px] font-bold tracking-[0.15em] uppercase px-2.5 py-1 rounded border"
+                className="text-xs font-bold tracking-[0.15em] uppercase px-2.5 py-1 rounded border"
                 style={{ color: "var(--accent)", borderColor: "var(--accent-dim)", background: "var(--accent-glow)" }}
               >
                 Canlı Analiz
@@ -209,7 +209,7 @@ export default async function Home() {
                       style={{ background: "linear-gradient(to top, rgba(10,10,10,0.6) 0%, transparent 60%)" }}
                     />
                     <div className="absolute bottom-4 left-4">
-                      <span className={`text-[10px] font-bold tracking-wider uppercase px-2 py-1 rounded border ${catColors[featured.category]}`}>
+                      <span className={`text-xs font-bold tracking-wider uppercase px-2 py-1 rounded border ${catColors[featured.category]}`}>
                         {CATEGORIES[featured.category].label}
                       </span>
                     </div>
@@ -248,13 +248,13 @@ export default async function Home() {
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span className={`text-[10px] font-bold tracking-wider uppercase ${catColors[report.category].split(" ")[0]}`}>
+                      <span className={`text-xs font-bold tracking-wider uppercase ${catColors[report.category].split(" ")[0]}`}>
                         {CATEGORIES[report.category].label}
                       </span>
                       <h3 className="text-sm font-semibold leading-snug mt-1 line-clamp-2">
                         {report.title}
                       </h3>
-                      <p className="text-[11px] mt-1" style={{ color: "var(--text-muted)" }}>
+                      <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
                         {formatDate(report.publishedAt)}
                       </p>
                     </div>
@@ -335,7 +335,7 @@ export default async function Home() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span
-                  className="text-[10px] font-bold tracking-[0.15em] uppercase px-2 py-0.5 rounded border"
+                  className="text-xs font-bold tracking-[0.15em] uppercase px-2 py-0.5 rounded border"
                   style={{ color: "var(--accent)", borderColor: "var(--accent-dim)", background: "var(--accent-glow)" }}
                 >
                   <Database className="w-3 h-3 inline mr-1" />
@@ -378,7 +378,7 @@ export default async function Home() {
                 </span>
               </div>
               <p className="text-2xl font-bold font-display">{trbHub?.valueStr || "7.910,25"}</p>
-              <p className="text-[11px] mt-1 text-zinc-500">TÜRİB Hububat Endeksi</p>
+              <p className="text-xs mt-1 text-zinc-400">TÜRİB Hububat Endeksi</p>
             </Link>
 
             {/* Buğday Spot */}
@@ -397,7 +397,7 @@ export default async function Home() {
               <p className="text-2xl font-bold font-display" style={{ color: "var(--accent)" }}>
                 {bugdaySpot?.avgPriceStr || "18,19 ₺/kg"}
               </p>
-              <p className="text-[11px] mt-1 text-zinc-500">Lisanslı Depo (ELÜS) Spot</p>
+              <p className="text-xs mt-1 text-zinc-400">Lisanslı Depo (ELÜS) Spot</p>
             </Link>
 
             {/* Dana Besi / Yem */}
@@ -408,14 +408,14 @@ export default async function Home() {
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-zinc-300">Dana Besi / Yem</span>
-                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="text-xs font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                   {danaYem?.status || "KÂRLI BESI"}
                 </span>
               </div>
               <p className="text-2xl font-bold font-display text-emerald-400">
                 {danaYem?.ratio ? `${danaYem.ratio.toFixed(1)}x` : "28.2x"}
               </p>
-              <p className="text-[11px] mt-1 text-zinc-500">1 kg et = 28.2 kg yem (Eşik: 20)</p>
+              <p className="text-xs mt-1 text-zinc-400">1 kg et = 28.2 kg yem (Eşik: 20)</p>
             </Link>
 
             {/* Et TÜFE */}
@@ -431,7 +431,7 @@ export default async function Home() {
               <p className="text-2xl font-bold font-display">
                 %{meatCpiPct ? meatCpiPct.toFixed(1) : "30.5"}
               </p>
-              <p className="text-[11px] mt-1 text-zinc-500">Enflasyon Primi: -1.0 puan</p>
+              <p className="text-xs mt-1 text-zinc-400">Enflasyon Primi: -1.0 puan</p>
             </Link>
           </div>
         </div>
@@ -457,7 +457,7 @@ export default async function Home() {
                 }}
               >
                 <div className="mb-3">
-                  <span className={`text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded border ${catColors[slug]}`}>
+                  <span className={`text-xs font-bold tracking-wider uppercase px-2 py-0.5 rounded border ${catColors[slug]}`}>
                     {slug.toUpperCase()}
                   </span>
                 </div>

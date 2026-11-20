@@ -72,7 +72,7 @@ export function MobileMenu() {
 
           {/* Radarlar */}
           <div>
-            <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-500 mb-2">
+            <div className="text-xs font-mono uppercase tracking-wider text-zinc-400 mb-2">
               Radarlar & Takvim
             </div>
             <div className="space-y-1 pl-1">
@@ -82,7 +82,7 @@ export function MobileMenu() {
                 className="flex items-center justify-between py-2 text-sm text-zinc-300 hover:text-white"
               >
                 <span>Kur Şoku & Devalüasyon Radarı</span>
-                <ChevronRight className="w-4 h-4 text-zinc-600" />
+                <ChevronRight className="w-4 h-4 text-zinc-400" />
               </Link>
               <Link
                 href="/piyasa/geri-alimlar"
@@ -90,7 +90,7 @@ export function MobileMenu() {
                 className="flex items-center justify-between py-2 text-sm text-zinc-300 hover:text-white"
               >
                 <span>Pay Geri Alım Radarı</span>
-                <ChevronRight className="w-4 h-4 text-zinc-600" />
+                <ChevronRight className="w-4 h-4 text-zinc-400" />
               </Link>
               <Link
                 href="/piyasa/temettu-takvimi"
@@ -98,7 +98,7 @@ export function MobileMenu() {
                 className="flex items-center justify-between py-2 text-sm text-zinc-300 hover:text-white"
               >
                 <span>Temettü Takvimi</span>
-                <ChevronRight className="w-4 h-4 text-zinc-600" />
+                <ChevronRight className="w-4 h-4 text-zinc-400" />
               </Link>
               <Link
                 href="/halka-arz-takvimi"
@@ -106,14 +106,14 @@ export function MobileMenu() {
                 className="flex items-center justify-between py-2 text-sm text-zinc-300 hover:text-white"
               >
                 <span>Halka Arz Takvimi</span>
-                <ChevronRight className="w-4 h-4 text-zinc-600" />
+                <ChevronRight className="w-4 h-4 text-zinc-400" />
               </Link>
             </div>
           </div>
 
           {/* Piyasalar & Sektörler */}
           <div>
-            <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-500 mb-2">
+            <div className="text-xs font-mono uppercase tracking-wider text-zinc-400 mb-2">
               Piyasalar & Kategoriler
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">

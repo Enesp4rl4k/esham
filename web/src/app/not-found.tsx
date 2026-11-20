@@ -12,7 +12,7 @@ export default function NotFound() {
       <h1 className="text-2xl font-outfit font-bold text-zinc-100 mb-3">
         Sayfa bulunamadı
       </h1>
-      <p className="text-zinc-500 max-w-sm mb-10">
+      <p className="text-zinc-400 max-w-sm mb-10">
         Aradığınız rapor veya sayfa mevcut değil ya da taşınmış olabilir.
       </p>
 

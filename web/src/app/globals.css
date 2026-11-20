@@ -11,8 +11,8 @@
 
   /* Text */
   --text-primary:   #f0ede8;   /* warm white, not pure */
-  --text-secondary: #8a8680;   /* warm gray */
-  --text-muted:     #4a4744;
+  --text-secondary: #b3afa8;   /* warm gray — AA+ on #0a0a0a */
+  --text-muted:     #8f8b84;   /* ≥ 5.5:1 (eskisi #4a4744 ≈ 2.2:1 okunmuyordu) */
 
   /* Accent — single, intentional amber-gold */
   --accent:      #e8a030;   /* amber-gold */
@@ -51,6 +51,7 @@
 }
 
 html {
+  font-size: 106.25%; /* 17px kök: rem tabanlı tüm yazılar ~%6 büyür */
   background: var(--background);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;

@@ -151,7 +151,7 @@ export function SearchCommandPalette({ stocks = [] }: { stocks?: PaletteStock[] 
       >
         <Search className="w-3.5 h-3.5 text-zinc-400" />
         <span className="hidden sm:inline">Hisse / Rapor Ara...</span>
-        <kbd className="hidden md:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono bg-zinc-800 border border-zinc-700 rounded text-zinc-400">
+        <kbd className="hidden md:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-xs font-mono bg-zinc-800 border border-zinc-700 rounded text-zinc-400">
           <span className="text-xs">⌘</span>K
         </kbd>
       </button>
@@ -181,12 +181,12 @@ export function SearchCommandPalette({ stocks = [] }: { stocks?: PaletteStock[] 
               {query && (
                 <button
                   onClick={() => setQuery("")}
-                  className="p-1 rounded text-zinc-500 hover:text-white"
+                  className="p-1 rounded text-zinc-400 hover:text-white"
                 >
                   <X className="w-4 h-4" />
                 </button>
               )}
-              <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono bg-zinc-900 border border-zinc-800 rounded text-zinc-500">
+              <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-xs font-mono bg-zinc-900 border border-zinc-800 rounded text-zinc-400">
                 ESC
               </kbd>
             </div>
@@ -194,9 +194,9 @@ export function SearchCommandPalette({ stocks = [] }: { stocks?: PaletteStock[] 
             {/* Sonuç Listesi */}
             <div className="max-h-[380px] overflow-y-auto p-2 divide-y divide-zinc-900">
               {filteredItems.length === 0 ? (
-                <div className="py-12 text-center text-xs text-zinc-500">
+                <div className="py-12 text-center text-xs text-zinc-400">
                   <p>Aramanızla eşleşen hisse veya modül bulunamadı.</p>
-                  <p className="mt-1 text-[11px] text-zinc-600">
+                  <p className="mt-1 text-xs text-zinc-400">
                     Örnek: "THYAO", "ASELS", "Tarım", "VİOP", "Halka Arz"
                   </p>
                 </div>
@@ -238,7 +238,7 @@ export function SearchCommandPalette({ stocks = [] }: { stocks?: PaletteStock[] 
                               {item.title}
                             </span>
                             {item.badge && (
-                              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-900 text-zinc-400 border border-zinc-800">
+                              <span className="text-xs font-mono px-1.5 py-0.2 rounded bg-zinc-900 text-zinc-400 border border-zinc-800">
                                 {item.badge}
                               </span>
                             )}
@@ -253,7 +253,7 @@ export function SearchCommandPalette({ stocks = [] }: { stocks?: PaletteStock[] 
                         className={`w-4 h-4 shrink-0 transition-transform ${
                           isSelected
                             ? "text-cyan-400 translate-x-0.5"
-                            : "text-zinc-600"
+                            : "text-zinc-400"
                         }`}
                       />
                     </div>
@@ -263,17 +263,17 @@ export function SearchCommandPalette({ stocks = [] }: { stocks?: PaletteStock[] 
             </div>
 
             {/* Alt Bilgi */}
-            <div className="px-4 py-2.5 bg-zinc-900/50 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-500">
+            <div className="px-4 py-2.5 bg-zinc-900/50 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-400">
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
-                  <kbd className="px-1 py-0.5 bg-zinc-800 rounded font-mono text-[9px]">↑</kbd>
-                  <kbd className="px-1 py-0.5 bg-zinc-800 rounded font-mono text-[9px]">↓</kbd> Gezin
+                  <kbd className="px-1 py-0.5 bg-zinc-800 rounded font-mono text-xs">↑</kbd>
+                  <kbd className="px-1 py-0.5 bg-zinc-800 rounded font-mono text-xs">↓</kbd> Gezin
                 </span>
                 <span className="flex items-center gap-1">
-                  <kbd className="px-1 py-0.5 bg-zinc-800 rounded font-mono text-[9px]">↵</kbd> Seç
+                  <kbd className="px-1 py-0.5 bg-zinc-800 rounded font-mono text-xs">↵</kbd> Seç
                 </span>
               </div>
-              <span className="font-mono text-[10px] text-zinc-400">Esham Terminal v2.1</span>
+              <span className="font-mono text-xs text-zinc-400">Esham Terminal v2.1</span>
             </div>
           </div>
         </div>

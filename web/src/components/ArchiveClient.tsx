@@ -57,7 +57,7 @@ export function ArchiveClient({ reports }: { reports: Report[] }) {
       </div>
 
       {/* Sonuç sayısı */}
-      <p className="text-sm text-zinc-600 mb-8">
+      <p className="text-sm text-zinc-400 mb-8">
         {filtered.length} rapor
       </p>
 

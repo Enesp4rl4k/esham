@@ -210,11 +210,11 @@ export function PetrolTankerSection({ data }: PetrolTankerSectionProps) {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl border bg-gradient-to-br from-zinc-900/90 via-zinc-950 to-zinc-900/40 border-zinc-800 shadow-xl">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono uppercase tracking-wider font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
               KÜRESEL ENERJİ & TANKER NAVLUN TERMİNALİ
             </span>
-            <span className="text-xs text-zinc-500 font-mono">
+            <span className="text-xs text-zinc-400 font-mono">
               TCE & Baltic Exchange Benchmark
             </span>
           </div>
@@ -229,11 +229,11 @@ export function PetrolTankerSection({ data }: PetrolTankerSectionProps) {
 
         <div className="flex items-center gap-3 shrink-0">
           <div className="px-4 py-2.5 rounded-xl bg-zinc-900/80 border border-zinc-800 text-right">
-            <span className="text-[10px] uppercase font-mono tracking-wider text-zinc-500 block">
+            <span className="text-xs uppercase font-mono tracking-wider text-zinc-400 block">
               Gemi Yakıtı (VLSFO)
             </span>
             <span className="text-base font-bold text-zinc-200 font-mono">
-              ${bunkerPrice.toFixed(0)} <span className="text-xs text-zinc-500 font-normal">/ton</span>
+              ${bunkerPrice.toFixed(0)} <span className="text-xs text-zinc-400 font-normal">/ton</span>
             </span>
           </div>
         </div>
@@ -251,7 +251,7 @@ export function PetrolTankerSection({ data }: PetrolTankerSectionProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {/* Brent */}
           <div className="p-4 rounded-xl border bg-zinc-950/60 border-zinc-800/80 hover:border-zinc-700 transition-all">
-            <div className="flex items-center justify-between text-xs text-zinc-500 font-mono mb-1">
+            <div className="flex items-center justify-between text-xs text-zinc-400 font-mono mb-1">
               <span>BRENT SPOT</span>
               <span className={oil.brent?.changePct && oil.brent.changePct >= 0 ? "text-emerald-400" : "text-rose-400"}>
                 {oil.brent?.changeStr || "+0,45%"}
@@ -260,14 +260,14 @@ export function PetrolTankerSection({ data }: PetrolTankerSectionProps) {
             <div className="text-xl md:text-2xl font-bold font-mono text-white">
               {oil.brent?.priceStr || "$74.80"}
             </div>
-            <div className="text-[11px] text-zinc-500 mt-1">
+            <div className="text-xs text-zinc-400 mt-1">
               Küresel gösterge ham petrol
             </div>
           </div>
 
           {/* WTI */}
           <div className="p-4 rounded-xl border bg-zinc-950/60 border-zinc-800/80 hover:border-zinc-700 transition-all">
-            <div className="flex items-center justify-between text-xs text-zinc-500 font-mono mb-1">
+            <div className="flex items-center justify-between text-xs text-zinc-400 font-mono mb-1">
               <span>WTI HAM PETROL</span>
               <span className={oil.wti?.changePct && oil.wti.changePct >= 0 ? "text-emerald-400" : "text-rose-400"}>
                 {oil.wti?.changeStr || "+0,35%"}
@@ -276,35 +276,35 @@ export function PetrolTankerSection({ data }: PetrolTankerSectionProps) {
             <div className="text-xl md:text-2xl font-bold font-mono text-white">
               {oil.wti?.priceStr || "$71.20"}
             </div>
-            <div className="text-[11px] text-zinc-500 mt-1">
+            <div className="text-xs text-zinc-400 mt-1">
               Brent-WTI Makası: <span className="font-mono text-zinc-300">${oil.brentWtiSpread?.toFixed(2) || "3.60"}</span>
             </div>
           </div>
 
           {/* Urals */}
           <div className="p-4 rounded-xl border bg-zinc-950/60 border-zinc-800/80 hover:border-zinc-700 transition-all">
-            <div className="flex items-center justify-between text-xs text-zinc-500 font-mono mb-1">
+            <div className="flex items-center justify-between text-xs text-zinc-400 font-mono mb-1">
               <span>URALS (RUSYA)</span>
               <span className="text-amber-400">G7 Tavanı: $60</span>
             </div>
             <div className="text-xl md:text-2xl font-bold font-mono text-white">
               {oil.urals?.priceStr || "$62.50"}
             </div>
-            <div className="text-[11px] text-zinc-500 mt-1">
+            <div className="text-xs text-zinc-400 mt-1">
               Brent İskontosu: <span className="font-mono text-rose-400">-${oil.urals?.discount?.toFixed(2) || "12.30"}</span>
             </div>
           </div>
 
           {/* Crack Spread 3:2:1 */}
           <div className="p-4 rounded-xl border bg-zinc-950/60 border-zinc-800/80 hover:border-zinc-700 transition-all">
-            <div className="flex items-center justify-between text-xs text-zinc-500 font-mono mb-1">
+            <div className="flex items-center justify-between text-xs text-zinc-400 font-mono mb-1">
               <span>3:2:1 CRACK SPREAD</span>
               <span className="text-emerald-400 font-semibold">Tüpraş Marjı</span>
             </div>
             <div className="text-xl md:text-2xl font-bold font-mono text-emerald-400">
               {oil.crackSpread321?.valueStr || "$18.40 / varil"}
             </div>
-            <div className="text-[11px] text-zinc-500 mt-1">
+            <div className="text-xs text-zinc-400 mt-1">
               Akdeniz kompleksi rafineri brüt kârı
             </div>
           </div>
@@ -322,7 +322,7 @@ export function PetrolTankerSection({ data }: PetrolTankerSectionProps) {
                 BDTI (Baltic Dirty Tanker Index)
               </span>
             </div>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <p className="text-xs text-zinc-400 mt-0.5">
               Ham petrol tanker taşıma maliyeti küresel endeksi
             </p>
           </div>
@@ -345,7 +345,7 @@ export function PetrolTankerSection({ data }: PetrolTankerSectionProps) {
                 BCTI (Baltic Clean Tanker Index)
               </span>
             </div>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <p className="text-xs text-zinc-400 mt-0.5">
               İşlenmiş akaryakıt & nafta ürün tankeri navlun endeksi
             </p>
           </div>
@@ -369,7 +369,7 @@ export function PetrolTankerSection({ data }: PetrolTankerSectionProps) {
               Tanker Sınıfları Spot Kiralama Ücretleri (TCE $/Gün)
             </h3>
           </div>
-          <span className="text-[11px] font-mono text-zinc-500">
+          <span className="text-xs font-mono text-zinc-400">
             Zaman Esaslı Kiralama Eşdeğeri (Time Charter Equivalent)
           </span>
         </div>
@@ -378,7 +378,7 @@ export function PetrolTankerSection({ data }: PetrolTankerSectionProps) {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs md:text-sm">
               <thead>
-                <tr className="border-b text-[11px] uppercase tracking-wider font-mono text-zinc-500 bg-zinc-900/40 border-zinc-800">
+                <tr className="border-b text-xs uppercase tracking-wider font-mono text-zinc-400 bg-zinc-900/40 border-zinc-800">
                   <th className="py-3 px-4">Gemi Sınıfı & Kapasite</th>
                   <th className="py-3 px-4">Benchmark Rota</th>
                   <th className="py-3 px-4">Günlük Kiralama (TCE)</th>
@@ -399,11 +399,11 @@ export function PetrolTankerSection({ data }: PetrolTankerSectionProps) {
                       <td className="py-3.5 px-4">
                         <div className="font-bold text-zinc-200 text-sm flex items-center gap-1.5">
                           <span>{rate.ship_class}</span>
-                          <span className="text-[10px] font-mono font-normal px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
+                          <span className="text-xs font-mono font-normal px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
                             {rate.cargo_type}
                           </span>
                         </div>
-                        <div className="text-[11px] text-zinc-500 font-mono mt-0.5">
+                        <div className="text-xs text-zinc-400 font-mono mt-0.5">
                           {rate.dwt_capacity}
                         </div>
                       </td>
@@ -437,7 +437,7 @@ export function PetrolTankerSection({ data }: PetrolTankerSectionProps) {
                         {rate.fuel_consumption_ton} Ton
                       </td>
                       <td className="py-3.5 px-4 text-right">
-                        <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wide bg-zinc-900 border border-zinc-700/60 text-zinc-200">
+                        <span className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide bg-zinc-900 border border-zinc-700/60 text-zinc-200">
                           {rate.status}
                         </span>
                       </td>
@@ -448,7 +448,7 @@ export function PetrolTankerSection({ data }: PetrolTankerSectionProps) {
             </table>
           </div>
 
-          <div className="p-4 bg-zinc-900/30 border-t border-zinc-800/80 text-[11px] text-zinc-400 space-y-1">
+          <div className="p-4 bg-zinc-900/30 border-t border-zinc-800/80 text-xs text-zinc-400 space-y-1">
             <p>
               * <strong>Worldscale (WS):</strong> Denizcilikte standartlaştırılmış navlun puan sistemidir; 100 baz puan üzerinden rotanın teorik başabaş maliyetini temsil eder.
             </p>
@@ -508,7 +508,7 @@ export function PetrolTankerSection({ data }: PetrolTankerSectionProps) {
                 onChange={(e) => setVoyageDays(parseInt(e.target.value))}
                 className="w-full accent-amber-400 cursor-pointer h-1.5 bg-zinc-800 rounded-lg"
               />
-              <div className="flex justify-between text-[10px] text-zinc-600 font-mono mt-1">
+              <div className="flex justify-between text-xs text-zinc-400 font-mono mt-1">
                 <span>5 Gün (Kısa Akdeniz)</span>
                 <span>25 Gün (Süveyş)</span>
                 <span>50+ Gün (Ümit Burnu)</span>
@@ -550,26 +550,26 @@ export function PetrolTankerSection({ data }: PetrolTankerSectionProps) {
           {/* Sonuç Kartı */}
           <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-5 rounded-2xl bg-zinc-950/80 border border-amber-500/20 shadow-lg relative overflow-hidden">
-              <span className="text-[10px] uppercase font-mono tracking-wider text-zinc-500 block mb-1">
+              <span className="text-xs uppercase font-mono tracking-wider text-zinc-400 block mb-1">
                 VARİL BAŞINA TAŞIMA MALİYETİ
               </span>
               <div className="text-3xl font-bold font-mono text-amber-400 tracking-tight">
                 ${calculation.costPerBarrel.toFixed(2)}
                 <span className="text-xs font-normal text-zinc-400 ml-1">/ varil</span>
               </div>
-              <p className="text-[11px] text-zinc-500 mt-2 leading-relaxed">
+              <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
                 Tüpraş veya rafinerinin ham petrol maliyetine eklenen toplam deniz navlun primi.
               </p>
             </div>
 
             <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800 shadow-lg space-y-2.5">
-              <span className="text-[10px] uppercase font-mono tracking-wider text-zinc-500 block">
+              <span className="text-xs uppercase font-mono tracking-wider text-zinc-400 block">
                 TOPLAM SEFER GİDERLERİ
               </span>
               <div className="text-2xl font-bold font-mono text-white">
                 ${calculation.totalVoyageCost.toLocaleString("tr-TR")}
               </div>
-              <div className="space-y-1 text-[11px] font-mono text-zinc-400 pt-1 border-t border-zinc-800">
+              <div className="space-y-1 text-xs font-mono text-zinc-400 pt-1 border-t border-zinc-800">
                 <div className="flex justify-between">
                   <span>Tanker Kirası:</span>
                   <span className="text-zinc-200">${calculation.charterTotal.toLocaleString("tr-TR")}</span>
@@ -606,28 +606,28 @@ export function PetrolTankerSection({ data }: PetrolTankerSectionProps) {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm font-bold text-zinc-200">{cp.name}</h4>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-zinc-900 border border-zinc-800 text-amber-400">
+                  <span className="px-2 py-0.5 rounded text-xs font-mono font-semibold bg-zinc-900 border border-zinc-800 text-amber-400">
                     {cp.security_level}
                   </span>
                 </div>
 
                 <div className="space-y-1.5 text-xs font-mono text-zinc-400 mb-3">
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Petrol Akışı:</span>
+                    <span className="text-zinc-400">Petrol Akışı:</span>
                     <span className="text-zinc-200 font-semibold">{cp.flow_mbpd}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Bekleme / Rota:</span>
+                    <span className="text-zinc-400">Bekleme / Rota:</span>
                     <span className="text-zinc-200">{cp.wait_time_days}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Demurraj / Risk:</span>
+                    <span className="text-zinc-400">Demurraj / Risk:</span>
                     <span className="text-rose-400 font-semibold">{cp.demurrage_usd_day}</span>
                   </div>
                 </div>
               </div>
 
-              <p className="text-[11px] text-zinc-400 bg-zinc-900/40 p-3 rounded-xl border border-zinc-800/80 leading-relaxed">
+              <p className="text-xs text-zinc-400 bg-zinc-900/40 p-3 rounded-xl border border-zinc-800/80 leading-relaxed">
                 {cp.impact}
               </p>
             </div>
@@ -660,18 +660,18 @@ export function PetrolTankerSection({ data }: PetrolTankerSectionProps) {
                       {bist.company.split("-")[0]}
                     </span>
                   </div>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <span className="px-2 py-0.5 rounded text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                     {bist.impact_level}
                   </span>
                 </div>
 
                 <div className="text-xs font-mono text-zinc-400 mb-2">
-                  <span className="text-zinc-500">Kritik İtici Güç: </span>
+                  <span className="text-zinc-400">Kritik İtici Güç: </span>
                   <span className="text-zinc-300 font-semibold">{bist.driver}</span>
                 </div>
               </div>
 
-              <p className="text-[11px] text-zinc-400 bg-zinc-900/40 p-3 rounded-xl border border-zinc-800/80 leading-relaxed mt-2">
+              <p className="text-xs text-zinc-400 bg-zinc-900/40 p-3 rounded-xl border border-zinc-800/80 leading-relaxed mt-2">
                 {bist.commentary}
               </p>
             </div>
