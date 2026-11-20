@@ -12,6 +12,8 @@ export interface StockRatiosData {
   ttm: Record<string, number | null>;
   sector_median: Record<string, number>;
   quality: string[];
+  /** Finansal tabloların kaynağı; eski JSON'larda yok → Yahoo */
+  data_source?: "KAP" | "Yahoo";
   quarterly_history?: QuarterPoint[];
   price?: number | null;
   fx_to_try?: number | null;
@@ -79,6 +81,10 @@ const QUALITY_NOTES: Record<string, string> = {
   roe_uc_deger: "ROE olağandışı uç değerde (özkaynak çok küçük veya negatife yakın).",
   pe_yahoo_farkli: "F/K, Yahoo Finance'in kendi değerinden belirgin farklı; kâr tanımı farkı veya veri hatası olabilir.",
   favok_yaklasik_ebit: "FAVÖK, amortisman verisi olmadığından FVÖK ile yaklaşıklanmıştır.",
+  kap_yetersiz_donem: "KAP verisi yetersiz (4 çeyrekten az); Yahoo Finance kullanıldı.",
+  kap_eski: "KAP verisi Yahoo'dan eski; Yahoo Finance kullanıldı.",
+  kap_eksik_kalem: "KAP bilançosunda hasılat/net kâr eksik; Yahoo Finance kullanıldı.",
+  kap_hasilat_farki_buyuk: "KAP ile Yahoo hasılatı arasında büyük fark var (eşleme şüphesi); Yahoo Finance kullanıldı.",
   enflasyon_muhasebesi_tms29_karsilastirma_dikkat:
     "Tablolar TMS 29 (enflasyon muhasebesi) etkisi taşıyabilir; geçmiş dönem kıyasları dikkatle yorumlanmalıdır.",
 };
@@ -172,7 +178,13 @@ export function RatiosCard({ data }: { data: StockRatiosData }) {
 
       <ul className="mt-5 space-y-1 text-xs text-zinc-400 border-t border-zinc-800/80 pt-4">
         {data.quality.map((q) => QUALITY_NOTES[q] && <li key={q}>• {QUALITY_NOTES[q]}</li>)}
-        <li>• Kaynak: Yahoo Finance bilanço verisi; oranlar Esham tarafından hesaplanır. Yatırım tavsiyesi değildir.</li>
+        <li>
+          • Kaynak:{" "}
+          {data.data_source === "KAP"
+            ? "KAP bilançosu (resmî IFRS/XBRL); fiyat, piyasa değeri ve temettü Yahoo Finance."
+            : "Yahoo Finance bilanço verisi, KAP ile teyit edilmemiştir."}{" "}
+          Oranlar Esham tarafından hesaplanır. Yatırım tavsiyesi değildir.
+        </li>
       </ul>
     </div>
   );

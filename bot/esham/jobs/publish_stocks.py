@@ -16,6 +16,7 @@ from typing import Any
 
 from ..config import get_logger
 from .. import ratios as R
+from ..kap_merge import choose_source, merge_statements
 from ..sources.financials import dividend_ttm, fetch_financials, fx_to_try
 from ..universe import load_universe
 
@@ -57,6 +58,15 @@ def _fetch_prices(ticker: str) -> list[list[Any]]:
         return []
 
 
+def _load_kap(ticker: str) -> dict[str, Any] | None:
+    path = DATA_DIR / "kap" / f"{ticker}.json"
+    try:
+        return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
+    except (OSError, ValueError) as exc:
+        log.warning("KAP dosyası okunamadı %s: %s", ticker, exc)
+        return None
+
+
 def build_stock(meta: dict[str, Any]) -> dict[str, Any] | None:
     ticker, financial = meta["ticker"], bool(meta["financial"])
     raw = fetch_financials(ticker)
@@ -64,15 +74,23 @@ def build_stock(meta: dict[str, Any]) -> dict[str, Any] | None:
         log.warning("Veri yok, atlandı: %s", ticker)
         return None
     q, a = raw["quarterly"], raw["annual"]
+    # Birincil kaynak: KAP (resmî IFRS/XBRL); koşullar sağlanmazsa Yahoo (bkz. kap_merge)
+    fx_yahoo = fx_to_try(raw["currency"])
+    kap_doc = _load_kap(ticker)
+    source, source_note = choose_source(kap_doc, q, fx_yahoo)
+    currency = raw["currency"]
+    if source == "KAP" and kap_doc:
+        q, a = merge_statements(kap_doc, q, a, raw["currency"])
+        currency = kap_doc.get("currency") or "TRY"
     snap = R.build_ttm_snapshot(q, a)
     as_of = (q or a)[-1]["date"]
     # Tablolar raporlama para biriminde (ör. THYAO USD); piyasa değeri TL.
     # Çarpanların tutarlı olması için piyasa değerini raporlama birimine çeviriyoruz.
-    fx = fx_to_try(raw["currency"])
+    fx = fx_to_try(currency)
     mcap = raw["market_cap"]
-    if raw["currency"] != "TRY":
+    if currency != "TRY":
         if not fx or not mcap:
-            log.warning("Kur/piyasa değeri yok, çarpanlar hesaplanamadı: %s (%s)", ticker, raw["currency"])
+            log.warning("Kur/piyasa değeri yok, çarpanlar hesaplanamadı: %s (%s)", ticker, currency)
             mcap = None
         else:
             mcap = mcap / fx
@@ -85,7 +103,9 @@ def build_stock(meta: dict[str, Any]) -> dict[str, Any] | None:
         financial=financial,
     )
     rat["market_cap"] = raw["market_cap"]  # gösterim/tarayıcı için her zaman TL
-    quality = _quality_flags(snap, q, a, financial) + R.outlier_flags(rat, raw.get("yahoo_ref"), raw["currency"], financial)
+    quality = _quality_flags(snap, q, a, financial) + R.outlier_flags(rat, None if source == "KAP" else raw.get("yahoo_ref"), currency, financial)
+    if source_note:
+        quality.append(source_note)
     # Finansallar sekmesi tabloları için tüm normalize kalemler (eksik = null)
     keep = ("date",) + R.FLOW_KEYS + R.STOCK_KEYS
     return {
@@ -96,7 +116,8 @@ def build_stock(meta: dict[str, Any]) -> dict[str, Any] | None:
         "updated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "as_of": as_of,
         "basis": "TTM" if snap["_basis"] else "yillik",
-        "currency": raw["currency"],  # tabloların para birimi
+        "data_source": source,  # "KAP" | "Yahoo" — finansal tabloların kaynağı (fiyat/piyasa değeri/temettü her zaman Yahoo)
+        "currency": currency,  # tabloların para birimi
         "fx_to_try": fx,
         "price": raw["price"],  # her zaman TL
         "ratios": rat,

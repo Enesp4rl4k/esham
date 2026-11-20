@@ -84,6 +84,13 @@ jobs:
           cache: "pip"
           cache-dependency-path: bot/requirements.txt
 
+      - name: KAP önbelleği
+        uses: actions/cache@v4
+        with:
+          path: bot/cache/kap
+          key: kap-cache-${{ github.run_id }}
+          restore-keys: kap-cache-
+
       - name: Bağımlılıklar
         working-directory: bot
         run: pip install -r requirements.txt
@@ -143,6 +150,14 @@ jobs:
                 CMD="news-stream --once --max-publish 10"
               else
                 CMD="$_RAW"
+              fi
+              ;;
+          esac
+          # Hisse oranları: önce KAP finansalları (birincil kaynak), olmazsa Yahoo ile devam (görünür uyarıyla)
+          case "$CMD" in
+            stocks*)
+              if ! timeout 25m python -m esham.main kap-financials --workers 3; then
+                echo "::warning title=KAP verisi alınamadı::Hisse oranları mevcut KAP dosyaları / Yahoo ile hesaplanacak"
               fi
               ;;
           esac

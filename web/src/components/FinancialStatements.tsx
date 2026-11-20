@@ -84,7 +84,9 @@ export function FinancialStatements({
   quarterly,
   currency,
   asOf,
+  source = "Yahoo",
 }: {
+  source?: "KAP" | "Yahoo";
   annual: P[];
   quarterly: P[];
   currency: string;
@@ -186,7 +188,7 @@ export function FinancialStatements({
         })}
       </div>
       <p className="mt-5 text-xs text-zinc-400 leading-relaxed">
-        Kaynak: Yahoo Finance; KAP ile teyit edilmemiştir. Çeyrek değerleri o çeyreğin tek başına rakamıdır. Tablolar TMS 29 (enflasyon
+        {source === "KAP" ? "Kaynak: KAP bilançosu (resmî IFRS/XBRL)." : "Kaynak: Yahoo Finance; KAP ile teyit edilmemiştir."} Çeyrek değerleri o çeyreğin tek başına rakamıdır. Tablolar TMS 29 (enflasyon
         muhasebesi) etkisi taşıyabilir, dönemler arası kıyaslarda dikkatli olun. Önceki dönem sıfır ya da negatifse değişim yüzdesi gösterilmez.
       </p>
     </div>

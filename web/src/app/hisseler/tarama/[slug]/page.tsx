@@ -80,7 +80,7 @@ export default async function ScanPage({ params }: { params: Promise<Params> }) 
         <h2 className="text-xl font-display font-semibold mb-3">Bu oran nasıl yorumlanır?</h2>
         <p className="text-base text-zinc-300 leading-relaxed">{sc.explain}</p>
         <p className="text-base text-zinc-300 leading-relaxed mt-3">
-          Oranlar Yahoo Finance bilanço verisinden son 12 ay (TTM) üzerinden hesaplanır ve KAP ile teyit edilmemiştir. Bu liste yatırım tavsiyesi değildir.{" "}
+          Oranlar KAP bilançoları (kapsanan şirketlerde) ya da Yahoo Finance bilanço verisinden son 12 ay (TTM) üzerinden hesaplanır; kaynak her hisse sayfasında belirtilir. Bu liste yatırım tavsiyesi değildir.{" "}
           <Link href={`/hisseler?f=${sc.id}`} className="underline">Filtreyi tarayıcıda açıp başka koşullarla birleştirin</Link>.
         </p>
       </section>

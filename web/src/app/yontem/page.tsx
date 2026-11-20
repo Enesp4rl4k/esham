@@ -33,7 +33,7 @@ export default function MethodPage() {
 
       <h2 className="text-xl font-display font-semibold mb-3">Veri kaynakları</h2>
       <ul className="list-disc pl-5 space-y-2 text-base text-zinc-300 leading-relaxed mb-8">
-        <li><strong className="text-white">Finansal tablolar ve fiyatlar:</strong> Yahoo Finance. Bilançolar çeyreklik alınır, son dört çeyrek toplanarak son 12 aylık (TTM) değerler oluşturulur.</li>
+        <li><strong className="text-white">Finansal tablolar:</strong> öncelik KAP finansal raporlarıdır (resmî IFRS/XBRL); KAP verisi eksik, eski ya da şüpheli eşlemeli olduğunda Yahoo Finance kullanılır ve hisse sayfasında kaynak yazılır. <strong className="text-white">Fiyatlar, piyasa değeri ve temettü:</strong> Yahoo Finance. Bilançolar çeyreklik alınır, son dört çeyrek toplanarak son 12 aylık (TTM) değerler oluşturulur.</li>
         <li><strong className="text-white">Bildirimler ve haberler:</strong> KAP (Kamuyu Aydınlatma Platformu) bildirimleri. İştirak oranları (NAV hesabı) KAP şirket sayfalarındaki doğrudan paylardan okunur.</li>
         <li><strong className="text-white">Tarımsal emtia:</strong> TÜRİB, TMO ve TÜİK yayınları.</li>
       </ul>
@@ -53,7 +53,7 @@ export default function MethodPage() {
         <li><strong className="text-white">Döviz cinsinden tablolar:</strong> Bazı şirketler USD veya EUR raporlar. Piyasa değeri TL olduğundan çarpanlar hesaplanırken tablo, kurla TL&apos;ye çevrilir.</li>
         <li><strong className="text-white">Enflasyon muhasebesi (TMS 29):</strong> Yüksek enflasyon döneminde kâr ve özkaynak rakamları dönemler arasında doğrudan karşılaştırılamayabilir.</li>
         <li><strong className="text-white">Uç değer bayrağı:</strong> Mutlak olarak anlamsız çarpanlar ve Yahoo&apos;nun kendi F/K değeriyle büyük fark gösteren satırlar &quot;şüpheli&quot; işaretlenir; sektör medyanlarına, liderlik tablolarına ve hazır taramalara katılmaz.</li>
-        <li><strong className="text-white">KAP ile teyit:</strong> Rakamlar henüz KAP bilançolarıyla birebir doğrulanmamıştır; KAP kaynaklı birincil veri hattı üzerinde çalışıyoruz. Karar vermeden önce resmî bildirimlere bakın.</li>
+        <li><strong className="text-white">KAP kapsamı:</strong> KAP hattı şimdilik finansal olmayan (banka/sigorta dışı) şirketlerde çalışır; bu şirketlerin hepsi henüz kapsanmıyor. Kapsam dışındakiler Yahoo Finance verisiyle hesaplanır ve KAP ile teyit edilmemiştir. Karar vermeden önce resmî bildirimlere bakın.</li>
         <li><strong className="text-white">Sektör medyanı:</strong> Yalnızca en az 3 geçerli değeri olan sektörlerde hesaplanır.</li>
       </ul>
 
