@@ -62,11 +62,13 @@ Hedef: Her BIST hissesi ve her TEFAS fonu için kendi sayfası; Fintables tarzı
 4. Kurumsal eylemler: bedelsiz/bedelli düzeltmeli fiyat; temettü geçmişi ve 5Y temettü verimi.
 5. Piotroski/Altman/DuPont'u yeni motora taşı (şu an `bist_quant.py`'de ayrı, yfinance çağırıyor).
 
-### Faz D — Fonlar (1-1,5 hafta) 🟡
+### Faz D — Fonlar (1-1,5 hafta) 🟡 (v1: ilk 200 fon canlıya hazır; kalan: portföy dağılımı, arama paleti, ana sayfa liderlik, ~2.000 fon)
 1. TEFAS ingestion (kullanım şartları kontrolü): fon listesi, günlük fiyat, portföy dağılımı, yatırımcı sayısı, büyüklük.
 2. Hesaplamalar: 1A/3A/YTD/1Y getiri (nominal, reel, USD), volatilite, Sharpe, maks. düşüş, kategori sıralaması.
 3. `/fon/[kod]` sayfası (grafik, dağılım halkası, risk, kategori kıyası) ve `/fonlar` tarayıcısı.
 4. Arama paleti ve sitemap'e fonlar; ana sayfaya "en iyi fonlar" liderlik tablosu.
+> **Durum (Kas 2026):** `sources/tefas.py` + `jobs/publish_funds.py` (`python -m esham.main funds`), `/fon/[kod]`, `/fonlar`, `/fonlar/kategori/[slug]`, günlük 19:30 TR cron.
+> TEFAS erişimi: eski `/api/DB/BindHistoryInfo` kapalı; yeni `www.tefas.gov.tr/api/funds/*` JSON uçları çalışıyor ama TEFAS SSS'si "API paylaşımı yapılmamaktadır" diyor (belgelenmemiş uç, sert hız sınırı → istemci 0,4 sn bekler, engelde yedek alan adı `fundturkey.com.tr`, job eski veriyi korur). Portföy dağılımı yalnızca JS-challenge arkasındaki SSR sayfada → v1'de yok (Playwright adımı ya da KAP portföy raporu gerekir).
 5. Kapsam: önce en büyük ~200 fon, sonra tümü (≈2.000; bu noktada Faz C-3'teki istemci tarafı veri stratejisi zorunlu).
 
 ### Faz E — Kullanıcı özellikleri (1 hafta) 🟡

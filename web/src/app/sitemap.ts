@@ -2,6 +2,8 @@ import { SITE_URL } from "@/lib/config";
 import type { MetadataRoute } from "next";
 import { loadUniverse } from "@/lib/stocks";
 import { MIN_INDEXABLE, SCANS, comparePairs, runScan, sectorGroups } from "@/lib/programmatic";
+import { MIN_CATEGORY_FUNDS, categoryGroups } from "@/lib/funds";
+import { loadFundUniverse } from "@/lib/funds-data";
 import { getAllReports, getAllTickers, CATEGORIES, type CategorySlug } from "@/lib/content";
 
 export const dynamic = "force-static";
@@ -122,5 +124,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ? comparePairs(u).map((p) => ({ url: `${SITE_URL}/karsilastir/${p.slug}`, lastModified: dataDate, changeFrequency: "weekly" as const, priority: 0.6 }))
     : [];
 
-  return [...staticRoutes, ...categoryRoutes, ...stockRoutes, ...sectorRoutes, ...scanRoutes, ...compareRoutes, ...reportRoutes];
+  // 6. Fonlar: tarayıcı + kategori sıralamaları (yeterli fonlu) + fon sayfaları
+  const fu = loadFundUniverse();
+  const fundDate = fu ? new Date(fu.updated_at) : new Date();
+  const fundRoutes: MetadataRoute.Sitemap = fu
+    ? [
+        { url: `${SITE_URL}/fonlar`, lastModified: fundDate, changeFrequency: "daily" as const, priority: 0.9 },
+        ...categoryGroups(fu.funds)
+          .filter((c) => c.funds.length >= MIN_CATEGORY_FUNDS)
+          .map((c) => ({ url: `${SITE_URL}/fonlar/kategori/${c.slug}`, lastModified: fundDate, changeFrequency: "daily" as const, priority: 0.75 })),
+        ...fu.funds.map((f) => ({ url: `${SITE_URL}/fon/${f.code}`, lastModified: fundDate, changeFrequency: "daily" as const, priority: 0.7 })),
+      ]
+    : [];
+
+  return [...staticRoutes, ...categoryRoutes, ...stockRoutes, ...sectorRoutes, ...scanRoutes, ...compareRoutes, ...fundRoutes, ...reportRoutes];
 }

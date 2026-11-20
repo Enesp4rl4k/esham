@@ -38,7 +38,7 @@ function onlyNextSegments(dir) {
  * Sayfa başına ~7 dosya eder; yalnızca <Link> ön-yüklemesi içindir. Yoksa istemci yönlendirici tam sayfa
  * yüklemesine geri düşer (içerik ve URL aynı), bu yüzden işlev kaybı olmaz. `slug.html` ve `slug.txt` kalır.
  */
-export function pruneSegments(outDir, sections = ["rapor", "hisse", "kategori"]) {
+export function pruneSegments(outDir, sections = ["rapor", "hisse", "kategori", "fon"]) {
   let removed = 0;
   for (const section of sections) {
     const base = join(outDir, section);

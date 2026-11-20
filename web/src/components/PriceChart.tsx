@@ -3,32 +3,50 @@
 import { useEffect, useMemo, useState } from "react";
 
 type Point = [string, number]; // [ISO tarih, kapanış]
-const RANGES = [
-  { id: "6A", label: "6 Ay", weeks: 26 },
-  { id: "1Y", label: "1 Yıl", weeks: 52 },
-  { id: "3Y", label: "3 Yıl", weeks: 156 },
-  { id: "5Y", label: "5 Yıl", weeks: 9999 },
-] as const;
+export interface ChartRange {
+  id: string;
+  label: string;
+  days: number; // son noktadan geriye takvim günü
+}
+const STOCK_RANGES: ChartRange[] = [
+  { id: "6A", label: "6 Ay", days: 183 },
+  { id: "1Y", label: "1 Yıl", days: 366 },
+  { id: "3Y", label: "3 Yıl", days: 1096 },
+  { id: "5Y", label: "5 Yıl", days: 99999 },
+];
+const STOCK_CAPTION = "Haftalık kapanış fiyatları, Yahoo Finance. Bölünme (bedelsiz) düzeltmeli, temettü düzeltmesiz. Gün içi fiyat değildir.";
 
 const W = 800, H = 280, PL = 8, PR = 52, PT = 16, PB = 26;
-const nf = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const nfFor = (digits: number) => new Intl.NumberFormat("tr-TR", { minimumFractionDigits: Math.min(digits, 2), maximumFractionDigits: digits });
 const fmtDate = (d: string) => new Date(d).toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric" });
 
-/** Gerçek haftalık kapanış serisi (bot: `esham stocks` → public/data/prices/<T>.json). Sentetik veri yok. */
-export function PriceChart({ ticker }: { ticker: string }) {
-  const [series, setSeries] = useState<Point[] | null>(null);
-  const [state, setState] = useState<"loading" | "ok" | "missing">("loading");
-  const [range, setRange] = useState<(typeof RANGES)[number]["id"]>("1Y");
+interface PriceChartProps {
+  readonly ticker: string;
+  /** Verilirse sunucudan okunmuş seri kullanılır (fon sayfası); yoksa `/data/prices/<ticker>.json` çekilir. */
+  readonly series?: Point[];
+  readonly ranges?: ChartRange[];
+  readonly digits?: number;
+  readonly caption?: string;
+}
+
+/** Gerçek fiyat serisi (hisse: `esham stocks` haftalık; fon: `esham funds` günlük). Sentetik veri yok. */
+export function PriceChart({ ticker, series: given, ranges = STOCK_RANGES, digits = 2, caption = STOCK_CAPTION }: PriceChartProps) {
+  const nf = nfFor(digits);
+  const [fetched, setFetched] = useState<Point[] | null>(null);
+  const [state, setState] = useState<"loading" | "ok" | "missing">(given ? "ok" : "loading");
+  const [range, setRange] = useState<string>(ranges.some((r) => r.id === "1Y") ? "1Y" : ranges[0].id);
   const [hover, setHover] = useState<number | null>(null);
+  const series = given ?? fetched;
 
   useEffect(() => {
+    if (given) return;
     let alive = true;
     fetch(`/data/prices/${ticker}.json`)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((d: Point[]) => {
         if (!alive) return;
         if (Array.isArray(d) && d.length > 4) {
-          setSeries(d);
+          setFetched(d);
           setState("ok");
         } else setState("missing");
       })
@@ -36,13 +54,13 @@ export function PriceChart({ ticker }: { ticker: string }) {
     return () => {
       alive = false;
     };
-  }, [ticker]);
+  }, [ticker, given]);
 
   const pts = useMemo(() => {
-    if (!series) return [];
-    const w = RANGES.find((r) => r.id === range)!.weeks;
-    return series.slice(-w);
-  }, [series, range]);
+    if (!series?.length) return [];
+    const cut = new Date(series.at(-1)![0]).getTime() - (ranges.find((r) => r.id === range) ?? ranges[0]).days * 86400000;
+    return series.filter((p) => new Date(p[0]).getTime() >= cut);
+  }, [series, range, ranges]);
 
   if (state === "loading") return <div className="h-72 rounded-2xl border border-zinc-800 bg-zinc-950/80 animate-pulse" aria-busy="true" />;
   if (state === "missing" || pts.length < 2)
@@ -85,11 +103,11 @@ export function PriceChart({ ticker }: { ticker: string }) {
             <span style={{ color }} className="font-mono font-semibold">
               {up ? "▲" : "▼"} %{nf.format(Math.abs(change))}
             </span>{" "}
-            <span>({RANGES.find((r) => r.id === range)!.label} değişim)</span>
+            <span>({(ranges.find((r) => r.id === range) ?? ranges[0]).label} değişim)</span>
           </p>
         </div>
         <div className="flex gap-1" role="group" aria-label="Zaman aralığı">
-          {RANGES.map((r) => (
+          {ranges.map((r) => (
             <button
               key={r.id}
               type="button"
@@ -146,7 +164,7 @@ export function PriceChart({ ticker }: { ticker: string }) {
         )}
       </svg>
       <p className="mt-2 text-xs text-zinc-400">
-        Haftalık kapanış fiyatları, Yahoo Finance. Bölünme (bedelsiz) düzeltmeli, temettü düzeltmesiz. Gün içi fiyat değildir.
+        {caption}
       </p>
     </div>
   );
