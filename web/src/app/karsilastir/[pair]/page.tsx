@@ -8,7 +8,10 @@ import { DEFAULT_OG_IMAGE, seoDescription } from "@/lib/seo";
 
 type Params = { pair: string };
 const nf = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const fmt = (v: number | null, unit: "x" | "%") => (v === null ? "—" : unit === "%" ? `%${nf.format(v)}` : `${nf.format(v)}x`);
+function fmt(v: number | null, unit: "x" | "%"): string {
+  if (v === null) return "—";
+  return unit === "%" ? `%${nf.format(v)}` : `${nf.format(v)}x`;
+}
 
 export const dynamicParams = false;
 
@@ -35,7 +38,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   return { title, description, alternates: { canonical: url }, openGraph: { title, description, url, siteName: "Esham", locale: "tr_TR", type: "website", images: [DEFAULT_OG_IMAGE] } };
 }
 
-export default async function ComparePage({ params }: { params: Promise<Params> }) {
+export default async function ComparePage({ params }: Readonly<{ params: Promise<Params> }>) {
   const { pair } = await params;
   const f = find(pair);
   if (!f) notFound();

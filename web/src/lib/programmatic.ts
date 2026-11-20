@@ -135,7 +135,7 @@ export const PAIR_METRICS: PairMetric[] = [
 ];
 
 export function pairSlug(a: string, b: string): string {
-  const [x, y] = [a.toUpperCase(), b.toUpperCase()].sort();
+  const [x, y] = [a.toUpperCase(), b.toUpperCase()].sort((p, q) => p.localeCompare(q));
   return `${x}-vs-${y}`;
 }
 
@@ -172,7 +172,10 @@ export function comparePair(a: UniverseStock, b: UniverseStock): PairRow[] {
     };
     const va = get(a), vb = get(b);
     let winner: "a" | "b" | null = null;
-    if (va !== null && vb !== null && va !== vb) winner = (m.better === "low" ? va < vb : va > vb) ? "a" : "b";
+    if (va !== null && vb !== null && va !== vb) {
+      const aWins = m.better === "low" ? va < vb : va > vb;
+      winner = aWins ? "a" : "b";
+    }
     return { metric: m, a: va, b: vb, winner };
   });
 }
