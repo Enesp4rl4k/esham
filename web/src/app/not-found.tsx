@@ -20,7 +20,7 @@ export default function NotFound() {
       <div className="flex flex-col sm:flex-row gap-3">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-black text-sm font-medium hover:bg-zinc-200 transition-colors"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-zinc-100 text-zinc-900 text-sm font-medium hover:bg-zinc-200 transition-colors"
         >
           <Home className="w-4 h-4" aria-hidden="true" />
           Ana Sayfaya Dön

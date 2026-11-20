@@ -48,7 +48,7 @@ export function StockTabs({ tabs }: { tabs: TabDef[] }) {
       <div
         role="tablist"
         aria-label="Hisse bölümleri"
-        className="sticky top-14 z-30 -mx-6 px-6 mb-8 flex gap-1 overflow-x-auto border-b border-zinc-800 bg-[#0a0a0a]/95 backdrop-blur [scrollbar-width:none]"
+        className="sticky top-14 z-30 -mx-6 px-6 mb-8 flex gap-1 overflow-x-auto border-b border-zinc-800 bg-[var(--header-bg)] backdrop-blur [scrollbar-width:none]"
       >
         {tabs.map((t, i) => (
           <button

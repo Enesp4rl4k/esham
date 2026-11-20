@@ -141,7 +141,7 @@ export function PriceChart({ ticker }: { ticker: string }) {
         {hover !== null && (
           <g>
             <line x1={x(hover)} x2={x(hover)} y1={PT} y2={H - PB} stroke="#52525b" />
-            <circle cx={x(hover)} cy={y(pts[hover][1])} r="4" fill="#0a0a0a" stroke={color} strokeWidth="2" />
+            <circle cx={x(hover)} cy={y(pts[hover][1])} r="4" style={{ fill: "var(--background)" }} stroke={color} strokeWidth="2" />
           </g>
         )}
       </svg>

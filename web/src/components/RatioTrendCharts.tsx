@@ -59,7 +59,7 @@ function MiniChart({ pts, unit, color, name }: { pts: { date: string; v: number 
       {segs.map((d, i) => <path key={i} d={d} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" />)}
       {pts.map((p, i) =>
         p.v === null ? null : (
-          <circle key={i} cx={x(i)} cy={y(p.v)} r="3.5" fill="#0a0a0a" stroke={color} strokeWidth="2">
+          <circle key={i} cx={x(i)} cy={y(p.v)} r="3.5" style={{ fill: "var(--background)" }} stroke={color} strokeWidth="2">
             <title>{`${label(p.date)}: ${fmt(p.v, unit)}`}</title>
           </circle>
         ),
@@ -103,7 +103,8 @@ export function RatioTrendCharts({ data, sector }: { data: QuarterPoint[]; secto
             <figure key={c.key} className="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-4 m-0">
               <figcaption className="flex items-baseline justify-between gap-2 mb-1">
                 <span className="text-xs font-bold text-white">{c.title}</span>
-                <span className="text-sm font-mono font-bold tabular-nums" style={{ color: c.color }}>
+                <span className="inline-flex items-center gap-1.5 text-sm font-mono font-bold tabular-nums text-white">
+                  <span aria-hidden className="inline-block w-2 h-2 rounded-full" style={{ background: c.color }} />
                   {fmt(last, c.unit)}
                 </span>
               </figcaption>

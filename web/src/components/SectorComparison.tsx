@@ -65,7 +65,7 @@ function Row({ m }: { m: MetricPosition }) {
           {m.medianPos !== null && <span className="absolute top-[-3px] h-[14px] w-[2px] bg-zinc-300" style={{ left: `${m.medianPos * 100}%` }} />}
           {m.pos !== null && (
             <span
-              className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-4 w-4 rounded-full border-2 border-[#0a0a0a] bg-zinc-100`}
+              className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-4 w-4 rounded-full border-2 border-[var(--background)] bg-zinc-100`}
               style={{ left: `${m.pos * 100}%` }}
             />
           )}
