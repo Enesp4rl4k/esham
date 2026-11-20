@@ -158,8 +158,17 @@ jobs:
             echo "has_changes=false" >> $GITHUB_OUTPUT
           else
             git commit -m "content: otomatik yayın (${{ github.event.schedule || github.event.inputs.command }}) [skip ci]"
-            git pull --rebase -X theirs origin master || git rebase --abort || true
-            git push origin master || true
+            # Eşzamanlı push yarışı için 3 deneme; sonunda başarısızsa iş KIRMIZI olur (eskiden `|| true` ile yutuluyordu)
+            ok=0
+            for i in 1 2 3; do
+              if git pull --rebase -X theirs origin master && git push origin master; then ok=1; break; fi
+              git rebase --abort 2>/dev/null || true
+              sleep $((i * 5))
+            done
+            if [ "$ok" != "1" ]; then
+              echo "::error title=Push başarısız::İçerik commit'i master'a gönderilemedi (3 deneme)"
+              exit 1
+            fi
             echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
 
@@ -171,19 +180,25 @@ jobs:
           cache: 'npm'
           cache-dependency-path: web/package-lock.json
 
-      - name: Web Sitesini Derle ve Cloudflare'e Gönder
+      - name: Web sitesini derle (+ dosya bütçesi)
         if: steps.commit_step.outputs.has_changes == 'true' || github.event.inputs.force_build == 'true'
         working-directory: web
-        continue-on-error: true
         env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           NEXT_PUBLIC_ESHAM_BOT_URL: ${{ secrets.ESHAM_BOT_URL }}
+        # `continue-on-error` KALDIRILDI: derleme veya dosya bütçesi (Cloudflare 20.000 sınırı) bozulursa iş kırmızı olur
         run: |
           npm ci
           npm run build
-          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
-            npx wrangler pages deploy out --project-name esham --commit-dirty=true
-          else
-            echo "Cloudflare secrets eksik — deploy atlanıyor (build başarılı)."
+
+      - name: Cloudflare Pages'e gönder
+        if: steps.commit_step.outputs.has_changes == 'true' || github.event.inputs.force_build == 'true'
+        working-directory: web
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::warning title=Dağıtım atlandı::Cloudflare secrets tanımlı değil (build başarılı)"
+            exit 0
           fi
+          npx wrangler pages deploy out --project-name esham --commit-dirty=true

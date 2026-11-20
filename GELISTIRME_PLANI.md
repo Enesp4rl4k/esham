@@ -2,6 +2,8 @@
 
 Hedef: Her BIST hissesi ve her TEFAS fonu için kendi sayfası; Fintables tarzı, bilançodan hesaplanan oranlar; ilk girişte kullanıcıyı doğrudan keşfe yönlendiren bir site.
 
+> **Mimari değerlendirme (20 Kasım 2026):** [ARCHITECTURE_REVIEW.md](ARCHITECTURE_REVIEW.md) — acil bulgular: Actions faturalama kilidi (site 13 Kasım'dan beri güncellenmedi), Cloudflare 20.000 dosya sınırı (19.115 → 5.948), sessiz dağıtım hataları. Yol haritasındaki Faz B-F'den **önce** okunmalı.
+
 ## 1. Şu an nerede (`feat/universe-ratio-engine`, push edildi, PR açılmadı)
 
 | Alan | Durum |

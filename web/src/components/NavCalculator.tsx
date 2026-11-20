@@ -36,7 +36,7 @@ export function NavCalculator({ ticker, price, holdingMcap, stakes, source, fetc
   const listed = stakes.filter((s) => s.mcap !== null).sort((a, b) => (stakeValue(b) ?? 0) - (stakeValue(a) ?? 0));
   const unvalued = stakes.filter((s) => s.mcap === null).sort((a, b) => b.pct - a.pct);
   const partial = num(unlisted) === 0;
-  const date = new Date(fetchedAt).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
+  const date = new Date(fetchedAt).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Istanbul" });
 
   return (
     <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-5 md:p-6 shadow-xl">

@@ -351,6 +351,12 @@ def _cmd_nav(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
+def _cmd_health(args: argparse.Namespace) -> None:
+    from .jobs.health import report, run_health
+
+    sys.exit(report(run_health(args.site, offline=args.offline)))
+
+
 def _cmd_ipo_pdf(_: argparse.Namespace) -> None:
     generator = IpoPdfGenerator()
     generator.create(
@@ -526,6 +532,11 @@ def build_parser() -> argparse.ArgumentParser:
     nv = sub.add_parser("nav", help="Holdinglerin KAP iştirak pay tablosu (web/public/data/nav) — NAV girdisi")
     nv.add_argument("--tickers", nargs="*", help="Sadece bu şirketler (varsayılan: Holding sektörü + ALARK, TKFEN)")
     nv.set_defaults(func=_cmd_nav)
+
+    hl = sub.add_parser("health", help="Veri tazeliği + canlı site/dağıtım sağlık denetimi (başarısızlıkta çıkış 1)")
+    hl.add_argument("--site", default="https://esham.pages.dev", help="Canlı site adresi")
+    hl.add_argument("--offline", action="store_true", help="Ağ sorgusu yapma, yalnızca yerel dosya tazeliği")
+    hl.set_defaults(func=_cmd_health)
 
     return parser
 

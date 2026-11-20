@@ -112,7 +112,7 @@ export async function TickerBand() {
         </div>
         {/* Güncelleme zamanı — ekran okuyucu için gizli */}
         <span className="sr-only">
-          Son güncelleme: {new Date(data.updatedAt).toLocaleString("tr-TR")}
+          Son güncelleme: {new Date(data.updatedAt).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })}
         </span>
       </div>
     );
