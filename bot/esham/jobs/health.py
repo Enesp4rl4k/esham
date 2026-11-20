@@ -50,6 +50,8 @@ def evaluate(
     site_status: int | None,
     prod_has_report: bool | None,
     offline: bool = False,
+    funds_updated: datetime | None = None,
+    check_funds: bool = False,
 ) -> list[Check]:
     checks: list[Check] = []
 
@@ -64,6 +66,8 @@ def evaluate(
     fresh("Son rapor tazeliği", newest_report, _limit_hours(now, 26, 74))
     fresh("Piyasa bandı (market-ticker.json) tazeliği", ticker_updated, _limit_hours(now, 26, 74))
     fresh("Hisse verisi (universe.json) tazeliği", universe_updated, 108)
+    if check_funds:  # fon verisi henüz hiç üretilmediyse (eski depo/ilk kurulum) alarm verme
+        fresh("Fon verisi (universe-funds.json) tazeliği", funds_updated, 108)
 
     if offline:
         checks.append(Check("Canlı site erişimi", True, "atlandı (--offline)"))
@@ -112,6 +116,11 @@ def run_health(site: str, offline: bool = False, now: datetime | None = None) ->
         universe = _parse(_read_json(DATA / "universe.json").get("updated_at"))
     except (OSError, ValueError):
         universe = None
+    funds_path = DATA / "universe-funds.json"
+    try:
+        funds = _parse(_read_json(funds_path).get("updated_at")) if funds_path.exists() else None
+    except (OSError, ValueError):
+        funds = None
     try:
         ticker = _parse(_read_json(DATA / "market-ticker.json").get("updatedAt"))
     except (OSError, ValueError):
@@ -132,7 +141,7 @@ def run_health(site: str, offline: bool = False, now: datetime | None = None) ->
                 prod_has = requests.get(f"{site.rstrip('/')}/rapor/{slug}", timeout=20, headers={"User-Agent": "esham-health/1.0"}).status_code == 200
             except requests.RequestException:
                 prod_has = None
-    return evaluate(now, newest, universe, ticker, status, prod_has, offline=offline)
+    return evaluate(now, newest, universe, ticker, status, prod_has, offline=offline, funds_updated=funds, check_funds=funds_path.exists())
 
 
 def report(checks: list[Check]) -> int:

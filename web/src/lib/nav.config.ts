@@ -1,4 +1,4 @@
-/** Ana menü: tek kaynak (masaüstü + mobil). Plan: Hisseler · Piyasa · Analizler. */
+/** Ana menü: tek kaynak (masaüstü + mobil). Hisseler · Fonlar · Piyasa · Analizler. */
 export interface NavLink {
   href: string;
   label: string;
@@ -16,6 +16,7 @@ export interface NavGroup {
 
 export const NAV: NavGroup[] = [
   { key: "hisseler", label: "Hisseler", href: "/hisseler", match: ["/hisseler", "/hisse/"] },
+  { key: "fonlar", label: "Fonlar", href: "/fonlar", match: ["/fonlar", "/fon/"] },
   {
     key: "piyasa",
     label: "Piyasa",

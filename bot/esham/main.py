@@ -333,6 +333,15 @@ def _cmd_stocks(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
+def _cmd_funds(args: argparse.Namespace) -> None:
+    from .jobs.publish_funds import run_funds
+
+    n = run_funds(limit=args.limit, codes=args.codes, min_interval=args.interval)
+    print(f"{n} fon için veri yazıldı.")
+    if n == 0:
+        sys.exit(1)
+
+
 def _cmd_kap_financials(args: argparse.Namespace) -> None:
     from .jobs.publish_kap import run_kap
 
@@ -522,6 +531,12 @@ def build_parser() -> argparse.ArgumentParser:
     st.add_argument("--workers", type=int, default=4)
     st.add_argument("--no-prices", action="store_true", help="Fiyat geçmişini atla")
     st.set_defaults(func=_cmd_stocks)
+
+    fd = sub.add_parser("funds", help="TEFAS fonları (web/public/data/funds + universe-funds.json) üret")
+    fd.add_argument("--limit", type=int, default=200, help="En büyük kaç fon (varsayılan 200, üst sınır 2000)")
+    fd.add_argument("--codes", nargs="*", help="Sadece bu fon kodları (mevcut evreni bozmaz)")
+    fd.add_argument("--interval", type=float, default=0.4, help="İstekler arası saniye (TEFAS hız sınırı için)")
+    fd.set_defaults(func=_cmd_funds)
 
     kf = sub.add_parser("kap-financials", help="KAP finansal raporlarından IFRS tabloları (web/public/data/kap) üret")
     kf.add_argument("--tickers", nargs="*", help="Sadece bu hisseler (varsayılan: bankasız tüm evren)")

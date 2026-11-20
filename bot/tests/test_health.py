@@ -57,3 +57,14 @@ def test_offline_skips_live_checks_but_keeps_freshness():
     c = by_name(evaluate(WED, WED - timedelta(hours=40), WED, WED, None, None, offline=True))
     assert c["Canlı site erişimi"].ok and "atlandı" in c["Canlı site erişimi"].detail
     assert not c["Son rapor tazeliği"].ok  # tazelik yine denetlenir
+
+
+def test_fund_freshness_checked_only_when_requested():
+    base = (WED, WED - timedelta(hours=3), WED - timedelta(hours=20), WED - timedelta(hours=2), 200, True)
+    assert "Fon verisi (universe-funds.json) tazeliği" not in by_name(evaluate(*base))
+    ok = by_name(evaluate(*base, funds_updated=WED - timedelta(hours=30), check_funds=True))
+    assert ok["Fon verisi (universe-funds.json) tazeliği"].ok
+    stale = by_name(evaluate(*base, funds_updated=WED - timedelta(hours=200), check_funds=True))
+    assert not stale["Fon verisi (universe-funds.json) tazeliği"].ok
+    missing = by_name(evaluate(*base, funds_updated=None, check_funds=True))
+    assert not missing["Fon verisi (universe-funds.json) tazeliği"].ok
