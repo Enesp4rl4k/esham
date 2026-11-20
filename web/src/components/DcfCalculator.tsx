@@ -27,7 +27,7 @@ function Slider({ id, label, value, min, max, step, onChange, hint }: {
     <div>
       <div className="flex items-baseline justify-between mb-1">
         <label htmlFor={id} className="text-sm font-medium text-zinc-200">{label}</label>
-        <output htmlFor={id} className="font-mono text-base font-bold text-amber-300 tabular-nums">%{nf1.format(value)}</output>
+        <output htmlFor={id} className="font-mono text-base font-bold text-white tabular-nums">%{nf1.format(value)}</output>
       </div>
       <input
         id={id}
@@ -95,7 +95,7 @@ export function DcfCalculator({ ticker, currency, fxToTry, price, shares, netDeb
     <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-5 md:p-6 shadow-xl">
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-zinc-800/80 mb-5">
         <div className="flex items-center gap-2">
-          <span className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20"><Calculator className="w-4 h-4" /></span>
+          <span className="p-1.5 rounded-lg bg-zinc-800/80 text-zinc-200 border border-zinc-700"><Calculator className="w-4 h-4" /></span>
           <h3 className="text-base font-bold text-white tracking-tight">DCF Değerleme · {ticker}</h3>
         </div>
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Senaryo">
@@ -176,7 +176,7 @@ export function DcfCalculator({ ticker, currency, fxToTry, price, shares, netDeb
                 </tbody>
               </table>
               {result.terminalShare > 0.75 && (
-                <p className="mt-3 text-sm text-amber-300">
+                <p className="mt-3 text-sm text-zinc-200 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2">
                   Firma değerinin {pct(result.terminalShare)}&apos;i uç değerden geliyor; sonuç uzun vade varsayımlarına çok duyarlı.
                 </p>
               )}
@@ -189,7 +189,7 @@ export function DcfCalculator({ ticker, currency, fxToTry, price, shares, netDeb
         <div className="grid gap-8 lg:grid-cols-2 mt-8 pt-6 border-t border-zinc-800/80">
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[360px]">
-              <caption className="text-left text-xs font-bold uppercase tracking-wider text-zinc-400 pb-2">Nakit akışı projeksiyonu (reel, milyar ₺)</caption>
+              <caption className="text-left text-sm font-semibold text-zinc-200 pb-2">Nakit akışı projeksiyonu (reel, milyar ₺)</caption>
               <thead className="text-zinc-400">
                 <tr>
                   <th scope="col" className="text-left font-medium py-2">Yıl</th>
@@ -214,7 +214,7 @@ export function DcfCalculator({ ticker, currency, fxToTry, price, shares, netDeb
           {sens && (
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[360px]">
-                <caption className="text-left text-xs font-bold uppercase tracking-wider text-zinc-400 pb-2">
+                <caption className="text-left text-sm font-semibold text-zinc-200 pb-2">
                   Duyarlılık: hisse başı değer (₺) — iskonto oranı × uç büyüme
                 </caption>
                 <thead className="text-zinc-400">
@@ -235,7 +235,14 @@ export function DcfCalculator({ ticker, currency, fxToTry, price, shares, netDeb
                         const tone = t === null || !price ? "text-zinc-500" : t >= price ? "text-emerald-400" : "text-rose-300";
                         return (
                           <td key={j} className={`py-2 text-right ${tone} ${center ? "font-bold bg-zinc-900 rounded" : ""}`}>
-                            {t === null ? "—" : nf2.format(t)}
+                            {t === null ? (
+                              "—"
+                            ) : (
+                              <>
+                                {nf2.format(t)}
+                                {price ? <span aria-hidden="true" className="ml-1 text-[0.75em]">{t >= price ? "▲" : "▼"}</span> : null}
+                              </>
+                            )}
                           </td>
                         );
                       })}
@@ -243,7 +250,7 @@ export function DcfCalculator({ ticker, currency, fxToTry, price, shares, netDeb
                   ))}
                 </tbody>
               </table>
-              <p className="text-xs text-zinc-400 mt-2">Yeşil: güncel fiyatın üstü, kırmızı: altı. Ortadaki hücre mevcut varsayımlar.</p>
+              <p className="text-xs text-zinc-400 mt-2">▲ güncel fiyatın üstü, ▼ altı. Ortadaki hücre mevcut varsayımlar.</p>
             </div>
           )}
         </div>

@@ -34,7 +34,7 @@ const catColors: Record<CategorySlug, string> = {
   global:    "text-violet-400 border-violet-400/30 bg-violet-400/8",
   ipo:       "text-emerald-400 border-emerald-400/30 bg-emerald-400/8",
   viop:      "text-orange-400 border-orange-400/30 bg-orange-400/8",
-  gundem:    "text-amber-400  border-amber-400/30  bg-amber-400/8",
+  gundem:    "text-teal-300   border-teal-300/30   bg-teal-300/8",
   kripto:    "text-orange-300 border-orange-300/30 bg-orange-300/8",
   teknoloji: "text-pink-400   border-pink-400/30   bg-pink-400/8",
 };
@@ -145,7 +145,7 @@ export default async function Home() {
     <section className="py-20">
       <div className="container mx-auto px-6">
         <div className="flex items-baseline justify-between mb-10">
-          <h2 className="text-xs font-bold tracking-[0.15em] uppercase" style={{ color: "var(--text-muted)" }}>
+          <h2 className="text-lg font-display font-semibold text-white">
             Son Yayınlar
           </h2>
           <Link
@@ -291,7 +291,7 @@ export default async function Home() {
   <section className="py-14 border-b" style={{ borderColor: "var(--border)" }}>
     <div className="container mx-auto px-6">
       <div className="flex items-baseline justify-between mb-8">
-        <h2 className="text-xs font-bold tracking-[0.15em] uppercase" style={{ color: "var(--text-muted)" }}>
+        <h2 className="text-lg font-display font-semibold text-white">
           Kapsama Alanları
         </h2>
       </div>
@@ -330,12 +330,7 @@ export default async function Home() {
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-3 min-w-0">
-            <span
-              className="text-xs font-bold tracking-[0.15em] uppercase px-2.5 py-1 rounded border whitespace-nowrap"
-              style={{ color: "var(--accent)", borderColor: "var(--accent-dim)", background: "var(--accent-glow)" }}
-            >
-              Haberler & Analiz
-            </span>
+            <h2 className="text-lg font-display font-semibold text-white whitespace-nowrap">Haberler ve analizler</h2>
             <span className="text-xs whitespace-nowrap hidden sm:inline" style={{ color: "var(--text-muted)" }}>{formatDate(featured.publishedAt)}</span>
           </div>
           <Link href="/arsiv" className="flex items-center gap-1 text-xs hover:opacity-70 whitespace-nowrap" style={{ color: "var(--text-secondary)" }}>
@@ -370,7 +365,7 @@ export default async function Home() {
                     <img src={report.image ?? `/cards/default-${report.category}.png`} alt="" className="w-full h-full object-cover opacity-80" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className={`text-xs font-bold tracking-wider uppercase ${catColors[report.category].split(" ")[0]}`}>
+                    <span className={`text-xs font-semibold ${catColors[report.category].split(" ")[0]}`}>
                       {CATEGORIES[report.category].label}
                     </span>
                     <h3 className="text-sm font-semibold leading-snug line-clamp-2">{report.title}</h3>

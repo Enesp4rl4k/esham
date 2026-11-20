@@ -88,7 +88,7 @@ export function RatioTrendCharts({ data, sector }: { data: QuarterPoint[]; secto
   return (
     <div>
       <div className="flex items-center gap-2 mb-4">
-        <span className="p-1.5 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20">
+        <span className="p-1.5 rounded-lg bg-zinc-800/80 text-zinc-200 border border-zinc-700">
           <LineChart className="w-4 h-4" />
         </span>
         <h3 className="text-sm font-bold text-white tracking-tight">Çeyreklik Trendler</h3>

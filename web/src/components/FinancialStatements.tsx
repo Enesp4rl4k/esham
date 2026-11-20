@@ -134,7 +134,7 @@ export function FinancialStatements({
           return (
             <div key={sec.title} className="overflow-x-auto">
               <table className="w-full text-xs min-w-[560px]">
-                <caption className="text-left text-xs font-bold uppercase tracking-wider text-zinc-400 pb-2">{sec.title}</caption>
+                <caption className="text-left text-sm font-semibold text-zinc-200 pb-2">{sec.title}</caption>
                 <thead className="text-zinc-400">
                   <tr>
                     <th scope="col" className="text-left font-medium py-2 sticky left-0 bg-zinc-950">

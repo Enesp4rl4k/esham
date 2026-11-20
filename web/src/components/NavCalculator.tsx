@@ -42,13 +42,13 @@ export function NavCalculator({ ticker, price, holdingMcap, stakes, source, fetc
     <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-5 md:p-6 shadow-xl">
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-zinc-800/80 mb-5">
         <div className="flex items-center gap-2">
-          <span className="p-1.5 rounded-lg bg-violet-500/10 text-violet-300 border border-violet-500/20"><Layers className="w-4 h-4" /></span>
+          <span className="p-1.5 rounded-lg bg-zinc-800/80 text-zinc-200 border border-zinc-700"><Layers className="w-4 h-4" /></span>
           <h3 className="text-base font-bold text-white tracking-tight">NAV (Net Aktif Değer) · {ticker}</h3>
         </div>
         <span className="text-xs text-zinc-400">Pay oranları: {source}, {date}</span>
       </div>
 
-      <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 mb-6 text-sm text-amber-100 leading-relaxed">
+      <div className="rounded-xl border border-zinc-700 bg-zinc-900 p-4 mb-6 text-sm text-zinc-200 leading-relaxed">
         <b>{partial ? "Kısmi NAV." : "Elle girilen değerlerle NAV."}</b> KAP yalnızca <b>doğrudan</b> payları verir; ara holdingler üzerinden gelen
         dolaylı paylar (örneğin bir alt holdingin tuttuğu halka açık şirketler) dâhil değildir. Listelenmeyen iştiraklerin ve holding düzeyindeki
         borcun değerini aşağıya siz girin; girmezseniz NAV bu kalemleri 0 sayar.
@@ -104,7 +104,7 @@ export function NavCalculator({ ticker, price, holdingMcap, stakes, source, fetc
 
       <div className="mt-8 overflow-x-auto">
         <table className="w-full text-sm min-w-[560px]">
-          <caption className="text-left text-xs font-bold uppercase tracking-wider text-zinc-400 pb-2">Borsada işlem gören doğrudan paylar</caption>
+          <caption className="text-left text-sm font-semibold text-zinc-200 pb-2">Borsada işlem gören doğrudan paylar</caption>
           <thead className="text-zinc-400">
             <tr>
               <th scope="col" className="text-left font-medium py-2">İştirak</th>

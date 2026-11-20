@@ -191,6 +191,25 @@ const COMPANY_NAMES: Record<string, string> = {
 };
 
 
+/** Başlık imzası: fiyatın 52 haftalık kapanış aralığındaki yeri (metin karşılığı ekran okuyucuya verilir). */
+function RangeBar({ lo, hi, cur }: { lo: number; hi: number; cur: number }) {
+  const pos = hi > lo ? Math.max(0, Math.min(1, (cur - lo) / (hi - lo))) : 0.5;
+  const pct = Math.round(pos * 100);
+  return (
+    <div className="mt-2">
+      <div className="relative h-1.5 rounded-full bg-zinc-800" aria-hidden="true">
+        <div className="absolute inset-y-0 left-0 rounded-full bg-zinc-600" style={{ width: `${pct}%` }} />
+        <span
+          className="absolute top-1/2 h-3.5 w-1 -translate-y-1/2 -translate-x-1/2 rounded-full"
+          style={{ left: `${pct}%`, background: "var(--accent)" }}
+        />
+      </div>
+      <p className="sr-only">Güncel fiyat 52 haftalık aralığın %{pct} noktasında.</p>
+      <p className="mt-1 text-xs text-zinc-400" aria-hidden="true">Aralığın %{pct} noktasında</p>
+    </div>
+  );
+}
+
 export default async function TickerPage({
   params,
 }: {
@@ -222,6 +241,14 @@ export default async function TickerPage({
 
   const companyName = COMPANY_NAMES[cleanTicker] || getStockName(cleanTicker) || `${cleanTicker} Pay Piyasası`;
 
+  // Canlı bant metni "₺395.50" gibi gelir (işaret + nokta ondalık): sayıya çevir, Türkçe biçimle tek "₺" bas
+  const livePrice: number | null = (() => {
+    const raw = liveQuote?.value;
+    if (!raw) return null;
+    const t = String(raw).replace(/[₺\s]/g, "");
+    const n = t.includes(",") ? parseFloat(t.replace(/\./g, "").replace(",", ".")) : parseFloat(t);
+    return Number.isFinite(n) ? n : null;
+  })();
   const prices = await loadPrices(cleanTicker);
   const navData = await loadNav(cleanTicker);
   const r = stockRatios?.ratios;
@@ -230,7 +257,7 @@ export default async function TickerPage({
   const fmtMcap = (v: number | null | undefined) => (!v ? "—" : v >= 1e9 ? `${(v / 1e9).toLocaleString("tr-TR", { maximumFractionDigits: 1 })} Mr ₺` : `${(v / 1e6).toLocaleString("tr-TR", { maximumFractionDigits: 0 })} Mn ₺`);
   const last52 = prices ? prices.slice(-52).map((p) => p[1]) : [];
   const headerPrice: number | null = stockRatios?.price ?? (prices ? prices[prices.length - 1][1] : null);
-  const summary: { label: string; value: string }[] = stockRatios && r
+  const summary: { label: string; value: string; range?: { lo: number; hi: number; cur: number } }[] = stockRatios && r
     ? [
         { label: "Piyasa Değeri", value: fmtMcap(r.market_cap) },
         { label: "F/K", value: fmtX(r.pe) },
@@ -240,6 +267,7 @@ export default async function TickerPage({
         {
           label: "52 Hafta (kapanış)",
           value: last52.length ? `${Math.min(...last52).toLocaleString("tr-TR", { maximumFractionDigits: 2 })} – ${Math.max(...last52).toLocaleString("tr-TR", { maximumFractionDigits: 2 })} ₺` : "—",
+          range: last52.length && headerPrice !== null ? { lo: Math.min(...last52), hi: Math.max(...last52), cur: headerPrice } : undefined,
         },
       ]
     : [{ label: "Kapsamdaki Rapor", value: `${reports.length} Analiz & Bildirim` }];
@@ -486,7 +514,11 @@ export default async function TickerPage({
                 {liveQuote?.value ? "Anlık Fiyat" : "Son Fiyat"}
               </p>
               <p className="text-2xl font-mono font-bold text-white mt-0.5 tabular-nums">
-                {liveQuote?.value ? `${liveQuote.value} ₺` : headerPrice !== null ? `${headerPrice.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺` : "—"}
+                {livePrice !== null
+                  ? `${livePrice.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺`
+                  : headerPrice !== null
+                    ? `${headerPrice.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺`
+                    : "—"}
               </p>
             </div>
             {liveQuote?.change && (
@@ -504,11 +536,12 @@ export default async function TickerPage({
           </div>
         </div>
 
-        <dl className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-8 pt-6 border-t border-zinc-800/80 text-xs">
+        <dl className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-8 pt-6 border-t border-zinc-800/80 text-sm">
           {summary.map((m) => (
             <div key={m.label}>
-              <dt className="text-zinc-400 mb-1">{m.label}</dt>
+              <dt className="text-zinc-400 mb-1 text-xs">{m.label}</dt>
               <dd className="font-mono font-semibold text-zinc-100 tabular-nums">{m.value}</dd>
+              {m.range && <RangeBar {...m.range} />}
             </div>
           ))}
         </dl>

@@ -18,7 +18,7 @@ export function SectorComparison({ stock, universe }: { stock: UniverseStock; un
     <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-5 md:p-6 shadow-xl">
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-zinc-800/80 mb-5">
         <div className="flex items-center gap-2">
-          <span className="p-1.5 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20">
+          <span className="p-1.5 rounded-lg bg-zinc-800/80 text-zinc-200 border border-zinc-700">
             <BarChart3 className="w-4 h-4" />
           </span>
           <h3 className="text-base font-bold text-white tracking-tight">Sektörde Konum · {stock.sector}</h3>
@@ -49,8 +49,9 @@ function Row({ m }: { m: MetricPosition }) {
     m.value !== null && m.median !== null && Math.abs(m.value - m.median) > 1e-9
       ? def.better === "low" ? m.value < m.median : m.value > m.median
       : null; // medyana eşit → nötr renk
-  const tone = better === null ? "text-zinc-100" : better ? "text-emerald-400" : "text-rose-300";
-  const rankText = m.rank !== null ? `${m.of} hissede ${m.rank}.` : m.value === null ? "Hesaplanamadı" : "Yetersiz veri";
+  const tone = "text-zinc-100"; // renk yerine metin: yeşil/kırmızı sitede fiyat yönü demek
+  const verdict = better === null ? "" : better ? " · medyandan iyi" : " · medyandan zayıf";
+  const rankText = m.rank !== null ? `${m.of} hissede ${m.rank}.${verdict}` : m.value === null ? "Hesaplanamadı" : "Yetersiz veri";
 
   return (
     <li className="py-3.5 grid grid-cols-[7.5rem_1fr] sm:grid-cols-[9rem_1fr_9rem] items-center gap-x-4 gap-y-1.5">
@@ -64,9 +65,7 @@ function Row({ m }: { m: MetricPosition }) {
           {m.medianPos !== null && <span className="absolute top-[-3px] h-[14px] w-[2px] bg-zinc-300" style={{ left: `${m.medianPos * 100}%` }} />}
           {m.pos !== null && (
             <span
-              className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-4 w-4 rounded-full border-2 border-[#0a0a0a] ${
-                better === null ? "bg-zinc-300" : better ? "bg-emerald-400" : "bg-rose-400"
-              }`}
+              className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-4 w-4 rounded-full border-2 border-[#0a0a0a] bg-zinc-100`}
               style={{ left: `${m.pos * 100}%` }}
             />
           )}

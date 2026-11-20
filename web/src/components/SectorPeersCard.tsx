@@ -28,7 +28,7 @@ export function SectorPeersCard({
     <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-6 shadow-xl">
       <div className="flex items-center justify-between gap-2 pb-4 border-b border-zinc-800/80 mb-4">
         <div className="flex items-center gap-2">
-          <span className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span className="p-1.5 rounded-lg bg-zinc-800/80 text-zinc-200 border border-zinc-700">
             <Scale className="w-4 h-4" />
           </span>
           <h3 className="text-base font-bold text-white tracking-tight">Sektör Hisseleri · {sector}</h3>
