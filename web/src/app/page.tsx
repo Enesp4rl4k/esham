@@ -140,7 +140,12 @@ export default async function Home() {
   const danaYem = turibData?.meatFeed?.parities?.find((p: any) =>
     p.title?.includes("Dana")
   );
-  const meatCpiPct = turibData?.meatFeed?.meatCpiAnnualPct;
+  const meatCpiPct: number | undefined = turibData?.meatFeed?.meatCpiAnnualPct;
+  const meatHeadlinePct: number | undefined = turibData?.meatFeed?.headlineCpiAnnualPct;
+  const meatSpread: number | undefined = turibData?.meatFeed?.meatInflationSpread;
+  // Son iyi değer taşındıysa (stale) özgün veri tarihini göster; "güncel" gibi sunma.
+  const staleNote = (o: any) => (o?.stale && o?.asOf ? ` · ${o.asOf} tarihli` : "");
+  const NO_DATA = "Veri yok";
 
   const latestNode = more.length > 0 && (
     <section className="py-20">
@@ -222,13 +227,15 @@ export default async function Home() {
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-mono font-bold text-amber-400">TRBHUB</span>
-            <span className="text-xs font-semibold text-emerald-400 flex items-center gap-0.5">
-              <TrendingUp className="w-3 h-3" />
-              {trbHub?.changeStr || "+2,12%"}
-            </span>
+            {trbHub?.changeStr && (
+              <span className={`text-xs font-semibold flex items-center gap-0.5 ${(trbHub.changePct ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                {(trbHub.changePct ?? 0) >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                {trbHub.changeStr}
+              </span>
+            )}
           </div>
-          <p className="text-2xl font-bold font-display">{trbHub?.valueStr || "7.910,25"}</p>
-          <p className="text-xs mt-1 text-zinc-400">TÜRİB Hububat Endeksi</p>
+          <p className="text-2xl font-bold font-display">{trbHub?.valueStr ?? NO_DATA}</p>
+          <p className="text-xs mt-1 text-zinc-400">TÜRİB Hububat Endeksi{staleNote(trbHub)}</p>
         </Link>
 
         {/* Buğday Spot */}
@@ -239,15 +246,17 @@ export default async function Home() {
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-zinc-300">Buğday Ekmeklik</span>
-            <span className="text-xs font-semibold text-emerald-400 flex items-center gap-0.5">
-              <TrendingUp className="w-3 h-3" />
-              {bugdaySpot?.changeStr || "+5,40%"}
-            </span>
+            {bugdaySpot?.changeStr && (
+              <span className={`text-xs font-semibold flex items-center gap-0.5 ${(bugdaySpot.changePct ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                {(bugdaySpot.changePct ?? 0) >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                {bugdaySpot.changeStr}
+              </span>
+            )}
           </div>
           <p className="text-2xl font-bold font-display" style={{ color: "var(--accent)" }}>
-            {bugdaySpot?.avgPriceStr || "18,19 ₺/kg"}
+            {bugdaySpot?.avgPriceStr ?? NO_DATA}
           </p>
-          <p className="text-xs mt-1 text-zinc-400">Lisanslı Depo (ELÜS) Spot</p>
+          <p className="text-xs mt-1 text-zinc-400">Lisanslı Depo (ELÜS) Spot{staleNote(bugdaySpot)}</p>
         </Link>
 
         {/* Dana Besi / Yem */}
@@ -258,14 +267,20 @@ export default async function Home() {
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-zinc-300">Dana Besi / Yem</span>
-            <span className="text-xs font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              {danaYem?.status || "KÂRLI BESI"}
-            </span>
+            {danaYem?.status && (
+              <span className="text-xs font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                {danaYem.status}
+              </span>
+            )}
           </div>
           <p className="text-2xl font-bold font-display text-emerald-400">
-            {danaYem?.ratio ? `${danaYem.ratio.toFixed(1)}x` : "28.2x"}
+            {danaYem?.ratio ? `${danaYem.ratio.toFixed(1)}x` : NO_DATA}
           </p>
-          <p className="text-xs mt-1 text-zinc-400">1 kg et = 28.2 kg yem (Eşik: 20)</p>
+          <p className="text-xs mt-1 text-zinc-400">
+            {danaYem?.ratio
+              ? `1 kg et = ${danaYem.ratio.toFixed(1)} kg yem (Eşik: ${danaYem.threshold ?? "—"})${staleNote(turibData?.meatFeed)}`
+              : "Karkas fiyatı için gerçek kaynak bağlı değil"}
+          </p>
         </Link>
 
         {/* Et TÜFE */}
@@ -276,12 +291,18 @@ export default async function Home() {
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-rose-400">Et TÜFE (Yıllık)</span>
-            <span className="text-xs text-zinc-400">Manşet: %31.5</span>
+            <span className="text-xs text-zinc-400">
+              {typeof meatHeadlinePct === "number" ? `Manşet: %${meatHeadlinePct.toFixed(1)}` : ""}
+            </span>
           </div>
           <p className="text-2xl font-bold font-display">
-            %{meatCpiPct ? meatCpiPct.toFixed(1) : "30.5"}
+            {typeof meatCpiPct === "number" ? `%${meatCpiPct.toFixed(1)}` : NO_DATA}
           </p>
-          <p className="text-xs mt-1 text-zinc-400">Enflasyon Primi: -1.0 puan</p>
+          <p className="text-xs mt-1 text-zinc-400">
+            {typeof meatSpread === "number"
+              ? `Enflasyon Primi: ${meatSpread > 0 ? "+" : ""}${meatSpread.toFixed(1)} puan${staleNote(turibData?.meatFeed)}`
+              : "TÜİK Et TÜFE için gerçek kaynak bağlı değil"}
+          </p>
         </Link>
       </div>
     </div>

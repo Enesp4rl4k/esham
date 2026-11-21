@@ -86,13 +86,28 @@ export function MorningCockpit({
   };
 
   // 1. VİOP & Açılış Beklentisi Hesabı
-  const isViopPositive = viopData?.basis_puan ? viopData.basis_puan >= 0 : true;
-  const basisPuan = viopData?.basis_puan || 339.5;
-  const basisYuzde = viopData?.basis_yuzde || 2.87;
-  const vadeliFiyat = viopData?.vadeli_f_xu030 || 12180.0;
-  const spotFiyat = viopData?.spot_xu030 || 11840.5;
+  // Gerçek kotasyon yoksa (viop-basis.json yok / sayısal alan eksik) hiçbir sayı ya da yön gösterilmez.
+  const hasViop =
+    typeof viopData?.basis_puan === "number" &&
+    typeof viopData?.basis_yuzde === "number" &&
+    typeof viopData?.vadeli_f_xu030 === "number" &&
+    !!viopData?.veri_tarihi;
+  const isViopPositive = hasViop && viopData.basis_puan >= 0;
+  const basisPuan: number = hasViop ? viopData.basis_puan : 0;
+  const basisYuzde: number = hasViop ? viopData.basis_yuzde : 0;
+  const vadeliFiyat: number = hasViop ? viopData.vadeli_f_xu030 : 0;
+  const viopAsOf: string | null = hasViop
+    ? new Date(viopData.veri_tarihi).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })
+    : null;
+  const fmt = (v: number, d = 1) => v.toLocaleString("tr-TR", { minimumFractionDigits: d, maximumFractionDigits: d });
 
-  const openingSentiment = isViopPositive
+  const openingSentiment = !hasViop
+    ? {
+        label: "Veri yok",
+        badgeClass: "bg-zinc-800 text-zinc-400 border-zinc-700",
+        summary: "VİOP kotasyonu alınamadı; açılış görünümü için veri yok.",
+      }
+    : isViopPositive
     ? {
         label: "Pozitif / Alıcılı Açılış",
         badgeClass: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
@@ -107,25 +122,16 @@ export function MorningCockpit({
       };
 
   // 2. BIST-30 Öncü Pivot Seviyeleri
-  const pivotList = [
-    { ticker: "THYAO", pivot: 258.4, s1: 254.0, r1: 265.5, last: 262.5 },
-    { ticker: "GARAN", pivot: 114.2, s1: 112.0, r1: 117.8, last: 115.6 },
-    { ticker: "ASELS", pivot: 59.8, s1: 58.5, r1: 62.0, last: 61.2 },
-    { ticker: "TUPRS", pivot: 154.6, s1: 151.0, r1: 158.2, last: 156.4 },
-    { ticker: "KCHOL", pivot: 198.5, s1: 195.0, r1: 203.0, last: 201.2 },
-    { ticker: "EREGL", pivot: 48.2, s1: 47.1, r1: 49.8, last: 49.1 },
-  ];
+  // Yalnızca bist-quant-valuation.json'daki hesaplanmış seviyelerden; veri olmayan hisse listelenmez.
+  const pivotList: { ticker: string; pivot: number }[] = ["THYAO", "GARAN", "ASELS", "TUPRS", "KCHOL", "EREGL"]
+    .map((ticker) => ({ ticker, pivot: quantData?.[ticker]?.key_levels?.pivot_noktasi }))
+    .filter((x): x is { ticker: string; pivot: number } => typeof x.pivot === "number");
 
   // 3. Sabahın En Kritik 3 KAP Haberi
   const topKapReports = reports.slice(0, 3);
 
   // 4. Günün Ajandası (TradingView Ekonomik Takvim)
-  const calendarEvents = calendarData?.events?.slice(0, 4) || [
-    { time: "10:00", country: "Türkiye", event: "BIST Pay Piyasası Sürekli Müzayede Açılışı" },
-    { time: "13:00", country: "Euro Bölgesi", event: "TÜFE Enflasyon Oranı (Yıllık Öncü)" },
-    { time: "15:30", country: "ABD", event: "Haftalık İşsizlik Başvuruları & Dış Ticaret" },
-    { time: "18:05", country: "Türkiye", event: "BIST Gün Sonu Kapanış Seansı" },
-  ];
+  const calendarEvents: { time: string; country: string; event: string }[] = calendarData?.events?.slice(0, 4) || [];
 
   return (
     <section className="mb-10 w-full">
@@ -133,7 +139,7 @@ export function MorningCockpit({
         {/* Üst Başlık Şeridi */}
         <div className="px-5 py-3.5 border-b border-zinc-800/80 flex items-center justify-between gap-4 bg-zinc-900/40">
           <div className="flex items-center gap-3">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <span className="w-2.5 h-2.5 rounded-full bg-zinc-600 shrink-0" aria-hidden="true" />
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-mono font-bold uppercase tracking-wider text-white">
                 Günün Seans Açılış Kokpiti
@@ -171,7 +177,15 @@ export function MorningCockpit({
               </span>
               <span className="hidden md:inline text-zinc-400">•</span>
               <span className="hidden md:inline text-zinc-300">
-                VİOP Basis: <strong className="text-emerald-400">+{basisPuan.toFixed(1)} Puan Contango</strong>
+                VİOP Basis:{" "}
+                {hasViop ? (
+                  <strong className={isViopPositive ? "text-emerald-400" : "text-rose-400"}>
+                    {basisPuan > 0 ? "+" : ""}
+                    {fmt(basisPuan)} Puan {isViopPositive ? "Contango" : "Backwardation"}
+                  </strong>
+                ) : (
+                  <strong className="text-zinc-400">Veri yok</strong>
+                )}
               </span>
             </div>
             <button
@@ -207,12 +221,14 @@ export function MorningCockpit({
                 <div className="space-y-2 mb-3 font-mono text-xs">
                   <div className="flex justify-between items-center bg-zinc-950/70 p-2 rounded border border-zinc-800/60">
                     <span className="text-zinc-400">F_XU030 Vadeli</span>
-                    <span className="font-bold text-white">{vadeliFiyat.toFixed(1)} ₺</span>
+                    <span className="font-bold text-white">{hasViop ? `${fmt(vadeliFiyat, 2)} ₺` : "Veri yok"}</span>
                   </div>
                   <div className="flex justify-between items-center bg-zinc-950/70 p-2 rounded border border-zinc-800/60">
                     <span className="text-zinc-400">Basis Makası</span>
-                    <span className="font-bold text-emerald-400">
-                      +{basisPuan.toFixed(1)} pt (%{basisYuzde.toFixed(2)})
+                    <span className={`font-bold ${hasViop ? (isViopPositive ? "text-emerald-400" : "text-rose-400") : "text-zinc-400"}`}>
+                      {hasViop
+                        ? `${basisPuan > 0 ? "+" : ""}${fmt(basisPuan)} pt (%${fmt(basisYuzde, 2)})`
+                        : "Veri yok"}
                     </span>
                   </div>
                 </div>
@@ -223,8 +239,8 @@ export function MorningCockpit({
               </div>
 
               <div className="mt-4 pt-3 border-t border-zinc-800/70 flex items-center justify-between text-xs font-mono text-zinc-400">
-                <span>Vade Sonu: 32 Gün</span>
-                <span className="text-zinc-400">Contango Primli</span>
+                <span>{viopAsOf ? `Veri tarihi: ${viopAsOf}` : "Veri tarihi: yok"}</span>
+                <span className="text-zinc-400">{hasViop ? (isViopPositive ? "Contango" : "Backwardation") : "—"}</span>
               </div>
             </div>
 
@@ -245,6 +261,7 @@ export function MorningCockpit({
                   </span>
                 </div>
 
+                {pivotList.length === 0 && <p className="text-xs text-zinc-400 font-sans mb-2">Veri yok.</p>}
                 <div className="grid grid-cols-2 gap-1.5 mb-2 font-mono text-xs">
                   {pivotList.map((item) => (
                     <Link
@@ -256,7 +273,7 @@ export function MorningCockpit({
                         ${item.ticker}
                       </span>
                       <span className="text-xs text-zinc-400">
-                        P: <strong className="text-cyan-300">{item.pivot.toFixed(1)}</strong>
+                        P: <strong className="text-cyan-300">{fmt(item.pivot, 2)}</strong>
                       </span>
                     </Link>
                   ))}
@@ -268,8 +285,8 @@ export function MorningCockpit({
               </div>
 
               <div className="mt-4 pt-3 border-t border-zinc-800/70 flex items-center justify-between text-xs font-mono text-zinc-400">
-                <span>XU100 Pivot: 11.380 ₺</span>
-                <span className="text-cyan-400">Canlı Eşikler</span>
+                <span>Son hesaplanan seviyeler (bist-quant-valuation.json)</span>
+                <span className="text-zinc-400">—</span>
               </div>
             </div>
 
@@ -338,6 +355,7 @@ export function MorningCockpit({
                   </span>
                 </div>
 
+                {calendarEvents.length === 0 && <p className="text-xs text-zinc-400 font-sans mb-2">Bugün için takvim verisi yok.</p>}
                 <div className="space-y-2 font-mono text-xs">
                   {calendarEvents.map((evt: any, idx: number) => (
                     <div

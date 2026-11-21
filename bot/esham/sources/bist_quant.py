@@ -212,9 +212,12 @@ class DcfValuationResult:
     rating: str
     sensitivity_matrix: dict[str, Any]
     scenarios: dict[str, Any]
+    # USD raporlayan şirketlerde TL'ye çevirimde kullanılan CANLI USD/TRY (TL raporlayanlarda None).
+    usd_try: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
+            "usd_try": self.usd_try,
             "ticker": self.ticker,
             "sirket": self.company_name,
             "para_birimi": self.currency,
@@ -509,7 +512,7 @@ class BistQuantAnalyzer:
         growth_rate: float | None = None,
         terminal_growth: float | None = None,
         projection_years: int = 5,
-        usd_try: float = 34.2,
+        usd_try: float | None = None,
     ) -> DcfValuationResult | None:
         """Borsa İstanbul hissesi için İndirgenmiş Nakit Akışı (İNA / DCF) değerlemesi hesaplar."""
         clean = ticker.strip().upper().replace(".IS", "")
@@ -524,6 +527,11 @@ class BistQuantAnalyzer:
             curr = info.get("currency") or "TRY"
             fin_curr = info.get("financialCurrency") or curr
             is_usd = fin_curr == "USD"
+            if is_usd and usd_try is None:
+                usd_try = live_fx_rate("TRY=X")
+                if usd_try is None:
+                    log.warning("%s: USD raporlayan şirket için canlı USD/TRY yok; DCF üretilmedi.", ticker)
+                    return None
 
             price = float(info.get("currentPrice") or info.get("regularMarketPrice") or 0.0)
             shares = float(info.get("sharesOutstanding") or 0.0)
@@ -690,6 +698,7 @@ class BistQuantAnalyzer:
                 rating=rating,
                 sensitivity_matrix=sensitivity_matrix,
                 scenarios=scenarios,
+                usd_try=round(usd_try, 4) if is_usd and usd_try else None,
             )
         except Exception as exc:
             log.warning("DCF hesabı başarısız (%s): %s", ticker, exc)
@@ -911,49 +920,65 @@ class BistQuantAnalyzer:
             return None
 
 
-def extract_contract_amount(text: str, usd_try: float = 34.2, eur_try: float = 37.1) -> float | None:
-    """Metin içinden sözleşme, sipariş veya ihale tutarını (TL cinsinden) ayrıştırır."""
+def live_fx_rate(symbol: str) -> float | None:
+    """Canlı kur (Yahoo): "TRY=X" = USD/TRY, "EURTRY=X" = EUR/TRY. Alınamazsa None (sabit kur kullanılmaz)."""
+    try:
+        from .global_macro import GlobalMacroSource
+
+        t = GlobalMacroSource()._fetch_one(symbol, symbol, "")
+        return float(t.price) if t is not None and t.price and t.price > 0 else None
+    except Exception as exc:  # noqa: BLE001
+        log.warning("Canlı kur alınamadı (%s): %s", symbol, exc)
+        return None
+
+
+_USD_UNITS = ("usd", "dolar", "$")
+_EUR_UNITS = ("eur", "euro", "€")
+_AMOUNT_UNITS = r"(tl|try|usd|dolar|\$|eur|euro|€)"
+
+
+def _to_try(amount: float, curr: str, usd_try: float | None, eur_try: float | None) -> float | None:
+    """TL dışı tutarı verilen kurla TL'ye çevirir; gerekli kur yoksa None (sabit kur kullanılmaz)."""
+    if curr in _USD_UNITS:
+        rate = usd_try if usd_try is not None else live_fx_rate("TRY=X")
+    elif curr in _EUR_UNITS:
+        rate = eur_try if eur_try is not None else live_fx_rate("EURTRY=X")
+    else:
+        return amount
+    return amount * rate if rate is not None else None
+
+
+def extract_contract_amount(text: str, usd_try: float | None = None, eur_try: float | None = None) -> float | None:
+    """Metin içinden sözleşme, sipariş veya ihale tutarını (TL cinsinden) ayrıştırır.
+
+    Döviz cinsi tutarlarda kur verilmezse canlı kur çekilir; alınamazsa None döner (sabit kur kullanılmaz).
+    """
     if not text:
         return None
 
     clean_text = text.lower()
 
     # 1. Milyar / Milyon kalıpları: "1,5 milyar TL", "450 milyon TL", "25 milyon USD", "100 Milyon Euro"
-    m = re.search(r'(\d+(?:[.,]\d+)?)\s*(milyar|milyon)\s*(tl|try|usd|dolar|\$|eur|euro|€)?', clean_text)
+    m = re.search(r'(\d+(?:[.,]\d+)?)\s*(milyar|milyon)\s*' + _AMOUNT_UNITS + '?', clean_text)
     if m:
-        val_str = m.group(1).replace(',', '.')
         try:
-            val = float(val_str)
+            val = float(m.group(1).replace(',', '.'))
         except ValueError:
             return None
-        unit = m.group(2)
-        curr = (m.group(3) or 'tl').strip()
-
-        mult = 1_000_000_000 if 'milyar' in unit else 1_000_000
-        amount = val * mult
-
-        if curr in ('usd', 'dolar', '$'):
-            amount *= usd_try
-        elif curr in ('eur', 'euro', '€'):
-            amount *= eur_try
-        return amount
+        mult = 1_000_000_000 if 'milyar' in m.group(2) else 1_000_000
+        return _to_try(val * mult, (m.group(3) or 'tl').strip(), usd_try, eur_try)
 
     # 2. Tam sayılar: "500.000.000 TL", "25,000,000 USD"
-    m2 = re.search(r'(\d{1,3}(?:[.,]\d{3})+)\s*(tl|try|usd|dolar|\$|eur|euro|€)', clean_text)
+    m2 = re.search(r'(\d{1,3}(?:[.,]\d{3})+)\s*' + _AMOUNT_UNITS, clean_text)
     if m2:
-        val_str = m2.group(1).replace('.', '').replace(',', '')
         try:
-            val = float(val_str)
+            val = float(m2.group(1).replace('.', '').replace(',', ''))
         except ValueError:
             return None
-        curr = m2.group(2).strip()
-        if curr in ('usd', 'dolar', '$'):
-            val *= usd_try
-        elif curr in ('eur', 'euro', '€'):
-            val *= eur_try
-        return val
+        return _to_try(val, m2.group(2).strip(), usd_try, eur_try)
 
     return None
+
 
 def get_key_levels(ticker: str) -> KeyLevelsResult | None:
     return BistQuantAnalyzer().get_key_levels(ticker)
@@ -969,7 +994,7 @@ def calculate_dcf(
     growth_rate: float | None = None,
     terminal_growth: float | None = None,
     projection_years: int = 5,
-    usd_try: float = 34.2,
+    usd_try: float | None = None,
 ) -> DcfValuationResult | None:
     return BistQuantAnalyzer().calculate_dcf(ticker, wacc, growth_rate, terminal_growth, projection_years, usd_try)
 

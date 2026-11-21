@@ -88,7 +88,7 @@ def update_ticker_data() -> bool:
     try:
         from ..sources.meat_feed_index import MeatFeedIndexAnalyzer
         mrep = MeatFeedIndexAnalyzer().analyze()
-        for p in mrep.pariteler:
+        for p in (mrep.pariteler if mrep else []):
             if "Dana" in p.kategori:
                 tickers.append({
                     "label": "DANA/YEM",

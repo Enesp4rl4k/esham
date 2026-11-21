@@ -21,6 +21,8 @@ interface DcfData {
   sirket: string;
   para_birimi: string;
   finansal_para_birimi: string;
+  /** USD raporlayanlarda TL çevirimi için botun kullandığı canlı USD/TRY; yoksa TL değer gösterilmez. */
+  usd_try?: number | null;
   guncel_fiyat: number;
   hisse_adedi: number;
   baz_fcf: number;
@@ -69,8 +71,21 @@ interface DcfTerminalCardProps {
 }
 
 export function DcfTerminalCard({ dcf }: DcfTerminalCardProps) {
+  // USD raporlayan şirkette gerçek USD/TRY yoksa sabit kurla TL adil değer üretmeyiz.
+  if (dcf.finansal_para_birimi === "USD" && !(typeof dcf.usd_try === "number" && dcf.usd_try > 0)) {
+    return (
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-6 text-xs text-zinc-400">
+        Veri yok: bu şirketin DCF değerlemesi USD cinsindendir ve TL çevirimi için doğrulanmış USD/TRY kuru
+        bulunmuyor; eski veya sabit kurla hesaplanmış değer gösterilmez.
+      </div>
+    );
+  }
+  return <DcfTerminalCardInner dcf={dcf} />;
+}
+
+function DcfTerminalCardInner({ dcf }: DcfTerminalCardProps) {
   const isUsd = dcf.finansal_para_birimi === "USD";
-  const fxMultiplier = isUsd ? 34.2 : 1.0;
+  const fxMultiplier = isUsd ? (dcf.usd_try as number) : 1.0;
 
   // Initial defaults
   const defaultWacc = dcf.varsayimlar.wacc_aosm * 100;

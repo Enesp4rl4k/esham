@@ -99,12 +99,16 @@ class AgriBistAnalyzer:
         company_impacts: list[AgriCompanyImpact] = []
 
         for ticker, meta in AGRI_BIST_RELATIONS.items():
-            stock = BistSource(symbol=f"{ticker}.IS").market_summary()
             comm_name = meta["primary_commodity"]
             comm = prod_map.get(comm_name)
+            if comm is None:
+                # Canlı TÜRİB fiyatı yok: 0,0 TL/kg gibi sahte bir değer yayınlama, şirketi atla.
+                log.warning("AgriBist: %s için TÜRİB %s fiyatı yok; şirket atlandı.", ticker, comm_name)
+                continue
+            stock = BistSource(symbol=f"{ticker}.IS").market_summary()
 
-            comm_price = comm.avg_price_tl_kg if comm else 0.0
-            comm_chg = comm.change_pct if comm else 0.0
+            comm_price = comm.avg_price_tl_kg
+            comm_chg = comm.change_pct
 
             # Basit deterministik marj duyarlılığı:
             # Emtia fiyatı hızla artıyorsa (>+%3) ve hisse fiyatı ayak uyduramadıysa -> maliyet baskısı

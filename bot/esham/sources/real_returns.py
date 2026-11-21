@@ -25,13 +25,17 @@ TARIHSEL_KUR_VE_ENFLASYON: dict[str, dict[str, float]] = {
     "2023": {"usd": 23.75, "eur": 25.70, "tufe_kat_sayisi": 4.22},
     "2024": {"usd": 32.80, "eur": 35.50, "tufe_kat_sayisi": 6.95},
     "2025": {"usd": 36.50, "eur": 39.80, "tufe_kat_sayisi": 9.85},
-    "2026": {"usd": 40.50, "eur": 44.20, "tufe_kat_sayisi": 13.20},
+    # 2026: yıl henüz tamamlanmadı; yıllık ortalama kur / birikimli TÜFE katsayısı bilinemez. Eski sürümdeki
+    # 40,50 / 44,20 / 13,20 değerleri kaynaksız projeksiyondu ve kaldırıldı; bilinmeyen yıl artık hata verir.
 }
 
 
 def get_anchor(date_str: str) -> dict[str, float]:
     yil = date_str[:4]
-    return TARIHSEL_KUR_VE_ENFLASYON.get(yil, TARIHSEL_KUR_VE_ENFLASYON["2026"])
+    anchor = TARIHSEL_KUR_VE_ENFLASYON.get(yil)
+    if anchor is None:
+        raise ValueError(f"{yil} yılı için kaynaklı kur/TÜFE çapası yok; reel getiri hesaplanamaz.")
+    return anchor
 
 
 @dataclass
