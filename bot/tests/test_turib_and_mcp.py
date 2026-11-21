@@ -59,10 +59,32 @@ def test_agri_bist_margin_sensitivity():
 def test_tmo_comparison():
     tmo = TmoSource()
     rep = tmo.compare("BUĞDAY EKMEKLİK", manuel_fiyat=18.00, referans_yili=2026)
-    assert rep.tmo_alim_fiyati == 13.50
-    assert rep.alim_farki_tl == 4.50
-    assert rep.alim_prim_yuzde == 33.33
+    assert rep.tmo_alim_fiyati == 16.50
+    assert rep.alim_farki_tl == 1.50
+    assert rep.alim_prim_yuzde == 9.09
     assert rep.piyasa_durumu == "TMO_USTUNDE_PRIMLI"
+    assert rep.tmo_dogrulandi is True
+    assert rep.tmo_kaynak_url.startswith("https://") and rep.tmo_duyuru_tarihi == "2026-06-02"
+    # Prim taban fiyata karıştırılmaz: ayrı alan, toplam = taban + prim
+    assert rep.bakanlik_destegi == 3.014 and rep.toplam_uretici_fiyati == 19.514
+
+
+def test_tmo_unverified_cell_publishes_no_value():
+    from esham.sources.tmo import TMO_FIYAT_VERITABANI
+    rep = TmoSource().compare("MISIR", manuel_fiyat=10.0, referans_yili=2026)
+    assert rep.tmo_alim_fiyati is None and rep.tmo_dogrulandi is False
+    assert rep.alim_prim_yuzde is None and rep.piyasa_durumu == "TMO_DOGRULANAMADI"
+    assert rep.tmo_kaynak_url is None
+    # Tablo bütünlüğü: doğrulanmış her satırın kaynağı ve tarihi var; doğrulanamayanda değer yok
+    for k in TMO_FIYAT_VERITABANI:
+        if k.dogrulandi:
+            assert k.alim_fiyati_tl_kg and k.kaynak_url.startswith("https://") and k.duyuru_tarihi
+            assert k.duyuru_tarihi[:4] in (str(k.yil),)
+        else:
+            assert k.alim_fiyati_tl_kg is None and k.kaynak_url is None
+    # 2023 ve 2024 ekmeklik buğday resmî olarak farklıdır (8,25 ve 9,25 TL/kg)
+    ek = {k.yil: k.alim_fiyati_tl_kg for k in TMO_FIYAT_VERITABANI if k.urun_adi.startswith("Ekmeklik")}
+    assert ek[2023] == 8.25 and ek[2024] == 9.25
 
 
 def test_real_returns_anchor():
