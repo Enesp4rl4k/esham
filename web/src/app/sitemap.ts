@@ -4,7 +4,7 @@ import { loadUniverse } from "@/lib/stocks";
 import { MIN_INDEXABLE, SCANS, comparePairs, runScan, sectorGroups } from "@/lib/programmatic";
 import { MIN_CATEGORY_FUNDS, categoryGroups } from "@/lib/funds";
 import { loadFundUniverse } from "@/lib/funds-data";
-import { getAllReports, getAllTickers, CATEGORIES, type CategorySlug } from "@/lib/content";
+import { getAllReports, getAllTickers, isIndexableReport, CATEGORIES, type CategorySlug } from "@/lib/content";
 
 export const dynamic = "force-static";
 
@@ -114,7 +114,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }));
 
   // 4. Analiz ve KAP Rapor Sayfaları
-  const reportRoutes: MetadataRoute.Sitemap = reports.map((report) => ({
+  const indexable = reports.filter(isIndexableReport);
+  console.log(`[ince-icerik] ${indexable.length} rapor indeksli, ${reports.length - indexable.length} rapor noindex (sitemap/RSS dışı)`);
+  const reportRoutes: MetadataRoute.Sitemap = indexable.map((report) => ({
     url: `${SITE_URL}/rapor/${report.slug}`,
     lastModified: new Date(report.publishedAt),
     changeFrequency: "weekly" as const,

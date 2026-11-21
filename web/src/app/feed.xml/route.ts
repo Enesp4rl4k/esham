@@ -1,5 +1,5 @@
 import { SITE_URL } from "@/lib/config";
-import { getAllReports, categoryLabel, getReportImageUrl } from "@/lib/content";
+import { getIndexableReports, categoryLabel, getReportImageUrl } from "@/lib/content";
 
 export const dynamic = "force-static";
 
@@ -21,7 +21,7 @@ function absoluteUrl(path: string): string {
 
 // RSS beslemesi — bülten/okuyucu entegrasyonu ve organik dağıtım için.
 export async function GET() {
-  const reports = getAllReports().slice(0, 50);
+  const reports = getIndexableReports().slice(0, 50);
 
   const items = reports
     .map((r) => {

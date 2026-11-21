@@ -30,6 +30,7 @@ export {
 import { getUniverseTickers } from "./stocks";
 import type { CategorySlug, IpoMeta, Report } from "./content-utils";
 import { CATEGORIES } from "./content-utils";
+import { isThinReport } from "./thin-content";
 
 const REPORTS_DIR = path.join(process.cwd(), "content", "reports");
 
@@ -141,6 +142,15 @@ export function getAllReports(): Report[] {
   );
   cache = reports;
   return reports;
+}
+
+/** İnce içerik kapısını geçen (indekslenebilir) raporlar; bkz. thin-content.ts. */
+export function isIndexableReport(r: Report): boolean {
+  return !isThinReport(r);
+}
+
+export function getIndexableReports(): Report[] {
+  return getAllReports().filter(isIndexableReport);
 }
 
 export function getReport(slug: string): Report | null {
