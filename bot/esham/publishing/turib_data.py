@@ -25,8 +25,54 @@ log = get_logger(__name__)
 TURIB_JSON = PROJECT_ROOT / "web" / "public" / "data" / "turib-market.json"
 
 
-def generate_turib_market_data() -> dict[str, Any]:
-    """Tüm tarım, emtia, TÜRİB ve et-yem veri setini yapılandırılmış sözlük olarak derler."""
+def load_previous_market_data(path: Path | None = None) -> dict[str, Any] | None:
+    """Daha önce yayınlanmış turib-market.json'u okur; yoksa/bozuksa None."""
+    p = path or TURIB_JSON
+    try:
+        prev = json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return prev if isinstance(prev, dict) else None
+
+
+def _carry_over(
+    skipped: list[str],
+    previous: dict[str, Any] | None,
+    section: str,
+    key: str,
+    date_keys: tuple[str, ...],
+) -> list[dict[str, Any]]:
+    """Canlı veri alınamayan girdiler için son yayınlanmış değeri özgün tarihiyle taşır.
+
+    Taşınan girdiye `asOf` (özgün veri tarihi) ve `stale: true` yazılır; önceki değer
+    yoksa ya da tarihi bilinmiyorsa girdi atlanır (tarihsiz eski veri taze gibi sunulmaz).
+    """
+    carried: list[dict[str, Any]] = []
+    if not previous:
+        return carried
+    old_entries = previous.get(section)
+    if not isinstance(old_entries, list):
+        return carried
+    for name in skipped:
+        old = next((e for e in old_entries if isinstance(e, dict) and e.get(key) == name), None)
+        if old is None:
+            continue
+        as_of = old.get("asOf") or next((old[k] for k in date_keys if old.get(k)), None) or previous.get("date")
+        if not as_of:
+            continue
+        entry = dict(old)
+        entry["asOf"] = as_of
+        entry["stale"] = True
+        carried.append(entry)
+        log.warning("TuribData: %s %s canlı veri yok; son yayınlanan değer (%s) taşındı.", section, name, as_of)
+    return carried
+
+
+def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Tüm tarım, emtia, TÜRİB ve et-yem veri setini yapılandırılmış sözlük olarak derler.
+
+    `previous`: önceki yayın; atlanan girdiler (örn. TMO MISIR/ARPA) buradan taşınır.
+    """
     TR_TZ = timezone(timedelta(hours=3))
     now = datetime.now(TR_TZ)
     now_str = now.isoformat(timespec="seconds")
@@ -137,11 +183,13 @@ def generate_turib_market_data() -> dict[str, Any]:
             ("MISIR", None),
             ("ARPA", None),
         ]
+        tmo_skipped: list[str] = []
         for comm, live_price in commodities_live:
             try:
                 rep = tmo_src.compare(urun_grubu=comm, manuel_fiyat=live_price)
                 data["tmoComparison"].append({
                     "commodity": rep.urun_grubu,
+                    "asOf": rep.tarih,
                     "tmoProductName": rep.tmo_urun_adi,
                     "year": rep.tmo_yil,
                     "tmoPurchasePrice": rep.tmo_alim_fiyati,
@@ -157,6 +205,10 @@ def generate_turib_market_data() -> dict[str, Any]:
                 })
             except Exception as e_c:
                 log.warning("TuribData: TMO kıyaslama %s hatası: %s", comm, e_c)
+                tmo_skipped.append(comm)
+        data["tmoComparison"].extend(
+            _carry_over(tmo_skipped, previous, "tmoComparison", "commodity", ())
+        )
     except Exception as exc:
         log.warning("TuribData: TMO kıyaslama derlenirken hata: %s", exc)
 
@@ -266,6 +318,7 @@ def generate_turib_market_data() -> dict[str, Any]:
     # 7. Reel Getiriler (Enflasyon / Döviz)
     try:
         real_calc = RealReturnsCalculator()
+        real_skipped: list[str] = []
         for comm in ["BUĞDAY EKMEKLİK", "BUĞDAY MAKARNALIK"]:
             try:
                 r = real_calc.calculate(urun_grubu=comm)
@@ -284,6 +337,10 @@ def generate_turib_market_data() -> dict[str, Any]:
                 })
             except Exception as e_r:
                 log.warning("TuribData: Reel getiri %s hatası: %s", comm, e_r)
+                real_skipped.append(comm)
+        data["realReturns"].extend(
+            _carry_over(real_skipped, previous, "realReturns", "commodityGroup", ("endDate",))
+        )
     except Exception as exc:
         log.warning("TuribData: Reel getiriler derlenirken hata: %s", exc)
 
@@ -302,7 +359,7 @@ def generate_turib_market_data() -> dict[str, Any]:
 def update_turib_market_data() -> bool:
     """Tüm TÜRİB ve tarımsal emtia verisini derler ve web/public/data/turib-market.json'a kaydeder."""
     try:
-        data = generate_turib_market_data()
+        data = generate_turib_market_data(previous=load_previous_market_data())
         TURIB_JSON.parent.mkdir(parents=True, exist_ok=True)
         TURIB_JSON.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
         log.info("TÜRİB Piyasa JSON güncellendi: %s (%d bayt)", TURIB_JSON, TURIB_JSON.stat().st_size)

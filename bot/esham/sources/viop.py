@@ -30,10 +30,16 @@ class ViopQuote:
     index_symbol: str
     index_price: str
     index_change: str
-    futures_symbol: str = ""
-    futures_price: str = ""
-    futures_change: str = ""
-    futures_volume: str = ""
+    # Vadeli satırı yoksa tümü None: "vadeli kotasyon yok". Asla türetilmiş/sentetik fiyat yazılmaz.
+    futures_symbol: str | None = None
+    futures_price: str | None = None
+    futures_change: str | None = None
+    futures_volume: str | None = None
+
+    @property
+    def has_futures(self) -> bool:
+        """Gerçek bir vadeli kotasyon (sembol + fiyat) var mı?"""
+        return bool(self.futures_symbol and self.futures_price)
 
 
 @dataclass
@@ -108,20 +114,13 @@ class ViopSource:
             index_price=tr_number(float(idx[1])) if idx[1] is not None else "",
             index_change=_change_str(float(idx[2])) if idx[2] is not None else "",
         )
-        if fut:
+        if fut and len(fut) > 1 and fut[1] is not None:
             q.futures_symbol = "XU030D"
-            q.futures_price = tr_number(float(fut[1])) if fut[1] is not None else ""
-            q.futures_change = _change_str(float(fut[2])) if fut[2] is not None else ""
-            q.futures_volume = tr_money(float(fut[3])) if fut[3] else ""
-        elif idx[1] is not None:
-            spot_p = float(idx[1])
-            chg = float(idx[2]) if idx[2] is not None else 0.0
-            fut_p = round(spot_p * 1.0125, 2)
-            fut_vol = float(idx[3]) * 1.15 if len(idx) > 3 and idx[3] else 0.0
-            q.futures_symbol = "XU030D"
-            q.futures_price = tr_number(fut_p)
-            q.futures_change = _change_str(chg)
-            q.futures_volume = tr_money(fut_vol) if fut_vol else ""
+            q.futures_price = tr_number(float(fut[1]))
+            q.futures_change = _change_str(float(fut[2])) if len(fut) > 2 and fut[2] is not None else None
+            q.futures_volume = tr_money(float(fut[3])) if len(fut) > 3 and fut[3] else None
+        else:
+            log.warning("VİOP vadeli (XU030D) satırı yok; vadeli kotasyon yayınlanmayacak (sentetik fiyat üretilmez).")
         return q
 
     def _sample_quote(self) -> ViopQuote:

@@ -206,10 +206,10 @@ def _cmd_viop(args: argparse.Namespace) -> None:
         print("  (kotasyon alınamadı)")
     else:
         print(f"  Endeks {quote.index_symbol}: {quote.index_price}  {quote.index_change}")
-    if quote and quote.futures_symbol:
+    if quote and quote.has_futures:
         print(
             f"  Vadeli {quote.futures_symbol}: {quote.futures_price}  "
-            f"{quote.futures_change}  hacim {quote.futures_volume}"
+            f"{quote.futures_change or '—'}  hacim {quote.futures_volume or '—'}"
         )
 
     snap = src.margin_snapshot()
