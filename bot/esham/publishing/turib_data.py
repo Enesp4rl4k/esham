@@ -14,7 +14,7 @@ from typing import Any
 from ..config import PROJECT_ROOT, get_logger
 from ..sources.turib import TuribSource
 from ..sources.meat_feed_index import MeatFeedIndexAnalyzer
-from ..sources.tmo import TmoSource
+from ..sources.tmo import TMO_DOGRULANDI, TMO_KAYNAK, TmoSource
 from ..sources.real_returns import RealReturnsCalculator
 from ..sources.storage_backtest import StorageStrategyBacktester
 from ..sources.regional_arbitrage import RegionalArbitrageScanner
@@ -238,6 +238,9 @@ def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[s
                     "asOf": rep.tarih,
                     "tmoProductName": rep.tmo_urun_adi,
                     "year": rep.tmo_yil,
+                    "tmoSeason": str(rep.tmo_yil),
+                    "tmoSource": TMO_KAYNAK,
+                    "tmoVerified": TMO_DOGRULANDI,
                     "tmoPurchasePrice": rep.tmo_alim_fiyati,
                     "farmerPremium": rep.bakanlik_destegi,
                     "totalFarmerIncome": rep.toplam_uretici_fiyati,

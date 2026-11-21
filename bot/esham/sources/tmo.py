@@ -29,9 +29,16 @@ class TmoFiyatKaydi:
     notlar: str = ""
 
 
-# 2021-2026 Resmî TMO Müdahale Alım ve Satış Fiyatları Arşivi (TL/kg)
+# Kaynak notu: bu tablo elle girilmiştir; her satır için resmî duyuru bağlantısı/tarihi kayıtlı DEĞİLDİR
+# ve değerler bu depoda bağımsız olarak doğrulanmamıştır. Bu yüzden yayınlanan veri "tmoSource" ile
+# bunu açıkça belirtir ve `tmoVerified=False` taşır; fiyatlar "güncel piyasa fiyatı" olarak sunulmamalıdır.
+# Değerleri resmî TMO duyurusuyla doğrulamadan "güncelleme" yapmayın (uydurma fiyat eklemeyin).
+TMO_KAYNAK = "TMO müdahale alım fiyatı (elle girilmiş tablo; resmî duyuru bağlantısı/tarihi kayıtlı değil)"
+TMO_DOGRULANDI = False
+
+# 2021-2026 TMO Müdahale Alım ve Satış Fiyatları Arşivi (TL/kg) - sezon yılı `yil` alanındadır
 TMO_FIYAT_VERITABANI: list[TmoFiyatKaydi] = [
-    # 2026 Sezonu (Güncel)
+    # 2026 Sezonu
     TmoFiyatKaydi(2026, "Buğday", "Ekmeklik Buğday (2. Grup)", 13.50, 1.75, 15.25, 16.00, "2026 dönemi müdahale alım fiyatı ve prim desteği."),
     TmoFiyatKaydi(2026, "Buğday", "Makarnalık Buğday (2. Grup)", 14.50, 1.75, 16.25, 17.20, "Durum makarnalık buğday alım fiyatı."),
     TmoFiyatKaydi(2026, "Arpa", "Arpa", 10.75, 1.00, 11.75, 12.50, "Yemlik arpa alım fiyatı."),
