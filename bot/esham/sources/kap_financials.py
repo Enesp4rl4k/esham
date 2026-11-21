@@ -25,8 +25,10 @@ from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
+import requests
+
 from ..config import default_headers, get_logger, settings
-from ..http import retry_get, retry_post
+from ..kap_http import KapUnavailable, kap_get, kap_post
 from ..ratios import Period
 
 log = get_logger(__name__)
@@ -311,9 +313,11 @@ def iter_fr_rows(headers: dict[str, str], w_start: date, w_end: date) -> list[di
         "fromSrc": False, "srcCategory": "", "disclosureIndexList": [],
     }
     try:
-        resp = retry_post(QUERY_URL, json=payload, headers=headers, timeout=max(settings.http_timeout, 40))
+        resp = kap_post(QUERY_URL, json=payload, headers=headers, timeout=max(settings.http_timeout, 40))
         resp.raise_for_status()
         rows = resp.json()
+    except KapUnavailable:
+        raise
     except Exception as exc:
         log.warning("KAP FR listesi alınamadı (%s – %s): %s", w_start, w_end, exc)
         return []
@@ -363,13 +367,19 @@ class KapFinancials:
         return sorted(best.values(), key=lambda r: (r["_ticker"], r.get("year") or 0, r.get("period") or 0))
 
     def snapshot(self, disclosure_index: str) -> dict[str, Any] | None:
-        """Bildirim → ``report_snapshot``; önbellekten ya da KAP'tan."""
+        """Bildirim → ``report_snapshot``; önbellekten ya da KAP'tan.
+
+        Ayrıştırılamayan rapor için None; indirme başarısızsa ``KapUnavailable`` fırlatır."""
         cache = CACHE_DIR / f"{disclosure_index}.json"
         if cache.exists():
             return json.loads(cache.read_text(encoding="utf-8"))
         try:
-            resp = retry_get(f"{BASE_URL}/tr/Bildirim/{disclosure_index}", headers=default_headers(), timeout=90)
+            resp = kap_get(f"{BASE_URL}/tr/Bildirim/{disclosure_index}", headers=default_headers(), timeout=90)
             resp.raise_for_status()
+        except requests.RequestException as exc:
+            # Rapor indirilemedi (429 dahil): "ayrıştırılamadı" ile karıştırılmaz; çağıran son iyi veriyi korur.
+            raise KapUnavailable(f"KAP rapor indirilemedi {disclosure_index}: {exc}") from exc
+        try:
             snap = report_snapshot(parse_report(decode_page(resp.content)))
         except Exception as exc:
             log.warning("KAP rapor işlenemedi %s: %s", disclosure_index, exc)

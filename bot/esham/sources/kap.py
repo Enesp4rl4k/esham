@@ -24,7 +24,7 @@ from datetime import date, datetime, timedelta
 import requests
 
 from ..config import default_headers, get_logger, settings
-from ..http import retry_get, retry_post
+from ..kap_http import kap_get, kap_post
 from ..turkish import tr_fold
 from . import Disclosure
 
@@ -93,7 +93,7 @@ class KapSource:
 
     def latest_disclosures(self, days: int = 1) -> list[Disclosure]:
         try:
-            resp = retry_post(
+            resp = kap_post(
                 QUERY_URL,
                 json=_query_payload(days),
                 headers=self.headers,
@@ -120,7 +120,7 @@ class KapSource:
         if not disclosure_index:
             return None
         try:
-            resp = retry_get(
+            resp = kap_get(
                 f"{BASE_URL}/tr/Bildirim/{disclosure_index}",
                 headers=default_headers(),
                 timeout=KAP_TIMEOUT,
@@ -140,7 +140,7 @@ class KapSource:
         if not disclosure_index:
             return ""
         try:
-            resp = retry_get(
+            resp = kap_get(
                 f"{BASE_URL}/tr/Bildirim/{disclosure_index}",
                 headers=default_headers(),
                 timeout=KAP_TIMEOUT,
