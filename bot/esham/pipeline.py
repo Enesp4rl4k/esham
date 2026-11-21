@@ -13,6 +13,8 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FuturesTimeout
 from pathlib import Path
 
+import requests
+
 from .ai import MarketAIAnalyzer
 from .config import get_logger, settings
 from .publishing import ContentStore, ReportDraft
@@ -272,8 +274,8 @@ def run_viop_report(
     get_state().set_margin_prev_pct(snap.margin_call_to_required_pct)
 
     futures_line = (
-        f"| Vadeli {quote.futures_symbol} | {quote.futures_price} | {quote.futures_change} |\n"
-        if quote.futures_symbol
+        f"| Vadeli {quote.futures_symbol} | {quote.futures_price} | {quote.futures_change or '—'} |\n"
+        if quote.has_futures
         else ""
     )
     body = f"""## VİOP Piyasa Görünümü
@@ -351,6 +353,28 @@ def run_viop_report(
     return slug
 
 
+def _opening_viop_line() -> str:
+    """Açılış notu için VİOP vadeli satırı; gerçek vadeli kotasyon yoksa boş döner.
+
+    Geçici ağ hataları uyarı olarak loglanıp atlanır (yayın akışı durmaz); programlama
+    hataları (AttributeError vb.) ise ERROR + traceback ile loglanır, sessizce yutulmaz.
+    """
+    try:
+        quote = ViopSource().market_quote()
+    except (requests.RequestException, ValueError, OSError) as exc:
+        log.warning("Açılış VİOP verisi alınamadı: %s", exc)
+        return ""
+    except (AttributeError, TypeError, KeyError, NameError):
+        log.exception("Açılış VİOP satırı programlama hatası nedeniyle atlandı.")
+        return ""
+    if quote is None or not quote.has_futures or not quote.futures_change:
+        return ""
+    return (
+        f"\n\n**VİOP Görünümü:** Vadeli endeks kontratı ({quote.futures_symbol}) "
+        f"seansa {quote.futures_change} değişimle başladı."
+    )
+
+
 def run_opening_report(publish_social: bool = False) -> str | None:
     """BIST açılış notu — anlık endeks, sektörler ve canlı veri senkronizasyonu."""
     # 1. Canlı Ticker JSON'unu güncelle (header ve hisse terminali için)
@@ -381,14 +405,7 @@ def run_opening_report(publish_social: bool = False) -> str | None:
     except Exception as exc:
         log.debug("Açılış sektörel görünüm alınamadı: %s", exc)
 
-    viop_line = ""
-    try:
-        from .sources.viop import ViopSource
-        vsnap = ViopSource().snapshot()
-        if vsnap and vsnap.latest_quote:
-            viop_line = f"\n\n**VİOP Görünümü:** Vadeli endeks kontratı seansa {vsnap.latest_quote.change_pct:+.2f}% değişimle başladı."
-    except Exception as exc:
-        log.debug("Açılış VİOP verisi alınamadı: %s", exc)
+    viop_line = _opening_viop_line()
 
     open_val = bist.open_price or bist.price
     open_chg = bist.open_change or bist.change

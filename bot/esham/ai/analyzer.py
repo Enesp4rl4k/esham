@@ -770,9 +770,9 @@ Veri: {financial_data_text}
             q = snapshot.viop_quote
             lines.append("\n### VİOP")
             lines.append(f"- {q.index_symbol}: {q.index_price} ({q.index_change})")
-            if q.futures_symbol:
+            if q.has_futures:
                 lines.append(
-                    f"- {q.futures_symbol} Vadeli: {q.futures_price} ({q.futures_change})"
+                    f"- {q.futures_symbol} Vadeli: {q.futures_price} ({q.futures_change or '—'})"
                     + (f", hacim {q.futures_volume}" if q.futures_volume else "")
                 )
 
@@ -879,8 +879,8 @@ Veri: {financial_data_text}
                 f"## VİOP\n\n"
                 f"{q.index_symbol}: **{q.index_price}** ({q.index_change})"
             )
-            if q.futures_symbol:
-                viop_sec += f" | Vadeli {q.futures_symbol}: {q.futures_price} ({q.futures_change})"
+            if q.has_futures:
+                viop_sec += f" | Vadeli {q.futures_symbol}: {q.futures_price} ({q.futures_change or '—'})"
             viop_sec += "\n\n"
 
         # Sektör bölümü
