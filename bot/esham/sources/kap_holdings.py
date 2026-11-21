@@ -17,7 +17,7 @@ import unicodedata
 from typing import Any
 
 from ..config import default_headers, get_logger
-from ..http import retry_get
+from ..kap_http import kap_get
 
 log = get_logger(__name__)
 BASE_URL = "https://www.kap.org.tr"
@@ -116,7 +116,7 @@ class KapHoldings:
         """Üye araması kod alt dizesiyle eşleşir ("ALARK" → Alarko Carrier de döner): ``name_hint`` varsa
         ünvanı bu ada en çok benzeyen sonuç seçilir."""
         try:
-            r = retry_get(f"{BASE_URL}/tr/api/member/filter/{ticker}", headers=self.headers, timeout=30)
+            r = kap_get(f"{BASE_URL}/tr/api/member/filter/{ticker}", headers=self.headers, timeout=30)
             r.raise_for_status()
             rows = r.json()
         except Exception as exc:
@@ -134,7 +134,7 @@ class KapHoldings:
         if not link:
             return None
         try:
-            r = retry_get(f"{BASE_URL}/tr/sirket-bilgileri/genel/{link}", headers=default_headers(), timeout=60)
+            r = kap_get(f"{BASE_URL}/tr/sirket-bilgileri/genel/{link}", headers=default_headers(), timeout=60)
             r.raise_for_status()
             return extract_stakes(decode_rsc(r.content))
         except Exception as exc:

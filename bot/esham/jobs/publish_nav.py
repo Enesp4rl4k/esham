@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from ..config import get_logger
+from ..kap_http import KapUnavailable, gate
 from ..sources.kap_financials import KapFinancials, iter_fr_rows
 from ..sources.kap_holdings import KapHoldings, fold_title, match_listed
 from ..universe import load_universe
@@ -52,7 +53,15 @@ def run_nav(tickers: list[str] | None = None) -> int:
     tickers = [t.upper() for t in tickers] if tickers else nav_tickers()
     names = {str(u["ticker"]): str(u["name"]) for u in load_universe()}
     universe = set(names)
-    tmap = title_to_ticker(universe)
+    gate.begin_stage()
+    try:
+        tmap = title_to_ticker(universe)
+    except KapUnavailable as exc:
+        log.warning("KAP ünvan→ticker eşlemesi alınamadı, NAV dosyaları değiştirilmedi: %s | %s", exc, gate.summary())
+        return 0
+    if gate.failed or gate.stopped:
+        log.warning("KAP ünvan eşlemesi eksik, NAV dosyaları değiştirilmedi. %s", gate.summary())
+        return 0
     log.info("KAP ünvan→ticker eşlemesi: %d şirket", len(tmap))
     kh = KapHoldings()
     written = 0
@@ -75,4 +84,5 @@ def run_nav(tickers: list[str] | None = None) -> int:
         missing = sorted({s["ticker"] for s in listed} - universe)
         print(f"{t:<6} {len(matched)} iştirak, {len(listed)} borsada işlem gören; evrende olmayan: {missing or '-'}")
         written += 1
+    log.info("KAP NAV: %d/%d şirket yazıldı, kalanında önceki veri korundu. %s", written, len(tickers), gate.summary())
     return written
