@@ -371,22 +371,25 @@ def bist_viop_durum() -> dict[str, Any]:
     quote = viop.market_quote()
     margin = viop.margin_snapshot()
     stress = assess_margin_stress(margin.margin_call_to_required_pct) if margin else None
+    fut = quote if quote is not None and quote.has_futures else None
+    stress_level = stress.level if stress else "Bilinmiyor"
+    stress_note = stress.note if stress else ""
 
     return {
         "endeks_sembol": quote.index_symbol if quote else None,
         "endeks_fiyat": quote.index_price if quote else None,
         "endeks_degisim": quote.index_change if quote else None,
-        "vadeli_sembol": quote.futures_symbol if quote and quote.has_futures else None,
-        "vadeli_fiyat": quote.futures_price if quote and quote.has_futures else None,
-        "vadeli_degisim": quote.futures_change if quote and quote.has_futures else None,
+        "vadeli_sembol": fut.futures_symbol if fut else None,
+        "vadeli_fiyat": fut.futures_price if fut else None,
+        "vadeli_degisim": fut.futures_change if fut else None,
         "takasbank_teminat": {
             "veri_tarihi": margin.as_of,
             "teminatli_hesap_sayisi": margin.margined_account_count,
             "teminat_tamamlama_toplam_tl": margin.margin_call_total_tl,
             "gereken_teminat_toplam_tl": margin.required_margin_total_tl,
             "teminat_tamamlama_orani_yuzde": margin.margin_call_to_required_pct,
-            "stres_seviyesi": stress.level if stress else "Bilinmiyor",
-            "stres_yorumu": stress.note if stress else "",
+            "stres_seviyesi": stress_level,
+            "stres_yorumu": stress_note,
         } if margin else None,
     }
 
@@ -500,10 +503,8 @@ def macro_turkiye_barometresi() -> dict[str, Any]:
     
     Piyasa risk iştahını ve getiri dengesini (mevduat vs tahvil vs hisse) analiz eder."""
     from ..sources.macro_radar import MACRO_BAROMETER_UNAVAILABLE, MacroRadarAnalyzer
-    res = MacroRadarAnalyzer().get_macro_barometer()
-    if res is None:
-        return {"veri": None, "neden": MACRO_BAROMETER_UNAVAILABLE}
-    return res.to_dict()
+    MacroRadarAnalyzer().get_macro_barometer()  # kaynak yok: her zaman None (uyarı loglanır)
+    return {"veri": None, "neden": MACRO_BAROMETER_UNAVAILABLE}
 
 
 @mcp.tool()
@@ -526,9 +527,7 @@ def devaluasyon_risk_analizi() -> dict[str, Any]:
     bileşenlerini ve kriz stres kıyaslamalarını analiz eder."""
     from ..sources.devaluation_radar import DEVALUATION_RADAR_UNAVAILABLE, DevaluationRadarAnalyzer
     res = DevaluationRadarAnalyzer().analyze()
-    if res is None:
-        return {"veri": None, "neden": DEVALUATION_RADAR_UNAVAILABLE}
-    return res
+    return {"veri": res, "neden": DEVALUATION_RADAR_UNAVAILABLE if res is None else None}
 
 
 # ============================================================================

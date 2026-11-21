@@ -9,7 +9,7 @@ import requests
 
 from esham.publishing import turib_data
 from esham.sources import bist_quant, devaluation_radar, macro_radar, tanker_freight, viop
-from esham.sources.devaluation_radar import DevaluationRadarAnalyzer, export_devaluation_radar_json
+from esham.sources.devaluation_radar import DevaluationRadarAnalyzer
 from esham.sources.macro_radar import MacroRadarAnalyzer
 from esham.sources.viop import ViopQuote, ViopSource
 
@@ -43,7 +43,8 @@ def test_viop_basis_none_without_quote():
 
 def test_viop_basis_none_without_futures_row():
     q = ViopSource()._parse_quote({"data": [{"s": "BIST:XU030", "d": ["XU030", 16000.0, 1.0, 1.0]}]})
-    assert q is not None and not q.has_futures
+    assert q is not None
+    assert not q.has_futures
     assert MacroRadarAnalyzer(_Src(q)).get_viop_basis() is None
 
 
@@ -77,7 +78,8 @@ def test_viop_basis_export_with_real_quote(tmp_path):
     q = ViopQuote("XU030", "15.000,00", "+0,5%", "XU030D", "15.300,00", "+0,4%", None, 15000.0, 15300.0)
     MacroRadarAnalyzer(_Src(q)).export_data(tmp_path)
     out = json.loads((tmp_path / "viop-basis.json").read_text(encoding="utf-8"))
-    assert out["spot_xu030"] == 15000.0 and out["basis_puan"] == 300.0
+    assert out["spot_xu030"] == 15000.0
+    assert out["basis_puan"] == 300.0
 
 
 # ---- makro barometre / devalüasyon radarı: kaynak yok -> None ---------------------------------
@@ -86,11 +88,9 @@ def test_macro_barometer_has_no_source():
     assert MacroRadarAnalyzer(_Src(None)).get_macro_barometer() is None
 
 
-def test_devaluation_radar_never_produces_output_without_upstream(tmp_path):
+def test_devaluation_radar_never_produces_output_without_upstream():
     assert DevaluationRadarAnalyzer().analyze() is None
-    target = tmp_path / "devaluation-radar.json"
-    assert export_devaluation_radar_json(target) is None
-    assert not target.exists()
+    assert not hasattr(devaluation_radar, "export_devaluation_radar_json")
 
 
 @pytest.mark.parametrize("module", [macro_radar, devaluation_radar])
@@ -118,7 +118,8 @@ def test_mcp_viop_durum_uses_real_attributes(monkeypatch):
 
     monkeypatch.setattr(server, "ViopSource", _V)
     out = server.bist_viop_durum()
-    assert out["endeks_fiyat"] == "15.000,00" and out["vadeli_fiyat"] == "15.300,00"
+    assert out["endeks_fiyat"] == "15.000,00"
+    assert out["vadeli_fiyat"] == "15.300,00"
     assert out["takasbank_teminat"]["teminat_tamamlama_orani_yuzde"] == 50.0
 
     class _None(_V):
@@ -130,7 +131,9 @@ def test_mcp_viop_durum_uses_real_attributes(monkeypatch):
 
     monkeypatch.setattr(server, "ViopSource", _None)
     out = server.bist_viop_durum()
-    assert out["endeks_fiyat"] is None and out["vadeli_fiyat"] is None and out["takasbank_teminat"] is None
+    assert out["endeks_fiyat"] is None
+    assert out["vadeli_fiyat"] is None
+    assert out["takasbank_teminat"] is None
 
 
 # ---- tanker / Brent: yalnızca gerçek Brent --------------------------------------------------
@@ -150,7 +153,9 @@ def test_tanker_snapshot_only_real_brent(monkeypatch):
     monkeypatch.setattr(global_macro.GlobalMacroSource, "snapshot", lambda self: snap)
     d = tanker_freight.TankerFreightSource().fetch_snapshot().to_dict()
     assert d["oilBenchmarks"]["brent"]["price"] == 91.25
-    assert set(d["oilBenchmarks"]) == {"brent"} and "freightIndices" not in d and "rates" not in d
+    assert set(d["oilBenchmarks"]) == {"brent"}
+    assert "freightIndices" not in d
+    assert "rates" not in d
 
 
 # ---- sabit kurla TL çevrimi yok -------------------------------------------------------------
@@ -188,13 +193,18 @@ def test_turib_section_failure_keeps_last_good_with_original_date(offline):
     }
     data = turib_data.generate_turib_market_data(previous=prev)
     by = {e["code"]: e for e in data["indices"]}
-    assert by["TRBHUB"]["asOf"] == "2026-11-17" and by["TRBHUB"]["stale"] is True
-    assert by["TRBBGD"]["asOf"] == "2026-11-18" and by["TRBBGD"]["stale"] is True
-    assert data["agriBist"]["asOf"] == "2026-11-16" and data["agriBist"]["stale"] is True
+    assert by["TRBHUB"]["asOf"] == "2026-11-17"
+    assert by["TRBHUB"]["stale"] is True
+    assert by["TRBBGD"]["asOf"] == "2026-11-18"
+    assert by["TRBBGD"]["stale"] is True
+    assert data["agriBist"]["asOf"] == "2026-11-16"
+    assert data["agriBist"]["stale"] is True
 
 
 def test_turib_section_without_previous_stays_empty(offline):
     data = turib_data.generate_turib_market_data(previous=None)
-    assert data["indices"] == [] and data["meatFeed"] == {} and data["petrolTanker"] == {}
+    assert data["indices"] == []
+    assert data["meatFeed"] == {}
+    assert data["petrolTanker"] == {}
     data = turib_data.generate_turib_market_data(previous={"indices": [{"code": "X"}]})  # tarihsiz
     assert data["indices"] == []

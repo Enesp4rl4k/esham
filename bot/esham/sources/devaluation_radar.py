@@ -12,7 +12,6 @@ Gerçek kaynak bağlandığında `analyze()` içinde, kaynak yanıtı olmadan so
 """
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 from ..config import get_logger
@@ -31,12 +30,3 @@ class DevaluationRadarAnalyzer:
     def analyze(self) -> dict[str, Any] | None:
         log.warning("Devalüasyon radarı: %s", DEVALUATION_RADAR_UNAVAILABLE)
         return None
-
-
-def export_devaluation_radar_json(target_path: Path | str | None = None) -> Path | None:
-    """Radar sonucu varsa yazar; yoksa (şu an daima) hiçbir dosya yazmadan None döner."""
-    res = DevaluationRadarAnalyzer().analyze()
-    if res is None:
-        log.warning("Devalüasyon radarı JSON yazılmadı (gerçek veri yok).")
-        return None
-    raise NotImplementedError("Gerçek kaynak bağlandığında JSON serileştirmesi burada eklenmeli.")

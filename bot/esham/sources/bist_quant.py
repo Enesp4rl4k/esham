@@ -932,6 +932,22 @@ def live_fx_rate(symbol: str) -> float | None:
         return None
 
 
+_USD_UNITS = ("usd", "dolar", "$")
+_EUR_UNITS = ("eur", "euro", "€")
+_AMOUNT_UNITS = r"(tl|try|usd|dolar|\$|eur|euro|€)"
+
+
+def _to_try(amount: float, curr: str, usd_try: float | None, eur_try: float | None) -> float | None:
+    """TL dışı tutarı verilen kurla TL'ye çevirir; gerekli kur yoksa None (sabit kur kullanılmaz)."""
+    if curr in _USD_UNITS:
+        rate = usd_try if usd_try is not None else live_fx_rate("TRY=X")
+    elif curr in _EUR_UNITS:
+        rate = eur_try if eur_try is not None else live_fx_rate("EURTRY=X")
+    else:
+        return amount
+    return amount * rate if rate is not None else None
+
+
 def extract_contract_amount(text: str, usd_try: float | None = None, eur_try: float | None = None) -> float | None:
     """Metin içinden sözleşme, sipariş veya ihale tutarını (TL cinsinden) ayrıştırır.
 
@@ -940,56 +956,29 @@ def extract_contract_amount(text: str, usd_try: float | None = None, eur_try: fl
     if not text:
         return None
 
-    def _fx(curr: str) -> float | None:
-        nonlocal usd_try, eur_try
-        if curr in ('usd', 'dolar', '$'):
-            if usd_try is None:
-                usd_try = live_fx_rate("TRY=X")
-            return usd_try
-        if eur_try is None:
-            eur_try = live_fx_rate("EURTRY=X")
-        return eur_try
-
     clean_text = text.lower()
 
     # 1. Milyar / Milyon kalıpları: "1,5 milyar TL", "450 milyon TL", "25 milyon USD", "100 Milyon Euro"
-    m = re.search(r'(\d+(?:[.,]\d+)?)\s*(milyar|milyon)\s*(tl|try|usd|dolar|\$|eur|euro|€)?', clean_text)
+    m = re.search(r'(\d+(?:[.,]\d+)?)\s*(milyar|milyon)\s*' + _AMOUNT_UNITS + '?', clean_text)
     if m:
-        val_str = m.group(1).replace(',', '.')
         try:
-            val = float(val_str)
+            val = float(m.group(1).replace(',', '.'))
         except ValueError:
             return None
-        unit = m.group(2)
-        curr = (m.group(3) or 'tl').strip()
-
-        mult = 1_000_000_000 if 'milyar' in unit else 1_000_000
-        amount = val * mult
-
-        if curr in ('usd', 'dolar', '$', 'eur', 'euro', '€'):
-            rate = _fx(curr)
-            if rate is None:
-                return None
-            amount *= rate
-        return amount
+        mult = 1_000_000_000 if 'milyar' in m.group(2) else 1_000_000
+        return _to_try(val * mult, (m.group(3) or 'tl').strip(), usd_try, eur_try)
 
     # 2. Tam sayılar: "500.000.000 TL", "25,000,000 USD"
-    m2 = re.search(r'(\d{1,3}(?:[.,]\d{3})+)\s*(tl|try|usd|dolar|\$|eur|euro|€)', clean_text)
+    m2 = re.search(r'(\d{1,3}(?:[.,]\d{3})+)\s*' + _AMOUNT_UNITS, clean_text)
     if m2:
-        val_str = m2.group(1).replace('.', '').replace(',', '')
         try:
-            val = float(val_str)
+            val = float(m2.group(1).replace('.', '').replace(',', ''))
         except ValueError:
             return None
-        curr = m2.group(2).strip()
-        if curr in ('usd', 'dolar', '$', 'eur', 'euro', '€'):
-            rate = _fx(curr)
-            if rate is None:
-                return None
-            val *= rate
-        return val
+        return _to_try(val, m2.group(2).strip(), usd_try, eur_try)
 
     return None
+
 
 def get_key_levels(ticker: str) -> KeyLevelsResult | None:
     return BistQuantAnalyzer().get_key_levels(ticker)

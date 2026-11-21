@@ -82,40 +82,34 @@ def _section_as_of(entry: Any, previous: dict[str, Any]) -> str | None:
     return previous.get("date") or None
 
 
+def _carry_entries(old: list[Any], previous: dict[str, Any]) -> list[dict[str, Any]]:
+    carried: list[dict[str, Any]] = []
+    for e in old:
+        as_of = _section_as_of(e, previous) if isinstance(e, dict) else None
+        if as_of:
+            carried.append({**e, "asOf": as_of, "stale": True})
+    return carried
+
+
 def _carry_section(data: dict[str, Any], previous: dict[str, Any] | None, section: str) -> None:
     """Bölüm bu turda boş çıktıysa son iyi bölümü özgün tarihiyle (`asOf`) ve `stale: true` ile taşır.
 
     Önceki yayında da bölüm yoksa ya da tarihi bilinmiyorsa bölüm boş kalır (tarihsiz veri taze gibi sunulmaz).
     """
-    if data.get(section) or not previous:
-        return
-    old = previous.get(section)
-    if not old:
+    old = previous.get(section) if previous else None
+    if data.get(section) or not old or previous is None:
         return
     if isinstance(old, list):
-        carried: list[dict[str, Any]] = []
-        for e in old:
-            if not isinstance(e, dict):
-                continue
-            as_of = _section_as_of(e, previous)
-            if not as_of:
-                continue
-            ne = dict(e)
-            ne["asOf"] = as_of
-            ne["stale"] = True
-            carried.append(ne)
+        carried = _carry_entries(old, previous)
+        data[section].extend(carried)
         if carried:
-            data[section] = carried
-            log.warning("TuribData: %s bölümü canlı veri yok; son yayın %d girdiyle taşındı.", section, len(carried))
+            log.warning("TuribData: bölüm canlı veri yok; son yayın girdileri taşındı (adet=%d).", len(carried))
     elif isinstance(old, dict):
         as_of = _section_as_of(old, previous)
-        if not as_of:
-            return
-        nd = dict(old)
-        nd["asOf"] = as_of
-        nd["stale"] = True
-        data[section] = nd
-        log.warning("TuribData: %s bölümü canlı veri yok; son yayın (%s) taşındı.", section, as_of)
+        if as_of:
+            data[section] = {}
+            data[section].update({**old, "asOf": as_of, "stale": True})
+            log.warning("TuribData: bölüm canlı veri yok; son yayın bölümü taşındı.")
 
 
 def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[str, Any]:
