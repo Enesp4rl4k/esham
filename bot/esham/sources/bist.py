@@ -116,7 +116,7 @@ class BistSource:
             summary = self._parse_yahoo(resp.json())
             if summary:
                 return summary
-            log.warning("BIST Yahoo verisi ayrıştırılamadı; örnek veri kullanılıyor.")
+            log.warning("BIST Yahoo verisi ayrıştırılamadı; yapay veri üretilmiyor.")
         except (requests.RequestException, ValueError) as exc:
             log.error("BIST verisi hiçbir resmi kaynaktan alınamadı (%s); yapay veri üretilmiyor.", exc)
         return None

@@ -59,7 +59,7 @@ class SectorSource:
             if change is not None:
                 moves.append(SectorMove(code, name, change))
         if not moves:
-            log.warning("Sektör verisi alınamadı; örnek veri kullanılıyor.")
+            log.warning("Sektör verisi alınamadı; boş liste (örnek veri üretilmiyor).")
             return self._sample()
         moves.sort(key=lambda m: m.change_pct, reverse=True)
         log.info("Sektör verisi alındı: %d sektör.", len(moves))

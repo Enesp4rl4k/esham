@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 
 import requests
 
-from ..config import default_headers, get_logger, settings
+from ..config import default_headers, get_logger, sample_data_allowed, settings
 from ..formatting import tr_number as _tr_number
 from ..http import retry_get
 
@@ -125,8 +125,11 @@ class GlobalMacroSource:
         ]
 
         if not tickers:
-            log.warning("Küresel makro: hiçbir sembol alınamadı; örnek veri kullanılıyor.")
-            tickers = self._sample()
+            if sample_data_allowed():
+                log.warning("ESHAM_ALLOW_SAMPLE_DATA açık: küresel makro için ÖRNEK veri (yalnızca geliştirme).")
+                tickers = self._sample()
+            else:
+                log.warning("Küresel makro: hiçbir sembol alınamadı; örnek veri üretilmiyor (boş).")
         return GlobalMacroSnapshot(tickers=tickers)
 
     def _fetch_one(self, symbol: str, label: str, suffix: str) -> MacroTicker | None:

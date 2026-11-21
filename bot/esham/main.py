@@ -202,8 +202,11 @@ def _cmd_viop(args: argparse.Namespace) -> None:
     src = ViopSource()
     quote = src.market_quote()
     print("\n=== VİOP Piyasa ===")
-    print(f"  Endeks {quote.index_symbol}: {quote.index_price}  {quote.index_change}")
-    if quote.futures_symbol:
+    if quote is None:
+        print("  (kotasyon alınamadı)")
+    else:
+        print(f"  Endeks {quote.index_symbol}: {quote.index_price}  {quote.index_change}")
+    if quote and quote.futures_symbol:
         print(
             f"  Vadeli {quote.futures_symbol}: {quote.futures_price}  "
             f"{quote.futures_change}  hacim {quote.futures_volume}"

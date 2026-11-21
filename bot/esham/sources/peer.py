@@ -9,7 +9,7 @@ Veri kaynakları (hepsi zarif bozulmalı):
   geri kalanıyla aynı uç nokta).
 - Çarpanlar → Yahoo **quoteSummary** uç noktası. Bu uç nokta `Invalid Crumb`
   (401) döner; cookie + crumb akışı ile oturum açılır. Crumb alınamazsa çarpanlar
-  boş kalır, kıyas fiyat performansıyla sürer. Hiçbir veri gelmezse örnek veri.
+  boş kalır, kıyas fiyat performansıyla sürer. Hiçbir veri gelmezse boş snapshot (örnek veri yalnızca ESHAM_ALLOW_SAMPLE_DATA=1 ile).
 """
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 
 import requests
 
-from ..config import default_headers, get_logger, settings
+from ..config import default_headers, get_logger, sample_data_allowed, settings
 from ..formatting import tr_money, tr_number
 from .sector import SECTORS
 
@@ -64,7 +64,7 @@ PEER_GROUPS: dict[str, dict[str, str]] = {
     },
 }
 
-# Örnek veri — hiçbir veri kaynağı dönmediğinde kullanılır (demo amaçlı).
+# Örnek veri — YALNIZCA ESHAM_ALLOW_SAMPLE_DATA=1 ile (yerel geliştirme); üretimde asla kullanılmaz.
 _SAMPLE: dict[str, list[tuple[str, str, float, float | None, float | None]]] = {
     # (kod, ad, fiyat, F/K, PD/DD)
     "bankacilik": [
@@ -188,8 +188,15 @@ class PeerSource:
                 "kıyas fiyat performansıyla sınırlı."
             )
         if not peers:
-            log.warning("Peer verisi alınamadı (%s); örnek veri kullanılıyor.", sector_key)
-            return self._sample(sector_key, name)
+            if sample_data_allowed():
+                log.warning(
+                    "ESHAM_ALLOW_SAMPLE_DATA açık: peer için ÖRNEK veri (%s) — yalnızca geliştirme.",
+                    sector_key,
+                )
+                return self._sample(sector_key, name)
+            log.warning("Peer verisi alınamadı (%s); örnek veri üretilmiyor (boş).", sector_key)
+            snapshot.notes.append("Peer verisi alınamadı.")
+            return snapshot
         log.info("Peer kıyası: %s → %d hisse.", sector_key, len(peers))
         return snapshot
 

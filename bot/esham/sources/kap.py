@@ -106,9 +106,9 @@ class KapSource:
             if disclosures:
                 log.info("KAP: %d bildirim alındı.", len(disclosures))
                 return disclosures
-            log.warning("KAP yanıtı boş/ayrıştırılamadı; örnek veri kullanılıyor.")
+            log.warning("KAP yanıtı boş/ayrıştırılamadı; bildirim yok (örnek veri üretilmiyor).")
         except (requests.RequestException, ValueError) as exc:
-            log.warning("KAP verisi alınamadı (%s); örnek veri kullanılıyor.", exc)
+            log.warning("KAP verisi alınamadı (%s); bildirim yok (örnek veri üretilmiyor).", exc)
         return self._sample()
 
     def resolve_attachment_url(self, disclosure_index: str) -> str | None:

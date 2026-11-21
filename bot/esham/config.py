@@ -239,6 +239,16 @@ class Settings:
         return bool(self.smtp_host and self.smtp_user and self.smtp_password)
 
 
+def sample_data_allowed() -> bool:
+    """Yerel geliştirme için örnek/sahte veri opt-in'i (ESHAM_ALLOW_SAMPLE_DATA=1).
+
+    Varsayılan KAPALI. Üretim/zamanlanmış iş akışları bunu ASLA ayarlamamalıdır:
+    canlı bir finans sitesinde uydurma rakamlar gerçekmiş gibi yayınlanmamalı.
+    Her çağrıda okunur (testler monkeypatch edebilsin diye).
+    """
+    return os.getenv("ESHAM_ALLOW_SAMPLE_DATA", "").strip().lower() in {"1", "true", "yes"}
+
+
 settings = Settings()
 
 _HEADERS = {
