@@ -131,15 +131,15 @@ def generate_turib_market_data() -> dict[str, Any]:
     # 3. TMO Müdahale & Alım Fiyat Kıyaslama
     try:
         tmo_src = TmoSource()
-        commodities_with_fallbacks = [
+        commodities_live = [
             ("BUĞDAY EKMEKLİK", None),
             ("BUĞDAY MAKARNALIK", None),
-            ("MISIR", 12.00),
-            ("ARPA", 11.50),
+            ("MISIR", None),
+            ("ARPA", None),
         ]
-        for comm, fallback in commodities_with_fallbacks:
+        for comm, live_price in commodities_live:
             try:
-                rep = tmo_src.compare(urun_grubu=comm, manuel_fiyat=fallback)
+                rep = tmo_src.compare(urun_grubu=comm, manuel_fiyat=live_price)
                 data["tmoComparison"].append({
                     "commodity": rep.urun_grubu,
                     "tmoProductName": rep.tmo_urun_adi,

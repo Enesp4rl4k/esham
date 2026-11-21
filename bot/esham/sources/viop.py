@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 
 import requests
 
-from ..config import default_headers, get_logger, settings
+from ..config import default_headers, get_logger, sample_data_allowed, settings
 from ..http import retry_get, retry_post
 from ..formatting import tr_money, tr_number
 
@@ -72,7 +72,7 @@ class ViopSource:
 
     # ---- piyasa kotasyonu ------------------------------------------------------
 
-    def market_quote(self) -> ViopQuote:
+    def market_quote(self) -> ViopQuote | None:
         try:
             resp = retry_post(
                 TV_SCAN_URL,
@@ -87,10 +87,14 @@ class ViopSource:
             quote = self._parse_quote(resp.json())
             if quote:
                 return quote
-            log.warning("VİOP kotasyonu ayrıştırılamadı; örnek veri kullanılıyor.")
+            log.warning("VİOP kotasyonu ayrıştırılamadı.")
         except (requests.RequestException, ValueError) as exc:
-            log.warning("VİOP kotasyonu alınamadı (%s); örnek veri kullanılıyor.", exc)
-        return self._sample_quote()
+            log.warning("VİOP kotasyonu alınamadı (%s).", exc)
+        if sample_data_allowed():
+            log.warning("ESHAM_ALLOW_SAMPLE_DATA açık: VİOP için ÖRNEK veri kullanılıyor (yalnızca geliştirme).")
+            return self._sample_quote()
+        log.warning("VİOP kotasyonu temin edilemedi; örnek veri üretilmiyor (None).")
+        return None
 
     def _parse_quote(self, payload: dict) -> ViopQuote | None:
         rows = {r["s"]: r["d"] for r in payload.get("data", []) if "s" in r and "d" in r}

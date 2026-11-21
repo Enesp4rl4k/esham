@@ -256,6 +256,9 @@ def run_viop_report(
     """VİOP piyasa + marketwide teminat stresi raporunu üretir ve yayınlar."""
     src = ViopSource()
     quote = src.market_quote()
+    if quote is None:
+        log.error("VİOP piyasa kotasyonu temin edilemedi; örnek veri yayınlanamaz.")
+        return None
     snap = src.margin_snapshot()
     if snap is None or snap.required_margin_total_tl <= 0:
         log.error("Takasbank resmi teminat verisi temin edilemedi; yapay veri yayınlanamaz.")
@@ -448,6 +451,9 @@ def run_closing_report(publish_social: bool = True) -> str | None:
         log.error("BIST verisi temin edilemedi; yapay veri basılmaması için rapor iptal edildi.")
         return None
     quote = ViopSource().market_quote()
+    if quote is None:
+        log.error("VİOP kotasyonu temin edilemedi; örnek veri basılmaması için kapanış raporu iptal edildi.")
+        return None
     body = f"""## Kapanış Görünümü
 
 | Piyasa | Değer | Değişim |
@@ -631,9 +637,12 @@ def run_peer_report(sector_key: str = "bankacilik", publish_social: bool = True)
 
     `sources/peer.py` çarpanları (F/K, PD/DD, FD/FAVÖK) medyanıyla hangi hissenin
     sektör medyanına göre ucuz/pahalı olduğunu gösterir. Veri kaynağından bağımsız
-    çalışır: crumb yoksa fiyat performansıyla, o da yoksa örnek veriyle devam eder.
+    çalışır: crumb yoksa fiyat performansıyla devam eder; hiç veri yoksa rapor üretilmez.
     """
     snap = PeerSource().snapshot(sector_key)
+    if not snap.peers:
+        log.error("Peer verisi temin edilemedi (%s); örnek veri yayınlanamaz.", sector_key)
+        return None
 
     rows = "\n".join(
         f"| {p.ticker} | {p.price_str} | {p.change_str} | "
@@ -758,6 +767,9 @@ def run_global_report(publish_social: bool = True) -> str | None:
     """
     log.info("=== Küresel Makro Raporu başlatılıyor ===")
     snap = GlobalMacroSource().snapshot()
+    if not snap.tickers:
+        log.error("Küresel makro verisi temin edilemedi; örnek veri yayınlanamaz.")
+        return None
     board = snap.ticker_board()
 
     # Başlık: en güçlü değişim sinyali

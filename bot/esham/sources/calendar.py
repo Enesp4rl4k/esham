@@ -59,17 +59,17 @@ class EconomicCalendarSource:
             resp.raise_for_status()
             data = resp.json()
         except (requests.RequestException, ValueError) as exc:
-            log.warning("Ekonomik takvim alınamadı (%s); örnek veri kullanılıyor.", exc)
+            log.warning("Ekonomik takvim alınamadı (%s); boş liste (örnek veri üretilmiyor).", exc)
             return self._sample()
 
         if data.get("status") != "ok":
-            log.warning("Takvim yanıtı beklenmedik; örnek veri kullanılıyor.")
+            log.warning("Takvim yanıtı beklenmedik; boş liste (örnek veri üretilmiyor).")
             return self._sample()
 
         events = self._parse(data.get("result", []), min_importance)
         if events:
             return events
-        log.info("Takvimde eşleşen olay yok; örnek veri kullanılıyor.")
+        log.info("Takvimde eşleşen olay yok.")
         return self._sample()
 
     def _parse(self, rows: list[dict], min_importance: int) -> list[CalendarEvent]:
