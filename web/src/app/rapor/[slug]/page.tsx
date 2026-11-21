@@ -8,6 +8,7 @@ import { ArrowLeft, Sparkles } from "lucide-react";
 import {
   getAllReports,
   getReport,
+  isIndexableReport,
   categoryLabel,
   formatDate,
   readingMinutes,
@@ -64,6 +65,8 @@ export async function generateMetadata({
   return {
     title: seoTitle(report.title),
     description: seoDescription(report.summary),
+    // İnce içerik kapısı: bağlantıyla erişilir ama indekse girmez.
+    ...(isIndexableReport(report) ? {} : { robots: { index: false, follow: true } }),
     alternates: {
       canonical: `${SITE_URL}/rapor/${report.slug}`,
     },
