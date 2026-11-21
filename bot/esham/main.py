@@ -123,13 +123,20 @@ def _cmd_tmo(args: argparse.Namespace) -> None:
         print(f"\n=== TMO Müdahale Fiyatları Arşivi ({len(kayitlar)} Kayıt) ===")
         for k in kayitlar:
             satis = f"{k.satis_fiyati_tl_kg:.2f}" if k.satis_fiyati_tl_kg else "—"
-            print(f"  [{k.yil}] {k.urun_adi} ({k.kategori}): Alım={k.alim_fiyati_tl_kg:.2f} TL/kg | Prim={k.bakanlik_destegi_tl_kg:.2f} TL | Toplam={k.toplam_uretici_fiyati_tl_kg:.2f} TL | Satış={satis} TL")
+            if k.alim_fiyati_tl_kg is None:
+                print(f"  [{k.yil}] {k.urun_adi} ({k.kategori}): doğrulanamadı (resmî duyuru bulunamadı)")
+                continue
+            prim = f"{k.bakanlik_destegi_tl_kg:.2f}" if k.bakanlik_destegi_tl_kg is not None else "—"
+            print(f"  [{k.yil}] {k.urun_adi} ({k.kategori}): Alım={k.alim_fiyati_tl_kg:.2f} TL/kg | Prim={prim} TL | Satış={satis} TL | Kaynak={k.kaynak_url} ({k.duyuru_tarihi})")
     else:
         rep = tmo.compare(args.product, referans_yili=args.year)
         print(f"\n=== TMO vs TÜRİB Fiyat Karşılaştırması ({rep.tmo_yil}) ===")
         print(f"  Ürün: {rep.urun_grubu} (TMO: {rep.tmo_urun_adi})")
         print(f"  TÜRİB Serbest Piyasa: {rep.serbest_piyasa_fiyati:.2f} TL/kg")
-        print(f"  TMO Alım Tabanı: {rep.tmo_alim_fiyati:.2f} TL/kg (Bakanlık Primi: {rep.bakanlik_destegi:.2f} TL/kg)")
+        if rep.tmo_alim_fiyati is None:
+            print(f"  {rep.piyasa_yorumu}")
+            return
+        print(f"  TMO Alım Tabanı: {rep.tmo_alim_fiyati:.2f} TL/kg (Bakanlık Primi, ayrı: {rep.bakanlik_destegi if rep.bakanlik_destegi is not None else '—'} TL/kg; kaynak: {rep.tmo_kaynak_url}, {rep.tmo_duyuru_tarihi})")
         print(f"  TMO Alıma Göre Prim: %{rep.alim_prim_yuzde:+.1f} ({rep.alim_farki_tl:+.2f} TL/kg)")
         print(f"  Piyasa Durumu: {rep.piyasa_durumu}")
         print(f"  Yorum: {rep.piyasa_yorumu}")

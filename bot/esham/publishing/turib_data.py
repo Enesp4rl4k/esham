@@ -14,7 +14,7 @@ from typing import Any
 from ..config import PROJECT_ROOT, get_logger
 from ..sources.turib import TuribSource
 from ..sources.meat_feed_index import MeatFeedIndexAnalyzer
-from ..sources.tmo import TMO_DOGRULANDI, TMO_KAYNAK, TmoSource
+from ..sources.tmo import TmoSource
 from ..sources.real_returns import RealReturnsCalculator
 from ..sources.storage_backtest import StorageStrategyBacktester
 from ..sources.regional_arbitrage import RegionalArbitrageScanner
@@ -257,8 +257,9 @@ def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[s
                     "tmoProductName": rep.tmo_urun_adi,
                     "year": rep.tmo_yil,
                     "tmoSeason": str(rep.tmo_yil),
-                    "tmoSource": TMO_KAYNAK,
-                    "tmoVerified": TMO_DOGRULANDI,
+                    "tmoSource": rep.tmo_kaynak_url,
+                    "tmoAsOf": rep.tmo_duyuru_tarihi,
+                    "tmoVerified": rep.tmo_dogrulandi,
                     "tmoPurchasePrice": rep.tmo_alim_fiyati,
                     "farmerPremium": rep.bakanlik_destegi,
                     "totalFarmerIncome": rep.toplam_uretici_fiyati,
@@ -273,8 +274,11 @@ def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[s
             except Exception as e_c:
                 log.warning("TuribData: TMO kıyaslama %s hatası: %s", comm, e_c)
                 tmo_skipped.append(comm)
+        # Eski yayından taşınan satır yalnızca birincil kaynağa bağlı (tmoVerified) ise yayınlanır;
+        # kaynaksız/eski şemadaki elle girilmiş TMO değerleri asla geri taşınmaz.
         data["tmoComparison"].extend(
-            _carry_over(tmo_skipped, previous, "tmoComparison", "commodity", ())
+            e for e in _carry_over(tmo_skipped, previous, "tmoComparison", "commodity", ())
+            if e.get("tmoVerified") is True and e.get("tmoSource")
         )
     except Exception as exc:
         log.warning("TuribData: TMO kıyaslama derlenirken hata: %s", exc)

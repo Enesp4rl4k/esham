@@ -143,9 +143,10 @@ export interface TuribMarketDataset {
     asOf?: string;
     stale?: boolean;
     tmoSeason?: string;
-    tmoSource?: string;
+    tmoSource?: string | null;
+    tmoAsOf?: string | null;
     tmoVerified?: boolean;
-    tmoPurchasePrice: number;
+    tmoPurchasePrice: number | null;
     farmerPremium: number;
     totalFarmerIncome: number;
     tmoSalesPrice: number | null;
@@ -303,7 +304,7 @@ export function TuribMarketClient({
     "esham-market": {
       "command": "python",
       "args": ["-m", "esham.main", "mcp"],
-      "cwd": "C:\\\\Users\\\\eparl\\\\Documents\\\\Default Project\\\\esham\\\\bot"
+      "cwd": "<proje-klasörü>/bot"
     }
   }
 }`;
@@ -843,7 +844,7 @@ export function TuribMarketClient({
               <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
                 TMO sütunları, sezonu satırda belirtilen açıklanan alım fiyatlarıdır (güncel piyasa fiyatı değildir).
                 {(dataset.tmoComparison || []).some((t) => t.tmoVerified !== true) &&
-                  " Tablo elle girilmiştir; resmî duyuru bağlantısı bu sayfada doğrulanmamıştır."}
+                  " Resmî duyurusu doğrulanamayan satırlarda TMO değeri gösterilmez."}
               </p>
             </div>
 
@@ -870,9 +871,19 @@ export function TuribMarketClient({
                           {tmo.commodity}
                           <span className="block text-xs font-normal" style={{ color: "var(--text-muted)" }}>
                             TMO açıklanan alım fiyatı, {tmo.tmoSeason || tmo.year} sezonu
+                            {tmo.tmoVerified === true && tmo.tmoSource ? (
+                              <>
+                                {" · "}
+                                <a href={tmo.tmoSource} target="_blank" rel="noopener noreferrer" className="underline">
+                                  resmî duyuru{tmo.tmoAsOf ? `, ${tmo.tmoAsOf}` : ""}
+                                </a>
+                              </>
+                            ) : (
+                              " · doğrulanamadı"
+                            )}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 font-mono">{isNum(tmo.tmoPurchasePrice) ? `${tmo.tmoPurchasePrice.toFixed(2)} ₺` : NO_DATA}</td>
+                        <td className="py-3.5 px-4 font-mono">{isNum(tmo.tmoPurchasePrice) ? `${tmo.tmoPurchasePrice.toFixed(2)} ₺` : "doğrulanamadı"}</td>
                         <td className="py-3.5 px-4 font-mono text-emerald-400">{isNum(tmo.farmerPremium) ? `+${tmo.farmerPremium.toFixed(2)} ₺` : NO_DATA}</td>
                         <td className="py-3.5 px-4 font-mono font-semibold">{isNum(tmo.totalFarmerIncome) ? `${tmo.totalFarmerIncome.toFixed(2)} ₺` : NO_DATA}</td>
                         <td className="py-3.5 px-4 font-mono font-bold" style={{ color: "var(--accent)" }}>
