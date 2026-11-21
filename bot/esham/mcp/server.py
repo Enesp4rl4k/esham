@@ -140,6 +140,9 @@ def turib_tmo_karsilastir(urun_grubu: str = "BUĞDAY EKMEKLİK", referans_yili: 
             "bakanlik_prim_destegi_tl_kg": rep.bakanlik_destegi,
             "toplam_uretici_fiyati_tl_kg": rep.toplam_uretici_fiyati,
             "tmo_satis_fiyati_tl_kg": rep.tmo_satis_fiyati,
+            "kaynak_url": rep.tmo_kaynak_url,
+            "duyuru_tarihi": rep.tmo_duyuru_tarihi,
+            "dogrulandi": rep.tmo_dogrulandi,
         },
         "analiz": {
             "tmo_alima_gore_fark_tl": rep.alim_farki_tl,
@@ -155,7 +158,7 @@ def turib_tmo_karsilastir(urun_grubu: str = "BUĞDAY EKMEKLİK", referans_yili: 
 
 @mcp.tool()
 def turib_tmo_fiyat_listesi(yil: int | None = 2026, kategori: str | None = None) -> list[dict[str, Any]]:
-    """Resmî TMO müdahale alım ve prim fiyatları arşiv listesi (2021-2026)."""
+    """Resmî TMO müdahale alım ve prim fiyatları arşiv listesi (2021-2026); doğrulanamayan sezonlar alım fiyatı null döner."""
     tmo = TmoSource()
     kayitlar = tmo.list_records(yil=yil, kategori=kategori)
     return [
@@ -167,6 +170,9 @@ def turib_tmo_fiyat_listesi(yil: int | None = 2026, kategori: str | None = None)
             "bakanlik_destegi_tl_kg": k.bakanlik_destegi_tl_kg,
             "toplam_uretici_fiyati_tl_kg": k.toplam_uretici_fiyati_tl_kg,
             "tmo_satis_fiyati_tl_kg": k.satis_fiyati_tl_kg,
+            "kaynak_url": k.kaynak_url,
+            "duyuru_tarihi": k.duyuru_tarihi,
+            "dogrulandi": k.dogrulandi,
             "notlar": k.notlar,
         }
         for k in kayitlar

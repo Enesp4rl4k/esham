@@ -146,6 +146,7 @@ def _tmo_report(name):
         bakanlik_destegi=1.0, toplam_uretici_fiyati=11.0, tmo_satis_fiyati=None,
         serbest_piyasa_fiyati=12.0, alim_farki_tl=2.0, alim_prim_yuzde=20.0, toplam_prim_yuzde=9.0,
         piyasa_durumu="TMO_USTUNDE_PRIMLI", piyasa_yorumu="x",
+        tmo_kaynak_url="https://www.tarimorman.gov.tr/x", tmo_duyuru_tarihi="2026-06-02", tmo_dogrulandi=True,
     )
 
 
@@ -166,7 +167,8 @@ def offline_turib(monkeypatch):
 
 
 def _old(commodity, as_of=None, price=9.99):
-    e = {"commodity": commodity, "turibFreePrice": price, "spreadTl": 1.0}
+    e = {"commodity": commodity, "turibFreePrice": price, "spreadTl": 1.0,
+         "tmoVerified": True, "tmoSource": "https://www.tarimorman.gov.tr/x"}
     if as_of:
         e["asOf"] = as_of
     return e
@@ -218,5 +220,11 @@ def test_tmo_entries_carry_explicit_source_and_season(offline_turib):
     assert live
     for e in live:
         assert e["tmoSeason"] == str(e["year"])
-        assert e["tmoSource"]
-        assert e["tmoVerified"] is False
+        assert e["tmoSource"] and e["tmoAsOf"]
+        assert e["tmoVerified"] is True
+
+
+def test_tmo_carry_over_drops_unverified_old_entries(offline_turib):
+    old = {"commodity": "MISIR", "turibFreePrice": 9.99, "asOf": "2026-11-17", "tmoPurchasePrice": 12.0}
+    data = turib_data.generate_turib_market_data(previous={"date": "2026-11-18", "tmoComparison": [old]})
+    assert "MISIR" not in {e["commodity"] for e in data["tmoComparison"]}
