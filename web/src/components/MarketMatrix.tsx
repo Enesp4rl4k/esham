@@ -15,9 +15,11 @@ type MatrixItem = {
   sublabel: string;
   value: string;
   change: string;
-  up: boolean;
+  up: boolean | null;
   href?: string;
 };
+
+const NO_DATA = "Veri yok";
 
 type MarketMatrixProps = {
   tickerData?: any;
@@ -47,7 +49,12 @@ export function MarketMatrix({ tickerData, turibData }: MarketMatrixProps) {
   );
 
   // Kripto verileri
-  const btc = getTicker("BITCOIN") || { value: "$76.450", change: "-2,15%", up: false };
+  const btc = getTicker("BITCOIN"); // Bot şu an Bitcoin kotasyonu yayınlamıyor: "Veri yok" gösterilir
+
+  // Statik sayfa: veri, botun son yayın anını taşır; "canlı" değildir.
+  const asOf: string | null = tickerData?.updatedAt
+    ? new Date(tickerData.updatedAt).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })
+    : null;
 
   const sections: {
     title: string;
@@ -61,25 +68,25 @@ export function MarketMatrix({ tickerData, turibData }: MarketMatrixProps) {
         {
           label: "BIST 100",
           sublabel: "XU100.IS",
-          value: xu100?.value || "10.961,67",
-          change: xu100?.change || "+1,88%",
-          up: xu100?.up ?? true,
+          value: xu100?.value ?? NO_DATA,
+          change: xu100?.change ?? "",
+          up: xu100?.up ?? null,
           href: "/kategori/bist",
         },
         {
           label: "S&P 500",
           sublabel: "ABD Geniş Piyasa",
-          value: sp500?.value || "7.541,40",
-          change: sp500?.change || "-0,51%",
-          up: sp500?.up ?? false,
+          value: sp500?.value ?? NO_DATA,
+          change: sp500?.change ?? "",
+          up: sp500?.up ?? null,
           href: "/kategori/global",
         },
         {
           label: "NASDAQ",
           sublabel: "Teknoloji Endeksi",
-          value: nasdaq?.value || "25.164,32",
-          change: nasdaq?.change || "-1,07%",
-          up: nasdaq?.up ?? false,
+          value: nasdaq?.value ?? NO_DATA,
+          change: nasdaq?.change ?? "",
+          up: nasdaq?.up ?? null,
           href: "/kategori/teknoloji",
         },
       ],
@@ -91,25 +98,25 @@ export function MarketMatrix({ tickerData, turibData }: MarketMatrixProps) {
         {
           label: "Dolar / TL",
           sublabel: "USD/TRY Spot",
-          value: usdtry?.value || "₺49,99",
-          change: usdtry?.change || "+0,11%",
-          up: usdtry?.up ?? true,
+          value: usdtry?.value ?? NO_DATA,
+          change: usdtry?.change ?? "",
+          up: usdtry?.up ?? null,
           href: "/kategori/global",
         },
         {
           label: "EUR / USD",
           sublabel: "Parite",
-          value: eurusd?.value || "1,12",
-          change: eurusd?.change || "+0,21%",
-          up: eurusd?.up ?? true,
+          value: eurusd?.value ?? NO_DATA,
+          change: eurusd?.change ?? "",
+          up: eurusd?.up ?? null,
           href: "/kategori/global",
         },
         {
           label: "ABD 10Y Tahvil",
           sublabel: "Gösterge Faiz",
-          value: abd10y?.value || "4,89%",
-          change: abd10y?.change || "-0,71%",
-          up: abd10y?.up ?? false,
+          value: abd10y?.value ?? NO_DATA,
+          change: abd10y?.change ?? "",
+          up: abd10y?.up ?? null,
           href: "/kategori/global",
         },
       ],
@@ -121,33 +128,33 @@ export function MarketMatrix({ tickerData, turibData }: MarketMatrixProps) {
         {
           label: "Brent Petrol",
           sublabel: "Tanker & Varil Spot",
-          value: brent?.value || "$74,80",
-          change: brent?.change || "+0,45%",
-          up: brent?.up ?? true,
+          value: brent?.value ?? NO_DATA,
+          change: brent?.change ?? "",
+          up: brent?.up ?? null,
           href: "/tarim-emtia?tab=petrolTanker",
         },
         {
           label: "Ons Altın",
           sublabel: "XAU/USD Spot",
-          value: altin?.value || "$2.780",
-          change: altin?.change || "+0,45%",
-          up: altin?.up ?? true,
+          value: altin?.value ?? NO_DATA,
+          change: altin?.change ?? "",
+          up: altin?.up ?? null,
           href: "/kategori/global",
         },
         {
           label: "TÜRİB Hububat",
           sublabel: "TRBHUB Endeksi",
-          value: trbHub?.valueStr || "7.910,25",
-          change: trbHub?.changeStr || "+2,12%",
-          up: true,
+          value: trbHub?.valueStr ?? NO_DATA,
+          change: trbHub?.changeStr ?? "",
+          up: trbHub ? (trbHub.changePct ?? 0) >= 0 : null,
           href: "/tarim-emtia",
         },
         {
           label: "Bitcoin",
           sublabel: "BTC/USD Kripto",
-          value: btc?.value || "$76.450",
-          change: btc?.change || "-2,15%",
-          up: btc?.up ?? false,
+          value: btc?.value ?? NO_DATA,
+          change: btc?.change ?? "",
+          up: btc?.up ?? null,
           href: "/kategori/kripto",
         },
       ],
@@ -158,13 +165,13 @@ export function MarketMatrix({ tickerData, turibData }: MarketMatrixProps) {
     <div className="w-full my-8">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-zinc-600" aria-hidden="true" />
           <h3 className="text-xs uppercase font-bold tracking-[0.15em] text-zinc-400">
-            Canlı Piyasa Matrisi & Terminal Verisi
+            Piyasa Matrisi & Terminal Verisi
           </h3>
         </div>
         <span className="text-xs text-zinc-400 font-mono">
-          Otomatik Senkronize · BIST & TÜRİB & Global
+          {asOf ? `Veri tarihi: ${asOf}` : "Veri tarihi: yok"} · BIST & TÜRİB & Global
         </span>
       </div>
 
@@ -204,18 +211,20 @@ export function MarketMatrix({ tickerData, turibData }: MarketMatrixProps) {
                         <p className="text-xs font-mono font-bold text-zinc-100">
                           {it.value}
                         </p>
-                        <p
-                          className={`text-xs font-mono font-semibold flex items-center justify-end gap-0.5 ${
-                            it.up ? "text-emerald-400" : "text-rose-400"
-                          }`}
-                        >
-                          {it.up ? (
-                            <TrendingUp className="w-2.5 h-2.5 inline" />
-                          ) : (
-                            <TrendingDown className="w-2.5 h-2.5 inline" />
-                          )}
-                          {it.change}
-                        </p>
+                        {it.up !== null && it.change && (
+                          <p
+                            className={`text-xs font-mono font-semibold flex items-center justify-end gap-0.5 ${
+                              it.up ? "text-emerald-400" : "text-rose-400"
+                            }`}
+                          >
+                            {it.up ? (
+                              <TrendingUp className="w-2.5 h-2.5 inline" />
+                            ) : (
+                              <TrendingDown className="w-2.5 h-2.5 inline" />
+                            )}
+                            {it.change}
+                          </p>
+                        )}
                       </div>
                     </div>
                   );

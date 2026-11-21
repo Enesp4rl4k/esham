@@ -7,6 +7,7 @@ Bu modül:
 from __future__ import annotations
 
 import json
+from datetime import datetime, timedelta, timezone
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -78,230 +79,15 @@ class DividendRecord:
         }
 
 
-# BIST 2026 Aktif Pay Geri Alım Veri Tabanı
-ACTIVE_BUYBACKS_DB = [
-    BuybackProgram(
-        ticker="THYAO",
-        company_name="Türk Hava Yolları A.O.",
-        authorized_fund_try=9_000_000_000,
-        authorized_fund_str="9.0 Milyar TL",
-        max_shares=69_000_000,
-        purchased_shares=48_500_000,
-        completion_rate_pct=70.3,
-        capital_share_pct=3.51,
-        avg_price_try=234.50,
-        current_price_try=262.50,
-        return_vs_avg_pct=11.9,
-        authorization_date="2024-03-22",
-        status="Aktif",
-        purpose="Hisse değerinin şirket faaliyetlerinin gerçek performansını yansıtması",
-    ),
-    BuybackProgram(
-        ticker="SISE",
-        company_name="Türkiye Şişe ve Cam Fabrikaları",
-        authorized_fund_try=15_000_000_000,
-        authorized_fund_str="15.0 Milyar TL",
-        max_shares=150_000_000,
-        purchased_shares=112_000_000,
-        completion_rate_pct=74.7,
-        capital_share_pct=3.66,
-        avg_price_try=31.20,
-        current_price_try=34.08,
-        return_vs_avg_pct=9.2,
-        authorization_date="2023-02-26",
-        status="Aktif",
-        purpose="Sağlıklı fiyat oluşumunun desteklenmesi ve hissedarların korunması",
-    ),
-    BuybackProgram(
-        ticker="SAHOL",
-        company_name="Hacı Ömer Sabancı Holding",
-        authorized_fund_try=5_000_000_000,
-        authorized_fund_str="5.0 Milyar TL",
-        max_shares=102_000_000,
-        purchased_shares=86_400_000,
-        completion_rate_pct=84.7,
-        capital_share_pct=4.23,
-        avg_price_try=71.80,
-        current_price_try=82.05,
-        return_vs_avg_pct=14.3,
-        authorization_date="2023-03-30",
-        status="Aktif",
-        purpose="Net Aktif Değer (NAD) iskontosunun azaltılması",
-    ),
-    BuybackProgram(
-        ticker="EREGL",
-        company_name="Ereğli Demir ve Çelik Fabrikaları",
-        authorized_fund_try=3_500_000_000,
-        authorized_fund_str="3.5 Milyar TL",
-        max_shares=70_000_000,
-        purchased_shares=31_200_000,
-        completion_rate_pct=44.6,
-        capital_share_pct=0.89,
-        avg_price_try=28.40,
-        current_price_try=30.34,
-        return_vs_avg_pct=6.8,
-        authorization_date="2024-04-12",
-        status="Aktif",
-        purpose="Hisse piyasasındaki olağandışı oynaklığın engellenmesi",
-    ),
-    BuybackProgram(
-        ticker="KCHOL",
-        company_name="Koç Holding A.Ş.",
-        authorized_fund_try=8_000_000_000,
-        authorized_fund_str="8.0 Milyar TL",
-        max_shares=50_000_000,
-        purchased_shares=38_100_000,
-        completion_rate_pct=76.2,
-        capital_share_pct=1.50,
-        avg_price_try=176.20,
-        current_price_try=193.40,
-        return_vs_avg_pct=9.8,
-        authorization_date="2023-05-15",
-        status="Aktif",
-        purpose="Sermaye piyasası dalgalanmalarına karşı ortakların korunması",
-    ),
-    BuybackProgram(
-        ticker="BIMAS",
-        company_name="BİM Birleşik Mağazalar A.Ş.",
-        authorized_fund_try=4_000_000_000,
-        authorized_fund_str="4.0 Milyar TL",
-        max_shares=10_000_000,
-        purchased_shares=7_450_000,
-        completion_rate_pct=74.5,
-        capital_share_pct=1.23,
-        avg_price_try=325.00,
-        current_price_try=359.00,
-        return_vs_avg_pct=10.5,
-        authorization_date="2024-02-18",
-        status="Aktif",
-        purpose="Şirket özsermayesinin güçlü değer üretimine yönlendirilmesi",
-    ),
-    BuybackProgram(
-        ticker="PETKM",
-        company_name="Petkim Petrokimya Holding",
-        authorized_fund_try=1_500_000_000,
-        authorized_fund_str="1.5 Milyar TL",
-        max_shares=60_000_000,
-        purchased_shares=22_800_000,
-        completion_rate_pct=38.0,
-        capital_share_pct=0.90,
-        avg_price_try=18.60,
-        current_price_try=17.20,
-        return_vs_avg_pct=-7.5,
-        authorization_date="2024-05-02",
-        status="Aktif",
-        purpose="Düşüş döneminde taban fiyat oluşumunun desteklenmesi",
-    ),
-    BuybackProgram(
-        ticker="ULUUN",
-        company_name="Ulusoy Un Sanayi A.Ş.",
-        authorized_fund_try=500_000_000,
-        authorized_fund_str="500.0 Milyon TL",
-        max_shares=15_000_000,
-        purchased_shares=9_200_000,
-        completion_rate_pct=61.3,
-        capital_share_pct=4.82,
-        avg_price_try=26.50,
-        current_price_try=29.40,
-        return_vs_avg_pct=10.9,
-        authorization_date="2024-01-15",
-        status="Aktif",
-        purpose="Tarımsal emtia dalgalanmalarına karşı hisse fiyat istikrarı",
-    ),
-]
+# Geri alım ve temettü kayıtları için gerçek bir kaynak (KAP/Takasbank akışı) bağlı DEĞİL.
+# Önceki sürüm elle girilmiş, kaynaksız ve "güncel fiyat" taşıyan kayıtlar içeriyordu; bunlar okura
+# gerçek piyasa verisi gibi sunulamaz. Kaynak bağlanana kadar listeler boştur.
+ACTIVE_BUYBACKS_DB: list[BuybackProgram] = []
+
+DIVIDENDS_DB: list[DividendRecord] = []
 
 
-# BIST 2026 Temettü Dağıtım Veri Tabanı
-DIVIDENDS_DB = [
-    DividendRecord(
-        ticker="FROTO",
-        company_name="Ford Otomotiv Sanayi",
-        gross_dividend_try=43.30,
-        net_dividend_try=38.97,
-        dividend_yield_pct=6.8,
-        ex_date="2026-11-20",
-        payment_date="2026-11-24",
-        payout_ratio_pct=68.5,
-        status="Açıklandı",
-    ),
-    DividendRecord(
-        ticker="TUPRS",
-        company_name="Tüpraş Rafinerileri",
-        gross_dividend_try=21.40,
-        net_dividend_try=19.26,
-        dividend_yield_pct=6.4,
-        ex_date="2026-11-27",
-        payment_date="2026-12-01",
-        payout_ratio_pct=72.0,
-        status="Açıklandı",
-    ),
-    DividendRecord(
-        ticker="BIMAS",
-        company_name="BİM Birleşik Mağazalar",
-        gross_dividend_try=14.50,
-        net_dividend_try=13.05,
-        dividend_yield_pct=4.0,
-        ex_date="2026-12-15",
-        payment_date="2026-12-18",
-        payout_ratio_pct=54.0,
-        status="Açıklandı",
-    ),
-    DividendRecord(
-        ticker="TTKOM",
-        company_name="Türk Telekomünikasyon",
-        gross_dividend_try=2.85,
-        net_dividend_try=2.56,
-        dividend_yield_pct=5.2,
-        ex_date="2026-12-08",
-        payment_date="2026-12-11",
-        payout_ratio_pct=60.0,
-        status="Açıklandı",
-    ),
-    DividendRecord(
-        ticker="ASELS",
-        company_name="Aselsan Elektronik",
-        gross_dividend_try=3.20,
-        net_dividend_try=2.88,
-        dividend_yield_pct=2.1,
-        ex_date="2026-11-25",
-        payment_date="2026-11-28",
-        payout_ratio_pct=28.0,
-        status="Açıklandı",
-    ),
-    DividendRecord(
-        ticker="SISE",
-        company_name="Şişecam",
-        gross_dividend_try=1.15,
-        net_dividend_try=1.03,
-        dividend_yield_pct=3.4,
-        ex_date="2026-12-04",
-        payment_date="2026-12-08",
-        payout_ratio_pct=35.0,
-        status="Açıklandı",
-    ),
-    DividendRecord(
-        ticker="THYAO",
-        company_name="Türk Hava Yolları",
-        gross_dividend_try=8.50,
-        net_dividend_try=7.65,
-        dividend_yield_pct=3.2,
-        ex_date="2026-12-22",
-        payment_date="2026-12-26",
-        payout_ratio_pct=22.0,
-        status="Genel Kurul Onayında",
-    ),
-    DividendRecord(
-        ticker="TCELL",
-        company_name="Turkcell İletişim",
-        gross_dividend_try=4.75,
-        net_dividend_try=4.27,
-        dividend_yield_pct=5.3,
-        ex_date="2026-12-10",
-        payment_date="2026-12-14",
-        payout_ratio_pct=58.0,
-        status="Açıklandı",
-    ),
-]
+
 
 
 class BistCorporateActionsSource:
@@ -320,35 +106,39 @@ class BistCorporateActionsSource:
         return DIVIDENDS_DB
 
     def export_data(self, web_data_dir: str | Path) -> None:
-        """JSON verilerini web/public/data altına kaydeder."""
+        """JSON verilerini web/public/data altına kaydeder; kayıt yoksa dosya yazılmaz."""
         p = Path(web_data_dir)
         p.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.now(timezone(timedelta(hours=3))).isoformat(timespec="seconds")
 
-        buybacks_file = p / "bist-buybacks.json"
-        with open(buybacks_file, "w", encoding="utf-8") as f:
-            json.dump(
-                {
-                    "updated_at": "2026-11-03T17:00:00+03:00",
-                    "total_programs": len(ACTIVE_BUYBACKS_DB),
-                    "total_allocated_fund_try": sum(b.authorized_fund_try for b in ACTIVE_BUYBACKS_DB),
-                    "programs": [b.to_dict() for b in ACTIVE_BUYBACKS_DB],
-                },
-                f,
-                ensure_ascii=False,
-                indent=2,
-            )
+        if ACTIVE_BUYBACKS_DB:
+            with open(p / "bist-buybacks.json", "w", encoding="utf-8") as f:
+                json.dump(
+                    {
+                        "updated_at": stamp,
+                        "total_programs": len(ACTIVE_BUYBACKS_DB),
+                        "total_allocated_fund_try": sum(b.authorized_fund_try for b in ACTIVE_BUYBACKS_DB),
+                        "programs": [b.to_dict() for b in ACTIVE_BUYBACKS_DB],
+                    },
+                    f,
+                    ensure_ascii=False,
+                    indent=2,
+                )
+        else:
+            log.warning("Geri alım kaydı yok (gerçek kaynak bağlı değil); bist-buybacks.json yazılmadı.")
 
-        dividends_file = p / "bist-dividends.json"
-        with open(dividends_file, "w", encoding="utf-8") as f:
-            json.dump(
-                {
-                    "updated_at": "2026-11-03T17:00:00+03:00",
-                    "total_dividends": len(DIVIDENDS_DB),
-                    "avg_yield_pct": round(sum(d.dividend_yield_pct for d in DIVIDENDS_DB) / len(DIVIDENDS_DB), 2),
-                    "records": [d.to_dict() for d in DIVIDENDS_DB],
-                },
-                f,
-                ensure_ascii=False,
-                indent=2,
-            )
-        log.info("Kurumsal aksiyonlar (Geri Alımlar & Temettü) kaydedildi: %s", p)
+        if DIVIDENDS_DB:
+            with open(p / "bist-dividends.json", "w", encoding="utf-8") as f:
+                json.dump(
+                    {
+                        "updated_at": stamp,
+                        "total_dividends": len(DIVIDENDS_DB),
+                        "avg_yield_pct": round(sum(d.dividend_yield_pct for d in DIVIDENDS_DB) / len(DIVIDENDS_DB), 2),
+                        "records": [d.to_dict() for d in DIVIDENDS_DB],
+                    },
+                    f,
+                    ensure_ascii=False,
+                    indent=2,
+                )
+        else:
+            log.warning("Temettü kaydı yok (gerçek kaynak bağlı değil); bist-dividends.json yazılmadı.")

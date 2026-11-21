@@ -68,6 +68,56 @@ def _carry_over(
     return carried
 
 
+_SECTION_DATE_KEYS = ("asOf", "date", "cpiDate", "endDate")
+
+
+def _section_as_of(entry: Any, previous: dict[str, Any]) -> str | None:
+    """Bölüm/girdi için özgün veri tarihi; bilinmiyorsa None (tarihsiz eski veri taşınmaz)."""
+    if isinstance(entry, dict):
+        for k in _SECTION_DATE_KEYS:
+            if entry.get(k):
+                return str(entry[k])
+        if entry.get("updatedAt"):
+            return str(entry["updatedAt"])[:10]
+    return previous.get("date") or None
+
+
+def _carry_section(data: dict[str, Any], previous: dict[str, Any] | None, section: str) -> None:
+    """Bölüm bu turda boş çıktıysa son iyi bölümü özgün tarihiyle (`asOf`) ve `stale: true` ile taşır.
+
+    Önceki yayında da bölüm yoksa ya da tarihi bilinmiyorsa bölüm boş kalır (tarihsiz veri taze gibi sunulmaz).
+    """
+    if data.get(section) or not previous:
+        return
+    old = previous.get(section)
+    if not old:
+        return
+    if isinstance(old, list):
+        carried: list[dict[str, Any]] = []
+        for e in old:
+            if not isinstance(e, dict):
+                continue
+            as_of = _section_as_of(e, previous)
+            if not as_of:
+                continue
+            ne = dict(e)
+            ne["asOf"] = as_of
+            ne["stale"] = True
+            carried.append(ne)
+        if carried:
+            data[section] = carried
+            log.warning("TuribData: %s bölümü canlı veri yok; son yayın %d girdiyle taşındı.", section, len(carried))
+    elif isinstance(old, dict):
+        as_of = _section_as_of(old, previous)
+        if not as_of:
+            return
+        nd = dict(old)
+        nd["asOf"] = as_of
+        nd["stale"] = True
+        data[section] = nd
+        log.warning("TuribData: %s bölümü canlı veri yok; son yayın (%s) taşındı.", section, as_of)
+
+
 def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[str, Any]:
     """Tüm tarım, emtia, TÜRİB ve et-yem veri setini yapılandırılmış sözlük olarak derler.
 
@@ -146,6 +196,8 @@ def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[s
     try:
         meat_analyzer = MeatFeedIndexAnalyzer()
         meat_report = meat_analyzer.analyze()
+        if meat_report is None:
+            raise ValueError("et-yem verisi yok (gerçek kaynak bağlı değil)")
         data["meatFeed"] = {
             "cpiDate": meat_report.tarih,
             "meatCpi": meat_report.et_tufe_endeks,
@@ -348,10 +400,18 @@ def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[s
     try:
         from ..sources.tanker_freight import TankerFreightSource
         tanker_src = TankerFreightSource()
-        data["petrolTanker"] = tanker_src.fetch_snapshot().to_dict()
+        tanker_snap = tanker_src.fetch_snapshot()
+        data["petrolTanker"] = tanker_snap.to_dict() if tanker_snap else {}
     except Exception as exc:
         log.warning("TuribData: Petrol & Tanker verisi derlenirken hata: %s", exc)
         data["petrolTanker"] = {}
+
+    # Bölüm düzeyinde başarısızlık: boş yayın yerine son iyi bölümü özgün tarihiyle taşı.
+    for section in (
+        "indices", "spotCommodities", "bulletinSummary", "meatFeed", "storageBacktest",
+        "regionalArbitrage", "agriBist", "petrolTanker",
+    ):
+        _carry_section(data, previous, section)
 
     return data
 

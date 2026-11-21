@@ -35,6 +35,9 @@ class ViopQuote:
     futures_price: str | None = None
     futures_change: str | None = None
     futures_volume: str | None = None
+    # Ham sayısal değerler (basis hesabı için); yalnızca gerçek yanıttan doldurulur.
+    index_value: float | None = None
+    futures_value: float | None = None
 
     @property
     def has_futures(self) -> bool:
@@ -113,10 +116,12 @@ class ViopSource:
             index_symbol="XU030",
             index_price=tr_number(float(idx[1])) if idx[1] is not None else "",
             index_change=_change_str(float(idx[2])) if idx[2] is not None else "",
+            index_value=float(idx[1]) if idx[1] is not None else None,
         )
         if fut and len(fut) > 1 and fut[1] is not None:
             q.futures_symbol = "XU030D"
             q.futures_price = tr_number(float(fut[1]))
+            q.futures_value = float(fut[1])
             q.futures_change = _change_str(float(fut[2])) if len(fut) > 2 and fut[2] is not None else None
             q.futures_volume = tr_money(float(fut[3])) if len(fut) > 3 and fut[3] else None
         else:

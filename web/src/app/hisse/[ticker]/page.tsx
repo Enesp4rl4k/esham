@@ -62,7 +62,7 @@ export async function generateMetadata({
 
   return {
     title: `$${clean} Hisse Analizi, Hedef Fiyat & KAP Bildirimleri`,
-    description: `Borsa İstanbul $${clean} (${companyName}) hissesine ait canlı teknik pivot seviyeleri, İNA (DCF) hedef fiyatı, KAP sözleşmeleri, temettü verimi ve bilanço çarpanları.`,
+    description: `Borsa İstanbul $${clean} (${companyName}) hissesine ait teknik pivot seviyeleri, İNA (DCF) hedef fiyatı, KAP sözleşmeleri, temettü verimi ve bilanço çarpanları.`,
     keywords: [
       `$${clean}`,
       `${clean} hisse`,

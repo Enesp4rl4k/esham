@@ -209,14 +209,6 @@ class BistSource:
             open_change=open_change_str,
         )
 
-    def _sample(self) -> MarketSummary:
-        return MarketSummary(
-            index="XU100",
-            price="10.450,23",
-            change="+1,2%",
-            volume="120 Milyar TL",
-        )
-
     def fetch_closes(self, range_str: str = "1d", interval: str = "15m") -> list[float] | None:
         """Ham kapanış fiyat serisini döner (kart sparkline'ı gibi hafif kullanımlar için).
 

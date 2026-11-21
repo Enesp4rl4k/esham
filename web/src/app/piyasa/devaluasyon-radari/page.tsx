@@ -52,8 +52,12 @@ export default async function DevaluationRadarPage() {
   if (!radarData) {
     return (
       <div className="container mx-auto px-6 py-20 text-center">
-        <h1 className="text-xl font-bold text-white mb-2">Kur Radarı Verisi Yüklenemedi</h1>
-        <p className="text-zinc-400 text-sm">Veri dosyası hazırlanıyor, lütfen sayfayı yenileyiniz.</p>
+        <h1 className="text-xl font-bold text-white mb-2">Kur Radarı: Veri yok</h1>
+        <p className="text-zinc-400 text-sm max-w-xl mx-auto">
+          Bu radar VİOP USD/TRY vadeli, TCMB rezervleri, Kapalıçarşı makası, 5Y CDS ve REER girdilerine dayanır.
+          Bu girdiler için doğrulanmış bir veri kaynağı şu an bağlı olmadığından hiçbir skor ya da değer
+          gösterilmiyor. Eski veya örnek değerler yayınlanmaz.
+        </p>
       </div>
     );
   }
@@ -193,9 +197,10 @@ export default async function DevaluationRadarPage() {
               1. Döviz Açık Pozisyonu Olan Şirketler (FX Hedging)
             </h3>
             <p className="text-xs text-zinc-300 leading-relaxed mb-3">
-              VİOP Dolar/TL vadeli sözleşmelerinde ima edilen yıllık faiz (%28.9), banka TL kredi faizlerinin
-              (%50-55) oldukça altındadır. Bu durum, döviz borcu veya hammadde ithalat yükümlülüğü bulunan
-              şirketler için VİOP üzerinden kur riskini sabitlemeyi (long hedge) son derece avantajlı kılmaktadır.
+              VİOP Dolar/TL vadeli sözleşmelerinde ima edilen yıllık faiz, banka TL kredi faizlerinin belirgin
+              biçimde altında kaldığında, döviz borcu veya hammadde ithalat yükümlülüğü bulunan şirketler için
+              VİOP üzerinden kur riskini sabitlemek (long hedge) avantajlı olabilir. Güncel oranları kendi
+              bankanız ve borsa verisiyle karşılaştırın.
             </p>
             <div className="text-xs font-mono text-zinc-400 bg-zinc-900/80 p-2.5 rounded border border-zinc-800">
               Strateji: Kredili spot döviz almak yerine VİOP USD/TRY vadeli kontratı ile forward sabitleme.

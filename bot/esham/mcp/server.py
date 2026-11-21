@@ -20,7 +20,7 @@ from ..sources.sector import SectorSource
 from ..sources.peer import PeerSource
 from ..sources.turib import TuribSource, ENDEKS_KODLARI, VARSAYILAN_URUNLER
 from ..sources.agri_bist import AgriBistAnalyzer
-from ..sources.meat_feed_index import MeatFeedIndexAnalyzer
+from ..sources.meat_feed_index import ET_YEM_UNAVAILABLE, MeatFeedIndexAnalyzer
 from ..sources.tmo import TmoSource
 from ..sources.real_returns import RealReturnsCalculator
 from ..sources.storage_backtest import StorageStrategyBacktester
@@ -364,20 +364,29 @@ def bist_kap_bildirimleri(limit: int = 10, sadece_onemli: bool = True) -> list[d
 
 @mcp.tool()
 def bist_viop_durum() -> dict[str, Any]:
-    """VİOP vadeli işlem piyasası kotasyonu ve Takasbank teminat stresi analizi."""
+    """VİOP vadeli işlem piyasası kotasyonu ve Takasbank teminat stresi analizi.
+
+    Gerçek veri alınamayan alanlar None döner; sabit/örnek değer üretilmez."""
     viop = ViopSource()
     quote = viop.market_quote()
     margin = viop.margin_snapshot()
-    stress = assess_margin_stress(margin) if margin else None
+    stress = assess_margin_stress(margin.margin_call_to_required_pct) if margin else None
 
     return {
-        "viop_fiyat": quote.price if quote else None,
-        "viop_degisim": quote.change if quote else None,
+        "endeks_sembol": quote.index_symbol if quote else None,
+        "endeks_fiyat": quote.index_price if quote else None,
+        "endeks_degisim": quote.index_change if quote else None,
+        "vadeli_sembol": quote.futures_symbol if quote and quote.has_futures else None,
+        "vadeli_fiyat": quote.futures_price if quote and quote.has_futures else None,
+        "vadeli_degisim": quote.futures_change if quote and quote.has_futures else None,
         "takasbank_teminat": {
-            "toplam_teminat_tl": margin.total_margin_try if margin else None,
-            "teminat_acigi_tl": margin.deficit_try if margin else None,
+            "veri_tarihi": margin.as_of,
+            "teminatli_hesap_sayisi": margin.margined_account_count,
+            "teminat_tamamlama_toplam_tl": margin.margin_call_total_tl,
+            "gereken_teminat_toplam_tl": margin.required_margin_total_tl,
+            "teminat_tamamlama_orani_yuzde": margin.margin_call_to_required_pct,
             "stres_seviyesi": stress.level if stress else "Bilinmiyor",
-            "stres_yorumu": stress.commentary if stress else "",
+            "stres_yorumu": stress.note if stress else "",
         } if margin else None,
     }
 
@@ -490,16 +499,22 @@ def macro_turkiye_barometresi() -> dict[str, Any]:
     """Türkiye 5 Yıllık CDS Primi, TCMB Brüt / Net / Swap Hariç Net Rezervleri ve Hisse Risk Primini (ERP) sunar.
     
     Piyasa risk iştahını ve getiri dengesini (mevduat vs tahvil vs hisse) analiz eder."""
-    from ..sources.macro_radar import MacroRadarAnalyzer
-    return MacroRadarAnalyzer().get_macro_barometer().to_dict()
+    from ..sources.macro_radar import MACRO_BAROMETER_UNAVAILABLE, MacroRadarAnalyzer
+    res = MacroRadarAnalyzer().get_macro_barometer()
+    if res is None:
+        return {"veri": None, "neden": MACRO_BAROMETER_UNAVAILABLE}
+    return res.to_dict()
 
 
 @mcp.tool()
 def viop_basis_analizi() -> dict[str, Any]:
-    """VİOP BIST 30 Vadeli Kontratı ile Spot piyasa arasındaki Basis (fark), ima edilen yıllık faiz oranı,
-    açık pozisyon değişimi ve Takasbank teminat tamamlama (Margin Call) risk seviyesini sunar."""
-    from ..sources.macro_radar import MacroRadarAnalyzer
-    return MacroRadarAnalyzer().get_viop_basis().to_dict()
+    """VİOP BIST 30 vadeli kontratı ile spot endeks arasındaki basis (puan ve %), canlı kotasyondan.
+    Kotasyon alınamazsa veri None döner; sabit/örnek değer üretilmez."""
+    from ..sources.macro_radar import VIOP_BASIS_UNAVAILABLE, MacroRadarAnalyzer
+    res = MacroRadarAnalyzer().get_viop_basis()
+    if res is None:
+        return {"veri": None, "neden": VIOP_BASIS_UNAVAILABLE}
+    return res.to_dict()
 
 
 @mcp.tool()
@@ -509,8 +524,11 @@ def devaluasyon_risk_analizi() -> dict[str, Any]:
     VİOP USDTRY ima edilen faiz vs TCMB politika faizi, TCMB swap hariç rezerv yanma hızı,
     Kapalıçarşı (Tahtakale) vs bankalararası makas, Türkiye 5Y CDS ve TÜFE Reel Efektif Kur (REER)
     bileşenlerini ve kriz stres kıyaslamalarını analiz eder."""
-    from ..sources.devaluation_radar import DevaluationRadarAnalyzer
-    return DevaluationRadarAnalyzer().analyze().to_dict()
+    from ..sources.devaluation_radar import DEVALUATION_RADAR_UNAVAILABLE, DevaluationRadarAnalyzer
+    res = DevaluationRadarAnalyzer().analyze()
+    if res is None:
+        return {"veri": None, "neden": DEVALUATION_RADAR_UNAVAILABLE}
+    return res
 
 
 # ============================================================================
@@ -526,6 +544,8 @@ def et_yem_paritesi() -> dict[str, Any]:
     """
     analyzer = MeatFeedIndexAnalyzer()
     rep = analyzer.analyze()
+    if rep is None:
+        return {"veri": None, "neden": ET_YEM_UNAVAILABLE}
     return {
         "tarih": rep.tarih,
         "pariteler": [
@@ -553,6 +573,8 @@ def et_tufe_endeksi() -> dict[str, Any]:
     """
     analyzer = MeatFeedIndexAnalyzer()
     rep = analyzer.analyze()
+    if rep is None:
+        return {"veri": None, "neden": ET_YEM_UNAVAILABLE}
     return {
         "tarih": rep.tarih,
         "et_tufe_endeks_degeri": rep.et_tufe_endeks,
@@ -569,6 +591,8 @@ def et_sektoru_bist_etkisi() -> dict[str, Any]:
     """Et-yem pariteleri ve Et TÜFE enflasyonunun BIST hisselerine (BANVT, PETUN, BIMAS, MGROS) kârlılık yansıması."""
     analyzer = MeatFeedIndexAnalyzer()
     rep = analyzer.analyze()
+    if rep is None:
+        return {"veri": None, "neden": ET_YEM_UNAVAILABLE}
     return {
         "tarih": rep.tarih,
         "bist_etkisi_ozeti": rep.bist_etkisi_ozeti,

@@ -70,9 +70,9 @@ def test_real_returns_anchor():
     assert anchor_2019["usd"] == 5.67
     assert anchor_2019["tufe_kat_sayisi"] == 1.0
 
-    anchor_2026 = get_anchor("2026-10-01")
-    assert anchor_2026["usd"] == 40.50
-    assert anchor_2026["tufe_kat_sayisi"] == 13.20
+    # Tamamlanmamış / kaynaksız yıl için varsayılan uydurulmaz.
+    with pytest.raises(ValueError):
+        get_anchor("2026-10-01")
 
 
 def test_storage_backtest_math():
@@ -95,18 +95,9 @@ def test_storage_backtest_math():
     assert net_kar > 0  # 3.0 - 1.97 = 1.03 TL kâr
 
 
-def test_meat_feed_parity_and_cpi():
-    mf = MeatFeedIndexAnalyzer()
-    rep = mf.analyze()
-    assert rep.et_tufe_endeks > 0
-    assert rep.manset_tufe_endeks > 0
-    assert len(rep.pariteler) >= 2
-
-    dana = next((p for p in rep.pariteler if "Dana" in p.kategori), None)
-    assert dana is not None
-    assert dana.parite_orani > 0
-    assert dana.karkas_fiyati_tl_kg > 0
-    assert dana.yem_fiyati_tl_kg > 0
+def test_meat_feed_has_no_fabricated_data():
+    """Karkas fiyatı / Et TÜFE için gerçek kaynak yok: analizör sayı uydurmaz."""
+    assert MeatFeedIndexAnalyzer().analyze() is None
 
 
 @pytest.mark.asyncio
