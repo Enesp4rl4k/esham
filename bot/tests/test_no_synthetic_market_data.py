@@ -210,3 +210,13 @@ def test_turib_corrupt_previous_file_is_ignored(tmp_path):
     p.write_text("{bad", encoding="utf-8")
     assert turib_data.load_previous_market_data(p) is None
     assert turib_data.load_previous_market_data(tmp_path / "missing.json") is None
+
+
+def test_tmo_entries_carry_explicit_source_and_season(offline_turib):
+    data = turib_data.generate_turib_market_data(previous=None)
+    live = [e for e in data["tmoComparison"] if not e.get("stale")]
+    assert live
+    for e in live:
+        assert e["tmoSeason"] == str(e["year"])
+        assert e["tmoSource"]
+        assert e["tmoVerified"] is False

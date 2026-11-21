@@ -121,6 +121,8 @@ export interface TuribMarketDataset {
     meatInflationSpread?: number;
     macroCommentary?: string;
     bistSectorImpact?: string;
+    asOf?: string;
+    stale?: boolean;
     parities: Array<{
       title: string;
       meatType: string;
@@ -138,6 +140,11 @@ export interface TuribMarketDataset {
     commodity: string;
     tmoProductName: string;
     year: number;
+    asOf?: string;
+    stale?: boolean;
+    tmoSeason?: string;
+    tmoSource?: string;
+    tmoVerified?: boolean;
     tmoPurchasePrice: number;
     farmerPremium: number;
     totalFarmerIncome: number;
@@ -151,6 +158,8 @@ export interface TuribMarketDataset {
   }>;
   storageBacktest: {
     productGroup?: string;
+    asOf?: string;
+    stale?: boolean;
     testedSeasonsCount?: number;
     annualInterestPct?: number;
     winRate3mPct?: number;
@@ -235,6 +244,20 @@ export interface TuribMarketDataset {
   petrolTanker?: PetrolTankerDataset;
 }
 
+const NO_DATA = "Veri yok";
+const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
+const isPos = (v: unknown): v is number => isNum(v) && v > 0;
+const NoSource = ({ what }: { what: string }) => (
+  <p className="text-xs md:text-sm rounded-xl border p-4" style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}>
+    {what}: veri kaynağı şu an yok. Eski veya örnek değer gösterilmez.
+  </p>
+);
+const StaleNote = ({ asOf }: { asOf?: string }) => (
+  <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+    Son geçerli veri{asOf ? ` (${asOf})` : ""}; güncel değil.
+  </p>
+);
+
 export function TuribMarketClient({
   dataset,
   initialTab,
@@ -295,7 +318,7 @@ export function TuribMarketClient({
     }
   };
 
-  const filteredSpot = dataset.spotCommodities.filter((p) =>
+  const filteredSpot = (dataset.spotCommodities || []).filter((p) =>
     searchQuery === ""
       ? true
       : p.name.toLocaleLowerCase("tr-TR").includes(searchQuery.toLocaleLowerCase("tr-TR"))
@@ -331,10 +354,13 @@ export function TuribMarketClient({
                 }}
               >
                 <Database className="w-3.5 h-3.5" />
-                CANLI TÜRİB & ELÜS VERİ SETİ
+                TÜRİB & ELÜS VERİ SETİ
               </span>
               <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-                Son Güncelleme: {new Date(dataset.updatedAt).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })}
+                Son Güncelleme:{" "}
+                {dataset.updatedAt
+                  ? new Date(dataset.updatedAt).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })
+                  : NO_DATA}
               </span>
             </div>
             <h1 className="text-2xl md:text-4xl font-display font-bold tracking-tight mb-2">
@@ -395,7 +421,7 @@ export function TuribMarketClient({
               Toplam Günlük Hacim
             </p>
             <p className="text-lg md:text-xl font-bold mt-1" style={{ color: "var(--text-primary)" }}>
-              {dataset.bulletinSummary.totalVolumeTonStr || "625.021,1 Ton"}
+              {dataset.bulletinSummary?.totalVolumeTonStr || NO_DATA}
             </p>
           </div>
           <div>
@@ -403,7 +429,7 @@ export function TuribMarketClient({
               İşlem Tutarı
             </p>
             <p className="text-lg md:text-xl font-bold mt-1" style={{ color: "var(--accent)" }}>
-              {dataset.bulletinSummary.totalValueTlStr || "11,5 Milyar ₺"}
+              {dataset.bulletinSummary?.totalValueTlStr || NO_DATA}
             </p>
           </div>
           <div>
@@ -411,12 +437,14 @@ export function TuribMarketClient({
               Dana / Yem Paritesi
             </p>
             <p className="text-lg md:text-xl font-bold mt-1 text-emerald-400 flex items-center gap-1.5">
-              {dataset.meatFeed.parities?.[0]?.ratio
+              {isNum(dataset.meatFeed.parities?.[0]?.ratio)
                 ? `${dataset.meatFeed.parities[0].ratio.toFixed(1)}x`
-                : "28.2x"}
-              <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                Kârlı Alan
-              </span>
+                : NO_DATA}
+              {isNum(dataset.meatFeed.parities?.[0]?.ratio) && dataset.meatFeed.parities[0].ratio >= dataset.meatFeed.parities[0].threshold && (
+                <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                  Kârlı Alan
+                </span>
+              )}
             </p>
           </div>
           <div>
@@ -424,10 +452,12 @@ export function TuribMarketClient({
               Yıllık Et TÜFE
             </p>
             <p className="text-lg md:text-xl font-bold mt-1" style={{ color: "var(--text-primary)" }}>
-              %{dataset.meatFeed.meatCpiAnnualPct ? dataset.meatFeed.meatCpiAnnualPct.toFixed(1) : "30.5"}
-              <span className="text-xs ml-2 text-emerald-400 font-normal">
-                (Manşet: %{dataset.meatFeed.headlineCpiAnnualPct ? dataset.meatFeed.headlineCpiAnnualPct.toFixed(1) : "31.5"})
-              </span>
+              {isNum(dataset.meatFeed.meatCpiAnnualPct) ? `%${dataset.meatFeed.meatCpiAnnualPct.toFixed(1)}` : NO_DATA}
+              {isNum(dataset.meatFeed.headlineCpiAnnualPct) && (
+                <span className="text-xs ml-2 text-emerald-400 font-normal">
+                  (Manşet: %{dataset.meatFeed.headlineCpiAnnualPct.toFixed(1)})
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -487,8 +517,17 @@ export function TuribMarketClient({
             </div>
           </div>
 
+          {(dataset.indices || []).length === 0 && (dataset.spotCommodities || []).length === 0 ? (
+            <NoSource what="TÜRİB endeks ve spot bülteni" />
+          ) : (
+          <>
+          {dataset.date && (
+            <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+              Veri tarihi: {dataset.date}
+            </p>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {dataset.indices.map((idx) => {
+            {(dataset.indices || []).map((idx) => {
               const isUp = idx.changePct >= 0;
               return (
                 <div
@@ -521,7 +560,7 @@ export function TuribMarketClient({
                   <div className="mt-4 pt-3 border-t flex items-center justify-between text-xs" style={{ borderColor: "var(--border)" }}>
                     <span style={{ color: "var(--text-muted)" }}>Hacim: {idx.volumeStr}</span>
                     <span style={{ color: "var(--text-muted)" }}>
-                      {idx.low > 0 ? `${idx.low.toFixed(1)} - ${idx.high.toFixed(1)}` : "Seans Aktif"}
+                      {idx.low > 0 ? `${idx.low.toFixed(1)} - ${idx.high.toFixed(1)}` : "—"}
                     </span>
                   </div>
                 </div>
@@ -611,6 +650,8 @@ export function TuribMarketClient({
               </table>
             </div>
           </div>
+          </>
+          )}
         </section>
       )}
 
@@ -631,6 +672,13 @@ export function TuribMarketClient({
             </div>
           </div>
 
+          {!isNum(dataset.meatFeed.meatCpiAnnualPct) &&
+          !isNum(dataset.meatFeed.headlineCpiAnnualPct) &&
+          (dataset.meatFeed.parities || []).length === 0 ? (
+            <NoSource what="Et-yem paritesi ve Et TÜFE" />
+          ) : (
+          <>
+          {dataset.meatFeed.stale && <StaleNote asOf={dataset.meatFeed.asOf} />}
           {/* Et TÜFE vs Manşet TÜFE Gösterge Kartı */}
           <div
             className="rounded-xl border p-6"
@@ -642,10 +690,10 @@ export function TuribMarketClient({
                   TÜİK Et TÜFE Yıllık
                 </span>
                 <p className="text-3xl font-display font-bold" style={{ color: "var(--text-primary)" }}>
-                  %{dataset.meatFeed.meatCpiAnnualPct ? dataset.meatFeed.meatCpiAnnualPct.toFixed(1) : "30.5"}
+                  {isNum(dataset.meatFeed.meatCpiAnnualPct) ? `%${dataset.meatFeed.meatCpiAnnualPct.toFixed(1)}` : NO_DATA}
                 </p>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                  Endeks: {dataset.meatFeed.meatCpi ? dataset.meatFeed.meatCpi.toFixed(1) : "1540.0"} (Tarih: {dataset.meatFeed.cpiDate || "2026-11"})
+                  Endeks: {isNum(dataset.meatFeed.meatCpi) ? dataset.meatFeed.meatCpi.toFixed(1) : NO_DATA} (Tarih: {dataset.meatFeed.cpiDate || NO_DATA})
                 </p>
               </div>
 
@@ -654,10 +702,10 @@ export function TuribMarketClient({
                   Manşet TÜFE Enflasyonu
                 </span>
                 <p className="text-3xl font-display font-bold" style={{ color: "var(--text-primary)" }}>
-                  %{dataset.meatFeed.headlineCpiAnnualPct ? dataset.meatFeed.headlineCpiAnnualPct.toFixed(1) : "31.5"}
+                  {isNum(dataset.meatFeed.headlineCpiAnnualPct) ? `%${dataset.meatFeed.headlineCpiAnnualPct.toFixed(1)}` : NO_DATA}
                 </p>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                  Endeks: {dataset.meatFeed.headlineCpi ? dataset.meatFeed.headlineCpi.toFixed(1) : "1210.0"}
+                  Endeks: {isNum(dataset.meatFeed.headlineCpi) ? dataset.meatFeed.headlineCpi.toFixed(1) : NO_DATA}
                 </p>
               </div>
 
@@ -666,14 +714,18 @@ export function TuribMarketClient({
                   Et Enflasyon Primi
                 </span>
                 <p className="text-3xl font-display font-bold text-emerald-400">
-                  {dataset.meatFeed.meatInflationSpread
+                  {isNum(dataset.meatFeed.meatInflationSpread)
                     ? `${dataset.meatFeed.meatInflationSpread > 0 ? "+" : ""}${dataset.meatFeed.meatInflationSpread.toFixed(1)}`
-                    : "-1.0"}{" "}
-                  <span className="text-sm font-normal">puan</span>
+                    : NO_DATA}{" "}
+                  {isNum(dataset.meatFeed.meatInflationSpread) && <span className="text-sm font-normal">puan</span>}
                 </p>
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                  Et fiyat artışı manşet enflasyonun altında seyrediyor.
-                </p>
+                {isNum(dataset.meatFeed.meatInflationSpread) && (
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                    {dataset.meatFeed.meatInflationSpread < 0
+                      ? "Et fiyat artışı manşet enflasyonun altında seyrediyor."
+                      : "Et fiyat artışı manşet enflasyonun üzerinde seyrediyor."}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -754,6 +806,8 @@ export function TuribMarketClient({
               {dataset.meatFeed.bistSectorImpact}
             </div>
           )}
+          </>
+          )}
         </section>
       )}
 
@@ -775,6 +829,9 @@ export function TuribMarketClient({
           </div>
 
           {/* TMO Karşılaştırma Tablosu */}
+          {(dataset.tmoComparison || []).length === 0 ? (
+            <NoSource what="TMO alım fiyatı karşılaştırması" />
+          ) : (
           <div className="rounded-xl border overflow-hidden" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
             <div className="p-4 md:p-6 border-b" style={{ borderColor: "var(--border)" }}>
               <h3 className="font-display font-bold text-base md:text-lg">
@@ -782,6 +839,11 @@ export function TuribMarketClient({
               </h3>
               <p className="text-xs" style={{ color: "var(--text-muted)" }}>
                 Üreticinin TMO yerine serbest piyasayı tercih etme prim oranları (TL/kg ve %).
+              </p>
+              <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+                TMO sütunları, sezonu satırda belirtilen açıklanan alım fiyatlarıdır (güncel piyasa fiyatı değildir).
+                {(dataset.tmoComparison || []).some((t) => t.tmoVerified !== true) &&
+                  " Tablo elle girilmiştir; resmî duyuru bağlantısı bu sayfada doğrulanmamıştır."}
               </p>
             </div>
 
@@ -800,23 +862,37 @@ export function TuribMarketClient({
                 </thead>
                 <tbody className="divide-y" style={{ borderColor: "var(--border)" }}>
                   {(dataset.tmoComparison || []).map((tmo) => {
-                    const isPremium = tmo.spreadTl >= 0;
+                    const hasFree = isPos(tmo.turibFreePrice) && isNum(tmo.spreadTl) && isNum(tmo.spreadPct);
+                    const isPremium = hasFree && tmo.spreadTl >= 0;
                     return (
                       <tr key={tmo.commodity} className="hover:bg-zinc-900/50 transition-colors">
                         <td className="py-3.5 px-4 md:px-6 font-semibold" style={{ color: "var(--text-primary)" }}>
                           {tmo.commodity}
+                          <span className="block text-xs font-normal" style={{ color: "var(--text-muted)" }}>
+                            TMO açıklanan alım fiyatı, {tmo.tmoSeason || tmo.year} sezonu
+                          </span>
                         </td>
-                        <td className="py-3.5 px-4 font-mono">{tmo.tmoPurchasePrice.toFixed(2)} ₺</td>
-                        <td className="py-3.5 px-4 font-mono text-emerald-400">+{tmo.farmerPremium.toFixed(2)} ₺</td>
-                        <td className="py-3.5 px-4 font-mono font-semibold">{tmo.totalFarmerIncome.toFixed(2)} ₺</td>
+                        <td className="py-3.5 px-4 font-mono">{isNum(tmo.tmoPurchasePrice) ? `${tmo.tmoPurchasePrice.toFixed(2)} ₺` : NO_DATA}</td>
+                        <td className="py-3.5 px-4 font-mono text-emerald-400">{isNum(tmo.farmerPremium) ? `+${tmo.farmerPremium.toFixed(2)} ₺` : NO_DATA}</td>
+                        <td className="py-3.5 px-4 font-mono font-semibold">{isNum(tmo.totalFarmerIncome) ? `${tmo.totalFarmerIncome.toFixed(2)} ₺` : NO_DATA}</td>
                         <td className="py-3.5 px-4 font-mono font-bold" style={{ color: "var(--accent)" }}>
-                          {tmo.turibFreePrice.toFixed(2)} ₺
+                          {isPos(tmo.turibFreePrice) ? `${tmo.turibFreePrice.toFixed(2)} ₺` : NO_DATA}
+                          {tmo.asOf && (
+                            <span className="block text-xs font-normal" style={{ color: "var(--text-muted)" }}>
+                              {tmo.stale ? "Son geçerli: " : ""}
+                              {tmo.asOf}
+                            </span>
+                          )}
                         </td>
                         <td className="py-3.5 px-4">
-                          <span className={`font-semibold ${isPremium ? "text-emerald-400" : "text-red-400"}`}>
-                            {isPremium ? "+" : ""}
-                            {tmo.spreadTl.toFixed(2)} ₺ (%{tmo.spreadPct.toFixed(1)})
-                          </span>
+                          {hasFree ? (
+                            <span className={`font-semibold ${isPremium ? "text-emerald-400" : "text-red-400"}`}>
+                              {isPremium ? "+" : ""}
+                              {tmo.spreadTl.toFixed(2)} ₺ (%{tmo.spreadPct.toFixed(1)})
+                            </span>
+                          ) : (
+                            NO_DATA
+                          )}
                         </td>
                         <td className="py-3.5 px-4 md:px-6 text-right">
                           <span
@@ -826,7 +902,7 @@ export function TuribMarketClient({
                                 : "bg-red-500/10 border-red-500/30 text-red-400"
                             }`}
                           >
-                            {tmo.status.replace(/_/g, " ")}
+                            {hasFree ? tmo.status.replace(/_/g, " ") : NO_DATA}
                           </span>
                         </td>
                       </tr>
@@ -836,8 +912,10 @@ export function TuribMarketClient({
               </table>
             </div>
           </div>
+          )}
 
           {/* LİDAŞ Depolama Backtest Simülasyonu */}
+          {dataset.storageBacktest?.stale && <StaleNote asOf={dataset.storageBacktest.asOf} />}
           {dataset.storageBacktest && dataset.storageBacktest.testedSeasonsCount && (
             <div
               className="rounded-xl border p-6"
@@ -849,7 +927,7 @@ export function TuribMarketClient({
                     LİDAŞ Depolama Stratejisi Backtest Simülatörü
                   </h3>
                   <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                    Hasat dönemi spot satış vs. 3, 6 ve 9 ay LİDAŞ'ta saklama. Alternatif faiz: %
+                    Hasat dönemi spot satış vs. 3, 6 ve 9 ay LİDAŞ'ta saklama. Alternatif faiz (model varsayımı): %
                     {dataset.storageBacktest.annualInterestPct}
                   </p>
                 </div>
@@ -923,6 +1001,9 @@ export function TuribMarketClient({
             </div>
           </div>
 
+          {(dataset.regionalArbitrage?.opportunities || []).length === 0 ? (
+            <NoSource what="Bölgesel arbitraj taraması" />
+          ) : (
           <div className="rounded-xl border overflow-hidden" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
             <div className="p-4 md:p-6 border-b" style={{ borderColor: "var(--border)" }}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -930,7 +1011,9 @@ export function TuribMarketClient({
                   En Yüksek Net Arbitraj Fırsatları
                 </h3>
                 <span className="text-xs text-zinc-400 font-mono">
-                  Referans Nakliye: 0,50 ₺/kg
+                  {dataset.regionalArbitrage.date ? `Veri tarihi: ${dataset.regionalArbitrage.date} · ` : ""}
+                  Nakliye (model varsayımı):{" "}
+                  {isNum(filteredArb[0]?.freightCost) ? `${filteredArb[0].freightCost.toFixed(2).replace(".", ",")} ₺/kg` : NO_DATA}
                 </span>
               </div>
             </div>
@@ -986,6 +1069,7 @@ export function TuribMarketClient({
               </table>
             </div>
           </div>
+          )}
         </section>
       )}
 
@@ -1007,13 +1091,16 @@ export function TuribMarketClient({
 
             <div className="text-xs px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center gap-2">
               <span className="text-zinc-400">XGIDA Endeksi:</span>
-              <strong className="text-zinc-200">{dataset.agriBist.xgidaPrice || "11.240,50"}</strong>
-              <span className="text-emerald-400 font-semibold">{dataset.agriBist.xgidaChange || "+2,59%"}</span>
+              <strong className="text-zinc-200">{dataset.agriBist?.xgidaPrice || NO_DATA}</strong>
+              {dataset.agriBist?.xgidaChange && (
+                <span className="text-emerald-400 font-semibold">{dataset.agriBist.xgidaChange}</span>
+              )}
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(dataset.agriBist.companies || []).map((c) => {
+            {(dataset.agriBist?.companies || []).length === 0 && <NoSource what="Agri-BIST hisse radarı" />}
+            {(dataset.agriBist?.companies || []).filter((c) => Number(c.commodityPrice) > 0).map((c) => {
               const isUp = !c.stockChange.startsWith("-");
               return (
                 <div
@@ -1145,7 +1232,7 @@ export function TuribMarketClient({
                   </button>
                 </div>
                 <p className="text-xs text-zinc-400 mb-4">
-                  `esham-market-mcp` ile 18 adet canlı aracı (TÜRİB, BIST, Et-Yem, TMO, Depolama) yapay zeka asistanınıza ekleyin.
+                  `esham-market-mcp` ile 18 adet aracı (TÜRİB, BIST, Et-Yem, TMO, Depolama) yapay zeka asistanınıza ekleyin.
                 </p>
 
                 <div className="rounded-lg bg-zinc-950 p-4 font-mono text-xs text-zinc-300 border border-zinc-800 overflow-x-auto">
