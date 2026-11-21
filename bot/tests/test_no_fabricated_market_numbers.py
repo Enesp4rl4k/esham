@@ -8,7 +8,7 @@ import pytest
 import requests
 
 from esham.publishing import turib_data
-from esham.sources import bist_quant, devaluation_radar, macro_radar, tanker_freight, viop
+from esham.sources import bist_quant, devaluation_radar, macro_radar, portwatch, tanker_freight, viop
 from esham.sources.devaluation_radar import DevaluationRadarAnalyzer
 from esham.sources.macro_radar import MacroRadarAnalyzer
 from esham.sources.viop import ViopQuote, ViopSource
@@ -183,6 +183,7 @@ def offline(monkeypatch):
               "StorageStrategyBacktester", "RegionalArbitrageScanner", "AgriBistAnalyzer"):
         monkeypatch.setattr(turib_data, n, _Boom)
     monkeypatch.setattr(tanker_freight, "TankerFreightSource", _Boom)
+    monkeypatch.setattr(portwatch, "PortWatchSource", _Boom)
 
 
 def test_turib_section_failure_keeps_last_good_with_original_date(offline):
@@ -208,3 +209,38 @@ def test_turib_section_without_previous_stays_empty(offline):
     assert data["petrolTanker"] == {}
     data = turib_data.generate_turib_market_data(previous={"indices": [{"code": "X"}]})  # tarihsiz
     assert data["indices"] == []
+
+
+# ---- PortWatch boğaz sayıları: gerçek upstream yanıtı olmadan değer üretilemez --------------
+
+def test_portwatch_straits_never_emit_a_value_without_upstream_response(monkeypatch):
+    class _Resp:
+        status_code = 200
+
+        def __init__(self, body):
+            self._b = body
+
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return self._b
+
+    for body in ({"features": []}, {}, {"error": {"code": 500}}):
+        monkeypatch.setattr(portwatch, "retry_get", lambda url, _b=body, **k: _Resp(_b))
+        assert portwatch.PortWatchSource().fetch_straits() is None
+
+    def boom(*a, **k):
+        raise requests.ConnectionError("down")
+
+    monkeypatch.setattr(portwatch, "retry_get", boom)
+    assert portwatch.PortWatchSource().fetch_straits() is None
+    monkeypatch.setattr(portwatch, "PortWatchSource", _Boom)
+    assert turib_data._collect_straits(None) == []
+
+
+def test_portwatch_module_has_no_hardcoded_counts():
+    tree = ast.parse(inspect.getsource(portwatch))
+    nums = {n.value for n in ast.walk(tree) if isinstance(n, ast.Constant)
+            and isinstance(n.value, (int, float)) and not isinstance(n.value, bool)}
+    assert nums <= {0, 1000, 6, 7, 10, 42}, nums  # ms->s, hafta günleri, ISO tarih dilimi, geriye bakış

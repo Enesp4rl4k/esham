@@ -112,6 +112,24 @@ def _carry_section(data: dict[str, Any], previous: dict[str, Any] | None, sectio
             log.warning("TuribData: bölüm canlı veri yok; son yayın bölümü taşındı.")
 
 
+def _collect_straits(previous: dict[str, Any] | None) -> list[dict[str, Any]]:
+    """PortWatch boğaz sayıları; alınamayan boğaz için son iyi girdi özgün `asOf` ile ve `stale: true` ile taşınır."""
+    fresh: list[dict[str, Any]] = []
+    try:
+        from ..sources.portwatch import STRAITS, PortWatchSource
+
+        fresh = [o.to_dict() for o in (PortWatchSource().fetch_straits() or [])]
+        got = {e["strait"] for e in fresh}
+        missing = [key for key, _name in STRAITS.values() if key not in got]
+    except Exception as exc:  # noqa: BLE001 - kaynak hatası yayını durdurmamalı
+        log.warning("TuribData: PortWatch boğaz verisi derlenirken hata: %s", exc)
+        missing = ["Bosporus"]
+    old_pt = (previous or {}).get("petrolTanker")
+    old_straits = old_pt.get("straits") if isinstance(old_pt, dict) else None
+    shim = {"straits": old_straits, "date": (previous or {}).get("date")}
+    return fresh + _carry_over(missing, shim, "straits", "strait", ("weekEnd",))
+
+
 def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[str, Any]:
     """Tüm tarım, emtia, TÜRİB ve et-yem veri setini yapılandırılmış sözlük olarak derler.
 
@@ -402,6 +420,15 @@ def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[s
     except Exception as exc:
         log.warning("TuribData: Petrol & Tanker verisi derlenirken hata: %s", exc)
         data["petrolTanker"] = {}
+
+    # 8b. Boğaz geçiş sayıları (IMF PortWatch; gözlem — yalnızca tamamlanmış haftalar)
+    # Brent bölümü önce (son iyi değer taşıma), sonra boğaz girdileri kendi asOf/stale kuralıyla.
+    _carry_section(data, previous, "petrolTanker")
+    straits = _collect_straits(previous)
+    pt = {k: v for k, v in data.get("petrolTanker", {}).items() if k != "straits"}
+    if straits:
+        pt["straits"] = straits
+    data["petrolTanker"] = pt
 
     # Bölüm düzeyinde başarısızlık: boş yayın yerine son iyi bölümü özgün tarihiyle taşı.
     for section in (
