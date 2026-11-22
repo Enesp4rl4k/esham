@@ -189,7 +189,7 @@ export function StockScreener({ stocks, sectors }: { stocks: UniverseStock[]; se
             {rows.length === 0 && (
               <tr>
                 <td colSpan={COLS.length + 3} className="px-3 py-10 text-center text-zinc-400">
-                  Filtrelere uyan hisse yok.
+                  Filtrelere uyan hisse yok (bayat satırlar filtre sonuçlarına girmez).
                 </td>
               </tr>
             )}

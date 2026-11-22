@@ -29,6 +29,36 @@ export function freshOnly<T extends { stale?: boolean; updated_at?: string }>(ro
   return rows.filter((r) => !isStale(r));
 }
 
+export interface StaleSummary {
+  total: number;
+  freshCount: number;
+  staleCount: number;
+  /** Satırların en yeni KENDİ veri tarihi (YYYY-MM-DD); hiç tarih yoksa null */
+  lastDate: string | null;
+  /** lastDate'ten bu yana geçen tam gün */
+  days: number | null;
+}
+
+export function staleSummary(rows: { stale?: boolean; updated_at?: string }[], now: number = Date.now()): StaleSummary {
+  const freshCount = rows.filter((r) => !isStale(r, now)).length;
+  const stamps = rows.map((r) => (r.updated_at ? Date.parse(r.updated_at) : NaN)).filter((t) => !Number.isNaN(t));
+  const last = stamps.length ? Math.max(...stamps) : null;
+  return {
+    total: rows.length,
+    freshCount,
+    staleCount: rows.length - freshCount,
+    lastDate: last === null ? null : new Date(last).toISOString().slice(0, 10),
+    days: last === null ? null : Math.floor((now - last) / 86400000),
+  };
+}
+
+/** Hiç taze satır yokken boş tablo yerine açık durum cümlesi; en az bir taze satır varsa null. */
+export function emptyStateText(sum: StaleSummary): string | null {
+  if (sum.total === 0 || sum.freshCount > 0) return null;
+  const since = sum.days === null ? "bir süredir" : `${sum.days} gündür`;
+  return `Veriler ${since} güncellenemedi; sıralama gösterilmiyor. Son başarılı tarama: ${sum.lastDate ?? "bilinmiyor"}.`;
+}
+
 
 // Not: sade Node test koşucusu uzantısız göreli import çözemediği için küçük yardımcılar burada tekrarlanır.
 const fold = (s: string) =>

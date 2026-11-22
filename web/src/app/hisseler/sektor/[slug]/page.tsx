@@ -6,7 +6,7 @@ import { loadUniverse } from "@/lib/stocks";
 import { MIN_INDEXABLE, SCANS, comparePairs, sectorGroups, sectorStats } from "@/lib/programmatic";
 import { DEFAULT_OG_IMAGE, seoDescription } from "@/lib/seo";
 import { StockTable } from "@/components/StockTable";
-import { isStale } from "@/lib/stocks";
+import { emptyStateText, isStale, staleSummary } from "@/lib/stocks";
 
 type Params = { slug: string };
 const nf = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -110,6 +110,9 @@ export default async function SectorPage({ params }: { params: Promise<Params> }
         ))}
       </div>
 
+      {emptyStateText(staleSummary(g.stocks)) && (
+        <p className="mb-3 text-sm text-amber-400" role="note" data-empty-state>{emptyStateText(staleSummary(g.stocks))}</p>
+      )}
       {staleCount > 0 && (
         <p className="mb-3 text-sm text-amber-400" role="note">
           {staleCount} hisse için son turda veri alınamadı: satırlarında &quot;bayat&quot; yazar, sektör medyanına ve en düşük/en yüksek özetlerine dahil edilmez.

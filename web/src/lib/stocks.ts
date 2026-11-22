@@ -36,7 +36,7 @@ export interface Universe {
 }
 
 
-export { STALE_ROW_HOURS, isStale, staleLabel, freshOnly } from "./programmatic";
+export { STALE_ROW_HOURS, isStale, staleLabel, freshOnly, staleSummary, emptyStateText } from "./programmatic";
 import { isStale } from "./programmatic";
 
 let cache: Universe | null | undefined;

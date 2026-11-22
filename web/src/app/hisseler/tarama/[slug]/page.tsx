@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { loadUniverse } from "@/lib/stocks";
 import { MIN_INDEXABLE, SCANS, runScan, sectorGroups } from "@/lib/programmatic";
 import { DEFAULT_OG_IMAGE, seoDescription } from "@/lib/seo";
+import { emptyStateText, staleSummary } from "@/lib/stocks";
 import { StockTable } from "@/components/StockTable";
 
 type Params = { slug: string };
@@ -74,7 +75,7 @@ export default async function ScanPage({ params }: { params: Promise<Params> }) 
         </p>
       </header>
 
-      {rows.length > 0 ? <StockTable rows={rows} caption={sc.title} /> : <p className="text-zinc-400">Şu an koşulu sağlayan hisse yok.</p>}
+      {rows.length > 0 ? <StockTable rows={rows} caption={sc.title} /> : <p className="text-zinc-400" data-empty-state>{emptyStateText(staleSummary(u.stocks)) ?? "Şu an koşulu sağlayan hisse yok."}</p>}
 
       <section className="mt-10 max-w-3xl">
         <h2 className="text-xl font-display font-semibold mb-3">Bu oran nasıl yorumlanır?</h2>

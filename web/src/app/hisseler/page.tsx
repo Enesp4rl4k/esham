@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { StockScreener } from "@/components/StockScreener";
-import { loadUniverse } from "@/lib/stocks";
+import { emptyStateText, loadUniverse, staleSummary } from "@/lib/stocks";
 
 export const metadata: Metadata = {
   title: "BIST Hisse Tarayıcı — F/K, PD/DD, ROE, Temettü",
@@ -16,6 +16,8 @@ export default function HisselerPage() {
   const u = loadUniverse();
   const sectors = u ? Array.from(new Set(u.stocks.map((s) => s.sector))).sort((a, b) => a.localeCompare(b, "tr")) : [];
 
+  const notice = u ? emptyStateText(staleSummary(u.stocks)) : null;
+
   return (
     <div className="container mx-auto px-6 py-10">
       <header className="mb-8 max-w-2xl">
@@ -26,6 +28,7 @@ export default function HisselerPage() {
         </p>
       </header>
 
+      {notice && <p className="mb-4 text-sm text-amber-400" role="note" data-empty-state>{notice}</p>}
       {u ? (
         <Suspense fallback={<p className="text-sm text-zinc-400">Yükleniyor…</p>}>
           <StockScreener stocks={u.stocks} sectors={sectors} />
