@@ -155,7 +155,7 @@ def build_buybacks(listed: list[KE.Disclosure], names: dict[str, str], prev: dic
 
 def _write(path: Path, doc: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(doc, ensure_ascii=False, indent=1), encoding="utf-8")
+    path.write_text(json.dumps(doc, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
 
 def run_kap_events(dividend_days: int | None = None, buyback_days: int | None = None, max_details: int | None = None,
