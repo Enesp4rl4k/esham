@@ -43,7 +43,8 @@ def _backfill(universe_file: Path, rows_key: str, id_key: str, sibling_dir: Path
         else:
             unknown += 1
     if filled:
-        universe_file.write_text(json.dumps(doc, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        with open(universe_file, "w", encoding="utf-8") as fh:
+            json.dump(doc, fh, ensure_ascii=False, separators=(",", ":"))
     return filled, unknown
 
 
