@@ -20,13 +20,10 @@ export const NAV: NavGroup[] = [
   {
     key: "piyasa",
     label: "Piyasa",
-    match: ["/piyasa", "/halka-arz-takvimi", "/tarim-emtia"],
+    match: ["/halka-arz-takvimi", "/tarim-emtia"],
     items: [
-      { href: "/piyasa/temettu-takvimi", label: "Temettü Takvimi", description: "Kesinleşen ve teklif edilen kâr payları ve verimleri" },
       { href: "/halka-arz-takvimi", label: "Halka Arz Takvimi", description: "Taslak ve onaylı izahnameler, fiyat tespit raporları" },
-      { href: "/piyasa/geri-alimlar", label: "Pay Geri Alımları", description: "KAP bildirimli geri alım programları ve maliyetleri" },
-      { href: "/piyasa/devaluasyon-radari", label: "Devalüasyon Radarı", description: "Rezerv, Kapalıçarşı makası ve VİOP ima edilen faiz" },
-      { href: "/tarim-emtia", label: "Emtia, Petrol & Tanker", description: "Brent, navlun, TÜRİB ve et-yem paritesi" },
+      { href: "/tarim-emtia", label: "Emtia, Petrol & Tanker", description: "Brent, İstanbul Boğazı geçişleri, TÜRİB ve TMO fiyatları" },
       { href: "/kategori/viop", label: "VİOP & Türev", description: "Vadeli kontratlar, baz farkı ve teminatlar" },
     ],
   },

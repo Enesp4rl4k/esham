@@ -34,7 +34,6 @@ from .sources.news_detector import MarketEvent
 from .sources.peer import PeerSource
 from .sources.sector import SectorSource
 from .sources.turib import TuribSource
-from .sources.meat_feed_index import MeatFeedIndexAnalyzer
 from .sources.viop import ViopSource, assess_margin_stress
 
 log = get_logger(__name__)
@@ -107,7 +106,6 @@ def gather_snapshot() -> MarketSnapshot:
         ("viop_margin", lambda: ViopSource().margin_snapshot()),
         ("sector",      lambda: SectorSource().snapshot()),
         ("turib",       lambda: TuribSource().snapshot()),
-        ("meat_feed",   lambda: MeatFeedIndexAnalyzer().analyze()),
     ]
 
     # Her kaynak en fazla 30 saniye bekler; toplam paralel bekleme ~30s olur

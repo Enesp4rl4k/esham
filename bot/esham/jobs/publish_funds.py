@@ -102,6 +102,7 @@ def summary_row(f: dict[str, Any]) -> dict[str, Any]:
         "mdd": f["metrics"]["max_drawdown"], "sharpe": f["metrics"]["sharpe"],
         "rank": f["category_rank"]["rank"] if f["category_rank"] else None,
         "rank_of": f["category_rank"]["of"] if f["category_rank"] else None,
+        "updated_at": f.get("updated_at"),  # satırın KENDİ veri zamanı (dosya damgası tüm satırlar için geçerli sayılmaz)
     }
 
 
@@ -183,7 +184,7 @@ def _merge_universe(funds: list[dict[str, Any]], medians: dict[str, float], part
     elif path.exists():
         # engel yüzünden eksik kalan fonların önceki satırı korunsun (dosyası da yerinde duruyor)
         prev = json.loads(path.read_text(encoding="utf-8")).get("funds", [])
-        rows = {r["code"]: r for r in prev if r["code"] in chosen and (DATA_DIR / "funds" / f"{r['code']}.json").exists()}
+        rows = {r["code"]: {**r, "stale": True} for r in prev if r["code"] in chosen and (DATA_DIR / "funds" / f"{r['code']}.json").exists()}
     for f in funds:
         rows[f["code"]] = summary_row(f)
     if not partial:  # evrenden çıkan fonların eski dosyalarını sil (dosya bütçesi + bayat veri)

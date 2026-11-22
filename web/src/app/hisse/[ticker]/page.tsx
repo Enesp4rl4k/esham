@@ -111,7 +111,9 @@ async function loadQuantValuationData() {
   try {
     const filePath = path.join(process.cwd(), "public", "data", "bist-quant-valuation.json");
     const raw = await fs.readFile(filePath, "utf-8");
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    // Tarihsiz (updated_at yok) hesaplanmış seviye/oran dosyası yayınlanmaz: kaynak ve tarih zorunlu.
+    return parsed && typeof parsed.updated_at === "string" ? parsed : null;
   } catch {
     return null;
   }

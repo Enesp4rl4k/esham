@@ -67,7 +67,7 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     permissions:
       contents: write
     concurrency:
@@ -84,8 +84,12 @@ jobs:
           cache: "pip"
           cache-dependency-path: bot/requirements.txt
 
-      - name: KAP önbelleği
-        uses: actions/cache@v4
+      # KAP rapor önbelleği yalnızca hisse oranları (stocks) koşusunda gerekir. `actions/cache` birleşik eylemi
+      # kaydı yalnızca iş BAŞARILI bitince yapar: zaman aşımı/hata olunca o koşuda indirilen raporların hepsi kaybolur
+      # ve ertesi gün aynı hisseler baştan indirilirdi. Bu yüzden geri yükleme ve kaydetme ayrı, kaydetme `always()`.
+      - name: KAP önbelleği (geri yükle)
+        if: github.event.schedule == '45 15 * * 1-5' || github.event.inputs.command == 'stocks'
+        uses: actions/cache/restore@v4
         with:
           path: bot/cache/kap
           key: kap-cache-${{ github.run_id }}
@@ -97,8 +101,10 @@ jobs:
 
       - name: Komutu seç ve çalıştır
         working-directory: bot
-        timeout-minutes: 12
+        timeout-minutes: 22
         env:
+          # KAP istek süre bütçesi (sn): bütçe bitince kalan hisseler sonraki koşuda tamamlanır (önbellek ilerlemeyi korur)
+          ESHAM_KAP_BUDGET_SECONDS: "480"
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
@@ -156,13 +162,24 @@ jobs:
           # Hisse oranları: önce KAP finansalları (birincil kaynak), olmazsa Yahoo ile devam (görünür uyarıyla)
           case "$CMD" in
             stocks*)
-              if ! timeout 25m python -m esham.main kap-financials --workers 3; then
+              if ! timeout 11m python -m esham.main kap-financials --workers 3; then
                 echo "::warning title=KAP verisi alınamadı::Hisse oranları mevcut KAP dosyaları / Yahoo ile hesaplanacak"
               fi
               ;;
           esac
           echo "Çalıştırılıyor: $CMD"
           python -m esham.main $CMD
+
+      - name: KAP önbelleği (kaydet)
+        if: always() && (github.event.schedule == '45 15 * * 1-5' || github.event.inputs.command == 'stocks')
+        uses: actions/cache/save@v4
+        with:
+          path: bot/cache/kap
+          key: kap-cache-${{ github.run_id }}
+
+      - name: Veri tazeliği ölçümü (bölüm bazında; eski/eksik görünür olur, yayını durdurmaz)
+        working-directory: bot
+        run: python -m esham.main data-status
 
       - name: Yeni raporları ve durumu commit'le
         id: commit_step

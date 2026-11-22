@@ -17,6 +17,7 @@ from typing import Any
 import requests
 
 from ..config import get_logger
+from ..freshness import STOCK_ROW_STALE_HOURS
 
 log = get_logger(__name__)
 ROOT = Path(__file__).resolve().parents[3]
@@ -65,9 +66,9 @@ def evaluate(
 
     fresh("Son rapor tazeliği", newest_report, _limit_hours(now, 26, 74))
     fresh("Piyasa bandı (market-ticker.json) tazeliği", ticker_updated, _limit_hours(now, 26, 74))
-    fresh("Hisse verisi (universe.json) tazeliği", universe_updated, 108)
+    fresh("Hisse verisi (universe.json) tazeliği", universe_updated, STOCK_ROW_STALE_HOURS)
     if check_funds:  # fon verisi henüz hiç üretilmediyse (eski depo/ilk kurulum) alarm verme
-        fresh("Fon verisi (universe-funds.json) tazeliği", funds_updated, 108)
+        fresh("Fon verisi (universe-funds.json) tazeliği", funds_updated, STOCK_ROW_STALE_HOURS)
 
     if offline:
         checks.append(Check("Canlı site erişimi", True, "atlandı (--offline)"))

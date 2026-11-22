@@ -20,7 +20,6 @@ from ..sources.sector import SectorSource
 from ..sources.peer import PeerSource
 from ..sources.turib import TuribSource, ENDEKS_KODLARI, VARSAYILAN_URUNLER
 from ..sources.agri_bist import AgriBistAnalyzer
-from ..sources.meat_feed_index import ET_YEM_UNAVAILABLE, MeatFeedIndexAnalyzer
 from ..sources.tmo import TmoSource
 from ..sources.real_returns import RealReturnsCalculator
 from ..sources.storage_backtest import StorageStrategyBacktester
@@ -185,9 +184,9 @@ def turib_reel_getiri(
     baslangic_tarihi: str | None = "2022-01-01",
     bitis_tarihi: str | None = None,
 ) -> dict[str, Any]:
-    """TÜRİB tarım emtiasının TCMB kurları (USD, EUR) ve TÜİK TÜFE enflasyonundan arındırılmış reel getiri analizi.
-    
-    Nominal TL getirisinin gerçek satın alma gücünü koruyup korumadığını hesaplar.
+    """TÜRİB tarım emtiasının TCMB döviz kurlarıyla (USD, EUR) döviz cinsinden getirisi.
+
+    TÜFE ile arındırılmış getiri üretilmez (kaynaklı, anahtarsız TÜFE serisi bağlı değil). Kur bülteni yoksa hata verir.
     """
     calc = RealReturnsCalculator()
     rep = calc.calculate(urun_grubu, baslangic=baslangic_tarihi, bitis=bitis_tarihi)
@@ -210,7 +209,6 @@ def turib_reel_getiri(
             "nominal_tl_getiri_yuzde": rep.nominal_tl_getiri_pct,
             "dolar_usd_getiri_yuzde": rep.usd_getiri_pct,
             "euro_eur_getiri_yuzde": rep.eur_getiri_pct,
-            "enflasyondan_arindirilmis_reel_getiri_yuzde": rep.reel_enflasyon_getiri_pct,
         },
         "analiz_yorumu": rep.analiz_yorumu,
     }
@@ -539,71 +537,6 @@ def devaluasyon_risk_analizi() -> dict[str, Any]:
 # ============================================================================
 # ÇAPRAZ PİYASA (BIST x TÜRİB) ARAÇLARI
 # ============================================================================
-
-@mcp.tool()
-def et_yem_paritesi() -> dict[str, Any]:
-    """Türkiye hayvancılık sektörü kârlılık göstergesi: Dana Karkas, Tavuk ve Kuzu et-yem pariteleri.
-    
-    1 kg karkas et ile kaç kg fabrika yemi veya TÜRİB arpa/mısır alınabildiğini hesaplar.
-    Dana besisinde 20 eşiği kârlılık, 18 altı ise üretici zararı ve arz krizi sinyalidir.
-    """
-    analyzer = MeatFeedIndexAnalyzer()
-    rep = analyzer.analyze()
-    if rep is None:
-        return {"veri": None, "neden": ET_YEM_UNAVAILABLE}
-    return {
-        "tarih": rep.tarih,
-        "pariteler": [
-            {
-                "kategori": p.kategori,
-                "karkas_fiyati_tl_kg": p.karkas_fiyati_tl_kg,
-                "yem_fiyati_tl_kg": p.yem_fiyati_tl_kg,
-                "parite_orani": p.parite_orani,
-                "ideal_basabas_esigi": p.esik_basabasi,
-                "durum": p.kar_marji_durumu,
-                "yorum": p.sinyal_yorumu,
-            }
-            for p in rep.pariteler
-        ],
-        "bist_etkisi": rep.bist_etkisi_ozeti,
-    }
-
-
-@mcp.tool()
-def et_tufe_endeksi() -> dict[str, Any]:
-    """TÜİK Et ve Et Ürünleri TÜFE Endeksi ile Manşet TÜFE enflasyonu ayrışma analizi.
-    
-    Yıllık et enflasyonunun genel tüketici enflasyonuna göre primini (Et Enflasyon Primi)
-    ve TÜRİB yem emtiasından tüketici et fiyatlarına geçişkenliği sunar.
-    """
-    analyzer = MeatFeedIndexAnalyzer()
-    rep = analyzer.analyze()
-    if rep is None:
-        return {"veri": None, "neden": ET_YEM_UNAVAILABLE}
-    return {
-        "tarih": rep.tarih,
-        "et_tufe_endeks_degeri": rep.et_tufe_endeks,
-        "manset_tufe_endeks_degeri": rep.manset_tufe_endeks,
-        "yillik_et_enflasyonu_yuzde": rep.et_enflasyonu_yillik_pct,
-        "yillik_manset_enflasyon_yuzde": rep.manset_enflasyon_yillik_pct,
-        "et_enflasyon_primi_puan": rep.et_enflasyon_primi_pct,
-        "makro_degerlendirme": rep.makro_degerlendirme,
-    }
-
-
-@mcp.tool()
-def et_sektoru_bist_etkisi() -> dict[str, Any]:
-    """Et-yem pariteleri ve Et TÜFE enflasyonunun BIST hisselerine (BANVT, PETUN, BIMAS, MGROS) kârlılık yansıması."""
-    analyzer = MeatFeedIndexAnalyzer()
-    rep = analyzer.analyze()
-    if rep is None:
-        return {"veri": None, "neden": ET_YEM_UNAVAILABLE}
-    return {
-        "tarih": rep.tarih,
-        "bist_etkisi_ozeti": rep.bist_etkisi_ozeti,
-        "makro_degerlendirme": rep.makro_degerlendirme,
-    }
-
 
 @mcp.tool()
 def agri_bist_korelasyon() -> dict[str, Any]:

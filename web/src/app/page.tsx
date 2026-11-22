@@ -22,7 +22,6 @@ import { Newsletter } from "@/components/Newsletter";
 import { TickerBand } from "@/components/TickerBand";
 import { MacroBarometerCard } from "@/components/MacroBarometerCard";
 import { ViopBasisCard } from "@/components/ViopBasisCard";
-import { DevaluationRadarCard } from "@/components/DevaluationRadarCard";
 import { MorningCockpit } from "@/components/MorningCockpit";
 import { SectorCards, StockLeaderboards } from "@/components/HomeDiscovery";
 import { HomeHero } from "@/components/HomeHero";
@@ -70,16 +69,6 @@ async function loadViopBasis() {
   }
 }
 
-async function loadDevaluationRadar() {
-  try {
-    const filePath = path.join(process.cwd(), "public", "data", "devaluation-radar.json");
-    const raw = await fs.readFile(filePath, "utf-8");
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-}
-
 async function loadMarketTickerData() {
   try {
     const filePath = path.join(process.cwd(), "public", "data", "market-ticker.json");
@@ -104,7 +93,9 @@ async function loadQuantValuation() {
   try {
     const filePath = path.join(process.cwd(), "public", "data", "bist-quant-valuation.json");
     const raw = await fs.readFile(filePath, "utf-8");
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    // Tarihsiz (updated_at yok) hesaplanmış seviye/oran dosyası yayınlanmaz: kaynak ve tarih zorunlu.
+    return parsed && typeof parsed.updated_at === "string" ? parsed : null;
   } catch {
     return null;
   }
@@ -120,7 +111,6 @@ export default async function Home() {
     tickerData,
     macroData,
     viopData,
-    devalData,
     calendarData,
     quantData,
   ] = await Promise.all([
@@ -128,7 +118,6 @@ export default async function Home() {
     loadMarketTickerData(),
     loadMacroBarometer(),
     loadViopBasis(),
-    loadDevaluationRadar(),
     loadEconomicCalendar(),
     loadQuantValuation(),
   ]);
@@ -137,12 +126,6 @@ export default async function Home() {
   const bugdaySpot = turibData?.spotCommodities?.find((p: any) =>
     p.name.includes("BUĞDAY")
   );
-  const danaYem = turibData?.meatFeed?.parities?.find((p: any) =>
-    p.title?.includes("Dana")
-  );
-  const meatCpiPct: number | undefined = turibData?.meatFeed?.meatCpiAnnualPct;
-  const meatHeadlinePct: number | undefined = turibData?.meatFeed?.headlineCpiAnnualPct;
-  const meatSpread: number | undefined = turibData?.meatFeed?.meatInflationSpread;
   // Son iyi değer taşındıysa (stale) özgün veri tarihini göster; "güncel" gibi sunma.
   const staleNote = (o: any) => (o?.stale && o?.asOf ? ` · ${o.asOf} tarihli` : "");
   const NO_DATA = "Veri yok";
@@ -171,10 +154,9 @@ export default async function Home() {
     </section>
   );
 
-  const radarNode = (macroData || viopData || devalData) && (
+  const radarNode = (macroData || viopData) && (
     <section className="py-12 border-b bg-zinc-950/20" style={{ borderColor: "var(--border)" }}>
       <div className="container mx-auto px-6 space-y-6">
-        {devalData && <DevaluationRadarCard data={devalData} />}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {macroData && <MacroBarometerCard data={macroData} />}
           {viopData && <ViopBasisCard data={viopData} />}
@@ -197,11 +179,11 @@ export default async function Home() {
               Piyasa Veri Seti
             </span>
             <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-              TÜRİB + LİDAŞ + TÜİK + TMO
+              TÜRİB + LİDAŞ + TMO
             </span>
           </div>
           <h2 className="text-xl md:text-2xl font-display font-bold">
-            Tarımsal Emtia, TÜRİB & Et-Yem Terminali
+            Tarımsal Emtia & TÜRİB Terminali
           </h2>
         </div>
 
@@ -218,7 +200,7 @@ export default async function Home() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
         {/* TRBHUB */}
         <Link
           href="/tarim-emtia"
@@ -257,52 +239,6 @@ export default async function Home() {
             {bugdaySpot?.avgPriceStr ?? NO_DATA}
           </p>
           <p className="text-xs mt-1 text-zinc-400">Lisanslı Depo (ELÜS) Spot{staleNote(bugdaySpot)}</p>
-        </Link>
-
-        {/* Dana Besi / Yem */}
-        <Link
-          href="/tarim-emtia"
-          className="p-5 rounded-xl border transition-all hover:border-[var(--accent)] group"
-          style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-zinc-300">Dana Besi / Yem</span>
-            {danaYem?.status && (
-              <span className="text-xs font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                {danaYem.status}
-              </span>
-            )}
-          </div>
-          <p className="text-2xl font-bold font-display text-emerald-400">
-            {danaYem?.ratio ? `${danaYem.ratio.toFixed(1)}x` : NO_DATA}
-          </p>
-          <p className="text-xs mt-1 text-zinc-400">
-            {danaYem?.ratio
-              ? `1 kg et = ${danaYem.ratio.toFixed(1)} kg yem (Eşik: ${danaYem.threshold ?? "—"})${staleNote(turibData?.meatFeed)}`
-              : "Karkas fiyatı için gerçek kaynak bağlı değil"}
-          </p>
-        </Link>
-
-        {/* Et TÜFE */}
-        <Link
-          href="/tarim-emtia"
-          className="p-5 rounded-xl border transition-all hover:border-[var(--accent)] group"
-          style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-rose-400">Et TÜFE (Yıllık)</span>
-            <span className="text-xs text-zinc-400">
-              {typeof meatHeadlinePct === "number" ? `Manşet: %${meatHeadlinePct.toFixed(1)}` : ""}
-            </span>
-          </div>
-          <p className="text-2xl font-bold font-display">
-            {typeof meatCpiPct === "number" ? `%${meatCpiPct.toFixed(1)}` : NO_DATA}
-          </p>
-          <p className="text-xs mt-1 text-zinc-400">
-            {typeof meatSpread === "number"
-              ? `Enflasyon Primi: ${meatSpread > 0 ? "+" : ""}${meatSpread.toFixed(1)} puan${staleNote(turibData?.meatFeed)}`
-              : "TÜİK Et TÜFE için gerçek kaynak bağlı değil"}
-          </p>
         </Link>
       </div>
     </div>
@@ -430,7 +366,7 @@ export default async function Home() {
     { id: "sektorler", label: "Sektör kartları", description: "Sektörlere göre hisse sayısı, medyan F/K ve ROE", node: sectorsNode },
     { id: "yayinlar", label: "Daha fazla yayın", description: "Haber bloğunun devamı: önceki raporlar", node: latestNode },
     { id: "radar", label: "Kur riski & makro radar", description: "Devalüasyon radarı, makro barometre, VİOP baz", node: radarNode },
-    { id: "emtia", label: "Tarım emtia (TÜRİB)", description: "Buğday, mısır, et-yem, TMO verileri", node: commodityNode },
+    { id: "emtia", label: "Tarım emtia (TÜRİB)", description: "Buğday, mısır, TMO verileri", node: commodityNode },
     { id: "kategoriler", label: "Kapsama alanları", description: "Kategori kısayolları", node: categoriesNode },
     { id: "bulten", label: "E-posta bülteni", description: "Sabah bültenine abone ol", node: newsletterNode },
   ].filter((x) => x.node);

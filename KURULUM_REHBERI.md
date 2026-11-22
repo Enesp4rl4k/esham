@@ -39,7 +39,7 @@ Ardından `.env` dosyasını düzenleyin:
 
 ```env
 # === ZORUNLU: AI Analiz için ===
-GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+GROQ_API_KEY=your_groq_api_key
 
 # === OPSIYONEL: Sosyal Medya Paylaşımı ===
 TWITTER_API_KEY=your_twitter_api_key

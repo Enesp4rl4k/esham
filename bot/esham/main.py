@@ -151,7 +151,6 @@ def _cmd_real_return(args: argparse.Namespace) -> None:
     print(f"  TL Fiyatı: {rep.ilk_fiyat_tl:.2f} TL -> {rep.son_fiyat_tl:.2f} TL (Nominal Getiri: %{rep.nominal_tl_getiri_pct:+.1f})")
     print(f"  USD Fiyatı: ${rep.ilk_fiyat_usd:.3f} -> ${rep.son_fiyat_usd:.3f} (Dolar Getirisi: %{rep.usd_getiri_pct:+.1f})")
     print(f"  EUR Fiyatı: €{rep.ilk_fiyat_eur:.3f} -> €{rep.son_fiyat_eur:.3f} (Euro Getirisi: %{rep.eur_getiri_pct:+.1f})")
-    print(f"  TÜFE Enflasyonundan Arındırılmış Reel Getiri: %{rep.reel_enflasyon_getiri_pct:+.1f}")
     print(f"  Değerlendirme: {rep.analiz_yorumu}")
 
 
@@ -180,23 +179,6 @@ def _cmd_arbitrage(args: argparse.Namespace) -> None:
         for f in rep.en_iyi_firsatlar:
             print(f"  [{f.firsat_seviyesi}] {f.ucuz_il} ({f.ucuz_fiyat:.2f} TL) -> {f.pahali_il} ({f.pahali_fiyat:.2f} TL)")
             print(f"    -> Brüt Makas: {f.brut_makas_tl_kg:.2f} TL | Nakliye: {f.tahmini_nakliye_tl_kg:.2f} TL | Net Kâr: {f.net_arbitraj_tl_kg:+.2f} TL/kg (%{f.net_arbitraj_pct:+.1f})")
-
-
-def _cmd_meat_index(args: argparse.Namespace) -> None:
-    from .sources.meat_feed_index import MeatFeedIndexAnalyzer
-    analyzer = MeatFeedIndexAnalyzer()
-    rep = analyzer.analyze()
-    print("\n=== Et-Yem Paritesi & Et TÜFE Enflasyon Raporu ===")
-    print(f"  Tarih: {rep.tarih}")
-    print(f"  Et TÜFE Endeksi: {rep.et_tufe_endeks} (Yıllık: %{rep.et_enflasyonu_yillik_pct:+.1f})")
-    print(f"  Manşet TÜFE: {rep.manset_tufe_endeks} (Yıllık: %{rep.manset_enflasyon_yillik_pct:+.1f})")
-    print(f"  Et Enflasyon Primi: {rep.et_enflasyon_primi_pct:+.1f} puan")
-    print("\n--- Karkas Et / Yem Pariteleri ---")
-    for p in rep.pariteler:
-        print(f"  [{p.kategori}]: Karkas={p.karkas_fiyati_tl_kg:.2f} TL/kg | Yem={p.yem_fiyati_tl_kg:.2f} TL/kg -> Parite={p.parite_orani:.1f} ({p.kar_marji_durumu})")
-        print(f"    -> {p.sinyal_yorumu}")
-    print(f"\nBIST Sektör Yansıması: {rep.bist_etkisi_ozeti}")
-    print(f"Makro Değerlendirme: {rep.makro_degerlendirme}")
 
 
 def _cmd_mcp(args: argparse.Namespace) -> None:
@@ -361,6 +343,12 @@ def _cmd_kap_financials(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
+def _cmd_data_status(args: argparse.Namespace) -> None:
+    from .freshness import run_data_status
+
+    sys.exit(run_data_status(strict=args.strict))
+
+
 def _cmd_nav(args: argparse.Namespace) -> None:
     from .jobs.publish_nav import run_nav
 
@@ -507,8 +495,6 @@ def build_parser() -> argparse.ArgumentParser:
     ar.add_argument("--freight", type=float, default=0.50, help="Tahmini nakliye maliyeti TL/kg (varsayılan: 0.50)")
     ar.set_defaults(func=_cmd_arbitrage)
 
-    mi = sub.add_parser("meat-index", help="Et-yem paritesi ve Et TÜFE enflasyon analizi")
-    mi.set_defaults(func=_cmd_meat_index)
 
     ws = sub.add_parser("weekly-summary", help="Haftalık piyasa özeti üret ve yayınla")
     ws.add_argument("--no-social", action="store_true", help="Sosyal medya paylaşımını atla")
@@ -547,6 +533,10 @@ def build_parser() -> argparse.ArgumentParser:
     fd.add_argument("--codes", nargs="*", help="Sadece bu fon kodları (mevcut evreni bozmaz)")
     fd.add_argument("--interval", type=float, default=0.4, help="İstekler arası saniye (TEFAS hız sınırı için)")
     fd.set_defaults(func=_cmd_funds)
+
+    ds = sub.add_parser("data-status", help="Bölüm bazında veri tazeliğini ölç, web/public/data/data-status.json yaz")
+    ds.add_argument("--strict", action="store_true", help="Eski/eksik bölüm varsa çıkış kodu 1")
+    ds.set_defaults(func=_cmd_data_status)
 
     kf = sub.add_parser("kap-financials", help="KAP finansal raporlarından IFRS tabloları (web/public/data/kap) üret")
     kf.add_argument("--tickers", nargs="*", help="Sadece bu hisseler (varsayılan: bankasız tüm evren)")

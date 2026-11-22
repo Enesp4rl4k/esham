@@ -8,9 +8,9 @@ import { ChevronRight } from "lucide-react";
 import { TuribMarketClient, type TuribMarketDataset } from "./client";
 
 export const metadata: Metadata = {
-  title: "Emtia, Petrol & Tanker Navlun Terminali",
+  title: "Emtia, Petrol & Boğaz Geçişleri",
   description:
-    "Ham petrol göstergeleri (Brent, WTI, Urals, Crack Spread), VLCC/Aframax tanker kiralama ücretleri (TCE), Türk Boğazları demurraj süreleri ve TÜRİB tarımsal emtia terminali.",
+    "Brent petrol, İstanbul Boğazı haftalık gemi geçiş sayıları (IMF PortWatch), TÜRİB lisanslı depo fiyatları, TMO alım fiyatları ve TCMB kurlarıyla döviz cinsinden getiri. Her bölümde kaynak ve veri tarihi yazılıdır.",
   alternates: {
     canonical: `${SITE_URL}/tarim-emtia`,
   },
@@ -19,18 +19,14 @@ export const metadata: Metadata = {
     "Tarımsal Emtia",
     "Ham Petrol",
     "Brent Petrol",
-    "WTI",
-    "Tanker Navlun",
-    "VLCC Kiralama",
-    "Boğaz Bekleme Süreleri",
-    "TÜPRAŞ Crack Spread",
+    "Boğaz Geçişleri",
+    "TMO Alım Fiyatları",
     "Buğday Fiyatları",
-    "Et Yem Paritesi",
   ],
   openGraph: {
-    title: "Emtia, Petrol & Tanker Navlun Terminali | Esham",
+    title: "Emtia, Petrol & Boğaz Geçişleri | Esham",
     description:
-      "Ham petrol piyasaları, tanker kiralama ücretleri (TCE), Türk Boğazları transit süreleri, TÜRİB lisanslı depo ürün fiyatları ve BIST rafineri-denizcilik etkisi.",
+      "Brent petrol, İstanbul Boğazı geçiş sayıları, TÜRİB lisanslı depo ürün fiyatları ve TMO alım fiyatları; kaynak ve veri tarihiyle.",
     url: `${SITE_URL}/tarim-emtia`,
     images: [DEFAULT_OG_IMAGE],
   },
@@ -49,7 +45,6 @@ async function getTuribMarketData(): Promise<TuribMarketDataset> {
       indices: [],
       spotCommodities: [],
       bulletinSummary: {},
-      meatFeed: { parities: [] },
       tmoComparison: [],
       storageBacktest: {},
       regionalArbitrage: { opportunities: [] },
@@ -70,7 +65,7 @@ export default async function TarimEmtiaPage() {
           Ana Sayfa
         </Link>
         <ChevronRight className="w-3.5 h-3.5" />
-        <span style={{ color: "var(--text-primary)" }}>Emtia, Petrol & Tanker Navlun Terminali</span>
+        <span style={{ color: "var(--text-primary)" }}>Emtia, Petrol & Boğaz Geçişleri</span>
       </nav>
 
       {/* ── Client Terminal Component ── */}

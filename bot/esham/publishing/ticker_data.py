@@ -62,7 +62,7 @@ def update_ticker_data() -> bool:
     except Exception as exc:
         log.warning("Ticker JSON — makro alınamadı: %s", exc)
 
-    # TÜRİB ELÜS & Et-Yem Endeksleri
+    # TÜRİB ELÜS endeksleri
     try:
         from ..sources.turib import TuribSource
         tsnap = TuribSource().snapshot()
@@ -84,20 +84,6 @@ def update_ticker_data() -> bool:
                 })
     except Exception as exc:
         log.warning("Ticker JSON — TÜRİB alınamadı: %s", exc)
-
-    try:
-        from ..sources.meat_feed_index import MeatFeedIndexAnalyzer
-        mrep = MeatFeedIndexAnalyzer().analyze()
-        for p in (mrep.pariteler if mrep else []):
-            if "Dana" in p.kategori:
-                tickers.append({
-                    "label": "DANA/YEM",
-                    "value": f"{p.parite_orani:.1f}x",
-                    "change": f"Eşik:{p.esik_basabasi:.0f}",
-                    "up": p.parite_orani >= p.esik_basabasi,
-                })
-    except Exception as exc:
-        log.warning("Ticker JSON — Et/Yem alınamadı: %s", exc)
 
     # BIST-30 watchlist hisseleri
     try:
@@ -132,9 +118,14 @@ def update_ticker_data() -> bool:
             from ..sources.calendar import EconomicCalendarSource
             events = EconomicCalendarSource().daily_events(min_importance=0)
             cal_path = TICKER_JSON.parent / "economic-calendar.json"
-            cal_data = {"updated_at": now_str, "events": [vars(e) for e in events]}
-            cal_path.write_text(json.dumps(cal_data, ensure_ascii=False, indent=2), encoding="utf-8")
-            log.info("Ekonomik Takvim JSON güncellendi: %d olay → %s", len(events), cal_path)
+            if events:
+                cal_data = {"updated_at": now_str, "events": [vars(e) for e in events]}
+                cal_path.write_text(json.dumps(cal_data, ensure_ascii=False, indent=2), encoding="utf-8")
+                log.info("Ekonomik Takvim JSON güncellendi: %d olay → %s", len(events), cal_path)
+            else:
+                # Kaynak hatası ile "bugün olay yok" ayırt edilemez: boş listeyi taze damgayla yazma, eski dosya
+                # kendi gerçek `updated_at` değeriyle kalsın (sağlık/tazelik denetimi bunu görür).
+                log.warning("Ekonomik Takvim: olay alınamadı; dosya değiştirilmedi.")
         except Exception as exc:
             log.warning("Ekonomik Takvim JSON yazılamadı: %s", exc)
 

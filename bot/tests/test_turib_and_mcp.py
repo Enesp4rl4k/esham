@@ -3,9 +3,8 @@ import pytest
 from esham.sources.turib import TuribSource, TuribIndexValue, TuribProductPrice, TuribSnapshot
 from esham.sources.agri_bist import AgriBistAnalyzer
 from esham.sources.tmo import TmoSource
-from esham.sources.real_returns import RealReturnsCalculator, get_anchor
+from esham.sources.real_returns import RealReturnsCalculator
 from esham.sources.storage_backtest import StorageStrategyBacktester
-from esham.sources.meat_feed_index import MeatFeedIndexAnalyzer
 from esham.mcp.server import mcp
 
 
@@ -87,16 +86,6 @@ def test_tmo_unverified_cell_publishes_no_value():
     assert ek[2023] == 8.25 and ek[2024] == 9.25
 
 
-def test_real_returns_anchor():
-    anchor_2019 = get_anchor("2019-05-01")
-    assert anchor_2019["usd"] == 5.67
-    assert anchor_2019["tufe_kat_sayisi"] == 1.0
-
-    # Tamamlanmamış / kaynaksız yıl için varsayılan uydurulmaz.
-    with pytest.raises(ValueError):
-        get_anchor("2026-10-01")
-
-
 def test_storage_backtest_math():
     spot = 10.0
     satis_6ay = 13.0
@@ -115,11 +104,6 @@ def test_storage_backtest_math():
     assert round(finansman, 2) == 0.99
     assert round(fire_maliyeti, 3) == 0.075
     assert net_kar > 0  # 3.0 - 1.97 = 1.03 TL kâr
-
-
-def test_meat_feed_has_no_fabricated_data():
-    """Karkas fiyatı / Et TÜFE için gerçek kaynak yok: analizör sayı uydurmaz."""
-    assert MeatFeedIndexAnalyzer().analyze() is None
 
 
 @pytest.mark.asyncio
@@ -156,11 +140,8 @@ async def test_mcp_all_tools_registered():
     
     # Çapraz Piyasa & Et-Yem Araçları (4 Araç)
     assert "agri_bist_korelasyon" in tool_names
-    assert "et_yem_paritesi" in tool_names
-    assert "et_tufe_endeksi" in tool_names
-    assert "et_sektoru_bist_etkisi" in tool_names
     
-    assert len(tool_names) == 27
+    assert len(tool_names) == 24
 
 
 @pytest.mark.network
@@ -173,7 +154,7 @@ def test_turib_market_data_publishing():
     data = json.loads(TURIB_JSON.read_text(encoding="utf-8"))
     assert "indices" in data
     assert "spotCommodities" in data
-    assert "meatFeed" in data
+    assert "sections" in data
     assert "tmoComparison" in data
     assert "storageBacktest" in data
     assert "regionalArbitrage" in data

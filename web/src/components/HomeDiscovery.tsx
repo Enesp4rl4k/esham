@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { HeroSearch } from "./HeroSearch";
 import { slugify } from "@/lib/programmatic";
-import { buildLeaderboards, type Universe, type UniverseStock } from "@/lib/stocks";
+import { buildLeaderboards, emptyStateText, staleSummary, type Universe, type UniverseStock } from "@/lib/stocks";
 
 const POPULAR = ["THYAO", "ASELS", "BIMAS", "GARAN", "EREGL", "KCHOL", "TUPRS", "FROTO"];
 const nf = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -62,7 +62,17 @@ export function HomeStrip({ u }: { u: Universe | null }) {
 /** Hisse liderlik tabloları (kompakt: varsayılan 4 satır). */
 export function StockLeaderboards({ u, rows = 4 }: { u: Universe; rows?: number }) {
   const boards = buildLeaderboards(u, rows).filter((b) => b.rows.length > 0);
-  if (boards.length === 0) return null;
+  if (boards.length === 0) {
+    const msg = emptyStateText(staleSummary(u.stocks));
+    return msg ? (
+      <section className="py-8 border-b" style={{ borderColor: "var(--border)" }}>
+        <div className="container mx-auto px-6">
+          <h2 className="text-lg font-display font-semibold text-white mb-2">Hisse Liderlik Tabloları</h2>
+          <p className="text-sm text-amber-400" role="note" data-empty-state>{msg}</p>
+        </div>
+      </section>
+    ) : null;
+  }
   return (
     <section className="py-8 border-b" style={{ borderColor: "var(--border)" }}>
       <div className="container mx-auto px-6">

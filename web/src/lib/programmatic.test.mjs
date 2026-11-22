@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { slugify, sectorGroups, sectorStats, runScan, SCANS, MIN_INDEXABLE } from "./programmatic.ts";
 
-const st = (o) => ({ ticker: "X", name: "X", sector: "Enerji", financial: false, price: 1, as_of: "", market_cap: 1e10, pe: null, pb: null, ev_ebitda: null, roe: null, net_margin: null, dividend_yield: null, net_debt_ebitda: null, ...o });
+const fresh = () => new Date().toISOString();
+const st = (o) => ({ updated_at: fresh(), ticker: "X", name: "X", sector: "Enerji", financial: false, price: 1, as_of: "", market_cap: 1e10, pe: null, pb: null, ev_ebitda: null, roe: null, net_margin: null, dividend_yield: null, net_debt_ebitda: null, ...o });
 
 test("slugify Türkçe karakterleri ASCII yapar", () => {
   assert.equal(slugify("Bankacılık"), "bankacilik");
@@ -42,7 +43,7 @@ test("çift slug alfabetik ve tekil", () => {
 });
 
 test("çiftler aynı sektörden, tekrarsız ve sıralı slug", () => {
-  const mk = (t, mc, sector = "Enerji") => ({ ticker: t, name: t, sector, financial: false, price: 1, as_of: "", market_cap: mc, pe: 5, pb: 1, ev_ebitda: 4, roe: 10, net_margin: 5, dividend_yield: 1, net_debt_ebitda: 1 });
+  const mk = (t, mc, sector = "Enerji") => ({ updated_at: fresh(), ticker: t, name: t, sector, financial: false, price: 1, as_of: "", market_cap: mc, pe: 5, pb: 1, ev_ebitda: 4, roe: 10, net_margin: 5, dividend_yield: 1, net_debt_ebitda: 1 });
   const u = { stocks: [mk("D", 4), mk("C", 3), mk("B", 2), mk("A", 1), mk("Z", 9, "Cam")] };
   const p = comparePairs(u, 3);
   assert.equal(p.length, 3);

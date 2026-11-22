@@ -23,6 +23,27 @@ log = get_logger(__name__)
 DATA_DIR = Path(__file__).resolve().parents[3] / "web" / "public" / "data"
 
 
+#: Banka/sigorta taksonomisi (``banks_role_*``, ``insurance_role_*``) desteklenmez; ancak aracı kurumlar genel
+#: şablonu (``general_role_*``) kullanır. ISMEN gerçek raporla doğrulandı (bilanço+gelir+nakit akışı ayrıştı,
+#: 23 Kas 2026); GLBMD aynı şablonu kullanır, ayrıştırılamazsa negatif önbelleğe yazılıp atlanır.
+GENERAL_TEMPLATE_FINANCIALS = frozenset({"ISMEN", "GLBMD"})
+
+
+def kap_universe() -> list[dict[str, Any]]:
+    """KAP'tan finansal çekilecek hisseler: finansal olmayanlar + genel şablonlu aracı kurumlar."""
+    return [u for u in load_universe() if not u["financial"] or u["ticker"] in GENERAL_TEMPLATE_FINANCIALS]
+
+
+def order_by_progress(kf: Any, by_t: dict[str, list[dict[str, Any]]]) -> list[tuple[str, list[dict[str, Any]], int]]:
+    """(ticker, raporlar, eksik rapor sayısı); bütçe kısıtlı koşuda 'tamamlanmaya en yakın' hisseler önce.
+
+    Önbellekteki raporlar istek harcamaz → tam önbellekli hisseler ilk sırada (anında tamamlanır), sonra eksiği az olanlar.
+    Alfabetik sıra yerine bu sıra, her koşuda aynı ilk ~25 hissenin tekrar tekrar işlenip kalanların aç kalmasını önler.
+    """
+    rows = [(t, rs, sum(1 for r in rs if not kf.is_cached(str(r["disclosureIndex"])))) for t, rs in by_t.items()]
+    return sorted(rows, key=lambda x: (x[2], x[0]))
+
+
 def crosscheck(kap_q: list[dict[str, Any]], yahoo: dict[str, Any]) -> dict[str, float | None]:
     """KAP ve Yahoo TTM hasılat/net kâr oranı (KAP/Yahoo − 1). Para birimi farklıysa güncel kurla TL'ye çevrilir."""
     k_rev, k_ni = R.ttm(kap_q, "revenue"), R.ttm(kap_q, "net_income")
@@ -64,7 +85,7 @@ def build_ticker(kf: KapFinancials, ticker: str, reports: list[dict[str, Any]]) 
 
 
 def run_kap(tickers: list[str] | None = None, months: int = 18, workers: int = 3) -> int:
-    universe = [u for u in load_universe() if not u["financial"]]
+    universe = kap_universe()
     want = {t.upper() for t in tickers} if tickers else {str(u["ticker"]) for u in universe}
     kf = KapFinancials()
     gate.begin_stage()
@@ -82,15 +103,23 @@ def run_kap(tickers: list[str] | None = None, months: int = 18, workers: int = 3
         by_t.setdefault(r["_ticker"], []).append(r)
     log.info("KAP: %d hisse için %d finansal rapor bulundu", len(by_t), len(reports))
 
-    def work(item: tuple[str, list[dict[str, Any]]]) -> tuple[str, dict[str, Any] | None]:
-        if gate.stopped:
-            return item[0], None  # KAP'a başvurmadan atla (önbellekteki raporlar da eksikse build_ticker yine None döner)
+    ordered = order_by_progress(kf, by_t)
+    pending_before = {t: miss for t, _rs, miss in ordered}
+    log.info("KAP: %d hisse tamamen önbellekte, %d hissenin eksik raporu var (toplam eksik rapor: %d)",
+             sum(1 for m in pending_before.values() if m == 0), sum(1 for m in pending_before.values() if m),
+             sum(pending_before.values()))
+
+    def work(item: tuple[str, list[dict[str, Any]], int]) -> tuple[str, dict[str, Any] | None]:
+        if gate.stopped and item[2] > 0:
+            return item[0], None  # KAP'a başvurmadan atla; tam önbellekli hisseler yine de yazılır (istek gerekmez)
         return item[0], build_ticker(kf, item[0], item[1])
 
     written = 0
+    no_doc: list[str] = []
     with ThreadPoolExecutor(max_workers=workers) as pool:
-        for ticker, doc in pool.map(work, sorted(by_t.items())):
+        for ticker, doc in pool.map(work, ordered):
             if not doc:
+                no_doc.append(ticker)
                 continue
             y_path = DATA_DIR / "stocks" / f"{ticker}.json"
             if y_path.exists():
@@ -102,4 +131,7 @@ def run_kap(tickers: list[str] | None = None, months: int = 18, workers: int = 3
             print(f"{ticker:<6} {len(doc['quarterly'])}Ç {len(doc['annual'])}Y {doc['currency']}  vs Yahoo: {doc.get('crosscheck_vs_yahoo')}")
     skipped = len(by_t) - written
     log.info("KAP: %d hisse yazıldı, %d hisse atlandı (önceki veri korundu). %s", written, skipped, gate.summary())
+    # Ölçülmüş kapsam: kaç hissenin KAP finansalı var, kalanı neden yok (bütçe/429 → sonraki koşuda devam eder)
+    print(f"KAP kapsamı: {written}/{len(universe)} hisse bu koşuda KAP finansalı yazıldı; "
+          f"{len(no_doc)} hisse tamamlanamadı (bütçe/429/ayrıştırılamayan rapor): {', '.join(sorted(no_doc)[:40])}")
     return written

@@ -42,7 +42,7 @@ Rapor JSON'unda opsiyonel alanlar da vardır: `image` (marka kartı) ve `ipo`
 | `sources/kap_filter` | KAP önem filtresi — rutin/idari bildirimleri eler (spam önleme) |
 | `sources/sector` | Yahoo BIST sektör endeksleri — haftalık rotasyon |
 | `sources/tmo` | **TMO müdahale fiyatları arşivi & analizi** — 2021-2026 resmî alım/satış/prim taban çıpası ve serbest piyasa prim spreadi |
-| `sources/real_returns` | **TÜFE & Döviz bazlı reel getiri** — Nominal TL artışlarını TCMB kurları (USD/EUR) ve TÜİK enflasyonu ile arındırılmış satın alma gücü getirisini hesaplar |
+| `sources/real_returns` | **Döviz cinsinden getiri** — TÜRİB fiyat serisinin değişimini TCMB döviz alış kuruyla (anahtarsız XML) USD/EUR'a çevirir; kur yoksa hata verir, TÜFE ile arındırılmış getiri üretilmez (kaynaklı TÜFE serisi bağlı değil) |
 | `sources/storage_backtest` | **Tarımsal depolama stratejisi simülatörü** — 2020-2026 gerçek TÜRİB serileri üzerinde spot vs 3/6/9 ay depolama backtest'i (faiz, LİDAŞ kirası, fire) |
 | `sources/regional_arbitrage` | **Bölgesel LİDAŞ arbitraj tarayıcısı** — Günlük bültende iller ve depolar arası brüt/net makas ve lojistik arbitraj fırsatları |
 | `sources/turib` | **TÜRİB ELÜS veri kaynağı** — Hububat endeksleri (TRBHUB, TRBBGD, TRBMSR), buğday/mısır/arpa fiyat serileri ve günlük bülten |

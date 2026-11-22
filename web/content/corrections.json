@@ -1,0 +1,65 @@
+{
+  "note": "**Düzeltme (23 Kasım 2026):** Bu rapordaki et–yem göstergesi kaynağı doğrulanamadığı için kaldırıldı.",
+  "corrections": [
+    {
+      "file": "2026-11-03-bist-kuresel-piyasalar-sabah-raporu.json",
+      "slug": "bist-kuresel-piyasalar-sabah-raporu-2026-11-03",
+      "date": "2026-11-23",
+      "reason": "Et-Yem / Et TÜFE bloğunun kaynağı doğrulanamadı; blok kaldırıldı."
+    },
+    {
+      "file": "2026-11-04-bist-kuresel-piyasalar-sabah-raporu.json",
+      "slug": "bist-kuresel-piyasalar-sabah-raporu-2026-11-04",
+      "date": "2026-11-23",
+      "reason": "Et-Yem / Et TÜFE bloğunun kaynağı doğrulanamadı; blok kaldırıldı."
+    },
+    {
+      "file": "2026-11-05-bist-kuresel-piyasalar-sabah-raporu.json",
+      "slug": "bist-kuresel-piyasalar-sabah-raporu-2026-11-05",
+      "date": "2026-11-23",
+      "reason": "Et-Yem / Et TÜFE bloğunun kaynağı doğrulanamadı; blok kaldırıldı."
+    },
+    {
+      "file": "2026-11-06-bist-kuresel-piyasalar-sabah-raporu.json",
+      "slug": "bist-kuresel-piyasalar-sabah-raporu-2026-11-06",
+      "date": "2026-11-23",
+      "reason": "Et-Yem / Et TÜFE bloğunun kaynağı doğrulanamadı; blok kaldırıldı."
+    },
+    {
+      "file": "2026-11-09-bist-kuresel-piyasalar-sabah-raporu.json",
+      "slug": "bist-kuresel-piyasalar-sabah-raporu-2026-11-09",
+      "date": "2026-11-23",
+      "reason": "Et-Yem / Et TÜFE bloğunun kaynağı doğrulanamadı; blok kaldırıldı."
+    },
+    {
+      "file": "2026-11-10-bist-kuresel-piyasalar-sabah-raporu.json",
+      "slug": "bist-kuresel-piyasalar-sabah-raporu-2026-11-10",
+      "date": "2026-11-23",
+      "reason": "Et-Yem / Et TÜFE bloğunun kaynağı doğrulanamadı; blok kaldırıldı."
+    },
+    {
+      "file": "2026-11-11-bist-kuresel-piyasalar-sabah-raporu.json",
+      "slug": "bist-kuresel-piyasalar-sabah-raporu-2026-11-11",
+      "date": "2026-11-23",
+      "reason": "Et-Yem / Et TÜFE bloğunun kaynağı doğrulanamadı; blok kaldırıldı."
+    },
+    {
+      "file": "2026-11-12-bist-kuresel-piyasalar-sabah-raporu.json",
+      "slug": "bist-kuresel-piyasalar-sabah-raporu-2026-11-12",
+      "date": "2026-11-23",
+      "reason": "Et-Yem / Et TÜFE bloğunun kaynağı doğrulanamadı; blok kaldırıldı."
+    },
+    {
+      "file": "2026-11-13-bist-kuresel-piyasalar-sabah-raporu.json",
+      "slug": "bist-kuresel-piyasalar-sabah-raporu-2026-11-13",
+      "date": "2026-11-23",
+      "reason": "Et-Yem / Et TÜFE bloğunun kaynağı doğrulanamadı; blok kaldırıldı."
+    },
+    {
+      "file": "2026-11-20-bist-kuresel-piyasalar-sabah-raporu.json",
+      "slug": "bist-kuresel-piyasalar-sabah-raporu-2026-11-20",
+      "date": "2026-11-23",
+      "reason": "Et-Yem / Et TÜFE bloğunun kaynağı doğrulanamadı; blok kaldırıldı."
+    }
+  ]
+}

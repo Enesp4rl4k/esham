@@ -42,7 +42,6 @@ export const metadata: Metadata = {
     "KAP Bildirimleri",
     "VİOP",
     "TÜRİB Tarımsal Emtia",
-    "Et-Yem Paritesi",
     "Halka Arz Takvimi",
     "Temettü Takvimi",
     "Pay Geri Alımları",
@@ -106,10 +105,7 @@ export const metadata: Metadata = {
 
 const navItems: { href: string; label: string }[] = [
   { href: "/", label: "Ana Sayfa" },
-  { href: "/tarim-emtia", label: "Tarımsal Emtia & Et-Yem" },
-  { href: "/piyasa/geri-alimlar", label: "Pay Geri Alımları" },
-  { href: "/piyasa/temettu-takvimi", label: "Temettü Takvimi" },
-  { href: "/piyasa/devaluasyon-radari", label: "Kur Şoku Radarı" },
+  { href: "/tarim-emtia", label: "Tarımsal Emtia & TÜRİB" },
   ...(Object.keys(CATEGORIES) as CategorySlug[]).map((slug) => ({
     href: `/kategori/${slug}`,
     label: CATEGORIES[slug].label,
@@ -243,7 +239,7 @@ export default function RootLayout({
                   className="text-sm font-semibold transition-opacity hover:opacity-70"
                   style={{ color: "var(--accent)" }}
                 >
-                  Tarımsal Emtia & Et-Yem (TÜRİB)
+                  Tarımsal Emtia (TÜRİB)
                 </Link>
                 {(Object.keys(CATEGORIES) as CategorySlug[]).map((slug) => (
                   <Link

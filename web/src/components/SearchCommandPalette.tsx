@@ -42,11 +42,8 @@ const DEFAULT_ITEMS: SearchItem[] = [
   { id: "ULUUN", title: "ULUUN", subtitle: "Ulusoy Un — Buğday & TÜRİB Tarım Sanayisi", category: "hisse", href: "/hisse/ULUUN", badge: "BIST 100" },
 
   // Analitik Araçlar & Sayfalar
-  { id: "DEVAL", title: "Kur Şoku & Devalüasyon Radarı", subtitle: "TCMB Rezerv Yanma Hızı, Tahtakale Makası & VİOP İma Edilen Faiz", category: "arac", href: "/piyasa/devaluasyon-radari", badge: "0-100 Radar" },
-  { id: "BUYBACKS", title: "Pay Geri Alımları", subtitle: "BIST Şirketlerinin Aktif Hisse Geri Alım Fonları & Maliyetleri", category: "arac", href: "/piyasa/geri-alimlar", badge: "Radar" },
-  { id: "DIVIDENDS", title: "Temettü Takvimi", subtitle: "2026 Nakit Kâr Payı Dağıtımları & Temettü Verimleri", category: "arac", href: "/piyasa/temettu-takvimi", badge: "Takvim" },
-  { id: "TARIM", title: "Tarımsal Emtia & Et-Yem", subtitle: "TÜRİB Hububat Fiyatları, Karkas Et ve Yem Rasyosu", category: "arac", href: "/tarim-emtia", badge: "Canlı Veri" },
-  { id: "TANKER", title: "Petrol & Tanker Navlun Terminali", subtitle: "Brent, WTI, VLCC/Aframax kiralama ücretleri (TCE) ve boğaz bekleme süreleri", category: "arac", href: "/tarim-emtia?tab=petrolTanker", badge: "Terminal" },
+  { id: "TARIM", title: "Tarımsal Emtia & TÜRİB", subtitle: "TÜRİB Hububat Fiyatları, TMO Alım Fiyatları", category: "arac", href: "/tarim-emtia", badge: "Veri Seti" },
+  { id: "TANKER", title: "Petrol & Boğaz Geçişleri", subtitle: "Brent petrol ve İstanbul Boğazı haftalık geçiş sayıları (IMF PortWatch)", category: "arac", href: "/tarim-emtia?tab=petrolTanker", badge: "Terminal" },
   { id: "IPO", title: "Halka Arz & KAP Radarı", subtitle: "Son Taslak İzahnameler ve BIST Halka Arz Takvimi", category: "arac", href: "/halka-arz-takvimi", badge: "Takvim" },
   { id: "ARSIV", title: "Rapor Arşivi", subtitle: "Tüm Tarihsel Analizler, Seans Açılış & Kapanış Raporları", category: "arac", href: "/arsiv", badge: "Arşiv" },
 
