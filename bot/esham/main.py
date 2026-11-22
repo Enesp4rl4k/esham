@@ -351,6 +351,22 @@ def _cmd_funds(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
+def _cmd_kap_events(args: argparse.Namespace) -> None:
+    from .jobs.publish_kap_events import run_kap_events
+
+    n = run_kap_events(dividend_days=args.dividend_days, buyback_days=args.buyback_days, max_details=args.max_details)
+    print(f"{n} KAP olay dosyası yazıldı (kâr payı + geri alım).")
+    if n == 0:
+        sys.exit(1)
+
+
+def _cmd_macro(args: argparse.Namespace) -> None:
+    from .jobs.publish_macro import run_macro
+
+    if run_macro() == 0:
+        sys.exit(1)
+
+
 def _cmd_kap_financials(args: argparse.Namespace) -> None:
     from .jobs.publish_kap import run_kap
 
@@ -562,6 +578,15 @@ def build_parser() -> argparse.ArgumentParser:
     kf.add_argument("--months", type=int, default=18, help="Geriye dönük ay (varsayılan 18)")
     kf.add_argument("--workers", type=int, default=3)
     kf.set_defaults(func=_cmd_kap_financials)
+
+    ke = sub.add_parser("kap-events", help="KAP kâr payı takvimi ve pay geri alımları (kap-dividends.json, kap-buybacks.json)")
+    ke.add_argument("--dividend-days", type=int, default=None, help="Kâr payı bildirimleri için geriye dönük gün (varsayılan 150)")
+    ke.add_argument("--buyback-days", type=int, default=None, help="Geri alım bildirimleri için geriye dönük gün (varsayılan 45)")
+    ke.add_argument("--max-details", type=int, default=None, help="Koşu başına en çok kaç bildirim sayfası indirilsin (varsayılan 80)")
+    ke.set_defaults(func=_cmd_kap_events)
+
+    mc = sub.add_parser("macro", help="Makro göstergeler (TCMB faiz, USD/TRY değişimi; EVDS_API_KEY varsa TÜFE/REK) → macro-indicators.json")
+    mc.set_defaults(func=_cmd_macro)
 
     nv = sub.add_parser("nav", help="Holdinglerin KAP iştirak pay tablosu (web/public/data/nav) — NAV girdisi")
     nv.add_argument("--tickers", nargs="*", help="Sadece bu şirketler (varsayılan: Holding sektörü + ALARK, TKFEN)")

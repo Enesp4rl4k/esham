@@ -38,6 +38,7 @@ import { slugify } from "@/lib/programmatic";
 import { Newsletter } from "@/components/Newsletter";
 import { StockTabs, type TabDef } from "@/components/StockTabs";
 import { StockCorporateActionsCard } from "@/components/StockCorporateActionsCard";
+import { loadBuybacks, loadDividends } from "@/lib/kap-events";
 import { StockPeerComparisonCard } from "@/components/StockPeerComparisonCard";
 import { RatiosCard, type StockRatiosData } from "@/components/RatiosCard";
 import { getStockName, loadUniverse } from "@/lib/stocks";
@@ -114,26 +115,6 @@ async function loadQuantValuationData() {
     const parsed = JSON.parse(raw);
     // Tarihsiz (updated_at yok) hesaplanmış seviye/oran dosyası yayınlanmaz: kaynak ve tarih zorunlu.
     return parsed && typeof parsed.updated_at === "string" ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
-async function loadBuybacksData() {
-  try {
-    const filePath = path.join(process.cwd(), "public", "data", "bist-buybacks.json");
-    const raw = await fs.readFile(filePath, "utf-8");
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-}
-
-async function loadDividendsData() {
-  try {
-    const filePath = path.join(process.cwd(), "public", "data", "bist-dividends.json");
-    const raw = await fs.readFile(filePath, "utf-8");
-    return JSON.parse(raw);
   } catch {
     return null;
   }
@@ -228,16 +209,14 @@ export default async function TickerPage({
 
   const reports = getReportsByTicker(cleanTicker);
   const universe = loadUniverse();
-  const [tickerData, quantData, buybacksData, dividendsData, stockRatios] = await Promise.all([
+  const [tickerData, quantData, stockRatios] = await Promise.all([
     loadMarketTickerData(),
     loadQuantValuationData(),
-    loadBuybacksData(),
-    loadDividendsData(),
     loadStockRatios(cleanTicker),
   ]);
+  const dividendsDoc = loadDividends();
+  const buybacksDoc = loadBuybacks();
   const companyQuant = quantData ? quantData[cleanTicker] : null;
-  const companyBuyback = buybacksData?.programs?.find((p: any) => p.ticker === cleanTicker) || null;
-  const companyDividend = dividendsData?.records?.find((d: any) => d.ticker === cleanTicker) || null;
   const dcfData = companyQuant?.dcf;
   const keyLevelsData = companyQuant?.key_levels;
   const fundamentalData = companyQuant?.fundamental;
@@ -307,7 +286,7 @@ export default async function TickerPage({
       content: (
         <>
           <PriceChart ticker={cleanTicker} />
-          <StockCorporateActionsCard ticker={cleanTicker} buyback={companyBuyback} dividend={companyDividend} />
+          <StockCorporateActionsCard ticker={cleanTicker} dividends={dividendsDoc} buybacks={buybacksDoc} />
         </>
       ),
     },

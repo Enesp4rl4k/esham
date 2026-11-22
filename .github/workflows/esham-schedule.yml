@@ -12,6 +12,8 @@ name: Esham Yayın Döngüsü
 #   15:15 UTC = 18:15 TR  kapanış
 #   15:45 UTC = 18:45 TR  hisse finansalları + oranlar (stocks)
 #   16:30 UTC = 19:30 TR  TEFAS fonları (funds; fiyatlar akşam yayımlanır)
+#   16:50 UTC = 19:50 TR  KAP kâr payı takvimi + pay geri alımları (kap-events; KAP önbelleğini paylaşır)
+#   12:50 UTC = 15:50 TR  makro göstergeler (macro; TCMB döviz XML'i 15:30 TR'de yayımlanır)
 #   15:30 UTC = 18:30 TR  akşam ısı haritası / haftalık özet
 #   Pzt 06:00 UTC = 09:00 TR  haftalık sektör
 #   Her 15 dk (hafta içi seans): KAP/haber taraması (tek tur)
@@ -30,6 +32,8 @@ on:
     - cron: "30 15 * * 1-4"   # akşam ısı haritası      18:30 TR (Pzt-Per)
     - cron: "45 15 * * 1-5"   # hisse oranları (stocks)   18:45 TR (kapanış sonrası)
     - cron: "30 16 * * 1-5"   # TEFAS fonları (funds)       19:30 TR
+    - cron: "50 16 * * 1-5"   # KAP kâr payı + geri alım (kap-events) 19:50 TR
+    - cron: "50 12 * * 1-5"   # makro göstergeler (macro)   15:50 TR
     - cron: "0 6 * * 1"       # haftalık sektör          09:00 TR (Pazartesi)
     - cron: "15 6 * * 1"      # haftalık peer kıyas      09:15 TR (Pazartesi)
     - cron: "30 15 * * 5"     # haftalık özet            18:30 TR (Cuma)
@@ -51,6 +55,8 @@ on:
           - peer
           - stocks
           - funds
+          - kap-events
+          - macro
           - newsletter
           - weekly-summary
           - news-stream
@@ -88,7 +94,7 @@ jobs:
       # kaydı yalnızca iş BAŞARILI bitince yapar: zaman aşımı/hata olunca o koşuda indirilen raporların hepsi kaybolur
       # ve ertesi gün aynı hisseler baştan indirilirdi. Bu yüzden geri yükleme ve kaydetme ayrı, kaydetme `always()`.
       - name: KAP önbelleği (geri yükle)
-        if: github.event.schedule == '45 15 * * 1-5' || github.event.inputs.command == 'stocks'
+        if: github.event.schedule == '45 15 * * 1-5' || github.event.schedule == '50 16 * * 1-5' || github.event.inputs.command == 'stocks' || github.event.inputs.command == 'kap-events'
         uses: actions/cache/restore@v4
         with:
           path: bot/cache/kap
@@ -105,6 +111,9 @@ jobs:
         env:
           # KAP istek süre bütçesi (sn): bütçe bitince kalan hisseler sonraki koşuda tamamlanır (önbellek ilerlemeyi korur)
           ESHAM_KAP_BUDGET_SECONDS: "480"
+          # TCMB EVDS anahtarı (isteğe bağlı): secret tanımlı değilse boş gelir ve EVDS göstergeleri çekilmez/gösterilmez.
+          # Anahtar yalnızca istek başlığında gönderilir, hiçbir log/dosyaya yazılmaz (bot/tests/test_macro_evds.py).
+          EVDS_API_KEY: ${{ secrets.EVDS_API_KEY }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
@@ -142,6 +151,8 @@ jobs:
             "30 15 * * 1-4")             CMD="heatmap" ;;
             "45 15 * * 1-5")             CMD="stocks --workers 3" ;;
             "30 16 * * 1-5")             CMD="funds --limit 200" ;;
+            "50 16 * * 1-5")             CMD="kap-events" ;;
+            "50 12 * * 1-5")             CMD="macro" ;;
             "0 6 * * 1")                 CMD="sector" ;;
             "15 6 * * 1")
               # Haftalık peer kıyası — sektör ISO haftasına göre döner
@@ -171,7 +182,7 @@ jobs:
           python -m esham.main $CMD
 
       - name: KAP önbelleği (kaydet)
-        if: always() && (github.event.schedule == '45 15 * * 1-5' || github.event.inputs.command == 'stocks')
+        if: always() && (github.event.schedule == '45 15 * * 1-5' || github.event.schedule == '50 16 * * 1-5' || github.event.inputs.command == 'stocks' || github.event.inputs.command == 'kap-events')
         uses: actions/cache/save@v4
         with:
           path: bot/cache/kap

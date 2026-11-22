@@ -1,0 +1,262 @@
+{
+ "source": "KAP — Kar Payı Dağıtım İşlemlerine İlişkin Bildirim",
+ "sourceUrl": "https://www.kap.org.tr/tr/bildirim-sorgu",
+ "fetchedAt": "2026-11-22T22:43:19+00:00",
+ "updatedAt": "2026-11-22T22:43:19+00:00",
+ "asOf": "2026-11-19",
+ "items": [
+  {
+   "ticker": "GUBRF",
+   "name": "Gübre Fabrikaları",
+   "disclosureIndex": "1674751",
+   "sourceUrl": "https://www.kap.org.tr/tr/Bildirim/1674751",
+   "publishedAt": "2026-10-07T16:04:10+03:00",
+   "asOf": "2026-10-07",
+   "fetchedAt": "2026-11-22T22:32:41+00:00",
+   "status": "kesinlesti",
+   "decisionDate": "2026-09-02",
+   "agmDate": "2026-09-30",
+   "installments": [
+    {
+     "label": "Peşin",
+     "payGroup": "GUBRF, TRAGUBRF91E2",
+     "grossPerShare": 4.4910179,
+     "netPerShare": 3.8173652,
+     "withholdingPct": 15.0,
+     "exDate": "2026-10-14",
+     "exDateFinal": true,
+     "paymentDate": "2026-10-16",
+     "recordDate": "2026-10-15"
+    }
+   ]
+  },
+  {
+   "ticker": "ASTOR",
+   "name": "Astor Enerji",
+   "disclosureIndex": "1645625",
+   "sourceUrl": "https://www.kap.org.tr/tr/Bildirim/1645625",
+   "publishedAt": "2026-08-07T18:40:40+03:00",
+   "asOf": "2026-08-07",
+   "fetchedAt": "2026-11-22T22:32:41+00:00",
+   "status": "kesinlesti",
+   "decisionDate": "2026-07-07",
+   "agmDate": "2026-08-07",
+   "installments": [
+    {
+     "label": "Peşin",
+     "payGroup": "B Grubu, ASTOR, TREASTR00013",
+     "grossPerShare": 2.1911471,
+     "netPerShare": 1.862475,
+     "withholdingPct": 15.0,
+     "exDate": "2026-10-15",
+     "exDateFinal": true,
+     "paymentDate": "2026-10-19",
+     "recordDate": "2026-10-16"
+    }
+   ]
+  },
+  {
+   "ticker": "FROTO",
+   "name": "Ford Otosan",
+   "disclosureIndex": "1688363",
+   "sourceUrl": "https://www.kap.org.tr/tr/Bildirim/1688363",
+   "publishedAt": "2026-10-27T18:20:05+03:00",
+   "asOf": "2026-10-27",
+   "fetchedAt": "2026-11-22T22:32:41+00:00",
+   "status": "teklif",
+   "decisionDate": "2026-10-27",
+   "agmDate": null,
+   "installments": [
+    {
+     "label": "Peşin",
+     "payGroup": "A Grubu, FROTO, TRAOTOSN91H6",
+     "grossPerShare": 3.07,
+     "netPerShare": 2.6095,
+     "withholdingPct": 15.0,
+     "exDate": "2026-11-26",
+     "exDateFinal": false,
+     "paymentDate": "2026-11-30",
+     "recordDate": "2026-11-27"
+    }
+   ]
+  },
+  {
+   "ticker": "OYAKC",
+   "name": "Oyak Çimento",
+   "disclosureIndex": "1694380",
+   "sourceUrl": "https://www.kap.org.tr/tr/Bildirim/1694380",
+   "publishedAt": "2026-11-06T19:19:10+03:00",
+   "asOf": "2026-11-06",
+   "fetchedAt": "2026-11-22T22:32:41+00:00",
+   "status": "teklif",
+   "decisionDate": "2026-11-06",
+   "agmDate": null,
+   "installments": [
+    {
+     "label": "Peşin",
+     "payGroup": "OYAKC, TRAMRDIN91F2",
+     "grossPerShare": 0.5,
+     "netPerShare": 0.425,
+     "withholdingPct": 15.0,
+     "exDate": "2026-12-07",
+     "exDateFinal": false,
+     "paymentDate": "2026-12-09",
+     "recordDate": "2026-12-08"
+    }
+   ]
+  },
+  {
+   "ticker": "AYGAZ",
+   "name": "Aygaz",
+   "disclosureIndex": "1700009",
+   "sourceUrl": "https://www.kap.org.tr/tr/Bildirim/1700009",
+   "publishedAt": "2026-11-18T18:46:48+03:00",
+   "asOf": "2026-11-18",
+   "fetchedAt": "2026-11-22T22:32:41+00:00",
+   "status": "teklif",
+   "decisionDate": "2026-11-18",
+   "agmDate": null,
+   "installments": [
+    {
+     "label": "Peşin",
+     "payGroup": "AYGAZ, TRAAYGAZ91E0",
+     "grossPerShare": 4.65,
+     "netPerShare": 3.9525,
+     "withholdingPct": 15.0,
+     "exDate": "2026-12-23",
+     "exDateFinal": false,
+     "paymentDate": "2026-12-25",
+     "recordDate": "2026-12-24"
+    }
+   ]
+  }
+ ],
+ "noDividend": [
+  {
+   "ticker": "CANTE",
+   "name": "Çan2 Termik",
+   "disclosureIndex": "1700270",
+   "sourceUrl": "https://www.kap.org.tr/tr/Bildirim/1700270",
+   "publishedAt": "2026-11-19T15:41:26+03:00",
+   "asOf": "2026-11-19",
+   "fetchedAt": "2026-11-22T22:32:41+00:00",
+   "status": "dagitim_yok",
+   "decisionDate": "2026-11-16",
+   "agmDate": null,
+   "installments": []
+  },
+  {
+   "ticker": "KONTR",
+   "name": "Kontrolmatik",
+   "disclosureIndex": "1627541",
+   "sourceUrl": "https://www.kap.org.tr/tr/Bildirim/1627541",
+   "publishedAt": "2026-07-07T20:29:34+03:00",
+   "asOf": "2026-07-07",
+   "fetchedAt": "2026-11-22T22:32:41+00:00",
+   "status": "dagitim_yok",
+   "decisionDate": "2026-05-08",
+   "agmDate": "2026-07-07",
+   "installments": []
+  },
+  {
+   "ticker": "MIATK",
+   "name": "Mia Teknoloji",
+   "disclosureIndex": "1655919",
+   "sourceUrl": "https://www.kap.org.tr/tr/Bildirim/1655919",
+   "publishedAt": "2026-08-28T18:23:23+03:00",
+   "asOf": "2026-08-28",
+   "fetchedAt": "2026-11-22T22:32:41+00:00",
+   "status": "dagitim_yok",
+   "decisionDate": "2026-08-06",
+   "agmDate": "2026-08-28",
+   "installments": []
+  },
+  {
+   "ticker": "ODAS",
+   "name": "Odaş Elektrik",
+   "disclosureIndex": "1699306",
+   "sourceUrl": "https://www.kap.org.tr/tr/Bildirim/1699306",
+   "publishedAt": "2026-11-17T22:13:54+03:00",
+   "asOf": "2026-11-17",
+   "fetchedAt": "2026-11-22T22:32:41+00:00",
+   "status": "dagitim_yok",
+   "decisionDate": "2026-11-16",
+   "agmDate": null,
+   "installments": []
+  },
+  {
+   "ticker": "REEDR",
+   "name": "Reeder Teknoloji",
+   "disclosureIndex": "1630318",
+   "sourceUrl": "https://www.kap.org.tr/tr/Bildirim/1630318",
+   "publishedAt": "2026-07-08T22:49:21+03:00",
+   "asOf": "2026-07-08",
+   "fetchedAt": "2026-11-22T22:32:41+00:00",
+   "status": "dagitim_yok",
+   "decisionDate": "2026-06-05",
+   "agmDate": "2026-07-08",
+   "installments": []
+  },
+  {
+   "ticker": "SOKM",
+   "name": "Şok Marketler",
+   "disclosureIndex": "1641660",
+   "sourceUrl": "https://www.kap.org.tr/tr/Bildirim/1641660",
+   "publishedAt": "2026-07-31T19:34:55+03:00",
+   "asOf": "2026-07-31",
+   "fetchedAt": "2026-11-22T22:32:41+00:00",
+   "status": "dagitim_yok",
+   "decisionDate": "2026-06-30",
+   "agmDate": "2026-07-31",
+   "installments": []
+  },
+  {
+   "ticker": "TKFEN",
+   "name": "Tekfen Holding",
+   "disclosureIndex": "1658689",
+   "sourceUrl": "https://www.kap.org.tr/tr/Bildirim/1658689",
+   "publishedAt": "2026-09-03T22:01:09+03:00",
+   "asOf": "2026-09-03",
+   "fetchedAt": "2026-11-22T22:32:41+00:00",
+   "status": "dagitim_yok",
+   "decisionDate": "2026-08-03",
+   "agmDate": "2026-09-03",
+   "installments": []
+  },
+  {
+   "ticker": "ULUUN",
+   "name": "Ulusoy Un",
+   "disclosureIndex": "1693454",
+   "sourceUrl": "https://www.kap.org.tr/tr/Bildirim/1693454",
+   "publishedAt": "2026-11-05T19:42:10+03:00",
+   "asOf": "2026-11-05",
+   "fetchedAt": "2026-11-22T22:32:41+00:00",
+   "status": "dagitim_yok",
+   "decisionDate": "2026-11-05",
+   "agmDate": null,
+   "installments": []
+  }
+ ],
+ "scan": {
+  "windowFrom": "2026-06-26",
+  "windowTo": "2026-11-23",
+  "universeSize": 110,
+  "tickersWithDisclosure": 14,
+  "disclosuresListed": 22,
+  "parsed": 13,
+  "skipped": {
+   "pay biçiminde (bedelsiz) dağıtım: desteklenmiyor": 1
+  },
+  "skippedItems": [
+   {
+    "ticker": "CWENE",
+    "disclosureIndex": "1638000",
+    "sourceUrl": "https://www.kap.org.tr/tr/Bildirim/1638000",
+    "reason": "pay biçiminde (bedelsiz) dağıtım: desteklenmiyor"
+   }
+  ],
+  "pending": 0,
+  "complete": true,
+  "lastCompleteScanAt": "2026-11-22T22:43:19+00:00"
+ }
+}
