@@ -141,6 +141,7 @@ class _NoSource:
 
 
 def test_collect_straits_carries_last_good_with_original_asof(monkeypatch):
+    monkeypatch.setattr(turib_data, "_today", lambda: date(2026, 11, 20))
     monkeypatch.setattr(portwatch, "PortWatchSource", _NoSource)
     prev = {
         "date": "2026-11-18",

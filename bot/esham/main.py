@@ -151,7 +151,6 @@ def _cmd_real_return(args: argparse.Namespace) -> None:
     print(f"  TL Fiyatı: {rep.ilk_fiyat_tl:.2f} TL -> {rep.son_fiyat_tl:.2f} TL (Nominal Getiri: %{rep.nominal_tl_getiri_pct:+.1f})")
     print(f"  USD Fiyatı: ${rep.ilk_fiyat_usd:.3f} -> ${rep.son_fiyat_usd:.3f} (Dolar Getirisi: %{rep.usd_getiri_pct:+.1f})")
     print(f"  EUR Fiyatı: €{rep.ilk_fiyat_eur:.3f} -> €{rep.son_fiyat_eur:.3f} (Euro Getirisi: %{rep.eur_getiri_pct:+.1f})")
-    print(f"  TÜFE Enflasyonundan Arındırılmış Reel Getiri: %{rep.reel_enflasyon_getiri_pct:+.1f}")
     print(f"  Değerlendirme: {rep.analiz_yorumu}")
 
 
@@ -361,6 +360,12 @@ def _cmd_kap_financials(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
+def _cmd_data_status(args: argparse.Namespace) -> None:
+    from .freshness import run_data_status
+
+    sys.exit(run_data_status(strict=args.strict))
+
+
 def _cmd_nav(args: argparse.Namespace) -> None:
     from .jobs.publish_nav import run_nav
 
@@ -547,6 +552,10 @@ def build_parser() -> argparse.ArgumentParser:
     fd.add_argument("--codes", nargs="*", help="Sadece bu fon kodları (mevcut evreni bozmaz)")
     fd.add_argument("--interval", type=float, default=0.4, help="İstekler arası saniye (TEFAS hız sınırı için)")
     fd.set_defaults(func=_cmd_funds)
+
+    ds = sub.add_parser("data-status", help="Bölüm bazında veri tazeliğini ölç, web/public/data/data-status.json yaz")
+    ds.add_argument("--strict", action="store_true", help="Eski/eksik bölüm varsa çıkış kodu 1")
+    ds.set_defaults(func=_cmd_data_status)
 
     kf = sub.add_parser("kap-financials", help="KAP finansal raporlarından IFRS tabloları (web/public/data/kap) üret")
     kf.add_argument("--tickers", nargs="*", help="Sadece bu hisseler (varsayılan: bankasız tüm evren)")

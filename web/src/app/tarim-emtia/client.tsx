@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Wheat,
-  Beef,
   Scale,
   Warehouse,
   Truck,
@@ -112,30 +111,6 @@ export interface TuribMarketDataset {
     hububatIndex?: number;
     summaryText?: string;
   };
-  meatFeed: {
-    cpiDate?: string;
-    meatCpi?: number;
-    headlineCpi?: number;
-    meatCpiAnnualPct?: number;
-    headlineCpiAnnualPct?: number;
-    meatInflationSpread?: number;
-    macroCommentary?: string;
-    bistSectorImpact?: string;
-    asOf?: string;
-    stale?: boolean;
-    parities: Array<{
-      title: string;
-      meatType: string;
-      feedType: string;
-      meatPrice: number;
-      feedPrice: number;
-      ratio: number;
-      threshold: number;
-      isProfitable: boolean;
-      status: string;
-      interpretation: string;
-    }>;
-  };
   tmoComparison: Array<{
     commodity: string;
     tmoProductName: string;
@@ -233,16 +208,38 @@ export interface TuribMarketDataset {
     commodityGroup: string;
     startDate: string;
     endDate: string;
+    asOf?: string;
+    stale?: boolean;
     tradingDays: number;
     startPriceTl: number;
     endPriceTl: number;
     nominalReturnPct: number;
     usdReturnPct: number;
     eurReturnPct: number;
-    realInflationReturnPct: number;
+    fxDateStart?: string;
+    fxDateEnd?: string;
+    usdTryStart?: number;
+    usdTryEnd?: number;
+    eurTryStart?: number;
+    eurTryEnd?: number;
+    source?: string;
+    sourceUrl?: string;
+    fetchedAt?: string;
     commentary: string;
   }>;
+  /** Bot'un her bölüm için yazdığı kaynak / veri tarihi / durum damgası (bkz. bot/esham/freshness.py). */
+  sections?: Record<string, SectionMeta>;
   petrolTanker?: PetrolTankerDataset;
+}
+
+export interface SectionMeta {
+  label: string;
+  source: string;
+  sourceUrl: string;
+  asOf: string | null;
+  fetchedAt: string | null;
+  stale: boolean;
+  status: "fresh" | "stale" | "missing";
 }
 
 const NO_DATA = "Veri yok";
@@ -259,6 +256,49 @@ const StaleNote = ({ asOf }: { asOf?: string }) => (
   </p>
 );
 
+const STATUS_LABEL: Record<SectionMeta["status"], string> = { fresh: "güncel", stale: "güncel değil", missing: "veri yok" };
+
+/** Her bölümün kaynağı, veri tarihi ve çekiliş zamanı: eski/eksik veri sessiz kalmaz. */
+function SectionStamps({ sections }: { sections?: Record<string, SectionMeta> }) {
+  const rows = Object.entries(sections ?? {});
+  if (rows.length === 0) return null;
+  return (
+    <details className="rounded-xl border p-4 text-xs" style={{ borderColor: "var(--border)", color: "var(--text-secondary)" }}>
+      <summary className="cursor-pointer font-semibold">Bölüm bazında veri tarihleri ve kaynaklar</summary>
+      <div className="overflow-x-auto mt-3">
+        <table className="w-full text-left">
+          <thead>
+            <tr style={{ color: "var(--text-muted)" }}>
+              <th className="py-1 pr-4">Bölüm</th>
+              <th className="py-1 pr-4">Veri tarihi</th>
+              <th className="py-1 pr-4">Durum</th>
+              <th className="py-1 pr-4">Kaynak</th>
+              <th className="py-1">Çekiliş</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(([key, m]) => (
+              <tr key={key}>
+                <td className="py-1 pr-4">{m.label}</td>
+                <td className="py-1 pr-4">{m.asOf ?? "—"}</td>
+                <td className="py-1 pr-4">{STATUS_LABEL[m.status] ?? m.status}</td>
+                <td className="py-1 pr-4">
+                  <a href={m.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                    {m.source}
+                  </a>
+                </td>
+                <td className="py-1">
+                  {m.fetchedAt ? new Date(m.fetchedAt).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }) : "—"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  );
+}
+
 export function TuribMarketClient({
   dataset,
   initialTab,
@@ -267,7 +307,7 @@ export function TuribMarketClient({
   initialTab?: string;
 }) {
   const [activeTab, setActiveTab] = useState<
-    "all" | "petrolTanker" | "indices" | "meatFeed" | "tmoStorage" | "arbitrage" | "agriBist" | "api"
+    "all" | "petrolTanker" | "indices" | "tmoStorage" | "arbitrage" | "agriBist" | "api"
   >((initialTab as any) || "all");
 
   useEffect(() => {
@@ -276,7 +316,7 @@ export function TuribMarketClient({
       const tabParam = params.get("tab");
       if (
         tabParam &&
-        ["all", "petrolTanker", "indices", "meatFeed", "tmoStorage", "arbitrage", "agriBist", "api"].includes(
+        ["all", "petrolTanker", "indices", "tmoStorage", "arbitrage", "agriBist", "api"].includes(
           tabParam
         )
       ) {
@@ -365,11 +405,11 @@ export function TuribMarketClient({
               </span>
             </div>
             <h1 className="text-2xl md:text-4xl font-display font-bold tracking-tight mb-2">
-              Tarımsal Emtia, TÜRİB & Et-Yem Terminali
+              Tarımsal Emtia & TÜRİB Terminali
             </h1>
             <p className="text-sm md:text-base max-w-2xl leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-              Türkiye Ürün İhtisas Borsası (TÜRİB) lisanslı depo işlem fiyatları, et-yem pariteleri,
-              TÜİK Et TÜFE enflasyon göstergesi, TMO müdahale fiyatları ve BIST tarım-gıda entegrasyonu.
+              Türkiye Ürün İhtisas Borsası (TÜRİB) lisanslı depo işlem fiyatları, TMO alım fiyatları,
+              Brent petrol ve BIST tarım-gıda entegrasyonu. Her bölümün kaynağı ve veri tarihi aşağıda yazılıdır.
             </p>
           </div>
 
@@ -416,7 +456,7 @@ export function TuribMarketClient({
         </div>
 
         {/* Bülten Hızlı İstatistikleri */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-6 border-t" style={{ borderColor: "var(--border)" }}>
+        <div className="grid grid-cols-2 gap-4 mt-8 pt-6 border-t" style={{ borderColor: "var(--border)" }}>
           <div>
             <p className="text-xs uppercase tracking-wider font-semibold" style={{ color: "var(--text-muted)" }}>
               Toplam Günlük Hacim
@@ -433,34 +473,6 @@ export function TuribMarketClient({
               {dataset.bulletinSummary?.totalValueTlStr || NO_DATA}
             </p>
           </div>
-          <div>
-            <p className="text-xs uppercase tracking-wider font-semibold" style={{ color: "var(--text-muted)" }}>
-              Dana / Yem Paritesi
-            </p>
-            <p className="text-lg md:text-xl font-bold mt-1 text-emerald-400 flex items-center gap-1.5">
-              {isNum(dataset.meatFeed.parities?.[0]?.ratio)
-                ? `${dataset.meatFeed.parities[0].ratio.toFixed(1)}x`
-                : NO_DATA}
-              {isNum(dataset.meatFeed.parities?.[0]?.ratio) && dataset.meatFeed.parities[0].ratio >= dataset.meatFeed.parities[0].threshold && (
-                <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                  Kârlı Alan
-                </span>
-              )}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-wider font-semibold" style={{ color: "var(--text-muted)" }}>
-              Yıllık Et TÜFE
-            </p>
-            <p className="text-lg md:text-xl font-bold mt-1" style={{ color: "var(--text-primary)" }}>
-              {isNum(dataset.meatFeed.meatCpiAnnualPct) ? `%${dataset.meatFeed.meatCpiAnnualPct.toFixed(1)}` : NO_DATA}
-              {isNum(dataset.meatFeed.headlineCpiAnnualPct) && (
-                <span className="text-xs ml-2 text-emerald-400 font-normal">
-                  (Manşet: %{dataset.meatFeed.headlineCpiAnnualPct.toFixed(1)})
-                </span>
-              )}
-            </p>
-          </div>
         </div>
       </div>
 
@@ -470,7 +482,6 @@ export function TuribMarketClient({
           { id: "all", label: "Tüm Terminal", icon: Layers },
           { id: "petrolTanker", label: "Petrol & Tanker Navlun", icon: Fuel },
           { id: "indices", label: "TÜRİB Endeks & Spot", icon: Wheat },
-          { id: "meatFeed", label: "Et-Yem & TÜFE", icon: Beef },
           { id: "tmoStorage", label: "TMO & Depolama Backtest", icon: Warehouse },
           { id: "arbitrage", label: "Bölgesel Arbitraj", icon: Truck },
           { id: "agriBist", label: "Agri-BIST Hisseleri", icon: Scale },
@@ -495,6 +506,9 @@ export function TuribMarketClient({
           );
         })}
       </div>
+
+      {/* ── Bölüm veri damgaları: kaynak · veri tarihi · çekiliş · durum ── */}
+      <SectionStamps sections={dataset.sections} />
 
       {/* ── Section: Petrol Piyasası & Tanker Kiralama Navlun ── */}
       {(activeTab === "all" || activeTab === "petrolTanker") && (
@@ -656,159 +670,52 @@ export function TuribMarketClient({
         </section>
       )}
 
-      {/* ── Section: Et-Yem Pariteleri & Et TÜFE Enflasyonu ── */}
-      {(activeTab === "all" || activeTab === "meatFeed") && (
-        <section className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <Beef className="w-5 h-5 text-rose-400" />
-                <h2 className="text-xl md:text-2xl font-display font-bold">
-                  Et-Yem Paritesi & Et TÜFE Enflasyon Paneli
-                </h2>
-              </div>
-              <p className="text-xs md:text-sm" style={{ color: "var(--text-secondary)" }}>
-                Hayvancılık işletmelerinin girdi maliyeti kârlılık rasyonları ve TÜİK Et TÜFE enflasyonunun öncü sinyalleri.
-              </p>
-            </div>
-          </div>
-
-          {!isNum(dataset.meatFeed.meatCpiAnnualPct) &&
-          !isNum(dataset.meatFeed.headlineCpiAnnualPct) &&
-          (dataset.meatFeed.parities || []).length === 0 ? (
-            <NoSource what="Et-yem paritesi ve Et TÜFE" />
-          ) : (
-          <>
-          {dataset.meatFeed.stale && <StaleNote asOf={dataset.meatFeed.asOf} />}
-          {/* Et TÜFE vs Manşet TÜFE Gösterge Kartı */}
-          <div
-            className="rounded-xl border p-6"
-            style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-1 md:border-r md:pr-6" style={{ borderColor: "var(--border)" }}>
-                <span className="text-xs font-semibold uppercase tracking-wider text-rose-400">
-                  TÜİK Et TÜFE Yıllık
-                </span>
-                <p className="text-3xl font-display font-bold" style={{ color: "var(--text-primary)" }}>
-                  {isNum(dataset.meatFeed.meatCpiAnnualPct) ? `%${dataset.meatFeed.meatCpiAnnualPct.toFixed(1)}` : NO_DATA}
-                </p>
+      {/* ── Section: Döviz cinsinden getiri (TCMB kurları) ── */}
+      {(activeTab === "all" || activeTab === "indices") && (dataset.realReturns || []).length > 0 && (
+        <section className="space-y-4">
+          <h2 className="text-xl md:text-2xl font-display font-bold">Buğday Fiyatı: TL, USD ve EUR Bazında Değişim</h2>
+          <p className="text-xs md:text-sm" style={{ color: "var(--text-secondary)" }}>
+            TÜRİB fiyat serisinin son 12 aylık değişimi; dolar ve euro karşılığı TCMB döviz alış kuruyla hesaplanır.
+            TÜFE ile arındırılmış getiri bu sayfada yoktur.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {dataset.realReturns.map((r) => (
+              <div key={r.commodityGroup} className="rounded-xl border p-4 space-y-2" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+                <h3 className="font-semibold">{r.commodityGroup}</h3>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                  Endeks: {isNum(dataset.meatFeed.meatCpi) ? dataset.meatFeed.meatCpi.toFixed(1) : NO_DATA} (Tarih: {dataset.meatFeed.cpiDate || NO_DATA})
+                  {r.startDate} → {r.endDate}
+                  {r.stale ? " (güncel değil, son iyi değer)" : ""}
                 </p>
-              </div>
-
-              <div className="space-y-1 md:border-r md:pr-6" style={{ borderColor: "var(--border)" }}>
-                <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-                  Manşet TÜFE Enflasyonu
-                </span>
-                <p className="text-3xl font-display font-bold" style={{ color: "var(--text-primary)" }}>
-                  {isNum(dataset.meatFeed.headlineCpiAnnualPct) ? `%${dataset.meatFeed.headlineCpiAnnualPct.toFixed(1)}` : NO_DATA}
-                </p>
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                  Endeks: {isNum(dataset.meatFeed.headlineCpi) ? dataset.meatFeed.headlineCpi.toFixed(1) : NO_DATA}
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
-                  Et Enflasyon Primi
-                </span>
-                <p className="text-3xl font-display font-bold text-emerald-400">
-                  {isNum(dataset.meatFeed.meatInflationSpread)
-                    ? `${dataset.meatFeed.meatInflationSpread > 0 ? "+" : ""}${dataset.meatFeed.meatInflationSpread.toFixed(1)}`
-                    : NO_DATA}{" "}
-                  {isNum(dataset.meatFeed.meatInflationSpread) && <span className="text-sm font-normal">puan</span>}
-                </p>
-                {isNum(dataset.meatFeed.meatInflationSpread) && (
-                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                    {dataset.meatFeed.meatInflationSpread < 0
-                      ? "Et fiyat artışı manşet enflasyonun altında seyrediyor."
-                      : "Et fiyat artışı manşet enflasyonun üzerinde seyrediyor."}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {dataset.meatFeed.macroCommentary && (
-              <div className="mt-6 pt-4 border-t text-xs md:text-sm leading-relaxed" style={{ borderColor: "var(--border)", color: "var(--text-secondary)" }}>
-                <span className="font-semibold text-zinc-300">Makro Değerlendirme: </span>
-                {dataset.meatFeed.macroCommentary}
-              </div>
-            )}
-          </div>
-
-          {/* Parite Kartları Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {(dataset.meatFeed.parities || []).map((p, i) => {
-              const isOk = p.ratio >= p.threshold;
-              return (
-                <div
-                  key={i}
-                  className="rounded-xl border p-5 flex flex-col justify-between"
-                  style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-                >
+                <dl className="grid grid-cols-3 gap-2 text-sm">
                   <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>
-                        {p.title}
-                      </span>
-                      <span
-                        className={`text-xs font-semibold px-2 py-0.5 rounded border ${
-                          isOk
-                            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                            : "bg-red-500/10 border-red-500/30 text-red-400"
-                        }`}
-                      >
-                        {p.status}
-                      </span>
-                    </div>
-
-                    <div className="flex items-baseline gap-2 mb-2">
-                      <span className="text-3xl font-display font-bold" style={{ color: "var(--accent)" }}>
-                        {p.ratio.toFixed(1)}
-                      </span>
-                      <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-                        (Başabaş Eşik: {p.threshold.toFixed(0)})
-                      </span>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="w-full bg-zinc-800 rounded-full h-2 mb-4 overflow-hidden relative">
-                      <div
-                        className={`h-full rounded-full ${isOk ? "bg-emerald-400" : "bg-red-400"}`}
-                        style={{ width: `${Math.min((p.ratio / (p.threshold * 1.5)) * 100, 100)}%` }}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 text-xs py-2 px-3 rounded-lg bg-zinc-900/60 mb-3 border border-zinc-800/80">
-                      <div>
-                        <span className="text-zinc-400 block text-xs">Karkas Fiyatı</span>
-                        <span className="font-semibold text-zinc-200">{p.meatPrice.toFixed(2)} ₺/kg</span>
-                      </div>
-                      <div>
-                        <span className="text-zinc-400 block text-xs">Rasyon Yem</span>
-                        <span className="font-semibold text-zinc-200">{p.feedPrice.toFixed(2)} ₺/kg</span>
-                      </div>
-                    </div>
-
-                    <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                      {p.interpretation}
-                    </p>
+                    <dt className="text-xs" style={{ color: "var(--text-muted)" }}>TL</dt>
+                    <dd className="font-bold">{isNum(r.nominalReturnPct) ? `%${r.nominalReturnPct.toFixed(1)}` : NO_DATA}</dd>
                   </div>
-                </div>
-              );
-            })}
+                  <div>
+                    <dt className="text-xs" style={{ color: "var(--text-muted)" }}>USD</dt>
+                    <dd className="font-bold">{isNum(r.usdReturnPct) ? `%${r.usdReturnPct.toFixed(1)}` : NO_DATA}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs" style={{ color: "var(--text-muted)" }}>EUR</dt>
+                    <dd className="font-bold">{isNum(r.eurReturnPct) ? `%${r.eurReturnPct.toFixed(1)}` : NO_DATA}</dd>
+                  </div>
+                </dl>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  Veri tarihi: {r.asOf ?? r.endDate}
+                  {r.fxDateEnd ? ` · kur bülteni: ${r.fxDateStart} ve ${r.fxDateEnd}` : ""}
+                  {" · Kaynak: "}
+                  {r.sourceUrl ? (
+                    <a href={r.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                      {r.source ?? "TCMB"}
+                    </a>
+                  ) : (
+                    (r.source ?? "TCMB")
+                  )}
+                  {r.fetchedAt ? ` · çekiliş: ${new Date(r.fetchedAt).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })}` : ""}
+                </p>
+              </div>
+            ))}
           </div>
-
-          {dataset.meatFeed.bistSectorImpact && (
-            <div className="rounded-xl border p-4 bg-zinc-900/30 border-zinc-800/60 text-xs md:text-sm text-zinc-300">
-              <span className="font-bold text-amber-400">BIST Gıda/Et Sektörü Yansıması: </span>
-              {dataset.meatFeed.bistSectorImpact}
-            </div>
-          )}
-          </>
-          )}
         </section>
       )}
 
@@ -1206,7 +1113,7 @@ export function TuribMarketClient({
                   <p className="text-zinc-400">
                     import requests<br />
                     data = requests.get(&quot;https://esham.pages.dev/data/turib-market.json&quot;).json()<br />
-                    print(data[&quot;meatFeed&quot;][&quot;parities&quot;][0][&quot;ratio&quot;])
+                    print(data[&quot;sections&quot;][&quot;indices&quot;][&quot;asOf&quot;])
                   </p>
                 </div>
               </div>
@@ -1243,7 +1150,7 @@ export function TuribMarketClient({
                   </button>
                 </div>
                 <p className="text-xs text-zinc-400 mb-4">
-                  `esham-market-mcp` ile 18 adet aracı (TÜRİB, BIST, Et-Yem, TMO, Depolama) yapay zeka asistanınıza ekleyin.
+                  `esham-market-mcp` ile 18 adet aracı (TÜRİB, BIST, TMO, Depolama) yapay zeka asistanınıza ekleyin.
                 </p>
 
                 <div className="rounded-lg bg-zinc-950 p-4 font-mono text-xs text-zinc-300 border border-zinc-800 overflow-x-auto">
@@ -1277,7 +1184,7 @@ export function TuribMarketClient({
           <ShieldCheck className="w-5 h-5 text-zinc-400 shrink-0 mt-0.5" />
           <p>
             <strong>Yasal Uyarı (SPK & TÜRİB Çekincesi):</strong> Bu sayfada yer alan TÜRİB endeksleri,
-            lisanslı depoculuk işlem verileri, et-yem pariteleri, TÜİK enflasyon hesaplamaları ve BIST hisse
+            lisanslı depoculuk işlem verileri, TCMB kurlarıyla yapılan hesaplamalar ve BIST hisse
             yansımaları yalnızca bilgi, araştırma ve veri analitiği amaçlıdır. Sermaye Piyasası Kurulu (SPK)
             mevzuatı kapsamında yatırım danışmanlığı veya alım-satım tavsiyesi niteliği taşımaz. Yatırım kararlarınızı
             yetkili aracı kurumlar ve portföy yönetim şirketleri aracılığıyla kendi risk profilinize göre vermeniz önerilir.

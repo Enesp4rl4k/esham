@@ -14,7 +14,7 @@ test("etkin başlık yola göre belirlenir", () => {
   assert.ok(isGroupActive(g("fonlar"), "/fon/AFT"));
   assert.ok(isGroupActive(g("fonlar"), "/fonlar/kategori/hisse-senedi"));
   assert.ok(!isGroupActive(g("hisseler"), "/fonlar"));
-  assert.ok(isGroupActive(g("piyasa"), "/piyasa/temettu-takvimi"));
+  assert.ok(isGroupActive(g("piyasa"), "/tarim-emtia"));
   assert.ok(isGroupActive(g("analizler"), "/rapor/x"));
   assert.ok(!isGroupActive(g("piyasa"), "/hisse/THYAO"));
   assert.ok(!isGroupActive(g("hisseler"), "/"));

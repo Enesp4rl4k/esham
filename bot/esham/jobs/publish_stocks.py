@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import statistics
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -156,6 +156,52 @@ def _write(path: Path, obj: Any) -> None:
     path.write_text(json.dumps(obj, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
 
+#: Son başarılı güncellemesi bu kadar saatten eski satır `stale: true` işaretlenir; bu kadar günden eskiyse gizlenir.
+STALE_ROW_HOURS = 120
+HIDE_ROW_DAYS = 30
+
+
+def merge_universe_rows(
+    prev_rows: dict[str, Any],
+    new_rows: dict[str, Any],
+    universe_tickers: list[str],
+    prev_stamp: str | None,
+    now: datetime,
+    partial: bool = False,
+) -> tuple[dict[str, Any], list[str], list[str]]:
+    """(birleşik satırlar, bu turda alınamayanlar, gizlenenler).
+
+    Alınamayan hissenin son iyi satırı kendi ``updated_at``'ıyla korunur (satırda yoksa önceki dosya damgası);
+    tarihi bilinmiyorsa satır taşınmaz. ``partial``: yalnızca bir alt küme istendiyse kalan hisseler "alınamadı"
+    sayılmaz, olduğu gibi kalır.
+    """
+    merged: dict[str, Any] = {}
+    failed: list[str] = []
+    hidden: list[str] = []
+    for t, row in prev_rows.items():
+        if t in new_rows:
+            continue
+        stamp = row.get("updated_at") or prev_stamp
+        try:
+            age = now - datetime.fromisoformat(str(stamp).replace("Z", "+00:00"))
+        except (TypeError, ValueError):
+            hidden.append(t)  # tarihsiz eski satır taze gibi sunulmaz
+            continue
+        if age > timedelta(days=HIDE_ROW_DAYS):
+            hidden.append(t)
+            continue
+        carried = {**row, "updated_at": stamp}
+        if age > timedelta(hours=STALE_ROW_HOURS):
+            carried["stale"] = True
+        merged[t] = carried
+        if not partial and t in universe_tickers:
+            failed.append(t)
+    merged.update(new_rows)
+    if not partial:  # evrende olup hiç satırı olmayan (ilk kez alınamayan) hisseler de raporlanır
+        failed.extend(t for t in universe_tickers if t not in merged and t not in failed)
+    return merged, failed, hidden
+
+
 def run_stocks(tickers: list[str] | None = None, workers: int = 4, with_prices: bool = True) -> int:
     universe = load_universe()
     if tickers:
@@ -164,6 +210,10 @@ def run_stocks(tickers: list[str] | None = None, workers: int = 4, with_prices: 
     with ThreadPoolExecutor(max_workers=workers) as pool:
         results = list(pool.map(build_stock, universe))
     stocks = [s for s in results if s]
+    if not stocks:
+        # Hiçbir hisse alınamadı: dosyalara dokunma (aksi halde evren dosyası taze damgayla eski veriyi örter).
+        log.error("Hiçbir hisse için veri alınamadı; mevcut dosyalar değiştirilmedi.")
+        return 0
 
     medians = _medians(stocks)
     for s in stocks:
@@ -175,25 +225,41 @@ def run_stocks(tickers: list[str] | None = None, workers: int = 4, with_prices: 
                 if series:
                     _write(DATA_DIR / "prices" / f"{s['ticker']}.json", series)
 
-    # Kısmi çalıştırmada (tickers verilmiş) mevcut evreni bozma: birleştir
+    # Evreni HER ZAMAN önceki yayınla birleştir: bu turda verisi alınamayan hisse sessizce listeden düşmez; son iyi
+    # satırı KENDİ tarihiyle kalır, eşik aşılırsa "stale" işaretlenir, çok eskiyse gizlenir.
     uni_path = DATA_DIR / "universe.json"
-    existing: dict[str, Any] = {}
-    sector_median = medians
-    if tickers and uni_path.exists():
-        prev = json.loads(uni_path.read_text(encoding="utf-8"))
-        existing = {r["ticker"]: r for r in prev["stocks"]}
-        sector_median = prev.get("sector_median", medians)
+    prev_rows: dict[str, Any] = {}
+    prev_stamp: str | None = None
+    prev_medians: dict[str, Any] = {}
+    if uni_path.exists():
+        try:
+            prev = json.loads(uni_path.read_text(encoding="utf-8"))
+            prev_stamp = prev.get("updated_at")
+            prev_rows = {r["ticker"]: r for r in prev.get("stocks", [])}
+            prev_medians = prev.get("sector_median", {})
+        except (OSError, ValueError, KeyError) as exc:
+            log.warning("Önceki universe.json okunamadı, birleştirme yapılmadı: %s", exc)
+    now = datetime.now(timezone.utc)
+    new_rows: dict[str, Any] = {}
     for s in stocks:
-        existing[s["ticker"]] = {
+        new_rows[s["ticker"]] = {
             "ticker": s["ticker"], "name": s["name"], "sector": s["sector"], "financial": s["financial"],
-            "price": s["price"], "as_of": s["as_of"], "suspect": s["suspect"],
+            "price": s["price"], "as_of": s["as_of"], "suspect": s["suspect"], "updated_at": s["updated_at"],
             **{k: s["ratios"].get(k) for k in SCREENER_KEYS},
         }
+    merged, failed, hidden = merge_universe_rows(prev_rows, new_rows, [str(u["ticker"]) for u in universe],
+                                                 prev_stamp, now, partial=bool(tickers))
     _write(uni_path, {
-        "updated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "count": len(existing),
-        "sector_median": sector_median,
-        "stocks": sorted(existing.values(), key=lambda r: -(r.get("market_cap") or 0)),
+        "updated_at": now.isoformat(timespec="seconds"),
+        "count": len(merged),
+        "sector_median": medians if not tickers else (prev_medians or medians),
+        "stocks": sorted(merged.values(), key=lambda r: -(r.get("market_cap") or 0)),
     })
+    if failed:
+        log.warning("Hisse verisi alınamadı (%d): %s — önceki satırlar kendi tarihleriyle korundu.", len(failed), ", ".join(sorted(failed)))
+    if hidden:
+        log.warning("Çok eski olduğu için evrenden gizlendi (%d): %s", len(hidden), ", ".join(sorted(hidden)))
+    print(f"Hisse özeti: {len(stocks)}/{len(universe)} güncellendi; {len(failed)} alınamadı (son iyi değer korundu); "
+          f"{sum(1 for r in merged.values() if r.get('stale'))} satır eski işaretli; {len(hidden)} gizlendi.")
     log.info("Hisse verisi yazıldı: %d/%d", len(stocks), len(universe))
     return len(stocks)

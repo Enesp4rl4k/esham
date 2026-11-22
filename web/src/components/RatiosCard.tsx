@@ -6,6 +6,8 @@ export interface StockRatiosData {
   sector: string;
   financial: boolean;
   as_of: string;
+  /** Bu dosyanın botça son başarılı üretildiği an (ISO); fiyat/çarpanların tarihi */
+  updated_at?: string;
   basis: "TTM" | "yillik";
   currency: string;
   ratios: Record<string, number | null>;
@@ -121,6 +123,14 @@ export function RatiosCard({ data }: { data: StockRatiosData }) {
           {data.basis === "TTM" ? "Son 12 ay" : "Yıllık"} · {asOf} · tablolar {data.currency}
         </span>
       </div>
+
+      {data.updated_at && (
+        <p className="mb-4 text-xs text-zinc-400">
+          Fiyat ve çarpanlar {new Date(data.updated_at).toLocaleDateString("tr-TR")} tarihinde hesaplandı (fiyat: Yahoo Finance;
+          finansal tablolar: {data.data_source === "KAP" ? "KAP" : "Yahoo Finance"}). Bir güncelleme alınamazsa son
+          başarılı hesaplamanın tarihi burada kalır.
+        </p>
+      )}
 
       {lossMaking && (
         <p className="mb-4 text-sm text-zinc-200 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2">

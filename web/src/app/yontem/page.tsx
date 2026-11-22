@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SITE_URL } from "@/lib/config";
 import { DEFAULT_OG_IMAGE } from "@/lib/seo";
+import { DataStatusTable } from "@/components/DataStatusTable";
 
 const title = "Yöntem ve Kaynaklar: Oranlar Nasıl Hesaplanıyor?";
 const description = "Esham oranları hangi veriden, hangi formülle ve ne sıklıkla hesaplar; hangi sınırlar var, hatalar nasıl düzeltilir.";
@@ -23,7 +24,7 @@ const FORMULAS: [string, string][] = [
   ["Net borç/FAVÖK", "Net borç ÷ son 12 aylık FAVÖK. Bankalarda anlamlı olmadığı için hesaplanmaz."],
 ];
 
-export default function MethodPage() {
+export default async function MethodPage() {
   return (
     <div className="container mx-auto px-6 py-10 max-w-3xl">
       <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">Yöntem ve Kaynaklar</h1>
@@ -35,7 +36,7 @@ export default function MethodPage() {
       <ul className="list-disc pl-5 space-y-2 text-base text-zinc-300 leading-relaxed mb-8">
         <li><strong className="text-white">Finansal tablolar:</strong> öncelik KAP finansal raporlarıdır (resmî IFRS/XBRL); KAP verisi eksik, eski ya da şüpheli eşlemeli olduğunda Yahoo Finance kullanılır ve hisse sayfasında kaynak yazılır. <strong className="text-white">Fiyatlar, piyasa değeri ve temettü:</strong> Yahoo Finance. Bilançolar çeyreklik alınır, son dört çeyrek toplanarak son 12 aylık (TTM) değerler oluşturulur.</li>
         <li><strong className="text-white">Bildirimler ve haberler:</strong> KAP (Kamuyu Aydınlatma Platformu) bildirimleri. İştirak oranları (NAV hesabı) KAP şirket sayfalarındaki doğrudan paylardan okunur.</li>
-        <li><strong className="text-white">Tarımsal emtia:</strong> TÜRİB, TMO ve TÜİK yayınları.</li>
+        <li><strong className="text-white">Tarımsal emtia:</strong> TÜRİB ELÜS bülteni, TMO alım fiyatı duyuruları, TCMB döviz kurları (USD/EUR cinsinden getiri) ve IMF PortWatch (İstanbul Boğazı geçiş sayıları; atıf: UN Global Platform, IMF PortWatch).</li>
       </ul>
 
       <h2 className="text-xl font-display font-semibold mb-3">Formüller</h2>
@@ -53,7 +54,7 @@ export default function MethodPage() {
         <li><strong className="text-white">Döviz cinsinden tablolar:</strong> Bazı şirketler USD veya EUR raporlar. Piyasa değeri TL olduğundan çarpanlar hesaplanırken tablo, kurla TL&apos;ye çevrilir.</li>
         <li><strong className="text-white">Enflasyon muhasebesi (TMS 29):</strong> Yüksek enflasyon döneminde kâr ve özkaynak rakamları dönemler arasında doğrudan karşılaştırılamayabilir.</li>
         <li><strong className="text-white">Uç değer bayrağı:</strong> Mutlak olarak anlamsız çarpanlar ve Yahoo&apos;nun kendi F/K değeriyle büyük fark gösteren satırlar &quot;şüpheli&quot; işaretlenir; sektör medyanlarına, liderlik tablolarına ve hazır taramalara katılmaz.</li>
-        <li><strong className="text-white">KAP kapsamı:</strong> KAP hattı şimdilik finansal olmayan (banka/sigorta dışı) şirketlerde çalışır; bu şirketlerin hepsi henüz kapsanmıyor. Kapsam dışındakiler Yahoo Finance verisiyle hesaplanır ve KAP ile teyit edilmemiştir. Karar vermeden önce resmî bildirimlere bakın.</li>
+        <li><strong className="text-white">KAP kapsamı:</strong> KAP hattı finansal olmayan şirketlerde ve genel şablon kullanan aracı kurumlarda çalışır; bankalar ve sigorta şirketleri farklı rapor şablonu kullandığı için henüz kapsanmıyor, kalan şirketler ise KAP raporları kota sınırıyla birkaç koşuda aşamalı tamamlandığı için kademeli ekleniyor. Kapsam dışındakiler Yahoo Finance verisiyle hesaplanır ve KAP ile teyit edilmemiştir. Karar vermeden önce resmî bildirimlere bakın.</li>
         <li><strong className="text-white">Sektör medyanı:</strong> Yalnızca en az 3 geçerli değeri olan sektörlerde hesaplanır.</li>
       </ul>
 
@@ -61,6 +62,8 @@ export default function MethodPage() {
       <p className="text-base text-zinc-300 leading-relaxed mb-8">
         Haber ve piyasa raporları hafta içi seans boyunca otomatik üretilir. Hisse oranları her iş günü kapanıştan sonra yeniden hesaplanır; her sayfada verinin tarihi gösterilir.
       </p>
+
+      <DataStatusTable />
 
       <h2 className="text-xl font-display font-semibold mb-3">Değerleme araçları</h2>
       <p className="text-base text-zinc-300 leading-relaxed mb-8">

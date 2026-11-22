@@ -1,8 +1,10 @@
 """Uydurma (kod içine gömülü) piyasa sayısı yayınlanmaz: VİOP basis, makro barometre, kur radarı,
 tanker/Brent, sabit kurlu sözleşme tutarı, TÜRİB bölüm taşıma (ağ yok)."""
 import ast
+from pathlib import Path
 import inspect
 import json
+from datetime import date
 
 import pytest
 import requests
@@ -179,14 +181,15 @@ class _Boom:
 
 @pytest.fixture
 def offline(monkeypatch):
-    for n in ("TuribSource", "MeatFeedIndexAnalyzer", "RealReturnsCalculator", "TmoSource",
+    for n in ("TuribSource", "RealReturnsCalculator", "TmoSource",
               "StorageStrategyBacktester", "RegionalArbitrageScanner", "AgriBistAnalyzer"):
         monkeypatch.setattr(turib_data, n, _Boom)
     monkeypatch.setattr(tanker_freight, "TankerFreightSource", _Boom)
     monkeypatch.setattr(portwatch, "PortWatchSource", _Boom)
 
 
-def test_turib_section_failure_keeps_last_good_with_original_date(offline):
+def test_turib_section_failure_keeps_last_good_with_original_date(offline, monkeypatch):
+    monkeypatch.setattr(turib_data, "_today", lambda: date(2026, 11, 20))
     prev = {
         "date": "2026-11-18",
         "indices": [{"code": "TRBHUB", "value": 7000.0, "asOf": "2026-11-17"}, {"code": "TRBBGD", "value": 8000.0}],
@@ -205,7 +208,7 @@ def test_turib_section_failure_keeps_last_good_with_original_date(offline):
 def test_turib_section_without_previous_stays_empty(offline):
     data = turib_data.generate_turib_market_data(previous=None)
     assert data["indices"] == []
-    assert data["meatFeed"] == {}
+    assert "meatFeed" not in data
     assert data["petrolTanker"] == {}
     data = turib_data.generate_turib_market_data(previous={"indices": [{"code": "X"}]})  # tarihsiz
     assert data["indices"] == []
@@ -244,3 +247,62 @@ def test_portwatch_module_has_no_hardcoded_counts():
     nums = {n.value for n in ast.walk(tree) if isinstance(n, ast.Constant)
             and isinstance(n.value, (int, float)) and not isinstance(n.value, bool)}
     assert nums <= {0, 1000, 6, 7, 10, 42}, nums  # ms->s, hafta günleri, ISO tarih dilimi, geriye bakış
+
+
+# ---- repodaki yayınlanmış veri dosyaları: uydurma sayı yok, her dosya tarihli ----------------
+
+DATA_DIR = Path(__file__).resolve().parents[2] / "web" / "public" / "data"
+TIMESTAMP_KEYS = ("updated_at", "updatedAt", "generated_at")
+
+
+def _top_level_data_files():
+    return sorted(p for p in DATA_DIR.glob("*.json"))
+
+
+def test_committed_data_files_contain_no_known_fabricated_numbers():
+    """Eskiden elle gömülmüş sayılar (VİOP baz farkı, CDS, rezerv, kur çiftleri) veri dosyalarına geri dönmesin."""
+    bad = {}
+    for p in _top_level_data_files():
+        hit = set(FABRICATED) & set(_all_numbers(json.loads(p.read_text(encoding="utf-8"))))
+        if hit:
+            bad[p.name] = sorted(hit)
+    assert not bad, bad
+
+
+def test_every_committed_top_level_data_file_carries_its_own_timestamp():
+    """Tarihsiz (kaynak/zaman damgası olmayan) sayı dosyası yayınlanamaz: bist-quant-valuation.json gibi elle
+    commit'lenmiş, hiç yenilenmeyen dosyalar bu kapıdan geçemez."""
+    undated = []
+    for p in _top_level_data_files():
+        doc = json.loads(p.read_text(encoding="utf-8"))
+        if not (isinstance(doc, dict) and any(doc.get(k) for k in TIMESTAMP_KEYS)):
+            undated.append(p.name)
+    assert not undated, undated
+
+
+def test_turib_dataset_has_no_removed_sections_and_stamps_every_section(offline):
+    from esham.freshness import SECTION_SOURCES
+
+    data = turib_data.generate_turib_market_data(previous=None)
+    assert "meatFeed" not in data  # kaynak yok: bölüm sayfadan ve veriden kaldırıldı
+    assert set(data["sections"]) == set(SECTION_SOURCES)
+    assert all(m["status"] == "missing" and m["asOf"] is None for m in data["sections"].values())
+    committed = json.loads((DATA_DIR / "turib-market.json").read_text(encoding="utf-8"))
+    assert "meatFeed" not in committed
+
+
+def test_published_reports_carry_no_fabricated_meat_feed_block():
+    """Kaynaksız Et-Yem/Et TÜFE bloğu (her gün aynı uydurma sayılar) yayınlanmış raporlardan temizlendi."""
+    import os
+
+    base = str(Path(__file__).resolve().parents[2] / "web" / "content" / "reports")
+    pre = (chr(92) * 2 + "?" + chr(92)) if os.name == "nt" else ""  # Windows'ta 260+ karakterli rapor dosya adları
+    bad = []
+    for name in os.listdir(base):
+        if not name.endswith(".json"):
+            continue
+        with open(pre + os.path.join(base, name), encoding="utf-8") as fh:
+            text = fh.read()
+        if "Et-Yem Paritesi" in text or "Dana Karkas / Besi Yemi" in text:
+            bad.append(name)
+    assert not bad, bad

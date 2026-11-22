@@ -37,6 +37,7 @@ export function StockPeerComparisonCard({
   const peerList: PeerMetricItem[] = [];
 
   for (const [tick, d] of Object.entries(quantData)) {
+    if (!d || typeof d !== "object") continue; // üst düzey meta alanları (updated_at) hisse değildir
     const f = d?.fundamental;
     const dcf = d?.dcf;
     const kl = d?.key_levels;

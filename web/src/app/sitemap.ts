@@ -40,24 +40,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
-      url: `${SITE_URL}/piyasa/devaluasyon-radari`,
-      lastModified: new Date(),
-      changeFrequency: "daily",
-      priority: 0.85,
-    },
-    {
-      url: `${SITE_URL}/piyasa/geri-alimlar`,
-      lastModified: new Date(),
-      changeFrequency: "daily",
-      priority: 0.85,
-    },
-    {
-      url: `${SITE_URL}/piyasa/temettu-takvimi`,
-      lastModified: new Date(),
-      changeFrequency: "daily",
-      priority: 0.85,
-    },
-    {
       url: `${SITE_URL}/arsiv`,
       lastModified: new Date(),
       changeFrequency: "daily",

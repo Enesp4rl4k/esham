@@ -1,6 +1,7 @@
 """Sentetik/sessizce düşen piyasa verisi yok: VİOP vadeli, TÜRİB taşıma, açılış VİOP satırı (ağ yok)."""
 import inspect
 import json
+from datetime import date
 import logging
 from types import SimpleNamespace
 
@@ -152,7 +153,8 @@ def _tmo_report(name):
 
 @pytest.fixture
 def offline_turib(monkeypatch):
-    for n in ("TuribSource", "MeatFeedIndexAnalyzer", "RealReturnsCalculator",
+    monkeypatch.setattr(turib_data, "_today", lambda: date(2026, 11, 21))
+    for n in ("TuribSource", "RealReturnsCalculator",
               "StorageStrategyBacktester", "RegionalArbitrageScanner", "AgriBistAnalyzer"):
         monkeypatch.setattr(turib_data, n, _Boom)
 

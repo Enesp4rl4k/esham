@@ -37,6 +37,9 @@ BASE_URL = "https://www.kap.org.tr"
 QUERY_URL = f"{BASE_URL}/tr/api/disclosure/members/byCriteria"
 MAX_ROWS = 1990  # KAP byCriteria üst sınırı 2000 satır
 CACHE_DIR = Path(__file__).resolve().parents[2] / "cache" / "kap"
+#: Ayrıştırıcı sürümü: "ayrıştırılamadı" (negatif) önbellek kayıtları yalnızca aynı sürümde geçerlidir; ayrıştırıcı
+#: geliştirilince (örn. banka/sigorta şablonu eklenince) eski negatif kayıtlar otomatik yeniden denenir.
+PARSER_VERSION = 1
 
 # Normalize kalem → (statement, [kavram ekleri (ön eksiz), ...]); ilk bulunan kullanılır.
 # işaret: "abs" → mutlak değer (KAP gider/ödemeleri negatif yazar)
@@ -366,13 +369,28 @@ class KapFinancials:
                 best[key] = r
         return sorted(best.values(), key=lambda r: (r["_ticker"], r.get("year") or 0, r.get("period") or 0))
 
+    def cache_path(self, disclosure_index: str) -> Path:
+        return CACHE_DIR / f"{disclosure_index}.json"
+
+    def is_cached(self, disclosure_index: str) -> bool:
+        """Bu rapor için geçerli bir önbellek kaydı (başarılı ya da bu sürümde ayrıştırılamayan) var mı?"""
+        try:
+            doc = json.loads(self.cache_path(disclosure_index).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return False
+        if isinstance(doc, dict) and doc.get("_unparsable"):
+            return doc.get("parser_version") == PARSER_VERSION
+        return True
+
     def snapshot(self, disclosure_index: str) -> dict[str, Any] | None:
         """Bildirim → ``report_snapshot``; önbellekten ya da KAP'tan.
 
-        Ayrıştırılamayan rapor için None; indirme başarısızsa ``KapUnavailable`` fırlatır."""
-        cache = CACHE_DIR / f"{disclosure_index}.json"
-        if cache.exists():
-            return json.loads(cache.read_text(encoding="utf-8"))
+        Ayrıştırılamayan rapor için None (ve negatif kayıt: her koşuda ~5 MB'ı ve istek bütçesini boşa harcamaz);
+        indirme başarısızsa ``KapUnavailable`` fırlatır (negatif kayıt YAZILMAZ)."""
+        cache = self.cache_path(disclosure_index)
+        if self.is_cached(disclosure_index):
+            doc = json.loads(cache.read_text(encoding="utf-8"))
+            return None if isinstance(doc, dict) and doc.get("_unparsable") else doc
         try:
             resp = kap_get(f"{BASE_URL}/tr/Bildirim/{disclosure_index}", headers=default_headers(), timeout=90)
             resp.raise_for_status()
@@ -383,8 +401,10 @@ class KapFinancials:
             snap = report_snapshot(parse_report(decode_page(resp.content)))
         except Exception as exc:
             log.warning("KAP rapor işlenemedi %s: %s", disclosure_index, exc)
-            return None
+            return None  # beklenmeyen hata: kalıcı sayma, bir sonraki koşuda yeniden dene
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
         if snap:
-            CACHE_DIR.mkdir(parents=True, exist_ok=True)
             cache.write_text(json.dumps(snap, ensure_ascii=False), encoding="utf-8")
+        else:
+            cache.write_text(json.dumps({"_unparsable": True, "parser_version": PARSER_VERSION}), encoding="utf-8")
         return snap

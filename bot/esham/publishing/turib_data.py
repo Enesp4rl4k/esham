@@ -1,4 +1,4 @@
-"""TÜRİB ELÜS, Et-Yem ve Tarımsal Emtia verilerini web/public/data/turib-market.json'a yazar.
+"""TÜRİB ELÜS ve Tarımsal Emtia verilerini web/public/data/turib-market.json'a yazar.
 
 Statik export (Cloudflare Pages) ortamında Next.js API route yerine bot tarafından
 her tarama turunda bu modül çağrılır. Üretilen JSON dosyası /tarim-emtia sayfasında
@@ -7,13 +7,13 @@ kullanıcılar tarafından dinamik incelenir ve doğrudan ham veri olarak indiri
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
 from ..config import PROJECT_ROOT, get_logger
+from ..freshness import build_section_meta
 from ..sources.turib import TuribSource
-from ..sources.meat_feed_index import MeatFeedIndexAnalyzer
 from ..sources.tmo import TmoSource
 from ..sources.real_returns import RealReturnsCalculator
 from ..sources.storage_backtest import StorageStrategyBacktester
@@ -23,6 +23,30 @@ from ..sources.agri_bist import AgriBistAnalyzer
 log = get_logger(__name__)
 
 TURIB_JSON = PROJECT_ROOT / "web" / "public" / "data" / "turib-market.json"
+
+
+#: Taşınan (son iyi) değer bundan eski ise yayından çıkarılır: eski veri "güncel değil" notuyla bile sonsuza dek asılı kalmaz.
+MAX_CARRY_DAYS = 14
+
+#: Boğaz sayıları haftalık ve ~1 hafta gecikmeli yayımlanır: daha uzun tolerans.
+STRAIT_MAX_CARRY_DAYS = 35
+
+TR_TZ = timezone(timedelta(hours=3))
+
+
+def _today() -> date:
+    return datetime.now(TR_TZ).date()
+
+
+def _too_old(as_of: str | None, max_days: int | None = MAX_CARRY_DAYS) -> bool:
+    """as_of (YYYY-MM-DD...) `max_days`ten eskiyse ya da çözülemiyorsa True (max_days None: sınırsız)."""
+    if max_days is None:
+        return False
+    try:
+        d = date.fromisoformat(str(as_of)[:10])
+    except (TypeError, ValueError):
+        return True
+    return (_today() - d).days > max_days
 
 
 def load_previous_market_data(path: Path | None = None) -> dict[str, Any] | None:
@@ -41,6 +65,7 @@ def _carry_over(
     section: str,
     key: str,
     date_keys: tuple[str, ...],
+    max_age_days: int | None = MAX_CARRY_DAYS,
 ) -> list[dict[str, Any]]:
     """Canlı veri alınamayan girdiler için son yayınlanmış değeri özgün tarihiyle taşır.
 
@@ -58,7 +83,7 @@ def _carry_over(
         if old is None:
             continue
         as_of = old.get("asOf") or next((old[k] for k in date_keys if old.get(k)), None) or previous.get("date")
-        if not as_of:
+        if not as_of or _too_old(as_of, max_age_days):
             continue
         entry = dict(old)
         entry["asOf"] = as_of
@@ -86,7 +111,7 @@ def _carry_entries(old: list[Any], previous: dict[str, Any]) -> list[dict[str, A
     carried: list[dict[str, Any]] = []
     for e in old:
         as_of = _section_as_of(e, previous) if isinstance(e, dict) else None
-        if as_of:
+        if as_of and not _too_old(as_of):
             carried.append({**e, "asOf": as_of, "stale": True})
     return carried
 
@@ -106,7 +131,7 @@ def _carry_section(data: dict[str, Any], previous: dict[str, Any] | None, sectio
             log.warning("TuribData: bölüm canlı veri yok; son yayın girdileri taşındı (adet=%d).", len(carried))
     elif isinstance(old, dict):
         as_of = _section_as_of(old, previous)
-        if as_of:
+        if as_of and not _too_old(as_of):
             data[section] = {}
             data[section].update({**old, "asOf": as_of, "stale": True})
             log.warning("TuribData: bölüm canlı veri yok; son yayın bölümü taşındı.")
@@ -127,15 +152,14 @@ def _collect_straits(previous: dict[str, Any] | None) -> list[dict[str, Any]]:
     old_pt = (previous or {}).get("petrolTanker")
     old_straits = old_pt.get("straits") if isinstance(old_pt, dict) else None
     shim = {"straits": old_straits, "date": (previous or {}).get("date")}
-    return fresh + _carry_over(missing, shim, "straits", "strait", ("weekEnd",))
+    return fresh + _carry_over(missing, shim, "straits", "strait", ("weekEnd",), max_age_days=STRAIT_MAX_CARRY_DAYS)
 
 
 def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[str, Any]:
-    """Tüm tarım, emtia, TÜRİB ve et-yem veri setini yapılandırılmış sözlük olarak derler.
+    """Tüm tarım, emtia, TÜRİB ve emtia veri setini yapılandırılmış sözlük olarak derler.
 
     `previous`: önceki yayın; atlanan girdiler (örn. TMO MISIR/ARPA) buradan taşınır.
     """
-    TR_TZ = timezone(timedelta(hours=3))
     now = datetime.now(TR_TZ)
     now_str = now.isoformat(timespec="seconds")
     date_str = now.strftime("%Y-%m-%d")
@@ -146,7 +170,6 @@ def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[s
         "indices": [],
         "spotCommodities": [],
         "bulletinSummary": {},
-        "meatFeed": {},
         "tmoComparison": [],
         "storageBacktest": {},
         "regionalArbitrage": {},
@@ -163,6 +186,7 @@ def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[s
         for idx in snap.indices:
             data["indices"].append({
                 "code": idx.code,
+                "asOf": idx.date,  # TÜRİB'in kendi işlem günü (hafta sonu çalışmada bot tarihinden farklıdır)
                 "name": idx.name,
                 "value": idx.price,
                 "valueStr": f"{idx.price:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
@@ -179,6 +203,7 @@ def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[s
         for prod in snap.products:
             data["spotCommodities"].append({
                 "name": prod.product,
+                "asOf": prod.date,
                 "code": prod.product,
                 "avgPrice": prod.avg_price_tl_kg,
                 "avgPriceStr": f"{prod.avg_price_tl_kg:.2f} ₺/kg".replace(".", ","),
@@ -198,47 +223,14 @@ def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[s
             "totalVolumeTonStr": f"{snap.total_volume_tons:,.1f} Ton".replace(",", "X").replace(".", ",").replace("X", "."),
             "totalValueTl": snap.total_volume_tl,
             "totalValueTlStr": f"{snap.total_volume_tl:,.0f} ₺".replace(",", "X").replace(".", ",").replace("X", "."),
+            "asOf": min((e.date for e in [*snap.indices, *snap.products] if e.date), default=None),
             "hububatIndex": snap.hububat_index.price if snap.hububat_index else None,
             "summaryText": snap.summary_text,
         }
     except Exception as exc:
         log.warning("TuribData: TÜRİB snapshot derlenirken hata: %s", exc)
 
-    # 2. Et-Yem Paritesi & Et TÜFE
-    try:
-        meat_analyzer = MeatFeedIndexAnalyzer()
-        meat_report = meat_analyzer.analyze()
-        if meat_report is None:
-            raise ValueError("et-yem verisi yok (gerçek kaynak bağlı değil)")
-        data["meatFeed"] = {
-            "cpiDate": meat_report.tarih,
-            "meatCpi": meat_report.et_tufe_endeks,
-            "headlineCpi": meat_report.manset_tufe_endeks,
-            "meatCpiAnnualPct": meat_report.et_enflasyonu_yillik_pct,
-            "headlineCpiAnnualPct": meat_report.manset_enflasyon_yillik_pct,
-            "meatInflationSpread": meat_report.et_enflasyon_primi_pct,
-            "macroCommentary": meat_report.makro_degerlendirme,
-            "bistSectorImpact": meat_report.bist_etkisi_ozeti,
-            "parities": [
-                {
-                    "title": p.kategori,
-                    "meatType": "Karkas Et",
-                    "feedType": "Karma Rasyon",
-                    "meatPrice": p.karkas_fiyati_tl_kg,
-                    "feedPrice": p.yem_fiyati_tl_kg,
-                    "ratio": p.parite_orani,
-                    "threshold": p.esik_basabasi,
-                    "isProfitable": p.parite_orani >= p.esik_basabasi,
-                    "status": p.kar_marji_durumu,
-                    "interpretation": p.sinyal_yorumu,
-                }
-                for p in meat_report.pariteler
-            ],
-        }
-    except Exception as exc:
-        log.warning("TuribData: Et-yem verisi derlenirken hata: %s", exc)
-
-    # 3. TMO Müdahale & Alım Fiyat Kıyaslama
+    # 2. TMO Müdahale & Alım Fiyat Kıyaslama
     try:
         tmo_src = TmoSource()
         commodities_live = [
@@ -277,13 +269,13 @@ def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[s
         # Eski yayından taşınan satır yalnızca birincil kaynağa bağlı (tmoVerified) ise yayınlanır;
         # kaynaksız/eski şemadaki elle girilmiş TMO değerleri asla geri taşınmaz.
         data["tmoComparison"].extend(
-            e for e in _carry_over(tmo_skipped, previous, "tmoComparison", "commodity", ())
+            e for e in _carry_over(tmo_skipped, previous, "tmoComparison", "commodity", (), max_age_days=None)
             if e.get("tmoVerified") is True and e.get("tmoSource")
         )
     except Exception as exc:
         log.warning("TuribData: TMO kıyaslama derlenirken hata: %s", exc)
 
-    # 4. LİDAŞ Depolama Backtest
+    # 3. LİDAŞ Depolama Backtest
     try:
         storage_tester = StorageStrategyBacktester()
         bt_rep = storage_tester.run_backtest()
@@ -313,6 +305,7 @@ def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[s
                 "strategies": strats,
             })
         data["storageBacktest"] = {
+            "asOf": date_str,  # hesaplama tarihi (TÜRİB tarihsel serisinin çekildiği gün)
             "productGroup": bt_rep.urun_grubu,
             "testedSeasonsCount": bt_rep.test_edilen_sezon_sayisi,
             "annualInterestPct": bt_rep.yillik_faiz_pct,
@@ -327,7 +320,7 @@ def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[s
     except Exception as exc:
         log.warning("TuribData: Depolama backtest derlenirken hata: %s", exc)
 
-    # 5. Bölgesel LİDAŞ Depo Arbitrajı
+    # 4. Bölgesel LİDAŞ Depo Arbitrajı
     try:
         arb_scanner = RegionalArbitrageScanner()
         arb_rep = arb_scanner.scan(urun="BUĞDAY")
@@ -357,7 +350,7 @@ def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[s
     except Exception as exc:
         log.warning("TuribData: Bölgesel arbitraj derlenirken hata: %s", exc)
 
-    # 6. Agri-BIST Çapraz Piyasa Hisseleri
+    # 5. Agri-BIST Çapraz Piyasa Hisseleri
     try:
         agri_bist = AgriBistAnalyzer()
         ab_rep = agri_bist.analyze()
@@ -386,34 +379,44 @@ def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[s
     except Exception as exc:
         log.warning("TuribData: Agri-BIST analizi derlenirken hata: %s", exc)
 
-    # 7. Reel Getiriler (Enflasyon / Döviz)
+    # 6. Döviz cinsinden getiri (TCMB kurları; son 12 ay). Kur bülteni yoksa girdi atlanır, son iyi değer taşınır.
     try:
         real_calc = RealReturnsCalculator()
         real_skipped: list[str] = []
+        window_start = (now - timedelta(days=365)).strftime("%Y-%m-%d")
         for comm in ["BUĞDAY EKMEKLİK", "BUĞDAY MAKARNALIK"]:
             try:
-                r = real_calc.calculate(urun_grubu=comm)
+                r = real_calc.calculate(urun_grubu=comm, baslangic=window_start)
                 data["realReturns"].append({
                     "commodityGroup": r.urun_grubu,
                     "startDate": r.baslangic_tarihi,
                     "endDate": r.bitis_tarihi,
+                    "asOf": r.bitis_tarihi,
                     "tradingDays": r.islem_gun_sayisi,
                     "startPriceTl": r.ilk_fiyat_tl,
                     "endPriceTl": r.son_fiyat_tl,
                     "nominalReturnPct": r.nominal_tl_getiri_pct,
                     "usdReturnPct": r.usd_getiri_pct,
                     "eurReturnPct": r.eur_getiri_pct,
-                    "realInflationReturnPct": r.reel_enflasyon_getiri_pct,
+                    "fxDateStart": r.kur_tarihi_baslangic,
+                    "fxDateEnd": r.kur_tarihi_bitis,
+                    "usdTryStart": r.usd_try_baslangic,
+                    "usdTryEnd": r.usd_try_bitis,
+                    "eurTryStart": r.eur_try_baslangic,
+                    "eurTryEnd": r.eur_try_bitis,
+                    "source": r.kaynak,
+                    "sourceUrl": r.kaynak_url,
+                    "fetchedAt": r.cekilis_zamani,
                     "commentary": r.analiz_yorumu,
                 })
             except Exception as e_r:
-                log.warning("TuribData: Reel getiri %s hatası: %s", comm, e_r)
+                log.warning("TuribData: döviz cinsinden getiri %s hatası: %s", comm, e_r)
                 real_skipped.append(comm)
         data["realReturns"].extend(
             _carry_over(real_skipped, previous, "realReturns", "commodityGroup", ("endDate",))
         )
     except Exception as exc:
-        log.warning("TuribData: Reel getiriler derlenirken hata: %s", exc)
+        log.warning("TuribData: döviz cinsinden getiriler derlenirken hata: %s", exc)
 
     # 8. Petrol & Tanker Navlun Veri Seti
     try:
@@ -436,11 +439,12 @@ def generate_turib_market_data(previous: dict[str, Any] | None = None) -> dict[s
 
     # Bölüm düzeyinde başarısızlık: boş yayın yerine son iyi bölümü özgün tarihiyle taşı.
     for section in (
-        "indices", "spotCommodities", "bulletinSummary", "meatFeed", "storageBacktest",
+        "indices", "spotCommodities", "bulletinSummary", "storageBacktest",
         "regionalArbitrage", "agriBist", "petrolTanker",
     ):
         _carry_section(data, previous, section)
 
+    data["sections"] = build_section_meta(data, now_str)
     return data
 
 

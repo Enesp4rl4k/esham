@@ -122,7 +122,9 @@ export function MorningCockpit({
       };
 
   // 2. BIST-30 Öncü Pivot Seviyeleri
-  // Yalnızca bist-quant-valuation.json'daki hesaplanmış seviyelerden; veri olmayan hisse listelenmez.
+  // Yalnızca TARİHLİ (updated_at) bist-quant-valuation.json'daki hesaplanmış seviyelerden; tarihsiz dosya gösterilmez,
+  // veri olmayan hisse listelenmez, hiç veri yoksa kart hiç çizilmez (boş kutu yok).
+  const pivotAsOf: string | null = typeof quantData?.updated_at === "string" ? quantData.updated_at.slice(0, 10) : null;
   const pivotList: { ticker: string; pivot: number }[] = ["THYAO", "GARAN", "ASELS", "TUPRS", "KCHOL", "EREGL"]
     .map((ticker) => ({ ticker, pivot: quantData?.[ticker]?.key_levels?.pivot_noktasi }))
     .filter((x): x is { ticker: string; pivot: number } => typeof x.pivot === "number");
@@ -245,6 +247,7 @@ export function MorningCockpit({
             </div>
 
             {/* 2. KART: Kritik BIST-30 Seviyeleri (Pivot & Kırılma) */}
+            {pivotAsOf && pivotList.length > 0 && (
             <div className="flex flex-col justify-between p-4 rounded-xl border border-zinc-800/80 bg-zinc-900/60 shadow-inner">
               <div>
                 <div className="flex items-center justify-between mb-3">
@@ -261,7 +264,6 @@ export function MorningCockpit({
                   </span>
                 </div>
 
-                {pivotList.length === 0 && <p className="text-xs text-zinc-400 font-sans mb-2">Veri yok.</p>}
                 <div className="grid grid-cols-2 gap-1.5 mb-2 font-mono text-xs">
                   {pivotList.map((item) => (
                     <Link
@@ -285,10 +287,11 @@ export function MorningCockpit({
               </div>
 
               <div className="mt-4 pt-3 border-t border-zinc-800/70 flex items-center justify-between text-xs font-mono text-zinc-400">
-                <span>Son hesaplanan seviyeler (bist-quant-valuation.json)</span>
+                <span>Veri tarihi: {pivotAsOf}</span>
                 <span className="text-zinc-400">—</span>
               </div>
             </div>
+            )}
 
             {/* 3. KART: Günün En Kritik 3 KAP Haberi */}
             <div className="flex flex-col justify-between p-4 rounded-xl border border-zinc-800/80 bg-zinc-900/60 shadow-inner">

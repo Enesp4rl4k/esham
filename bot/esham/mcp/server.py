@@ -185,9 +185,9 @@ def turib_reel_getiri(
     baslangic_tarihi: str | None = "2022-01-01",
     bitis_tarihi: str | None = None,
 ) -> dict[str, Any]:
-    """TÜRİB tarım emtiasının TCMB kurları (USD, EUR) ve TÜİK TÜFE enflasyonundan arındırılmış reel getiri analizi.
-    
-    Nominal TL getirisinin gerçek satın alma gücünü koruyup korumadığını hesaplar.
+    """TÜRİB tarım emtiasının TCMB döviz kurlarıyla (USD, EUR) döviz cinsinden getirisi.
+
+    TÜFE ile arındırılmış getiri üretilmez (kaynaklı, anahtarsız TÜFE serisi bağlı değil). Kur bülteni yoksa hata verir.
     """
     calc = RealReturnsCalculator()
     rep = calc.calculate(urun_grubu, baslangic=baslangic_tarihi, bitis=bitis_tarihi)
@@ -210,7 +210,6 @@ def turib_reel_getiri(
             "nominal_tl_getiri_yuzde": rep.nominal_tl_getiri_pct,
             "dolar_usd_getiri_yuzde": rep.usd_getiri_pct,
             "euro_eur_getiri_yuzde": rep.eur_getiri_pct,
-            "enflasyondan_arindirilmis_reel_getiri_yuzde": rep.reel_enflasyon_getiri_pct,
         },
         "analiz_yorumu": rep.analiz_yorumu,
     }
