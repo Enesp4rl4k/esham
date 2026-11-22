@@ -12,11 +12,15 @@ ya da tarihsizse satıra tarih YAZILMAZ (web "bilinmiyor" der); uydurma tarih yo
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 DATA = Path(__file__).resolve().parents[3] / "web" / "public" / "data"
+
+
+_SAFE_ID = re.compile(r"^[A-Za-z0-9_-]{1,16}$")  # hisse kodu / TEFAS fon kodu; yol parçası içeremez
 
 
 def _sibling_stamp(path: Path) -> str | None:
@@ -34,7 +38,8 @@ def _backfill(universe_file: Path, rows_key: str, id_key: str, sibling_dir: Path
     for row in doc.get(rows_key, []):
         if row.get("updated_at"):
             continue
-        stamp = _sibling_stamp(sibling_dir / f"{row[id_key]}.json")
+        ident = str(row.get(id_key, ""))
+        stamp = _sibling_stamp(sibling_dir / f"{ident}.json") if _SAFE_ID.match(ident) else None
         if stamp:
             row["updated_at"] = stamp
             filled += 1
