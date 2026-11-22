@@ -12,8 +12,8 @@ from esham.sources import kap_financials as kf_mod
 from esham.sources.kap_financials import KapFinancials, parse_report, report_snapshot
 
 FIX = Path(__file__).parent / "fixtures"
-ISMEN = (FIX / "kap_ismen_2026_q3_trimmed.html").read_bytes()
-DOCO = (FIX / "kap_doco_no_tables.html").read_bytes()
+ISMEN = (FIX / "kap_ismen_2026_q3_trimmed.txt").read_bytes()
+DOCO = (FIX / "kap_doco_no_tables.txt").read_bytes()
 
 
 class _Resp:
