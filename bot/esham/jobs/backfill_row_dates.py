@@ -31,13 +31,12 @@ def _sibling_stamp(path: Path) -> str | None:
 def _backfill(universe_file: Path, rows_key: str, id_key: str, sibling_dir: Path) -> tuple[int, int]:
     doc: dict[str, Any] = json.loads(universe_file.read_text(encoding="utf-8"))
     filled = unknown = 0
-    siblings = {p.stem: p for p in sibling_dir.glob("*.json")}
+    stamps = {p.stem: _sibling_stamp(p) for p in sibling_dir.glob("*.json")}
     for row in doc.get(rows_key, []):
         if row.get("updated_at"):
             continue
-        # Yol dosya içeriğinden KURULMAZ: kardeş dosyalar dizinden listelenir, satır kimliği yalnızca sözlük anahtarıdır.
-        sibling = siblings.get(str(row.get(id_key, "")))
-        stamp = _sibling_stamp(sibling) if sibling else None
+        # Yol dosya içeriğinden KURULMAZ: kardeş dosyaların tarihleri dizinden okunur, satır kimliği yalnızca sözlük anahtarıdır.
+        stamp = stamps.get(str(row.get(id_key, "")))
         if stamp:
             row["updated_at"] = stamp
             filled += 1
