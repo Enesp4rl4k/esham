@@ -16,7 +16,7 @@ export function FundDisclaimer({ updatedAt }: Readonly<{ updatedAt?: string }>) 
           yöntem
         </a>
         ). Veriler gecikmeli olabilir
-        {updatedAt ? ` (son güncelleme: ${new Date(updatedAt).toLocaleDateString("tr-TR")})` : ""}; resmi değerler için
+        {updatedAt ? ` (tarama zamanı: ${new Date(updatedAt).toLocaleDateString("tr-TR")})` : ""}; resmi değerler için
         tefas.gov.tr esastır.
       </p>
     </div>

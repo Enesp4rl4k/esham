@@ -6,6 +6,7 @@ import { loadUniverse } from "@/lib/stocks";
 import { MIN_INDEXABLE, SCANS, comparePairs, sectorGroups, sectorStats } from "@/lib/programmatic";
 import { DEFAULT_OG_IMAGE, seoDescription } from "@/lib/seo";
 import { StockTable } from "@/components/StockTable";
+import { isStale } from "@/lib/stocks";
 
 type Params = { slug: string };
 const nf = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -35,7 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const st = sectorStats(g.stocks);
   const title = `${g.name} Hisseleri: F/K, PD/DD, ROE`;
   const description = seoDescription(
-    `Borsa İstanbul ${g.name} sektöründeki ${g.stocks.length} hisse: medyan F/K ${fx(st.pe)}, medyan ROE ${fp(st.roe)}. Oranlar bilançodan hesaplanır, ${u.updated_at.slice(0, 10)} itibarıyla.`,
+    `Borsa İstanbul ${g.name} sektöründeki ${g.stocks.length} hisse: medyan F/K ${fx(st.pe)}, medyan ROE ${fp(st.roe)}. Oranlar bilançodan hesaplanır, tarama zamanı ${u.updated_at.slice(0, 10)}.`,
   );
   const url = `${SITE_URL}/hisseler/sektor/${g.slug}`;
   return {
@@ -53,12 +54,13 @@ export default async function SectorPage({ params }: { params: Promise<Params> }
   if (!f) notFound();
   const { u, g, groups } = f;
   const st = sectorStats(g.stocks);
-  const ok = g.stocks.filter((s) => !s.suspect);
+  const ok = g.stocks.filter((s) => !s.suspect && !isStale(s));
   const cheapest = [...ok].filter((s) => s.pe !== null && s.pe > 0).sort((a, b) => a.pe! - b.pe!)[0];
   const bestRoe = [...ok].filter((s) => s.roe !== null && Math.abs(s.roe) < 200).sort((a, b) => b.roe! - a.roe!)[0];
   const topYield = [...ok].filter((s) => (s.dividend_yield ?? 0) > 0).sort((a, b) => b.dividend_yield! - a.dividend_yield!)[0];
   const others = groups.filter((x) => x.slug !== g.slug && x.stocks.length >= MIN_INDEXABLE);
-  const date = u.updated_at.slice(0, 10);
+  const date = u.updated_at.slice(0, 10); // TARAMA zamanı, satırların veri tarihi değil
+  const staleCount = st.staleCount;
   const pairs = comparePairs(u).filter((p) => p.a.sector === g.name);
 
   const jsonLd = {
@@ -90,7 +92,7 @@ export default async function SectorPage({ params }: { params: Promise<Params> }
         <h1 className="text-3xl md:text-4xl font-display font-bold mb-3">{g.name} Hisseleri</h1>
         <p className="text-base text-zinc-300 leading-relaxed">
           Borsa İstanbul&apos;da {g.name} sektöründe {g.stocks.length} hisse izliyoruz. Sektörün medyan F/K oranı {fx(st.pe)}, medyan PD/DD oranı {fx(st.pb)},
-          medyan ROE&apos;si {fp(st.roe)} ve medyan temettü verimi {fp(st.dividend_yield)}. Aşağıdaki tablo piyasa değerine göre sıralıdır; veriler {date} itibarıyla son 12 aylık bilançodan hesaplanmıştır.
+          medyan ROE&apos;si {fp(st.roe)} ve medyan temettü verimi {fp(st.dividend_yield)}. Aşağıdaki tablo piyasa değerine göre sıralıdır; tarama zamanı {date}; veriler son 12 aylık bilançodan hesaplanmıştır.
         </p>
       </header>
 
@@ -108,6 +110,11 @@ export default async function SectorPage({ params }: { params: Promise<Params> }
         ))}
       </div>
 
+      {staleCount > 0 && (
+        <p className="mb-3 text-sm text-amber-400" role="note">
+          {staleCount} hisse için son turda veri alınamadı: satırlarında &quot;bayat&quot; yazar, sektör medyanına ve en düşük/en yüksek özetlerine dahil edilmez.
+        </p>
+      )}
       <StockTable rows={g.stocks} caption={`${g.name} sektörü hisseleri ve temel oranları`} />
 
       <section className="mt-10 max-w-3xl">

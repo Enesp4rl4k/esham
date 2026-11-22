@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { UniverseStock } from "@/lib/stocks";
+import { isStale, staleLabel, type UniverseStock } from "@/lib/stocks";
 
 const nf = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const x = (v: number | null) => (typeof v === "number" ? `${nf.format(v)}x` : "—");
@@ -26,6 +26,7 @@ export function StockTable({ rows, caption }: { rows: UniverseStock[]; caption: 
               <th scope="row" className="text-left px-3 py-2.5 font-normal">
                 <Link href={`/hisse/${s.ticker}`} className="font-bold text-white hover:underline">{s.ticker}</Link>
                 <span className="block text-xs text-zinc-400 max-w-[16rem] truncate">{s.name}</span>
+                {isStale(s) && <span className="block text-xs text-amber-400" data-stale-row>{staleLabel(s)}</span>}
               </th>
               <td className="px-3 py-2.5 text-right">{mcap(s.market_cap)}</td>
               <td className="px-3 py-2.5 text-right">{x(s.pe)}</td>

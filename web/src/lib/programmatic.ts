@@ -6,6 +6,30 @@ import type { Universe, UniverseStock } from "./stocks";
 
 export const MIN_INDEXABLE = 3;
 
+/** bot/esham/freshness.py içindeki STOCK_ROW_STALE_HOURS ile AYNI olmalı (test denetler). */
+export const STALE_ROW_HOURS = 120;
+
+/**
+ * Bayat satır: bot `stale: true` yazdıysa ya da satırın KENDİ veri zamanı eşiği aştıysa.
+ * Dosya düzeyi `updated_at` bir tarama zamanıdır, hiçbir satırın veri tarihi değildir.
+ */
+export function isStale(s: { stale?: boolean; updated_at?: string }, now: number = Date.now()): boolean {
+  if (s.stale === true) return true;
+  if (!s.updated_at) return true; // tarihsiz satır taze sayılmaz
+  const t = Date.parse(s.updated_at);
+  return Number.isNaN(t) || now - t > STALE_ROW_HOURS * 3600 * 1000;
+}
+
+/** "bayat — son veri: 2026-11-10" */
+export function staleLabel(s: { updated_at?: string }): string {
+  return `bayat — son veri: ${s.updated_at ? s.updated_at.slice(0, 10) : "bilinmiyor"}`;
+}
+
+export function freshOnly<T extends { stale?: boolean; updated_at?: string }>(rows: T[]): T[] {
+  return rows.filter((r) => !isStale(r));
+}
+
+
 // Not: sade Node test koşucusu uzantısız göreli import çözemediği için küçük yardımcılar burada tekrarlanır.
 const fold = (s: string) =>
   s.replace(/İ/g, "i").replace(/I/g, "i").toLowerCase().replace(/ı/g, "i").normalize("NFD").replace(/[̀-ͯ]/g, "");
@@ -43,11 +67,12 @@ export function sectorGroups(u: Universe): SectorGroup[] {
 }
 
 export function sectorStats(stocks: UniverseStock[]) {
-  const ok = stocks.filter((s) => !s.suspect);
+  const ok = stocks.filter((s) => !s.suspect && !isStale(s));
   const pick = (k: keyof UniverseStock, valid: (v: number) => boolean) =>
     median(ok.map((s) => s[k] as number | null).filter((v): v is number => typeof v === "number" && valid(v)));
   return {
     count: stocks.length,
+    staleCount: stocks.filter((s) => isStale(s)).length,
     pe: pick("pe", (v) => v > 0),
     pb: pick("pb", (v) => v > 0),
     roe: pick("roe", (v) => Math.abs(v) < 200),
@@ -109,7 +134,7 @@ export const SCANS: Scan[] = [
 
 export function runScan(u: Universe, sc: Scan): UniverseStock[] {
   return u.stocks
-    .filter((s) => !s.suspect && sc.test(s))
+    .filter((s) => !s.suspect && !isStale(s) && sc.test(s))
     .sort((a, b) => sc.dir * ((a[sc.metric] as number) - (b[sc.metric] as number)));
 }
 
@@ -143,7 +168,7 @@ export function pairSlug(a: string, b: string): string {
 export function comparePairs(u: Universe, top = 4): { a: UniverseStock; b: UniverseStock; slug: string }[] {
   const out: { a: UniverseStock; b: UniverseStock; slug: string }[] = [];
   for (const g of sectorGroups(u)) {
-    const pool = g.stocks.filter((s) => !s.suspect).slice(0, top);
+    const pool = g.stocks.filter((s) => !s.suspect && !isStale(s)).slice(0, top);
     if (pool.length < 2 || g.stocks.length < 4) continue;
     for (let i = 0; i < pool.length; i++)
       for (let j = i + 1; j < pool.length; j++) {

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SITE_URL } from "@/lib/config";
 import { loadUniverse } from "@/lib/stocks";
-import { comparePair, comparePairs, sectorStats, slugify } from "@/lib/programmatic";
+import { comparePair, comparePairs, isStale, sectorStats, slugify, staleLabel } from "@/lib/programmatic";
 import { DEFAULT_OG_IMAGE, seoDescription } from "@/lib/seo";
 
 type Params = { pair: string };
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const f = find(pair);
   if (!f) return { title: "Karşılaştırma bulunamadı" };
   const title = `${f.a.ticker} - ${f.b.ticker} Karşılaştırması: F/K, ROE, Temettü`;
-  const description = seoDescription(`${f.a.name} ve ${f.b.name} hisselerini F/K, PD/DD, ROE, net marj ve temettü verimiyle yan yana karşılaştırın. Veri ${f.u.updated_at.slice(0, 10)} itibarıyla.`);
+  const description = seoDescription(`${f.a.name} ve ${f.b.name} hisselerini F/K, PD/DD, ROE, net marj ve temettü verimiyle yan yana karşılaştırın. Tarama zamanı ${f.u.updated_at.slice(0, 10)}.`);
   const url = `${SITE_URL}/karsilastir/${f.slug}`;
   return { title, description, alternates: { canonical: url }, openGraph: { title, description, url, siteName: "Esham", locale: "tr_TR", type: "website", images: [DEFAULT_OG_IMAGE] } };
 }
@@ -68,7 +68,7 @@ export default async function ComparePage({ params }: Readonly<{ params: Promise
       </nav>
       <h1 className="text-3xl md:text-4xl font-display font-bold mb-3">{a.ticker} - {b.ticker} Karşılaştırması</h1>
       <p className="text-base text-zinc-300 leading-relaxed mb-8">
-        {a.name} ({a.ticker}) ve {b.name} ({b.ticker}) aynı sektörde ({a.sector}) işlem görüyor. Aşağıda {date} itibarıyla son 12 aylık bilançodan hesaplanan oranlar yan yana veriliyor;
+        {a.name} ({a.ticker}) ve {b.name} ({b.ticker}) aynı sektörde ({a.sector}) işlem görüyor. Aşağıda son 12 aylık bilançodan hesaplanan oranlar yan yana veriliyor (tarama zamanı {date});
         {rows.length} oranın {winsA} tanesinde {a.ticker}, {winsB} tanesinde {b.ticker} daha avantajlı görünüyor. Bu bir üstünlük sıralaması değil, hangi tarafın tek tek oranlarda öne çıktığının özetidir.
       </p>
 
@@ -78,8 +78,8 @@ export default async function ComparePage({ params }: Readonly<{ params: Promise
           <thead className="bg-zinc-900 text-zinc-400 text-sm">
             <tr>
               <th scope="col" className="text-left font-medium px-4 py-3">Oran</th>
-              <th scope="col" className="text-right font-medium px-4 py-3"><Link href={`/hisse/${a.ticker}`} className="font-bold text-white hover:underline">{a.ticker}</Link></th>
-              <th scope="col" className="text-right font-medium px-4 py-3"><Link href={`/hisse/${b.ticker}`} className="font-bold text-white hover:underline">{b.ticker}</Link></th>
+              <th scope="col" className="text-right font-medium px-4 py-3"><Link href={`/hisse/${a.ticker}`} className="font-bold text-white hover:underline">{a.ticker}</Link>{isStale(a) && <span className="block text-xs font-normal text-amber-400" data-stale-row>{staleLabel(a)}</span>}</th>
+              <th scope="col" className="text-right font-medium px-4 py-3"><Link href={`/hisse/${b.ticker}`} className="font-bold text-white hover:underline">{b.ticker}</Link>{isStale(b) && <span className="block text-xs font-normal text-amber-400" data-stale-row>{staleLabel(b)}</span>}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800/60 tabular-nums">

@@ -98,3 +98,21 @@ def test_kap_universe_includes_brokers_but_not_banks_or_insurers():
     tickers = {u["ticker"] for u in publish_kap.kap_universe()}
     assert {"ISMEN", "GLBMD", "THYAO"} <= tickers
     assert not tickers & {"AKBNK", "GARAN", "AKGRT", "ANHYT", "AGESA"}  # banks_role_/insurance_role_ taksonomisi desteklenmiyor
+
+
+def test_negative_cache_expires_after_ttl_and_is_reason_coded(kap, monkeypatch):
+    import json
+    from datetime import datetime, timedelta, timezone
+
+    kf, calls = kap
+    kf.snapshot("2")
+    doc = json.loads(kf.cache_path("2").read_text(encoding="utf-8"))
+    assert doc["reason"] == "no_statements" and doc["at"]
+    assert kf.is_cached("2")
+    old = (datetime.now(timezone.utc) - timedelta(days=kf_mod.NEGATIVE_TTL_DAYS + 1)).isoformat()
+    kf.cache_path("2").write_text(json.dumps({**doc, "at": old}), encoding="utf-8")
+    assert not kf.is_cached("2")  # süresi doldu: yeniden doğrulanır
+    kf.snapshot("2")
+    assert len(calls) == 2
+    kf.cache_path("2").write_text(json.dumps({k: v for k, v in doc.items() if k != "at"}), encoding="utf-8")
+    assert not kf.is_cached("2")  # tarihsiz negatif kayıt geçerli değil

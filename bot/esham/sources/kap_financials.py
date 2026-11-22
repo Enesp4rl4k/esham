@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -40,6 +40,9 @@ CACHE_DIR = Path(__file__).resolve().parents[2] / "cache" / "kap"
 #: Ayrıştırıcı sürümü: "ayrıştırılamadı" (negatif) önbellek kayıtları yalnızca aynı sürümde geçerlidir; ayrıştırıcı
 #: geliştirilince (örn. banka/sigorta şablonu eklenince) eski negatif kayıtlar otomatik yeniden denenir.
 PARSER_VERSION = 1
+#: Negatif kayıt bu kadar gün sonra geçersiz sayılır ve rapor yeniden indirilir/doğrulanır: 200 dönen geçici bir
+#: hata sayfası bir hisseyi kalıcı kara listeye alamaz.
+NEGATIVE_TTL_DAYS = 7
 
 # Normalize kalem → (statement, [kavram ekleri (ön eksiz), ...]); ilk bulunan kullanılır.
 # işaret: "abs" → mutlak değer (KAP gider/ödemeleri negatif yazar)
@@ -379,7 +382,13 @@ class KapFinancials:
         except (OSError, ValueError):
             return False
         if isinstance(doc, dict) and doc.get("_unparsable"):
-            return doc.get("parser_version") == PARSER_VERSION
+            if doc.get("parser_version") != PARSER_VERSION:
+                return False
+            try:
+                age = datetime.now(timezone.utc) - datetime.fromisoformat(str(doc.get("at")))
+            except (TypeError, ValueError):
+                return False  # tarihsiz negatif kayıt geçerli sayılmaz
+            return age <= timedelta(days=NEGATIVE_TTL_DAYS)
         return True
 
     def snapshot(self, disclosure_index: str) -> dict[str, Any] | None:
@@ -398,7 +407,8 @@ class KapFinancials:
             # Rapor indirilemedi (429 dahil): "ayrıştırılamadı" ile karıştırılmaz; çağıran son iyi veriyi korur.
             raise KapUnavailable(f"KAP rapor indirilemedi {disclosure_index}: {exc}") from exc
         try:
-            snap = report_snapshot(parse_report(decode_page(resp.content)))
+            parsed = parse_report(decode_page(resp.content))
+            snap = report_snapshot(parsed)
         except Exception as exc:
             log.warning("KAP rapor işlenemedi %s: %s", disclosure_index, exc)
             return None  # beklenmeyen hata: kalıcı sayma, bir sonraki koşuda yeniden dene
@@ -406,5 +416,8 @@ class KapFinancials:
         if snap:
             cache.write_text(json.dumps(snap, ensure_ascii=False), encoding="utf-8")
         else:
-            cache.write_text(json.dumps({"_unparsable": True, "parser_version": PARSER_VERSION}), encoding="utf-8")
+            # Neden kodu: tabloların hiç bulunmadığı sayfa (yabancı ihraççı ya da hata sayfası) ile eksik/farklı şablon ayrı
+            reason = "no_statements" if not parsed.get("statements") else "template_unsupported"
+            cache.write_text(json.dumps({"_unparsable": True, "reason": reason, "parser_version": PARSER_VERSION,
+                                         "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}), encoding="utf-8")
         return snap

@@ -133,7 +133,11 @@ export function MorningCockpit({
   const topKapReports = reports.slice(0, 3);
 
   // 4. Günün Ajandası (TradingView Ekonomik Takvim)
-  const calendarEvents: { time: string; country: string; event: string }[] = calendarData?.events?.slice(0, 4) || [];
+  // Olayların saati var, tarihi yok: dosyanın KENDİ veri tarihi bugün (TR) değilse dünkü ajanda bugünmüş gibi gösterilmez.
+  const calDate: string | null = typeof calendarData?.updated_at === "string" ? calendarData.updated_at.slice(0, 10) : null;
+  const todayTr = isClient ? new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Istanbul" }) : calDate;
+  const calStale = calDate === null || calDate !== todayTr;
+  const calendarEvents: { time: string; country: string; event: string }[] = calStale ? [] : calendarData?.events?.slice(0, 4) || [];
 
   return (
     <section className="mb-10 w-full">
@@ -358,7 +362,11 @@ export function MorningCockpit({
                   </span>
                 </div>
 
-                {calendarEvents.length === 0 && <p className="text-xs text-zinc-400 font-sans mb-2">Bugün için takvim verisi yok.</p>}
+                {calendarEvents.length === 0 && (
+                  <p className="text-xs text-zinc-400 font-sans mb-2">
+                    {calStale ? `Takvim güncel değil (son veri: ${calDate ?? "yok"}).` : "Bugün için takvim verisi yok."}
+                  </p>
+                )}
                 <div className="space-y-2 font-mono text-xs">
                   {calendarEvents.map((evt: any, idx: number) => (
                     <div

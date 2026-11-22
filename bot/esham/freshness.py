@@ -23,6 +23,10 @@ STATUS_FILE = DATA / "data-status.json"
 
 TR_TZ = timezone(timedelta(hours=3))
 
+#: TEK eşik: hisse/fon verisi bu kadar saatten eskiyse hem satır "bayat" işaretlenir hem data-status "eski" der.
+#: (web/src/lib/stocks.ts içindeki STALE_ROW_HOURS ile aynı olmak zorunda; test denetler.)
+STOCK_ROW_STALE_HOURS = 120
+
 
 # --------------------------------------------------------------------------------------------
 # TÜRİB / emtia sayfası bölümleri (turib_data bunu `sections` alanına yazar)
@@ -178,12 +182,12 @@ def evaluate_sections(now: datetime, data_dir: Path = DATA, reports_dir: Path = 
 
     uni = _read_json(data_dir / "universe.json")
     s = _ts_status(now, "stocks", "Hisse oranları", "Fiyat/piyasa değeri: Yahoo Finance; finansal tablolar: KAP (birincil) / Yahoo (yedek)",
-                   "https://www.kap.org.tr", (uni or {}).get("updated_at"), 108)
+                   "https://www.kap.org.tr", (uni or {}).get("updated_at"), STOCK_ROW_STALE_HOURS)
     stale_rows = 0
     if isinstance(uni, dict):
         for r in uni.get("stocks", []):
             t = _parse_ts(r.get("updated_at")) if isinstance(r, dict) else None
-            if t and (now - t) > timedelta(hours=108):
+            if t and (now - t) > timedelta(hours=STOCK_ROW_STALE_HOURS):
                 stale_rows += 1
     if stale_rows:
         s.detail += f"; {stale_rows} hissenin satırı eski (son başarılı güncelleme)"
@@ -200,7 +204,7 @@ def evaluate_sections(now: datetime, data_dir: Path = DATA, reports_dir: Path = 
     if funds_path.exists():
         funds = _read_json(funds_path)
         out.append(_ts_status(now, "funds", "TEFAS fonları", "TEFAS (tefas.gov.tr)", "https://www.tefas.gov.tr",
-                              (funds or {}).get("updated_at") if isinstance(funds, dict) else None, 108))
+                              (funds or {}).get("updated_at") if isinstance(funds, dict) else None, STOCK_ROW_STALE_HOURS))
 
     turib = _read_json(data_dir / "turib-market.json")
     if isinstance(turib, dict):

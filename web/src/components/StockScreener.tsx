@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowDown, ArrowUp, Search } from "lucide-react";
 import type { UniverseStock } from "@/lib/stocks";
+import { isStale, staleLabel } from "@/lib/programmatic";
 import { fold } from "@/lib/fold";
 
 type SortKey = "ticker" | "market_cap" | "pe" | "pb" | "ev_ebitda" | "roe" | "net_margin" | "dividend_yield" | "net_debt_ebitda";
@@ -61,6 +62,8 @@ export function StockScreener({ stocks, sectors }: { stocks: UniverseStock[]; se
       (s) =>
         (!sector || s.sector === sector) &&
         (!fq || fold(s.ticker).includes(fq) || fold(s.name).includes(fq)) &&
+        // bayat satır sıralama/filtre sonuçlarına girmez; filtresiz listede işaretli görünür
+        (tests.length === 0 || !isStale(s)) &&
         tests.every((t) => t(s)),
     );
     return out.sort((a, b) => {
@@ -169,6 +172,7 @@ export function StockScreener({ stocks, sectors }: { stocks: UniverseStock[]; se
                   <Link href={`/hisse/${s.ticker}`} className="block">
                     <span className="font-mono font-bold text-white">{s.ticker}</span>
                     <span className="block text-xs text-zinc-400 truncate max-w-[150px]">{s.name}</span>
+                    {isStale(s) && <span className="block text-xs text-amber-400" data-stale-row>{staleLabel(s)}</span>}
                   </Link>
                 </td>
                 <td className="px-3 py-2.5 text-zinc-400 hidden lg:table-cell">{s.sector}</td>

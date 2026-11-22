@@ -12,6 +12,10 @@ export interface UniverseStock {
   financial: boolean;
   price: number | null;
   as_of: string;
+  /** Bu satırın kendi veri zamanı (ISO); dosya düzeyi updated_at değil */
+  updated_at?: string;
+  /** bot: son turda alınamadı, önceki turdan taşındı */
+  stale?: boolean;
   suspect?: boolean; // bot: uç değer / Yahoo çapraz kontrol bayrağı → liderlik tablolarından elenir
   market_cap: number | null;
   pe: number | null;
@@ -24,11 +28,16 @@ export interface UniverseStock {
 }
 
 export interface Universe {
+  /** TARAMA ZAMANI (botun dosyayı yazdığı an). Satırların veri tarihi değildir: her satırda `updated_at` var. */
   updated_at: string;
   count: number;
   sector_median: Record<string, Record<string, number>>;
   stocks: UniverseStock[];
 }
+
+
+export { STALE_ROW_HOURS, isStale, staleLabel, freshOnly } from "./programmatic";
+import { isStale } from "./programmatic";
 
 let cache: Universe | null | undefined;
 
@@ -61,7 +70,7 @@ export interface Leaderboard {
 
 /** Ana sayfa liderlik tabloları: anlamsız/uç değerler ve küçük şirketler elenir. */
 export function buildLeaderboards(u: Universe, n = 5): Leaderboard[] {
-  const big = u.stocks.filter((s) => (s.market_cap ?? 0) >= 5e9 && !s.suspect); // ≥ 5 milyar TL: illikit/uç değerleri ele
+  const big = u.stocks.filter((s) => (s.market_cap ?? 0) >= 5e9 && !s.suspect && !isStale(s)); // ≥ 5 milyar TL: illikit/uç değerleri ele
   const pick = (
     title: string,
     hint: string,

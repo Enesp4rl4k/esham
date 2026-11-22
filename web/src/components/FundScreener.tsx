@@ -112,6 +112,7 @@ export function FundScreener({ funds, categories }: { funds: FundRow[]; categori
                     {f.code}
                   </Link>
                   <span className="block text-xs text-zinc-400 line-clamp-1">{f.name}</span>
+                  {f.stale && <span className="block text-xs text-amber-400" data-stale-row>{`bayat — son veri: ${f.updated_at ? f.updated_at.slice(0, 10) : "bilinmiyor"}`}</span>}
                 </td>
                 {COLS.map((c) => {
                   const v = f[c.key] as number | null;

@@ -306,3 +306,23 @@ def test_published_reports_carry_no_fabricated_meat_feed_block():
         if "Et-Yem Paritesi" in text or "Dana Karkas / Besi Yemi" in text:
             bad.append(name)
     assert not bad, bad
+
+
+def test_every_corrected_report_is_listed_and_carries_the_visible_correction_note():
+    """Yayınlanmış bir rapor sonradan düzeltildiyse tek bir veri dosyasında (tarih + gerekçe) listelenir ve
+    sayfada görünen düzeltme notunu taşır: sessiz geriye dönük düzenleme yok."""
+    import os
+
+    root = Path(__file__).resolve().parents[2] / "web" / "content"
+    doc = json.loads((root / "corrections.json").read_text(encoding="utf-8"))
+    note = doc["note"]
+    assert note.startswith("**Düzeltme (") and "kaldırıldı" in note
+    assert len(doc["corrections"]) == 10
+    pre = (chr(92) * 2 + "?" + chr(92)) if os.name == "nt" else ""
+    for c in doc["corrections"]:
+        assert c["date"] and c["reason"] and c["file"] and c["slug"], c
+        with open(pre + os.path.join(str(root / "reports"), c["file"]), encoding="utf-8") as fh:
+            rep = json.load(fh)
+        assert rep["slug"] == c["slug"]
+        assert rep["body"].rstrip().endswith(note), c["file"]  # sayfada görünür (gövde metni), kod yorumu değil
+        assert "Et-Yem Paritesi" not in rep["body"]

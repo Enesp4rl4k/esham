@@ -5,6 +5,9 @@
  */
 
 export interface FundRow {
+  /** Satırın kendi veri zamanı; bot son turda alamadıysa `stale: true` */
+  updated_at?: string;
+  stale?: boolean;
   code: string;
   name: string;
   category: string;

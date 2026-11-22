@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from ..config import get_logger
+from ..freshness import STOCK_ROW_STALE_HOURS
 from .. import ratios as R
 from ..kap_merge import choose_source, merge_statements
 from ..sources.financials import dividend_ttm, fetch_financials, fx_to_try
@@ -157,7 +158,7 @@ def _write(path: Path, obj: Any) -> None:
 
 
 #: Son başarılı güncellemesi bu kadar saatten eski satır `stale: true` işaretlenir; bu kadar günden eskiyse gizlenir.
-STALE_ROW_HOURS = 120
+STALE_ROW_HOURS = STOCK_ROW_STALE_HOURS
 HIDE_ROW_DAYS = 30
 
 

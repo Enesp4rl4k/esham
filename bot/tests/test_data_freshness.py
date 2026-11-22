@@ -155,3 +155,33 @@ def test_economic_calendar_not_overwritten_with_empty_events(monkeypatch, tmp_pa
     monkeypatch.setattr(turib_mod, "TuribSource", _T)
     assert ticker_data.update_ticker_data() is True
     assert json.loads(cal_path.read_text(encoding="utf-8"))["updated_at"] == "2026-11-20T01:00:00+03:00"
+
+
+def test_one_stale_threshold_shared_by_rows_status_health_and_web():
+    """Satır bayatlığı, data-status, health ve web aynı eşiği kullanır (tek sabit)."""
+    import re
+    from pathlib import Path
+
+    from esham.freshness import STOCK_ROW_STALE_HOURS
+    from esham.jobs import health, publish_stocks
+
+    assert publish_stocks.STALE_ROW_HOURS == STOCK_ROW_STALE_HOURS == 120
+    assert health.STOCK_ROW_STALE_HOURS == STOCK_ROW_STALE_HOURS
+    ts = (Path(__file__).resolve().parents[2] / "web" / "src" / "lib" / "programmatic.ts").read_text(encoding="utf-8")
+    assert int(re.search(r"STALE_ROW_HOURS = (\d+);", ts).group(1)) == STOCK_ROW_STALE_HOURS
+
+
+def test_fund_rows_carry_own_timestamp_and_blocked_rows_are_marked_stale(monkeypatch, tmp_path):
+    from esham.jobs import publish_funds
+
+    monkeypatch.setattr(publish_funds, "DATA_DIR", tmp_path)
+    (tmp_path / "funds").mkdir()
+    (tmp_path / "funds" / "OLD.json").write_text("{}", encoding="utf-8")
+    (tmp_path / "universe-funds.json").write_text(json.dumps({"funds": [{"code": "OLD", "aum": 1, "updated_at": "2026-11-01T00:00:00+03:00"}]}), encoding="utf-8")
+    fund = {"code": "NEW", "name": "n", "category": "c", "risk": 1, "price": 1.0, "daily": 0.0, "aum": 5, "investors": 1, "fee": None,
+            "as_of": "2026-11-20", "returns": {}, "real_1y": None, "metrics": {"volatility": None, "max_drawdown": None, "sharpe": None},
+            "category_rank": None, "updated_at": "2026-11-23T10:00:00+03:00"}
+    publish_funds._merge_universe([fund], {}, partial=False, chosen={"OLD", "NEW"})
+    rows = {r["code"]: r for r in json.loads((tmp_path / "universe-funds.json").read_text(encoding="utf-8"))["funds"]}
+    assert rows["NEW"]["updated_at"] == "2026-11-23T10:00:00+03:00" and not rows["NEW"].get("stale")
+    assert rows["OLD"]["stale"] is True and rows["OLD"]["updated_at"] == "2026-11-01T00:00:00+03:00"

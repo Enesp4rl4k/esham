@@ -30,8 +30,8 @@ def test_weekend_gap_is_tolerated_on_monday_morning():
     assert c["Hisse verisi (universe.json) tazeliği"].ok
 
 
-def test_stock_data_older_than_4_5_days_fails():
-    c = by_name(evaluate(WED, WED, WED - timedelta(days=5), WED, 200, True))
+def test_stock_data_older_than_stale_threshold_fails():
+    c = by_name(evaluate(WED, WED, WED - timedelta(days=5, hours=1), WED, 200, True))
     assert not c["Hisse verisi (universe.json) tazeliği"].ok
 
 

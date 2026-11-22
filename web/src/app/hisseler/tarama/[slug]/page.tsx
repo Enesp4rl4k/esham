@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   if (!sc || !u) return { title: "Tarama bulunamadı" };
   const rows = runScan(u, sc);
   const title = `${sc.title}: BIST ${sc.hint} Listesi`;
-  const description = seoDescription(`${sc.hint} koşulunu sağlayan ${rows.length} BIST hissesi, ${u.updated_at.slice(0, 10)} itibarıyla. F/K, PD/DD, ROE ve temettü ile birlikte listelenir.`);
+  const description = seoDescription(`${sc.hint} koşulunu sağlayan ${rows.length} BIST hissesi, tarama zamanı ${u.updated_at.slice(0, 10)}. F/K, PD/DD, ROE ve temettü ile birlikte listelenir.`);
   const url = `${SITE_URL}/hisseler/tarama/${sc.slug}`;
   return {
     title,
@@ -69,8 +69,8 @@ export default async function ScanPage({ params }: { params: Promise<Params> }) 
       <header className="mb-8 max-w-3xl">
         <h1 className="text-3xl md:text-4xl font-display font-bold mb-3">{sc.h1}</h1>
         <p className="text-base text-zinc-300 leading-relaxed">
-          Koşul: <strong className="text-white">{sc.hint}</strong>. {date} itibarıyla {rows.length} hisse bu koşulu sağlıyor
-          {topSectors.length > 0 && <>; en çok {topSectors.map(([n, c]) => `${n} (${c})`).join(", ")} sektörlerinde</>}. Liste, ilgili orana göre sıralıdır; veri tutarsızlığı bayrağı taşıyan şirketler dışarıda bırakılır.
+          Koşul: <strong className="text-white">{sc.hint}</strong>. Tarama zamanı {date}: {rows.length} hisse bu koşulu sağlıyor
+          {topSectors.length > 0 && <>; en çok {topSectors.map(([n, c]) => `${n} (${c})`).join(", ")} sektörlerinde</>}. Liste, ilgili orana göre sıralıdır; veri tutarsızlığı bayrağı taşıyan ve son turda verisi alınamayan (bayat) şirketler dışarıda bırakılır.
         </p>
       </header>
 
