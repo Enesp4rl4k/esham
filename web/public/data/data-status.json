@@ -1,0 +1,185 @@
+{
+  "generated_at": "2026-11-23T19:24:53+03:00",
+  "sections": [
+    {
+      "id": "reports",
+      "label": "Analiz raporları",
+      "source": "Esham otomatik analiz (Yahoo Finance, TradingView, KAP, haber RSS'leri)",
+      "source_url": "https://esham.pages.dev/arsiv",
+      "as_of": "2026-11-23T16:22:40+00:00",
+      "fetched_at": "2026-11-23T16:22:40+00:00",
+      "status": "fresh",
+      "detail": "0.0 saat önce (sınır 74 saat)"
+    },
+    {
+      "id": "market_ticker",
+      "label": "Piyasa bandı",
+      "source": "Yahoo Finance, TradingView, TÜRİB",
+      "source_url": "https://finance.yahoo.com",
+      "as_of": "2026-11-23T19:22:40+03:00",
+      "fetched_at": "2026-11-23T19:22:40+03:00",
+      "status": "fresh",
+      "detail": "0.0 saat önce (sınır 74 saat)"
+    },
+    {
+      "id": "economic_calendar",
+      "label": "Ekonomik takvim",
+      "source": "TradingView ekonomik takvim",
+      "source_url": "https://www.tradingview.com",
+      "as_of": "2026-11-23T19:22:40+03:00",
+      "fetched_at": "2026-11-23T19:22:40+03:00",
+      "status": "fresh",
+      "detail": "0.0 saat önce (sınır 74 saat)"
+    },
+    {
+      "id": "stocks",
+      "label": "Hisse oranları",
+      "source": "Fiyat/piyasa değeri: Yahoo Finance; finansal tablolar: KAP (birincil) / Yahoo (yedek)",
+      "source_url": "https://www.kap.org.tr",
+      "as_of": "2026-11-20T20:59:33+00:00",
+      "fetched_at": "2026-11-20T20:59:33+00:00",
+      "status": "fresh",
+      "detail": "67.4 saat önce (sınır 120 saat)"
+    },
+    {
+      "id": "kap_coverage",
+      "label": "KAP finansal kapsamı",
+      "source": "KAP finansal rapor bildirimleri (IFRS/XBRL)",
+      "source_url": "https://www.kap.org.tr",
+      "as_of": null,
+      "fetched_at": null,
+      "status": "fresh",
+      "detail": "24/110 hissenin finansalı KAP kaynaklı (kalanlar Yahoo yedeği)"
+    },
+    {
+      "id": "funds",
+      "label": "TEFAS fonları",
+      "source": "TEFAS (tefas.gov.tr)",
+      "source_url": "https://www.tefas.gov.tr",
+      "as_of": "2026-11-20T23:00:37+03:00",
+      "fetched_at": "2026-11-20T23:00:37+03:00",
+      "status": "fresh",
+      "detail": "68.4 saat önce (sınır 120 saat)"
+    },
+    {
+      "id": "kap_dividends",
+      "label": "Kâr payı takvimi",
+      "source": "KAP kâr payı dağıtım bildirimleri",
+      "source_url": "https://www.kap.org.tr/tr/bildirim-sorgu",
+      "as_of": "2026-11-19",
+      "fetched_at": "2026-11-22T22:43:19+00:00",
+      "status": "fresh",
+      "detail": "17.7 saat önce (sınır 100 saat); 110 hisseden 14'inde bildirim, 13 işlendi, 0 bekliyor"
+    },
+    {
+      "id": "kap_buybacks",
+      "label": "Pay geri alımları",
+      "source": "KAP pay geri alım bildirimleri",
+      "source_url": "https://www.kap.org.tr/tr/bildirim-sorgu",
+      "as_of": "2026-11-20",
+      "fetched_at": "2026-11-22T22:42:26+00:00",
+      "status": "fresh",
+      "detail": "17.7 saat önce (sınır 100 saat); 110 hisseden 16'inde bildirim, 96 işlendi, 7 bekliyor (tarama tamamlanmadı: sonraki koşu devam eder)"
+    },
+    {
+      "id": "macro_indicators",
+      "label": "Makro göstergeler",
+      "source": "TCMB (faiz sayfası, döviz XML, EVDS)",
+      "source_url": "https://www.tcmb.gov.tr",
+      "as_of": "2026-11-22T22:19:44+00:00",
+      "fetched_at": "2026-11-22T22:19:44+00:00",
+      "status": "fresh",
+      "detail": "18.1 saat önce (sınır 100 saat); 3 gösterge; EVDS göstergeleri kapalı (EVDS_API_KEY yok)"
+    },
+    {
+      "id": "turib:indices",
+      "label": "TÜRİB endeksleri",
+      "source": "TÜRİB ELÜS bülteni",
+      "source_url": "https://www.turib.com.tr",
+      "as_of": "2026-11-18",
+      "fetched_at": "2026-11-23T19:22:59+03:00",
+      "status": "stale",
+      "detail": "veri 5 gün önceki; sınır 4 gün"
+    },
+    {
+      "id": "turib:spotCommodities",
+      "label": "TÜRİB spot ürünler",
+      "source": "TÜRİB ELÜS bülteni",
+      "source_url": "https://www.turib.com.tr",
+      "as_of": "2026-11-23",
+      "fetched_at": "2026-11-23T19:22:59+03:00",
+      "status": "fresh",
+      "detail": "veri 0 gün önceki"
+    },
+    {
+      "id": "turib:tmoComparison",
+      "label": "TMO alım fiyatları",
+      "source": "Tarım ve Orman Bakanlığı / TMO duyuruları",
+      "source_url": "https://www.tmo.gov.tr",
+      "as_of": "2026-11-23",
+      "fetched_at": "2026-11-23T19:22:59+03:00",
+      "status": "fresh",
+      "detail": "veri 0 gün önceki"
+    },
+    {
+      "id": "turib:storageBacktest",
+      "label": "Depolama geriye dönük testi",
+      "source": "TÜRİB tarihsel seri (varsayımlı maliyet modeli)",
+      "source_url": "https://www.turib.com.tr",
+      "as_of": "2026-11-23",
+      "fetched_at": "2026-11-23T19:22:59+03:00",
+      "status": "fresh",
+      "detail": "veri 0 gün önceki"
+    },
+    {
+      "id": "turib:regionalArbitrage",
+      "label": "Bölgesel depo fiyat farkı",
+      "source": "TÜRİB ELÜS bülteni",
+      "source_url": "https://www.turib.com.tr",
+      "as_of": "2026-11-23",
+      "fetched_at": "2026-11-23T19:22:59+03:00",
+      "status": "fresh",
+      "detail": "veri 0 gün önceki"
+    },
+    {
+      "id": "turib:agriBist",
+      "label": "Agri-BIST radarı",
+      "source": "Yahoo Finance (XGIDA/hisseler) + TÜRİB",
+      "source_url": "https://finance.yahoo.com",
+      "as_of": "2026-11-23",
+      "fetched_at": "2026-11-23T19:22:59+03:00",
+      "status": "fresh",
+      "detail": "veri 0 gün önceki"
+    },
+    {
+      "id": "turib:realReturns",
+      "label": "Döviz cinsinden getiri",
+      "source": "TCMB döviz kurları + TÜRİB",
+      "source_url": "https://www.tcmb.gov.tr/kurlar/kurlar_tr.html",
+      "as_of": "2026-11-23",
+      "fetched_at": "2026-11-23T19:22:59+03:00",
+      "status": "fresh",
+      "detail": "veri 0 gün önceki"
+    },
+    {
+      "id": "turib:petrolTanker",
+      "label": "Brent petrol",
+      "source": "Yahoo Finance (Brent vadeli)",
+      "source_url": "https://finance.yahoo.com",
+      "as_of": "2026-11-23",
+      "fetched_at": "2026-11-23T19:22:59+03:00",
+      "status": "fresh",
+      "detail": "veri 0 gün önceki"
+    },
+    {
+      "id": "turib:straits",
+      "label": "İstanbul Boğazı geçişleri",
+      "source": "IMF PortWatch (BM Global Platform AIS)",
+      "source_url": "https://portwatch.imf.org/",
+      "as_of": null,
+      "fetched_at": null,
+      "status": "missing",
+      "detail": "veri yok; sayfada gösterilmiyor"
+    }
+  ]
+}
