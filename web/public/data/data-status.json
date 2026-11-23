@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-11-23T20:45:39+03:00",
+  "generated_at": "2026-11-23T20:51:15+03:00",
   "sections": [
     {
       "id": "reports",
       "label": "Analiz raporları",
       "source": "Esham otomatik analiz (Yahoo Finance, TradingView, KAP, haber RSS'leri)",
       "source_url": "https://esham.pages.dev/arsiv",
-      "as_of": "2026-11-23T17:45:38+00:00",
-      "fetched_at": "2026-11-23T17:45:38+00:00",
+      "as_of": "2026-11-23T17:51:14+00:00",
+      "fetched_at": "2026-11-23T17:51:14+00:00",
       "status": "fresh",
       "detail": "0.0 saat önce (sınır 74 saat)"
     },
@@ -19,7 +19,7 @@
       "as_of": "2026-11-23T20:45:17+03:00",
       "fetched_at": "2026-11-23T20:45:17+03:00",
       "status": "fresh",
-      "detail": "0.0 saat önce (sınır 74 saat)"
+      "detail": "0.1 saat önce (sınır 74 saat)"
     },
     {
       "id": "economic_calendar",
@@ -29,7 +29,7 @@
       "as_of": "2026-11-23T20:45:17+03:00",
       "fetched_at": "2026-11-23T20:45:17+03:00",
       "status": "fresh",
-      "detail": "0.0 saat önce (sınır 74 saat)"
+      "detail": "0.1 saat önce (sınır 74 saat)"
     },
     {
       "id": "stocks",
@@ -39,7 +39,7 @@
       "as_of": "2026-11-20T20:59:33+00:00",
       "fetched_at": "2026-11-20T20:59:33+00:00",
       "status": "fresh",
-      "detail": "68.8 saat önce (sınır 120 saat)"
+      "detail": "68.9 saat önce (sınır 120 saat)"
     },
     {
       "id": "kap_coverage",
@@ -69,7 +69,7 @@
       "as_of": "2026-11-19",
       "fetched_at": "2026-11-22T22:43:19+00:00",
       "status": "fresh",
-      "detail": "19.0 saat önce (sınır 100 saat); 110 hisseden 14'inde bildirim, 13 işlendi, 0 bekliyor"
+      "detail": "19.1 saat önce (sınır 100 saat); 110 hisseden 14'inde bildirim, 13 işlendi, 0 bekliyor"
     },
     {
       "id": "kap_buybacks",
@@ -89,7 +89,7 @@
       "as_of": "2026-11-22T22:19:44+00:00",
       "fetched_at": "2026-11-22T22:19:44+00:00",
       "status": "fresh",
-      "detail": "19.4 saat önce (sınır 100 saat); 3 gösterge; EVDS göstergeleri kapalı (EVDS_API_KEY yok)"
+      "detail": "19.5 saat önce (sınır 100 saat); 3 gösterge; EVDS göstergeleri kapalı (EVDS_API_KEY yok)"
     },
     {
       "id": "turib:indices",
