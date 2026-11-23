@@ -164,6 +164,42 @@ def kap_coverage(stocks_dir: Path) -> tuple[int, int]:
     return kap, total
 
 
+def _kap_event_sections(now: datetime, data_dir: Path) -> list[SectionStatus]:
+    """KAP kâr payı / geri alım ve makro göstergeler: dosya yoksa "missing" (sayfa gizli), tarama kapsamı ayrıntıda."""
+    out: list[SectionStatus] = []
+    limit = _limit_hours(now, 52, 100)
+    for sid, label, source, url, fname in (
+        ("kap_dividends", "Kâr payı takvimi", "KAP kâr payı dağıtım bildirimleri", "https://www.kap.org.tr/tr/bildirim-sorgu", "kap-dividends.json"),
+        ("kap_buybacks", "Pay geri alımları", "KAP pay geri alım bildirimleri", "https://www.kap.org.tr/tr/bildirim-sorgu", "kap-buybacks.json"),
+    ):
+        doc = _read_json(data_dir / fname)
+        if not isinstance(doc, dict) or not isinstance(doc.get("scan"), dict):
+            out.append(SectionStatus(sid, label, source, url, None, None, "missing", f"{fname} yok; sayfa gösterilmiyor"))
+            continue
+        s = _ts_status(now, sid, label, source, url, doc.get("fetchedAt"), limit)
+        sc = doc["scan"]
+        s.as_of = doc.get("asOf") or s.as_of
+        s.detail += (f"; {sc.get('universeSize')} hisseden {sc.get('tickersWithDisclosure')}'inde bildirim, "
+                     f"{sc.get('parsed')} işlendi, {sc.get('pending')} bekliyor")
+        if sc.get("pending") and s.status == "fresh":
+            s.detail += " (tarama tamamlanmadı: sonraki koşu devam eder)"
+        out.append(s)
+    macro = _read_json(data_dir / "macro-indicators.json")
+    if not isinstance(macro, dict) or not macro.get("indicators"):
+        out.append(SectionStatus("macro_indicators", "Makro göstergeler", "TCMB (faiz sayfası, döviz XML, EVDS)", "https://www.tcmb.gov.tr",
+                                 None, None, "missing", "macro-indicators.json yok; sayfa gösterilmiyor"))
+    else:
+        s = _ts_status(now, "macro_indicators", "Makro göstergeler", "TCMB (faiz sayfası, döviz XML, EVDS)", "https://www.tcmb.gov.tr",
+                       macro.get("fetchedAt"), limit)
+        n_stale = sum(1 for i in macro["indicators"] if isinstance(i, dict) and i.get("stale"))
+        s.detail += f"; {len(macro['indicators'])} gösterge" + (f", {n_stale} tanesi eski değer" if n_stale else "")
+        s.detail += "" if macro.get("evdsEnabled") else "; EVDS göstergeleri kapalı (EVDS_API_KEY yok)"
+        if n_stale and s.status == "fresh":
+            s.status = "stale"
+        out.append(s)
+    return out
+
+
 def evaluate_sections(now: datetime, data_dir: Path = DATA, reports_dir: Path = REPORTS) -> list[SectionStatus]:
     now = now if now.tzinfo else now.replace(tzinfo=timezone.utc)
     out: list[SectionStatus] = []
@@ -205,6 +241,8 @@ def evaluate_sections(now: datetime, data_dir: Path = DATA, reports_dir: Path = 
         funds = _read_json(funds_path)
         out.append(_ts_status(now, "funds", "TEFAS fonları", "TEFAS (tefas.gov.tr)", "https://www.tefas.gov.tr",
                               (funds or {}).get("updated_at") if isinstance(funds, dict) else None, STOCK_ROW_STALE_HOURS))
+
+    out.extend(_kap_event_sections(now, data_dir))
 
     turib = _read_json(data_dir / "turib-market.json")
     if isinstance(turib, dict):

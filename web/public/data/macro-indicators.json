@@ -1,0 +1,44 @@
+{
+ "updatedAt": "2026-11-22T22:19:44+00:00",
+ "fetchedAt": "2026-11-22T22:19:44+00:00",
+ "indicators": [
+  {
+   "id": "policy_rate",
+   "label": "TCMB politika faizi (1 hafta repo, borç verme)",
+   "value": 36.0,
+   "unit": "%",
+   "asOf": "2026-10-23",
+   "source": "T.C. Merkez Bankası — 1 Hafta Repo faiz oranları",
+   "sourceUrl": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Temel+Faaliyetler/Para+Politikasi/Merkez+Bankasi+Faiz+Oranlari/1+Hafta+Repo",
+   "fetchedAt": "2026-11-22T22:19:44+00:00",
+   "note": "Veri tarihi, tablodaki son faiz değişikliğinin tarihidir; sayfa değişikliği olmayan günlerde de aynı değeri gösterir. Kaynak: T.C. Merkez Bankası (tcmb.gov.tr)",
+   "stale": false
+  },
+  {
+   "id": "usdtry_30d",
+   "label": "USD/TRY 30 günlük değişim",
+   "value": 1.8,
+   "unit": "%",
+   "asOf": "2026-11-20",
+   "source": "T.C. Merkez Bankası — günlük döviz kurları (döviz alış)",
+   "sourceUrl": "https://www.tcmb.gov.tr/kurlar/kurlar_tr.html",
+   "fetchedAt": "2026-11-22T22:19:44+00:00",
+   "note": "2026-10-21 bülteni 49.5123 → 2026-11-20 bülteni 50.4028 TL. Kaynak: T.C. Merkez Bankası (tcmb.gov.tr)",
+   "stale": false
+  },
+  {
+   "id": "usdtry_365d",
+   "label": "USD/TRY 12 aylık değişim",
+   "value": 19.19,
+   "unit": "%",
+   "asOf": "2026-11-20",
+   "source": "T.C. Merkez Bankası — günlük döviz kurları (döviz alış)",
+   "sourceUrl": "https://www.tcmb.gov.tr/kurlar/kurlar_tr.html",
+   "fetchedAt": "2026-11-22T22:19:44+00:00",
+   "note": "2025-11-20 bülteni 42.2882 → 2026-11-20 bülteni 50.4028 TL. Kaynak: T.C. Merkez Bankası (tcmb.gov.tr)",
+   "stale": false
+  }
+ ],
+ "evdsEnabled": false,
+ "attribution": "Kaynak: T.C. Merkez Bankası (tcmb.gov.tr)"
+}

@@ -306,14 +306,17 @@ def build_periods(snapshots: list[dict[str, Any]]) -> tuple[list[Period], list[P
     return quarterly, annual
 
 
-def iter_fr_rows(headers: dict[str, str], w_start: date, w_end: date) -> list[dict[str, Any]]:
-    """[w_start, w_end] aralığındaki tüm "Finansal Rapor" sınıfı (FR) bildirim satırları.
+def iter_fr_rows(headers: dict[str, str], w_start: date, w_end: date, *, disclosure_class: str = "FR",
+                 subject_oids: tuple[str, ...] = ()) -> list[dict[str, Any]]:
+    """[w_start, w_end] aralığındaki bildirim satırları (varsayılan: "Finansal Rapor" sınıfı FR).
+
+    ``subject_oids``: KAP konu kimlikleri (bildirim-sorgu sayfasındaki ``subjectOid``); boşsa konu süzgeci yok.
 
     KAP tek sorguda en fazla 2000 satır döndürür (rapor sezonunda aşılır) → dolan pencere ikiye bölünür.
     """
     payload = {
         "fromDate": w_start.isoformat(), "toDate": w_end.isoformat(), "memberType": "IGS",
-        "mkkMemberOidList": [], "inactiveMkkMemberOidList": [], "disclosureClass": "FR", "subjectList": [],
+        "mkkMemberOidList": [], "inactiveMkkMemberOidList": [], "disclosureClass": disclosure_class, "subjectList": list(subject_oids),
         "isLate": "", "mainSector": "", "sector": "", "subSector": "", "marketOid": "", "index": "",
         "bdkReview": "", "bdkMemberOidList": [], "year": "", "term": "", "ruleType": "", "period": "",
         "fromSrc": False, "srcCategory": "", "disclosureIndexList": [],
@@ -330,7 +333,9 @@ def iter_fr_rows(headers: dict[str, str], w_start: date, w_end: date) -> list[di
     rows = rows if isinstance(rows, list) else rows.get("data", [])
     if len(rows) >= MAX_ROWS and w_end > w_start:
         mid = w_start + (w_end - w_start) // 2
-        return iter_fr_rows(headers, w_start, mid) + iter_fr_rows(headers, mid + timedelta(days=1), w_end)
+        return (iter_fr_rows(headers, w_start, mid, disclosure_class=disclosure_class, subject_oids=subject_oids)
+                + iter_fr_rows(headers, mid + timedelta(days=1), w_end, disclosure_class=disclosure_class,
+                               subject_oids=subject_oids))
     if len(rows) >= MAX_ROWS:
         log.warning("KAP: %s günü %d satır — kesilmiş olabilir", w_start, len(rows))
     return rows

@@ -36,6 +36,8 @@ export default async function MethodPage() {
       <ul className="list-disc pl-5 space-y-2 text-base text-zinc-300 leading-relaxed mb-8">
         <li><strong className="text-white">Finansal tablolar:</strong> öncelik KAP finansal raporlarıdır (resmî IFRS/XBRL); KAP verisi eksik, eski ya da şüpheli eşlemeli olduğunda Yahoo Finance kullanılır ve hisse sayfasında kaynak yazılır. <strong className="text-white">Fiyatlar, piyasa değeri ve temettü:</strong> Yahoo Finance. Bilançolar çeyreklik alınır, son dört çeyrek toplanarak son 12 aylık (TTM) değerler oluşturulur.</li>
         <li><strong className="text-white">Bildirimler ve haberler:</strong> KAP (Kamuyu Aydınlatma Platformu) bildirimleri. İştirak oranları (NAV hesabı) KAP şirket sayfalarındaki doğrudan paylardan okunur.</li>
+        <li><strong className="text-white">Kâr payı takvimi ve pay geri alımları:</strong> yalnızca KAP bildirim sayfalarından okunur (her satır kendi bildirimine bağlanır; biçimi tanınmayan veya net/brüt/stopaj tutarlılığı geçmeyen bildirim yayınlanmaz). Fiyat kullanılmadığından temettü verimi hesaplanmaz. Kapsam (kaç hisse tarandı, kaç bildirim bekliyor) ilgili sayfada yazar.</li>
+        <li><strong className="text-white">Makro göstergeler:</strong> TCMB 1 Hafta Repo sayfası ve günlük döviz kurları (anahtarsız); TÜFE ve reel efektif kur yalnızca TCMB EVDS anahtarı tanımlıysa. Tahmin ya da skor üretilmez.</li>
         <li><strong className="text-white">Tarımsal emtia:</strong> TÜRİB ELÜS bülteni, TMO alım fiyatı duyuruları, TCMB döviz kurları (USD/EUR cinsinden getiri) ve IMF PortWatch (İstanbul Boğazı geçiş sayıları; atıf: UN Global Platform, IMF PortWatch).</li>
       </ul>
 
