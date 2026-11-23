@@ -194,6 +194,11 @@ def _kap_event_sections(now: datetime, data_dir: Path) -> list[SectionStatus]:
         n_stale = sum(1 for i in macro["indicators"] if isinstance(i, dict) and i.get("stale"))
         s.detail += f"; {len(macro['indicators'])} gösterge" + (f", {n_stale} tanesi eski değer" if n_stale else "")
         s.detail += "" if macro.get("evdsEnabled") else "; EVDS göstergeleri kapalı (EVDS_API_KEY yok)"
+        issues = [i for i in macro.get("evdsIssues") or [] if isinstance(i, dict)]
+        if issues:
+            s.detail += "; EVDS sorunları: " + ", ".join(f"{i.get('series') or i.get('id')} ({i.get('reason') or 'neden yok'})" for i in issues)
+            if s.status == "fresh":
+                s.status = "stale"
         if n_stale and s.status == "fresh":
             s.status = "stale"
         out.append(s)

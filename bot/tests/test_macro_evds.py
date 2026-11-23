@@ -179,6 +179,54 @@ def test_evds_success_carries_series_source_and_date(monkeypatch, tmp_path):
     assert SECRET not in (tmp_path / pm.OUT_FILE).read_text(encoding="utf-8")
 
 
+def test_evds_failures_are_recorded_with_series_and_reason_and_reach_data_status(monkeypatch, tmp_path):
+    monkeypatch.setenv(EV.ENV_KEY, SECRET)
+
+    def evds_fetch(series, start, end, key):
+        if series == "TP.FG.J0":
+            raise EV.EvdsError("EVDS HTTP 404: TP.FG.J0")
+        return [], 0  # boş seri
+
+    pm.run_macro(data_dir=tmp_path, today=TODAY, get=_policy_get, fx=_Fx_today(), evds_fetch=evds_fetch)
+    doc = json.loads((tmp_path / pm.OUT_FILE).read_text(encoding="utf-8"))
+    by = {i["series"]: i for i in doc["evdsIssues"]}
+    assert set(by) == {"TP.FG.J0", "TP.RK.T1.Y"}
+    assert "404" in by["TP.FG.J0"]["reason"] and "boş" in by["TP.RK.T1.Y"]["reason"]
+    assert SECRET not in (tmp_path / pm.OUT_FILE).read_text(encoding="utf-8")
+    now = datetime.fromisoformat(doc["fetchedAt"])
+    s = {x.id: x for x in freshness._kap_event_sections(now, tmp_path)}["macro_indicators"]
+    assert s.status == "stale" and "TP.FG.J0 (EVDS HTTP 404" in s.detail and "TP.RK.T1.Y (EVDS serisi boş" in s.detail
+
+
+def test_missing_key_is_listed_per_series_in_file_and_status(monkeypatch, tmp_path):
+    monkeypatch.delenv(EV.ENV_KEY, raising=False)
+    pm.run_macro(data_dir=tmp_path, today=TODAY, get=_policy_get, fx=_Fx_today())
+    doc = json.loads((tmp_path / pm.OUT_FILE).read_text(encoding="utf-8"))
+    assert {i["series"] for i in doc["evdsIssues"]} == {"TP.FG.J0", "TP.RK.T1.Y"}
+    assert all(EV.ENV_KEY in i["reason"] for i in doc["evdsIssues"])
+    now = datetime.fromisoformat(doc["fetchedAt"])
+    s = {x.id: x for x in freshness._kap_event_sections(now, tmp_path)}["macro_indicators"]
+    assert "TP.FG.J0" in s.detail and s.status != "fresh"
+
+
+def test_total_failure_still_prints_evds_issues(monkeypatch, tmp_path, capsys):
+    monkeypatch.setenv(EV.ENV_KEY, SECRET)
+
+    def boom(url, **k):
+        raise requests.ConnectionError("x")
+
+    class NoFx:
+        def rate_on_or_before(self, d):
+            raise pm.FxUnavailable(d)
+
+    def bad(series, start, end, key):
+        raise EV.EvdsError(f"EVDS HTTP 403: {series}")
+
+    assert pm.run_macro(data_dir=tmp_path, today=TODAY, get=boom, fx=NoFx(), evds_fetch=bad) == 0
+    out = capsys.readouterr().out
+    assert "TP.FG.J0" in out and "403" in out and SECRET not in out
+
+
 def test_failed_indicator_keeps_last_good_value_with_original_date_marked_stale(tmp_path):
     prev = {"indicators": [{"id": "policy_rate", "value": 40.0, "asOf": "2026-06-01", "stale": False, "fetchedAt": "x"},
                            {"id": "cpi_yoy", "value": 33.0, "asOf": "2026-08-01", "stale": False, "fetchedAt": "y"}]}

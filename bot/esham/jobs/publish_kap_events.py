@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -27,6 +27,7 @@ BUYBACK_FILE = "kap-buybacks.json"
 SOURCE_URL = "https://www.kap.org.tr/tr/bildirim-sorgu"
 DEFAULT_DIVIDEND_DAYS = 150
 DEFAULT_BUYBACK_DAYS = 30
+TR_TZ = timezone(timedelta(hours=3))  # Europe/Istanbul (DST yok)
 EVENTS_MIN_INTERVAL = 2.5  # sn; bildirim sayfaları arasında en az bu kadar bekle
 DEFAULT_MAX_DETAILS = 40  # koşu başına en çok bu kadar bildirim sayfası indirilir (önbellekten okuma sayılmaz)
 
@@ -43,6 +44,34 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def amount_note(inst: dict[str, Any]) -> str:
+    """Brüt/net tutarın kaynağı hakkında dürüst not. Net HİÇBİR ZAMAN varsayılan stopajla türetilmez: ikisi de bildirimdeki
+    rakamdır (ayrıştırıcı, bildirimde ikisi de yoksa satırı reddeder)."""
+    wh = inst["withholding_pct"]
+    if inst["gross"] == inst["net"]:
+        return (f"Bildirimde brüt ve net tutar aynı ({inst['gross']:g} TL) olarak verilmiş (stopaj %{wh:g}); "
+                "net tutar bu bildirimdeki rakamdır, bot hesaplamadı.")
+    return (f"Brüt ve net tutar bildirimdeki rakamlardır (bildirimdeki tek stopaj satırı %{wh:g}); "
+            "başka hissedar türleri için farklı bir oran bildirimde ayrıca yer alabilir, burada gösterilmez.")
+
+
+def generation_date(fetched_at: str) -> str:
+    """Verinin üretildiği gün (Europe/Istanbul, YYYY-MM-DD). Okunamazsa ValueError."""
+    d = datetime.fromisoformat(fetched_at.replace("Z", "+00:00"))
+    if d.tzinfo is None:
+        d = d.replace(tzinfo=timezone.utc)
+    return d.astimezone(TR_TZ).date().isoformat()
+
+
+def mark_past(items: list[dict[str, Any]], fetched_at: str) -> None:
+    """Her taksite ``exDatePast``: hak kullanım tarihi, verinin üretim gününden ÖNCE mi (ISO tarihler sözlük sırasıyla kıyaslanır).
+    Önceki dosyadan taşınan satırlar da yeniden işaretlenir; bayrak bayat kalmaz."""
+    today = generation_date(fetched_at)
+    for it in items:
+        for x in it["installments"]:
+            x["exDatePast"] = x["exDate"] < today
+
+
 def dividend_item(d: KE.Disclosure, name: str, data: dict[str, Any], fetched_at: str) -> dict[str, Any]:
     return {
         "ticker": d.ticker, "name": name, "disclosureIndex": d.index, "sourceUrl": KE.disclosure_url(d.index),
@@ -51,7 +80,7 @@ def dividend_item(d: KE.Disclosure, name: str, data: dict[str, Any], fetched_at:
         "installments": [
             {"label": i["label"], "payGroup": i["pay_group"], "grossPerShare": i["gross"], "netPerShare": i["net"],
              "withholdingPct": i["withholding_pct"], "exDate": i["ex_date"], "exDateFinal": i["ex_date_final"],
-             "paymentDate": i["payment_date"], "recordDate": i["record_date"]}
+             "paymentDate": i["payment_date"], "recordDate": i["record_date"], "amountNote": amount_note(i)}
             for i in data["installments"]
         ],
     }
@@ -70,15 +99,19 @@ def buyback_item(d: KE.Disclosure, name: str, data: dict[str, Any], fetched_at: 
     }
 
 
+def _ref(d: KE.Disclosure) -> dict[str, str]:
+    return {"ticker": d.ticker, "disclosureIndex": d.index, "sourceUrl": KE.disclosure_url(d.index)}
+
+
 def _resolve(kind: str, picks: list[KE.Disclosure], names: dict[str, str], prev_items: dict[str, dict[str, Any]],
              build, max_details: int, fetched_at: str, cache_dir: Path | None = None
-             ) -> tuple[list[dict[str, Any]], dict[str, int], list[dict[str, str]], int]:
-    """(satırlar, atlama nedeni sayaçları, atlanan bildirimler, bekleyen sayısı)."""
+             ) -> tuple[list[dict[str, Any]], dict[str, int], list[dict[str, str]], list[dict[str, str]]]:
+    """(satırlar, atlama nedeni sayaçları, atlanan bildirimler, henüz taranmamış (bekleyen) bildirimler)."""
     cdir = cache_dir or KE.EVENT_CACHE_DIR
     items: list[dict[str, Any]] = []
     skipped: dict[str, int] = {}
     skipped_list: list[dict[str, str]] = []
-    pending = 0
+    pending: list[dict[str, str]] = []
     fetched = 0
     for d in picks:
         doc = KE.cached(kind, d.index, cdir)
@@ -88,7 +121,7 @@ def _resolve(kind: str, picks: list[KE.Disclosure], names: dict[str, str], prev_
                 if prev:
                     items.append(prev)
                 else:
-                    pending += 1
+                    pending.append(_ref(d))
                 continue
             try:
                 doc = KE.fetch_and_parse(kind, d, fetched_at, cdir)
@@ -99,7 +132,7 @@ def _resolve(kind: str, picks: list[KE.Disclosure], names: dict[str, str], prev_
                 if prev:
                     items.append(prev)
                 else:
-                    pending += 1
+                    pending.append(_ref(d))
                 continue
         if doc.get("ok"):
             items.append(build(d, names.get(d.ticker, d.ticker), doc["data"], doc.get("fetched_at") or fetched_at))
@@ -111,13 +144,14 @@ def _resolve(kind: str, picks: list[KE.Disclosure], names: dict[str, str], prev_
 
 
 def _scan_block(prev: dict[str, Any] | None, universe: int, listed: list[KE.Disclosure], w: tuple[date, date],
-                parsed: int, skipped: dict[str, int], skipped_list: list[dict[str, str]], pending: int, now_iso: str) -> dict[str, Any]:
+                parsed: int, skipped: dict[str, int], skipped_list: list[dict[str, str]], pending_list: list[dict[str, str]], now_iso: str) -> dict[str, Any]:
+    pending = len(pending_list)
     complete = pending == 0
     last_complete = now_iso if complete else ((prev or {}).get("scan", {}) or {}).get("lastCompleteScanAt")
     return {
         "windowFrom": w[0].isoformat(), "windowTo": w[1].isoformat(), "universeSize": universe,
         "tickersWithDisclosure": len({d.ticker for d in listed}), "disclosuresListed": len(listed),
-        "parsed": parsed, "skipped": skipped, "skippedItems": skipped_list, "pending": pending,
+        "parsed": parsed, "skipped": skipped, "skippedItems": skipped_list, "pending": pending, "pendingItems": pending_list,
         "complete": complete, "lastCompleteScanAt": last_complete,
     }
 
@@ -130,6 +164,8 @@ def build_dividends(listed: list[KE.Disclosure], names: dict[str, str], prev: di
     picks = list(newest.values())
     prev_items = {i["disclosureIndex"]: i for i in (prev or {}).get("items", []) if isinstance(i, dict) and i.get("disclosureIndex")}
     items, skipped, skipped_list, pending = _resolve("div", picks, names, prev_items, dividend_item, max_details, fetched_at, cache_dir)
+    shown_items = [i for i in items if i["status"] != "dagitim_yok"]
+    mark_past(shown_items, fetched_at)
     none = [i for i in items if i["status"] == "dagitim_yok"]
     shown = [i for i in items if i["status"] != "dagitim_yok"]
     return {

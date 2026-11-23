@@ -36,7 +36,11 @@ export function SourceStamp({
           <strong className="text-zinc-200">Kapsam:</strong> {scan.universeSize} hisseden {scan.tickersWithDisclosure}&apos;inde bu konuda bildirim
           var ({fmtDate(scan.windowFrom)} – {fmtDate(scan.windowTo)} penceresi, {scan.disclosuresListed} {unitLabel} listelendi, {scan.parsed} işlendi).
           {scan.pending > 0 ? (
-            <> <span className="text-amber-400">{scan.pending} {unitLabel} henüz işlenmedi (KAP istek bütçesi; sonraki turda devam eder), liste eksik olabilir.</span></>
+            <> <span className="text-amber-400">{scan.pending} {unitLabel} henüz işlenmedi (KAP istek bütçesi; sonraki turda devam eder), liste eksik olabilir.
+              {scan.pendingItems && scan.pendingItems.length > 0 && (
+                <> Henüz taranmadı: {scan.pendingItems.map((p) => p.ticker).join(", ")}.</>
+              )}
+            </span></>
           ) : (
             <> Tarama tamam{scan.lastCompleteScanAt ? ` (son tam tarama: ${fmtDateTime(scan.lastCompleteScanAt)})` : ""}.</>
           )}
