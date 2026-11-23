@@ -5,7 +5,8 @@ Her gösterge: değer + birim + veri tarihi + kaynak + kaynak bağlantısı + ç
   - USD/TRY 30 gün / 365 gün değişimi: TCMB günlük döviz XML'i (anahtarsız). Tarih = kullanılan bülten tarihleri.
   - EVDS göstergeleri (TÜFE yıllık, REK): yalnızca ``EVDS_API_KEY`` varsa. Yoksa o göstergeler hiç yazılmaz.
 Bir gösterge alınamazsa önceki dosyadaki son iyi değer KENDİ tarihiyle ``stale: true`` olarak taşınır; hiç yoksa yazılmaz.
-Tahmin/skor/olasılık YOK: yalnızca gözlenen değerler ve basit, açıklanmış oranlar.
+EVDS hataları (anahtar yok, HTTP hatası, boş/eksik seri) ``evdsIssues`` alanına seri adı ve nedenle yazılır;
+``data-status`` bunları gösterir. Tahmin/skor/olasılık YOK: yalnızca gözlenen değerler ve basit, açıklanmış oranlar.
 """
 from __future__ import annotations
 
@@ -90,7 +91,8 @@ def fx_pace_indicators(fx: TcmbFxSource, today: date, fetched: str) -> list[dict
     return out
 
 
-def evds_indicators(key: str, today: date, fetched: str, fetch=EV.fetch_series) -> tuple[list[dict[str, Any]], list[str]]:
+def evds_indicators(key: str, today: date, fetched: str, fetch=EV.fetch_series) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
+    """(göstergeler, hatalar). Hata = {id, series, reason}; neden anahtarsız kısa metindir (EvdsError)."""
     out, failed = [], []
     for ind in EV.INDICATORS:
         try:
@@ -98,7 +100,7 @@ def evds_indicators(key: str, today: date, fetched: str, fetch=EV.fetch_series) 
             c = EV.compute(ind, pts)
         except EV.EvdsError as exc:
             log.warning("EVDS göstergesi alınamadı (%s): %s", ind.id, exc)
-            failed.append(ind.id)
+            failed.append({"id": ind.id, "series": ind.series, "reason": str(exc)})
             continue
         out.append(_stamp(ind.id, ind.label, c["value"], ind.unit, c["asOf"], f"T.C. Merkez Bankası EVDS ({ind.series})",
                           EV.SOURCE_URL, fetched, ind.note + " " + EV.ATTRIBUTION))
@@ -137,16 +139,19 @@ def run_macro(data_dir: Path | None = None, today: date | None = None, get: Call
     key = EV.api_key()
     if key:
         attempted |= {i.id for i in EV.INDICATORS}
-        got, _failed = evds_indicators(key, today, fetched, evds_fetch)
+        got, evds_issues = evds_indicators(key, today, fetched, evds_fetch)
         new.extend(got)
     else:
+        evds_issues = [{"id": i.id, "series": i.series, "reason": f"{EV.ENV_KEY} tanımlı değil; seri çekilmedi"} for i in EV.INDICATORS]
         print(f"{EV.ENV_KEY} tanımlı değil: EVDS göstergeleri (TÜFE yıllık, REK) çekilmedi ve sayfada gösterilmeyecek.")
+    for i in evds_issues:
+        print(f"EVDS sorunu: {i['series']} ({i['id']}): {i['reason']}")
     if not new:
         print("Hiçbir makro gösterge alınamadı; dosya değiştirilmedi.")
         return 0
     items = merge_with_previous(new, prev, attempted)
     doc = {"updatedAt": fetched, "fetchedAt": fetched, "indicators": items,
-           "evdsEnabled": bool(key), "attribution": TCMB_ATTRIBUTION}
+           "evdsEnabled": bool(key), "evdsIssues": evds_issues, "attribution": TCMB_ATTRIBUTION}
     (ddir / OUT_FILE).parent.mkdir(parents=True, exist_ok=True)
     (ddir / OUT_FILE).write_text(json.dumps(doc, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"{OUT_FILE}: {len(items)} gösterge ({sum(1 for i in items if i['stale'])} eski).")

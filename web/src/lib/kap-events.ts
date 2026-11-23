@@ -17,6 +17,16 @@ export interface ScanInfo {
   complete: boolean;
   lastCompleteScanAt: string | null;
   skipped: Record<string, number>;
+  /** Henüz taranmamış (KAP istek bütçesi) bildirimler; eski dosyalarda yoktur. */
+  pendingItems?: ScanRef[];
+  /** Taranıp biçimi tanınmadığı için atlanan bildirimler. */
+  skippedItems?: (ScanRef & { reason: string })[];
+}
+
+export interface ScanRef {
+  ticker: string;
+  disclosureIndex: string;
+  sourceUrl: string;
 }
 
 export interface Installment {
@@ -29,6 +39,10 @@ export interface Installment {
   exDateFinal: boolean;
   paymentDate: string;
   recordDate: string | null;
+  /** Bot: hak kullanım tarihi verinin üretim gününden (Europe/Istanbul) önce mi. */
+  exDatePast?: boolean;
+  /** Bot: brüt/net tutarın kaynağına dair dürüst not (net asla varsayılan stopajla türetilmez). */
+  amountNote?: string;
 }
 
 export interface DividendItem {
@@ -152,4 +166,18 @@ export const STALE_AFTER_DAYS = 5;
 export function ageDays(iso: string | null | undefined, now = Date.now()): number | null {
   const t = iso ? new Date(iso).getTime() : NaN;
   return Number.isNaN(t) ? null : Math.floor((now - t) / 86_400_000);
+}
+
+/** ISO zaman damgası → Europe/Istanbul takvim günü (YYYY-MM-DD); okunamazsa null. */
+export function istanbulDay(iso: string | null | undefined): string | null {
+  const t = iso ? new Date(iso) : null;
+  if (!t || Number.isNaN(t.getTime())) return null;
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul", year: "numeric", month: "2-digit", day: "2-digit" }).format(t);
+}
+
+/** Hak kullanım tarihi, verinin üretim gününden önceyse true (botun işareti varsa o; yoksa fetchedAt'ten hesaplanır). Üretim günü bilinmiyorsa false. */
+export function isPastExDate(x: Pick<Installment, "exDate" | "exDatePast">, fetchedAt: string): boolean {
+  if (typeof x.exDatePast === "boolean") return x.exDatePast;
+  const day = istanbulDay(fetchedAt);
+  return day !== null && x.exDate < day;
 }

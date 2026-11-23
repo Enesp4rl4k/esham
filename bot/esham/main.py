@@ -560,10 +560,12 @@ def build_parser() -> argparse.ArgumentParser:
     kf.add_argument("--workers", type=int, default=3)
     kf.set_defaults(func=_cmd_kap_financials)
 
+    from .jobs import publish_kap_events as _pke  # varsayılanlar yardım metninde koddakiyle aynı sabitlerden gelir
+
     ke = sub.add_parser("kap-events", help="KAP kâr payı takvimi ve pay geri alımları (kap-dividends.json, kap-buybacks.json)")
-    ke.add_argument("--dividend-days", type=int, default=None, help="Kâr payı bildirimleri için geriye dönük gün (varsayılan 150)")
-    ke.add_argument("--buyback-days", type=int, default=None, help="Geri alım bildirimleri için geriye dönük gün (varsayılan 45)")
-    ke.add_argument("--max-details", type=int, default=None, help="Koşu başına en çok kaç bildirim sayfası indirilsin (varsayılan 80)")
+    ke.add_argument("--dividend-days", type=int, default=None, help=f"Kâr payı bildirimleri için geriye dönük gün (varsayılan {_pke.DEFAULT_DIVIDEND_DAYS}; ESHAM_KAP_DIVIDEND_DAYS ile de verilir)")
+    ke.add_argument("--buyback-days", type=int, default=None, help=f"Geri alım bildirimleri için geriye dönük gün (varsayılan {_pke.DEFAULT_BUYBACK_DAYS}; ESHAM_KAP_BUYBACK_DAYS ile de verilir)")
+    ke.add_argument("--max-details", type=int, default=None, help=f"Koşu başına en çok kaç bildirim sayfası indirilsin (varsayılan {_pke.DEFAULT_MAX_DETAILS}; ESHAM_KAP_EVENTS_MAX_DETAILS ile de verilir)")
     ke.set_defaults(func=_cmd_kap_events)
 
     mc = sub.add_parser("macro", help="Makro göstergeler (TCMB faiz, USD/TRY değişimi; EVDS_API_KEY varsa TÜFE/REK) → macro-indicators.json")

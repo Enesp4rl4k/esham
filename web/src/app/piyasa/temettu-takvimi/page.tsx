@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { SITE_URL } from "@/lib/config";
 import { SourceStamp } from "@/components/SourceStamp";
-import { fmtDate, fmtNum, loadDividends } from "@/lib/kap-events";
+import { fmtDate, fmtNum, istanbulDay, isPastExDate, loadDividends, type DividendItem, type Installment } from "@/lib/kap-events";
 
 export const metadata: Metadata = {
   title: "Kâr Payı Takvimi (KAP bildirimlerinden)",
@@ -13,8 +13,59 @@ export const metadata: Metadata = {
 
 const STATUS: Record<string, string> = { teklif: "Teklif (genel kurul onayı bekliyor)", kesinlesti: "Kesinleşti (hak kullanım tarihi kesin)" };
 
+type Row = { it: DividendItem; x: Installment; k: number };
+
+function RowsTable({ rows, past }: { rows: Row[]; past: boolean }) {
+  return (
+    <div className={`overflow-x-auto rounded-xl border border-zinc-800${past ? " opacity-70" : ""}`}>
+      <table className="w-full text-left text-sm text-zinc-300">
+        <thead className="text-zinc-400 text-xs">
+          <tr>
+            <th className="px-3 py-2">Hisse</th>
+            <th className="px-3 py-2">Durum</th>
+            <th className="px-3 py-2 text-right">Brüt (TL/pay)</th>
+            <th className="px-3 py-2 text-right">Net (TL/pay)</th>
+            <th className="px-3 py-2">Hak kullanım</th>
+            <th className="px-3 py-2">Ödeme</th>
+            <th className="px-3 py-2">Bildirim</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-zinc-800/70">
+          {rows.map(({ it, x, k }) => (
+            <tr key={`${it.disclosureIndex}-${k}`}>
+              <td className="px-3 py-2">
+                <Link href={`/hisse/${it.ticker}`} className="font-semibold text-white hover:underline">{it.ticker}</Link>
+                <span className="block text-xs text-zinc-400">{it.name}{it.installments.length > 1 ? ` · ${x.label}` : ""}</span>
+              </td>
+              <td className="px-3 py-2 text-xs">
+                {past ? <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-zinc-300">geçti</span> : STATUS[it.status] ?? it.status}
+              </td>
+              <td className="px-3 py-2 text-right font-mono">{fmtNum(x.grossPerShare, 4)}</td>
+              <td className="px-3 py-2 text-right font-mono">
+                {fmtNum(x.netPerShare, 4)}
+                <span className="block text-xs text-zinc-400">stopaj %{fmtNum(x.withholdingPct, 0)}</span>
+                {x.amountNote && <span className="block max-w-[16rem] whitespace-normal text-xs text-zinc-400 font-sans">{x.amountNote}</span>}
+              </td>
+              <td className="px-3 py-2 whitespace-nowrap">{fmtDate(x.exDate)}{!x.exDateFinal && <span className="block text-xs text-zinc-400">teklif edilen</span>}</td>
+              <td className="px-3 py-2 whitespace-nowrap">{fmtDate(x.paymentDate)}</td>
+              <td className="px-3 py-2 text-xs whitespace-nowrap">
+                <a href={it.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-white">KAP #{it.disclosureIndex}</a>
+                <span className="block text-zinc-400">yayın {fmtDate(it.asOf)}</span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function DividendCalendarPage() {
   const doc = loadDividends();
+  const rows: Row[] = (doc?.items ?? []).flatMap((it) => it.installments.map((x, k) => ({ it, x, k })));
+  const past = rows.filter(({ x }) => doc && isPastExDate(x, doc.fetchedAt));
+  const upcoming = rows.filter((r) => !past.includes(r));
+  const genDay = istanbulDay(doc?.fetchedAt) ?? "";
   return (
     <div className="container mx-auto px-6 py-12 max-w-5xl">
       <p className="text-xs text-zinc-400 mb-6">
@@ -37,45 +88,22 @@ export default function DividendCalendarPage() {
           {doc.items.length === 0 ? (
             <p className="rounded-xl border border-zinc-800 p-4 text-sm text-zinc-400">Taranan pencerede nakit kâr payı dağıtımı bildiren hisse yok.</p>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-zinc-800">
-              <table className="w-full text-left text-sm text-zinc-300">
-                <thead className="text-zinc-400 text-xs">
-                  <tr>
-                    <th className="px-3 py-2">Hisse</th>
-                    <th className="px-3 py-2">Durum</th>
-                    <th className="px-3 py-2 text-right">Brüt (TL/pay)</th>
-                    <th className="px-3 py-2 text-right">Net (TL/pay)</th>
-                    <th className="px-3 py-2">Hak kullanım</th>
-                    <th className="px-3 py-2">Ödeme</th>
-                    <th className="px-3 py-2">Bildirim</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-800/70">
-                  {doc.items.flatMap((it) =>
-                    it.installments.map((x, k) => (
-                      <tr key={`${it.disclosureIndex}-${k}`}>
-                        <td className="px-3 py-2">
-                          <Link href={`/hisse/${it.ticker}`} className="font-semibold text-white hover:underline">{it.ticker}</Link>
-                          <span className="block text-xs text-zinc-400">{it.name}{it.installments.length > 1 ? ` · ${x.label}` : ""}</span>
-                        </td>
-                        <td className="px-3 py-2 text-xs">{STATUS[it.status] ?? it.status}</td>
-                        <td className="px-3 py-2 text-right font-mono">{fmtNum(x.grossPerShare, 4)}</td>
-                        <td className="px-3 py-2 text-right font-mono">
-                          {fmtNum(x.netPerShare, 4)}
-                          <span className="block text-xs text-zinc-400">stopaj %{fmtNum(x.withholdingPct, 0)}</span>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">{fmtDate(x.exDate)}{!x.exDateFinal && <span className="block text-xs text-zinc-400">teklif edilen</span>}</td>
-                        <td className="px-3 py-2 whitespace-nowrap">{fmtDate(x.paymentDate)}</td>
-                        <td className="px-3 py-2 text-xs whitespace-nowrap">
-                          <a href={it.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-white">KAP #{it.disclosureIndex}</a>
-                          <span className="block text-zinc-400">yayın {fmtDate(it.asOf)}</span>
-                        </td>
-                      </tr>
-                    )),
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <>
+              {upcoming.length > 0 ? (
+                <RowsTable rows={upcoming} past={false} />
+              ) : (
+                <p className="rounded-xl border border-zinc-800 p-4 text-sm text-zinc-400">Hak kullanım tarihi henüz gelmemiş kâr payı yok.</p>
+              )}
+              {past.length > 0 && (
+                <>
+                  <h2 className="text-lg font-bold mt-8 mb-1">Hak kullanım tarihi geçmiş</h2>
+                  <p className="text-xs text-zinc-400 mb-3">
+                    Hak kullanım tarihi veri üretim gününden ({fmtDate(genDay)}) önce olan satırlar. Kayıt amaçlı gösterilir; yeni alım için geçerli değildir.
+                  </p>
+                  <RowsTable rows={past} past />
+                </>
+              )}
+            </>
           )}
           {(doc.noDividend?.length ?? 0) > 0 && (
             <p className="text-xs text-zinc-400 mt-5 leading-relaxed">

@@ -206,6 +206,99 @@ def test_unparsable_disclosure_is_counted_with_reason_and_link(fake_kap, monkeyp
     assert doc["scan"]["skippedItems"][0]["sourceUrl"].endswith("/1700009")
 
 
+WIN = (date(2026, 6, 26), date(2026, 12, 20))
+
+
+def _both(fake_kap, fetched_at):
+    calls, tmp = fake_kap
+    listed = [_disc(1700009, "AYGAZ", "2026-11-18T18:46:48+03:00"), _disc(1700660, "YIGIT", "2026-11-20T14:41:34+03:00")]
+    return job.build_dividends(listed, {"AYGAZ": "A", "YIGIT": "Y"}, None, 40, fetched_at, 110, WIN, tmp / "c")
+
+
+def _past(doc):
+    return {i["ticker"]: i["installments"][0]["exDatePast"] for i in doc["items"]}
+
+
+def test_past_ex_dates_are_marked_relative_to_generation_day_in_istanbul(fake_kap):
+    """YIGIT hak kullanım 15.12.2026, AYGAZ 23.12.2026. Üretim günü 20.12 → YIGIT geçti, AYGAZ değil."""
+    assert _past(_both(fake_kap, "2026-12-20T10:00:00+00:00")) == {"YIGIT": True, "AYGAZ": False}
+
+
+def test_ex_date_day_itself_is_not_past_and_day_uses_istanbul_not_utc(fake_kap):
+    # 14.12 22:00 UTC = 15.12 01:00 İstanbul → hak kullanım günü bugün: geçmedi.
+    assert _past(_both(fake_kap, "2026-12-14T22:00:00+00:00"))["YIGIT"] is False
+    # 15.12 22:00 UTC = 16.12 01:00 İstanbul → geçti.
+    assert _past(_both(fake_kap, "2026-12-15T22:00:00+00:00"))["YIGIT"] is True
+
+
+def test_past_flag_is_recomputed_for_rows_carried_over_from_previous_file(fake_kap):
+    calls, tmp = fake_kap
+    listed = [_disc(1700660, "YIGIT", "2026-11-20T14:41:34+03:00")]
+    first = job.build_dividends(listed, {"YIGIT": "Y"}, None, 40, "2026-12-10T10:00:00+00:00", 110, WIN, tmp / "c")
+    assert _past(first)["YIGIT"] is False
+    # Bütçe 0 + boş önbellek: satır önceki dosyadan taşınır, bayrak yeni üretim gününe göre güncellenir.
+    second = job.build_dividends(listed, {"YIGIT": "Y"}, first, 0, "2026-12-20T10:00:00+00:00", 110, WIN, tmp / "empty")
+    assert _past(second)["YIGIT"] is True
+
+
+def test_pending_tickers_are_listed_so_not_scanned_differs_from_scanned_none(fake_kap):
+    calls, tmp = fake_kap
+    listed = [_disc(1700009, "AYGAZ", "2026-11-18T18:46:48+03:00"), _disc(1700660, "YIGIT", "2026-11-20T14:41:34+03:00")]
+    names = {"AYGAZ": "A", "YIGIT": "Y"}
+    first = job.build_dividends(listed, names, None, 1, "2026-12-01T10:00:00+00:00", 110, WIN, tmp / "c")
+    sc = first["scan"]
+    (p,) = sc["pendingItems"]
+    assert sc["pending"] == 1 and p["ticker"] == "YIGIT" and p["sourceUrl"].endswith("/1700660")
+    assert [i["ticker"] for i in first["items"]] == ["AYGAZ"]  # taranmış; YIGIT'in satırı yok ama "bekleyen" olarak adlı
+    second = job.build_dividends(listed, names, first, 1, "2026-12-02T10:00:00+00:00", 110, WIN, tmp / "c")
+    assert second["scan"]["pendingItems"] == [] and second["scan"]["complete"]
+
+
+def test_unparsable_stays_distinct_from_pending(fake_kap):
+    calls, tmp = fake_kap
+    listed = [_disc(1700009, "THYAO", "2026-11-18T18:46:48+03:00")]
+    doc = job.build_dividends(listed, {"THYAO": "T"}, None, 40, "2026-12-01T10:00:00+00:00", 110, WIN, tmp / "c")
+    assert doc["scan"]["pendingItems"] == [] and doc["scan"]["skippedItems"][0]["ticker"] == "THYAO"
+
+
+def test_buyback_pending_items_are_listed(fake_kap):
+    calls, tmp = fake_kap
+    listed = [KE.Disclosure("1700896", "KZGYO", "2026-11-20T23:51:04+03:00", "", KE.SUBJECT_BUYBACK)]
+    doc = job.build_buybacks(listed, {"KZGYO": "K"}, None, 0, "2026-11-23T10:00:00+00:00", 110, (date(2026, 10, 9), date(2026, 11, 23)), tmp / "empty")
+    assert doc["items"] == [] and [p["ticker"] for p in doc["scan"]["pendingItems"]] == ["KZGYO"]
+
+
+def test_amount_note_states_source_figures_and_never_derives_net():
+    d = parse_dividend(_b("kap_div_aygaz_teklif_1700009.html"), "AYGAZ")
+    note = job.amount_note(d["installments"][0])
+    assert "%15" in note and "bildirimdeki" in note and "farklı" in note
+    equal = job.amount_note({"gross": 2.0, "net": 2.0, "withholding_pct": 0.0})
+    assert "aynı" in equal and "hesaplamadı" in equal
+
+
+def test_dividend_item_carries_amount_note(fake_kap):
+    doc = _both(fake_kap, "2026-12-01T10:00:00+00:00")
+    assert all(i["installments"][0]["amountNote"] for i in doc["items"])
+
+
+def test_missing_net_is_rejected_not_derived_from_gross_and_default_withholding():
+    html = _b("kap_div_aygaz_teklif_1700009.html").decode("utf-8").replace("3,9525000", "")
+    with pytest.raises(Unparsable, match="okunamadı"):
+        parse_dividend(html, "AYGAZ")
+
+
+def test_cli_help_defaults_match_real_defaults():
+    import argparse
+
+    from esham import main as M
+
+    sub = next(a for a in M.build_parser()._actions if isinstance(a, argparse._SubParsersAction)).choices["kap-events"]
+    text = " ".join(sub.format_help().split())
+    assert f"varsayılan {job.DEFAULT_DIVIDEND_DAYS};" in text
+    assert f"varsayılan {job.DEFAULT_BUYBACK_DAYS};" in text
+    assert f"varsayılan {job.DEFAULT_MAX_DETAILS};" in text
+
+
 def test_buyback_document_fields(fake_kap):
     calls, tmp = fake_kap
     listed = [KE.Disclosure("1700896", "KZGYO", "2026-11-20T23:51:04+03:00", "", KE.SUBJECT_BUYBACK)]
