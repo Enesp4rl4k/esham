@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-24T23:30:17+03:00",
+  "generated_at": "2026-11-25T00:30:59+03:00",
   "sections": [
     {
       "id": "reports",
@@ -9,7 +9,7 @@
       "as_of": "2026-11-24T18:49:25+00:00",
       "fetched_at": "2026-11-24T18:49:25+00:00",
       "status": "fresh",
-      "detail": "1.7 saat önce (sınır 26 saat)"
+      "detail": "2.7 saat önce (sınır 26 saat)"
     },
     {
       "id": "market_ticker",
@@ -19,7 +19,7 @@
       "as_of": "2026-11-24T21:49:12+03:00",
       "fetched_at": "2026-11-24T21:49:12+03:00",
       "status": "fresh",
-      "detail": "1.7 saat önce (sınır 26 saat)"
+      "detail": "2.7 saat önce (sınır 26 saat)"
     },
     {
       "id": "economic_calendar",
@@ -29,7 +29,7 @@
       "as_of": "2026-11-24T21:49:12+03:00",
       "fetched_at": "2026-11-24T21:49:12+03:00",
       "status": "fresh",
-      "detail": "1.7 saat önce (sınır 26 saat)"
+      "detail": "2.7 saat önce (sınır 26 saat)"
     },
     {
       "id": "stocks",
@@ -39,7 +39,7 @@
       "as_of": "2026-11-24T02:40:22+00:00",
       "fetched_at": "2026-11-24T02:40:22+00:00",
       "status": "fresh",
-      "detail": "17.8 saat önce (sınır 120 saat)"
+      "detail": "18.8 saat önce (sınır 120 saat)"
     },
     {
       "id": "kap_coverage",
@@ -59,7 +59,7 @@
       "as_of": "2026-11-20T23:00:37+03:00",
       "fetched_at": "2026-11-20T23:00:37+03:00",
       "status": "fresh",
-      "detail": "96.5 saat önce (sınır 120 saat)"
+      "detail": "97.5 saat önce (sınır 120 saat)"
     },
     {
       "id": "kap_dividends",
@@ -69,7 +69,7 @@
       "as_of": "2026-11-19",
       "fetched_at": "2026-11-24T03:22:45+00:00",
       "status": "fresh",
-      "detail": "17.1 saat önce (sınır 52 saat); 110 hisseden 14'inde bildirim, 13 işlendi, 0 bekliyor"
+      "detail": "18.1 saat önce (sınır 52 saat); 110 hisseden 14'inde bildirim, 13 işlendi, 0 bekliyor"
     },
     {
       "id": "kap_buybacks",
@@ -79,7 +79,7 @@
       "as_of": "2026-11-23",
       "fetched_at": "2026-11-24T03:23:22+00:00",
       "status": "fresh",
-      "detail": "17.1 saat önce (sınır 52 saat); 110 hisseden 16'inde bildirim, 103 işlendi, 8 bekliyor (tarama tamamlanmadı: sonraki koşu devam eder)"
+      "detail": "18.1 saat önce (sınır 52 saat); 110 hisseden 16'inde bildirim, 103 işlendi, 8 bekliyor (tarama tamamlanmadı: sonraki koşu devam eder)"
     },
     {
       "id": "macro_indicators",
@@ -89,7 +89,7 @@
       "as_of": "2026-11-24T00:24:23+00:00",
       "fetched_at": "2026-11-24T00:24:23+00:00",
       "status": "stale",
-      "detail": "20.1 saat önce (sınır 52 saat); 4 gösterge; EVDS sorunları: TP.FG.J0 (12 ay önceki gözlem yok: TP.FG.J0)"
+      "detail": "21.1 saat önce (sınır 52 saat); 4 gösterge; EVDS sorunları: TP.FG.J0 (12 ay önceki gözlem yok: TP.FG.J0)"
     },
     {
       "id": "turib:indices",
@@ -99,7 +99,7 @@
       "as_of": "2026-11-24",
       "fetched_at": "2026-11-24T22:30:16+03:00",
       "status": "fresh",
-      "detail": "veri 0 gün önceki"
+      "detail": "veri 1 gün önceki"
     },
     {
       "id": "turib:spotCommodities",
@@ -109,7 +109,7 @@
       "as_of": "2026-11-24",
       "fetched_at": "2026-11-24T22:30:16+03:00",
       "status": "fresh",
-      "detail": "veri 0 gün önceki"
+      "detail": "veri 1 gün önceki"
     },
     {
       "id": "turib:tmoComparison",
@@ -119,7 +119,7 @@
       "as_of": "2026-11-24",
       "fetched_at": "2026-11-24T22:30:16+03:00",
       "status": "fresh",
-      "detail": "veri 0 gün önceki"
+      "detail": "veri 1 gün önceki"
     },
     {
       "id": "turib:storageBacktest",
@@ -129,7 +129,7 @@
       "as_of": "2026-11-24",
       "fetched_at": "2026-11-24T22:30:16+03:00",
       "status": "fresh",
-      "detail": "veri 0 gün önceki"
+      "detail": "veri 1 gün önceki"
     },
     {
       "id": "turib:regionalArbitrage",
@@ -139,7 +139,7 @@
       "as_of": "2026-11-24",
       "fetched_at": "2026-11-24T22:30:16+03:00",
       "status": "fresh",
-      "detail": "veri 0 gün önceki"
+      "detail": "veri 1 gün önceki"
     },
     {
       "id": "turib:agriBist",
@@ -149,7 +149,7 @@
       "as_of": "2026-11-24",
       "fetched_at": "2026-11-24T22:30:16+03:00",
       "status": "fresh",
-      "detail": "veri 0 gün önceki"
+      "detail": "veri 1 gün önceki"
     },
     {
       "id": "turib:realReturns",
@@ -159,7 +159,7 @@
       "as_of": "2026-11-24",
       "fetched_at": "2026-11-24T22:30:16+03:00",
       "status": "fresh",
-      "detail": "veri 0 gün önceki"
+      "detail": "veri 1 gün önceki"
     },
     {
       "id": "turib:petrolTanker",
@@ -169,7 +169,7 @@
       "as_of": "2026-11-24",
       "fetched_at": "2026-11-24T22:30:16+03:00",
       "status": "fresh",
-      "detail": "veri 0 gün önceki"
+      "detail": "veri 1 gün önceki"
     },
     {
       "id": "turib:straits",
@@ -179,7 +179,7 @@
       "as_of": "2026-11-22",
       "fetched_at": "2026-11-24T22:30:16+03:00",
       "status": "fresh",
-      "detail": "veri 2 gün önceki"
+      "detail": "veri 3 gün önceki"
     }
   ]
 }
