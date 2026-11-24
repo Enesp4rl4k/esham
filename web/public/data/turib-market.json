@@ -1,6 +1,6 @@
 {
-  "updatedAt": "2026-11-23T23:12:49+03:00",
-  "date": "2026-11-23",
+  "updatedAt": "2026-11-24T04:09:01+03:00",
+  "date": "2026-11-24",
   "indices": [
     {
       "code": "TRBHUB",
@@ -102,26 +102,6 @@
   },
   "tmoComparison": [
     {
-      "commodity": "BUĞDAY MAKARNALIK",
-      "asOf": "2026-11-23",
-      "tmoProductName": "Makarnalık Buğday (2. Grup)",
-      "year": 2026,
-      "tmoSeason": "2026",
-      "tmoSource": "https://www.tarimorman.gov.tr/Haber/7092/2026-Yili-Hububat-Alim-Ve-Satis-Fiyatlari-Belirlendi",
-      "tmoAsOf": "2026-06-02",
-      "tmoVerified": true,
-      "tmoPurchasePrice": 16.5,
-      "farmerPremium": 3.014,
-      "totalFarmerIncome": 19.514,
-      "tmoSalesPrice": 18.5,
-      "turibFreePrice": 18.03,
-      "spreadTl": 1.53,
-      "spreadPct": 9.27,
-      "totalSpreadPct": -7.6,
-      "status": "TMO_USTUNDE_PRIMLI",
-      "commentary": "Serbest piyasa fiyatı (18.03 TL/kg), TMO alım tabanının (16.50 TL/kg) %9.3 üzerinde primli seyrediyor. Özel sektör talebi canlı, üretici ürününü TMO yerine ELÜS borsasında satmayı tercih ediyor."
-    },
-    {
       "commodity": "BUĞDAY EKMEKLİK",
       "asOf": "2026-11-23",
       "tmoProductName": "Ekmeklik Buğday (2. Grup)",
@@ -139,12 +119,32 @@
       "spreadPct": 8.55,
       "totalSpreadPct": -8.22,
       "status": "TMO_USTUNDE_PRIMLI",
-      "commentary": "Serbest piyasa fiyatı (17.91 TL/kg), TMO alım tabanının (16.50 TL/kg) %8.6 üzerinde primli seyrediyor. Özel sektör talebi canlı, üretici ürününü TMO yerine ELÜS borsasında satmayı tercih ediyor.",
+      "commentary": "Serbest piyasa fiyatı (17.91 TL/kg), TMO alım tabanının (16.50 TL/kg) %8.6 üzerinde primli seyrediyor. Özel sektör talebi canlı, üretici ürününü TMO yerine ELÜS borsasında satmayı tercih ediyor."
+    },
+    {
+      "commodity": "BUĞDAY MAKARNALIK",
+      "asOf": "2026-11-23",
+      "tmoProductName": "Makarnalık Buğday (2. Grup)",
+      "year": 2026,
+      "tmoSeason": "2026",
+      "tmoSource": "https://www.tarimorman.gov.tr/Haber/7092/2026-Yili-Hububat-Alim-Ve-Satis-Fiyatlari-Belirlendi",
+      "tmoAsOf": "2026-06-02",
+      "tmoVerified": true,
+      "tmoPurchasePrice": 16.5,
+      "farmerPremium": 3.014,
+      "totalFarmerIncome": 19.514,
+      "tmoSalesPrice": 18.5,
+      "turibFreePrice": 18.03,
+      "spreadTl": 1.53,
+      "spreadPct": 9.27,
+      "totalSpreadPct": -7.6,
+      "status": "TMO_USTUNDE_PRIMLI",
+      "commentary": "Serbest piyasa fiyatı (18.03 TL/kg), TMO alım tabanının (16.50 TL/kg) %9.3 üzerinde primli seyrediyor. Özel sektör talebi canlı, üretici ürününü TMO yerine ELÜS borsasında satmayı tercih ediyor.",
       "stale": true
     }
   ],
   "storageBacktest": {
-    "asOf": "2026-11-23",
+    "asOf": "2026-11-24",
     "productGroup": "BUĞDAY EKMEKLİK",
     "testedSeasonsCount": 6,
     "annualInterestPct": 50.0,
@@ -540,7 +540,7 @@
     ]
   },
   "agriBist": {
-    "date": "2026-11-23",
+    "date": "2026-11-24",
     "xgidaPrice": "10.788,28",
     "xgidaChange": "-1,06%",
     "turibHububatIndex": "7.959,51",
@@ -595,28 +595,6 @@
   },
   "realReturns": [
     {
-      "commodityGroup": "BUĞDAY MAKARNALIK",
-      "startDate": "2025-11-24",
-      "endDate": "2026-11-23",
-      "asOf": "2026-11-23",
-      "tradingDays": 221,
-      "startPriceTl": 13.14,
-      "endPriceTl": 18.03,
-      "nominalReturnPct": 37.3,
-      "usdReturnPct": 15.16,
-      "eurReturnPct": 20.91,
-      "fxDateStart": "2025-11-24",
-      "fxDateEnd": "2026-11-23",
-      "usdTryStart": 42.3675,
-      "usdTryEnd": 50.5116,
-      "eurTryStart": 48.8473,
-      "eurTryEnd": 55.4656,
-      "source": "Kaynak: T.C. Merkez Bankası (tcmb.gov.tr) döviz kurları; TÜRİB (turib.com.tr) fiyatları.",
-      "sourceUrl": "https://www.tcmb.gov.tr/kurlar/kurlar_tr.html",
-      "fetchedAt": "2026-11-23T20:14:24+00:00",
-      "commentary": "'BUĞDAY MAKARNALIK' 2025-11-24 - 2026-11-23 döneminde TL bazında %37.3, USD bazında %15.2, EUR bazında %20.9 değişti (TCMB döviz alış kuru; 2025-11-24 ve 2026-11-23 bültenleri). TÜFE ile arındırılmış getiri bu veri setinde yoktur."
-    },
-    {
       "commodityGroup": "BUĞDAY EKMEKLİK",
       "startDate": "2025-11-24",
       "endDate": "2026-11-23",
@@ -635,22 +613,76 @@
       "eurTryEnd": 55.4656,
       "source": "Kaynak: T.C. Merkez Bankası (tcmb.gov.tr) döviz kurları; TÜRİB (turib.com.tr) fiyatları.",
       "sourceUrl": "https://www.tcmb.gov.tr/kurlar/kurlar_tr.html",
-      "fetchedAt": "2026-11-23T16:24:44+00:00",
-      "commentary": "'BUĞDAY EKMEKLİK' 2025-11-24 - 2026-11-23 döneminde TL bazında %30.1, USD bazında %9.1, EUR bazında %14.6 değişti (TCMB döviz alış kuru; 2025-11-24 ve 2026-11-23 bültenleri). TÜFE ile arındırılmış getiri bu veri setinde yoktur.",
-      "stale": true
+      "fetchedAt": "2026-11-24T01:10:31+00:00",
+      "commentary": "'BUĞDAY EKMEKLİK' 2025-11-24 - 2026-11-23 döneminde TL bazında %30.1, USD bazında %9.1, EUR bazında %14.6 değişti (TCMB döviz alış kuru; 2025-11-24 ve 2026-11-23 bültenleri). TÜFE ile arındırılmış getiri bu veri setinde yoktur."
+    },
+    {
+      "commodityGroup": "BUĞDAY MAKARNALIK",
+      "startDate": "2025-11-24",
+      "endDate": "2026-11-23",
+      "asOf": "2026-11-23",
+      "tradingDays": 221,
+      "startPriceTl": 13.14,
+      "endPriceTl": 18.03,
+      "nominalReturnPct": 37.3,
+      "usdReturnPct": 15.16,
+      "eurReturnPct": 20.91,
+      "fxDateStart": "2025-11-24",
+      "fxDateEnd": "2026-11-23",
+      "usdTryStart": 42.3675,
+      "usdTryEnd": 50.5116,
+      "eurTryStart": 48.8473,
+      "eurTryEnd": 55.4656,
+      "source": "Kaynak: T.C. Merkez Bankası (tcmb.gov.tr) döviz kurları; TÜRİB (turib.com.tr) fiyatları.",
+      "sourceUrl": "https://www.tcmb.gov.tr/kurlar/kurlar_tr.html",
+      "fetchedAt": "2026-11-24T01:10:40+00:00",
+      "commentary": "'BUĞDAY MAKARNALIK' 2025-11-24 - 2026-11-23 döneminde TL bazında %37.3, USD bazında %15.2, EUR bazında %20.9 değişti (TCMB döviz alış kuru; 2025-11-24 ve 2026-11-23 bültenleri). TÜFE ile arındırılmış getiri bu veri setinde yoktur."
     }
   ],
   "petrolTanker": {
-    "updatedAt": "2026-11-23T23:14:24+03:00",
-    "date": "2026-11-23",
+    "updatedAt": "2026-11-24T04:10:40+03:00",
+    "date": "2026-11-24",
     "oilBenchmarks": {
       "brent": {
-        "price": 86.49,
-        "priceStr": "$86.49",
-        "changePct": -3.846581434130081,
-        "changeStr": "-3.85%"
+        "price": 87.0,
+        "priceStr": "$87.00",
+        "changePct": 0.36917397323487905,
+        "changeStr": "+0.37%"
       }
-    }
+    },
+    "straits": [
+      {
+        "strait": "Bosporus",
+        "name": "İstanbul Boğazı",
+        "weekStart": "2026-11-09",
+        "weekEnd": "2026-11-15",
+        "asOf": "2026-11-15",
+        "stale": false,
+        "counts": {
+          "tanker": 105,
+          "dryBulk": 59,
+          "container": 35,
+          "generalCargo": 136,
+          "roro": 5,
+          "total": 340
+        },
+        "previousWeek": {
+          "weekStart": "2026-11-02",
+          "weekEnd": "2026-11-08",
+          "counts": {
+            "tanker": 89,
+            "dryBulk": 55,
+            "container": 28,
+            "generalCargo": 144,
+            "roro": 2,
+            "total": 318
+          }
+        },
+        "dataUpdatedAt": "2026-11-17",
+        "source": "Sources: UN Global Platform; IMF PortWatch (portwatch.imf.org).",
+        "sourceUrl": "https://portwatch.imf.org/"
+      }
+    ]
   },
   "sections": {
     "indices": {
@@ -658,7 +690,7 @@
       "source": "TÜRİB ELÜS bülteni",
       "sourceUrl": "https://www.turib.com.tr",
       "asOf": "2026-11-18",
-      "fetchedAt": "2026-11-23T23:12:49+03:00",
+      "fetchedAt": "2026-11-24T04:09:01+03:00",
       "stale": false,
       "status": "fresh"
     },
@@ -667,7 +699,7 @@
       "source": "TÜRİB ELÜS bülteni",
       "sourceUrl": "https://www.turib.com.tr",
       "asOf": "2026-11-23",
-      "fetchedAt": "2026-11-23T23:12:49+03:00",
+      "fetchedAt": "2026-11-24T04:09:01+03:00",
       "stale": false,
       "status": "fresh"
     },
@@ -676,7 +708,7 @@
       "source": "Tarım ve Orman Bakanlığı / TMO duyuruları",
       "sourceUrl": "https://www.tmo.gov.tr",
       "asOf": "2026-11-23",
-      "fetchedAt": "2026-11-23T23:12:49+03:00",
+      "fetchedAt": "2026-11-24T04:09:01+03:00",
       "stale": true,
       "status": "stale"
     },
@@ -684,8 +716,8 @@
       "label": "Depolama geriye dönük testi",
       "source": "TÜRİB tarihsel seri (varsayımlı maliyet modeli)",
       "sourceUrl": "https://www.turib.com.tr",
-      "asOf": "2026-11-23",
-      "fetchedAt": "2026-11-23T23:12:49+03:00",
+      "asOf": "2026-11-24",
+      "fetchedAt": "2026-11-24T04:09:01+03:00",
       "stale": false,
       "status": "fresh"
     },
@@ -694,7 +726,7 @@
       "source": "TÜRİB ELÜS bülteni",
       "sourceUrl": "https://www.turib.com.tr",
       "asOf": "2026-11-23",
-      "fetchedAt": "2026-11-23T23:12:49+03:00",
+      "fetchedAt": "2026-11-24T04:09:01+03:00",
       "stale": false,
       "status": "fresh"
     },
@@ -702,8 +734,8 @@
       "label": "Agri-BIST radarı",
       "source": "Yahoo Finance (XGIDA/hisseler) + TÜRİB",
       "sourceUrl": "https://finance.yahoo.com",
-      "asOf": "2026-11-23",
-      "fetchedAt": "2026-11-23T23:12:49+03:00",
+      "asOf": "2026-11-24",
+      "fetchedAt": "2026-11-24T04:09:01+03:00",
       "stale": false,
       "status": "fresh"
     },
@@ -712,16 +744,16 @@
       "source": "TCMB döviz kurları + TÜRİB",
       "sourceUrl": "https://www.tcmb.gov.tr/kurlar/kurlar_tr.html",
       "asOf": "2026-11-23",
-      "fetchedAt": "2026-11-23T23:12:49+03:00",
-      "stale": true,
-      "status": "stale"
+      "fetchedAt": "2026-11-24T04:09:01+03:00",
+      "stale": false,
+      "status": "fresh"
     },
     "petrolTanker": {
       "label": "Brent petrol",
       "source": "Yahoo Finance (Brent vadeli)",
       "sourceUrl": "https://finance.yahoo.com",
-      "asOf": "2026-11-23",
-      "fetchedAt": "2026-11-23T23:12:49+03:00",
+      "asOf": "2026-11-24",
+      "fetchedAt": "2026-11-24T04:09:01+03:00",
       "stale": false,
       "status": "fresh"
     },
@@ -729,10 +761,10 @@
       "label": "İstanbul Boğazı geçişleri",
       "source": "IMF PortWatch (BM Global Platform AIS)",
       "sourceUrl": "https://portwatch.imf.org/",
-      "asOf": null,
-      "fetchedAt": null,
+      "asOf": "2026-11-15",
+      "fetchedAt": "2026-11-24T04:09:01+03:00",
       "stale": false,
-      "status": "missing"
+      "status": "fresh"
     }
   }
 }
