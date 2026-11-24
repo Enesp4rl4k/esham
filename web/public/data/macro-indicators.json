@@ -1,6 +1,6 @@
 {
- "updatedAt": "2026-11-24T00:24:23+00:00",
- "fetchedAt": "2026-11-24T00:24:23+00:00",
+ "updatedAt": "2026-11-24T22:48:41+00:00",
+ "fetchedAt": "2026-11-24T22:48:41+00:00",
  "indicators": [
   {
    "id": "policy_rate",
@@ -10,32 +10,32 @@
    "asOf": "2026-10-23",
    "source": "T.C. Merkez Bankası — 1 Hafta Repo faiz oranları",
    "sourceUrl": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Temel+Faaliyetler/Para+Politikasi/Merkez+Bankasi+Faiz+Oranlari/1+Hafta+Repo",
-   "fetchedAt": "2026-11-24T00:24:23+00:00",
+   "fetchedAt": "2026-11-24T22:48:41+00:00",
    "note": "Veri tarihi, tablodaki son faiz değişikliğinin tarihidir; sayfa değişikliği olmayan günlerde de aynı değeri gösterir. Kaynak: T.C. Merkez Bankası (tcmb.gov.tr)",
    "stale": false
   },
   {
    "id": "usdtry_30d",
    "label": "USD/TRY 30 günlük değişim",
-   "value": 1.91,
+   "value": 1.96,
    "unit": "%",
-   "asOf": "2026-11-23",
+   "asOf": "2026-11-24",
    "source": "T.C. Merkez Bankası — günlük döviz kurları (döviz alış)",
    "sourceUrl": "https://www.tcmb.gov.tr/kurlar/kurlar_tr.html",
-   "fetchedAt": "2026-11-24T00:24:23+00:00",
-   "note": "2026-10-23 bülteni 49.5647 → 2026-11-23 bülteni 50.5116 TL. Kaynak: T.C. Merkez Bankası (tcmb.gov.tr)",
+   "fetchedAt": "2026-11-24T22:48:41+00:00",
+   "note": "2026-10-23 bülteni 49.5647 → 2026-11-24 bülteni 50.5376 TL. Kaynak: T.C. Merkez Bankası (tcmb.gov.tr)",
    "stale": false
   },
   {
    "id": "usdtry_365d",
    "label": "USD/TRY 12 aylık değişim",
-   "value": 19.46,
+   "value": 19.28,
    "unit": "%",
-   "asOf": "2026-11-23",
+   "asOf": "2026-11-24",
    "source": "T.C. Merkez Bankası — günlük döviz kurları (döviz alış)",
    "sourceUrl": "https://www.tcmb.gov.tr/kurlar/kurlar_tr.html",
-   "fetchedAt": "2026-11-24T00:24:23+00:00",
-   "note": "2025-11-21 bülteni 42.2819 → 2026-11-23 bülteni 50.5116 TL. Kaynak: T.C. Merkez Bankası (tcmb.gov.tr)",
+   "fetchedAt": "2026-11-24T22:48:41+00:00",
+   "note": "2025-11-24 bülteni 42.3675 → 2026-11-24 bülteni 50.5376 TL. Kaynak: T.C. Merkez Bankası (tcmb.gov.tr)",
    "stale": false
   },
   {
@@ -46,7 +46,7 @@
    "asOf": "2026-10-01",
    "source": "T.C. Merkez Bankası EVDS (TP.RK.T1.Y)",
    "sourceUrl": "https://evds3.tcmb.gov.tr/",
-   "fetchedAt": "2026-11-24T00:24:23+00:00",
+   "fetchedAt": "2026-11-24T22:48:41+00:00",
    "note": "Endeksin yükselmesi TL'nin reel olarak değerlendiği, düşmesi değer kaybettiği anlamına gelir (TCMB tanımı). Kaynak: T.C. Merkez Bankası, Elektronik Veri Dağıtım Sistemi (EVDS)",
    "stale": false
   }
