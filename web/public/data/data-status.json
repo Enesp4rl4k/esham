@@ -1,35 +1,35 @@
 {
-  "generated_at": "2026-11-26T01:42:58+03:00",
+  "generated_at": "2026-11-26T02:37:30+03:00",
   "sections": [
     {
       "id": "reports",
       "label": "Analiz raporları",
       "source": "Esham otomatik analiz (Yahoo Finance, TradingView, KAP, haber RSS'leri)",
       "source_url": "https://esham.pages.dev/arsiv",
-      "as_of": "2026-11-25T17:55:39+00:00",
-      "fetched_at": "2026-11-25T17:55:39+00:00",
+      "as_of": "2026-11-25T23:35:30+00:00",
+      "fetched_at": "2026-11-25T23:35:30+00:00",
       "status": "fresh",
-      "detail": "4.8 saat önce (sınır 26 saat)"
+      "detail": "0.0 saat önce (sınır 26 saat)"
     },
     {
       "id": "market_ticker",
       "label": "Piyasa bandı",
       "source": "Yahoo Finance, TradingView, TÜRİB",
       "source_url": "https://finance.yahoo.com",
-      "as_of": "2026-11-25T20:55:23+03:00",
-      "fetched_at": "2026-11-25T20:55:23+03:00",
+      "as_of": "2026-11-26T02:35:30+03:00",
+      "fetched_at": "2026-11-26T02:35:30+03:00",
       "status": "fresh",
-      "detail": "4.8 saat önce (sınır 26 saat)"
+      "detail": "0.0 saat önce (sınır 26 saat)"
     },
     {
       "id": "economic_calendar",
       "label": "Ekonomik takvim",
       "source": "TradingView ekonomik takvim",
       "source_url": "https://www.tradingview.com",
-      "as_of": "2026-11-25T20:55:23+03:00",
-      "fetched_at": "2026-11-25T20:55:23+03:00",
+      "as_of": "2026-11-26T02:35:30+03:00",
+      "fetched_at": "2026-11-26T02:35:30+03:00",
       "status": "fresh",
-      "detail": "4.8 saat önce (sınır 26 saat)"
+      "detail": "0.0 saat önce (sınır 26 saat)"
     },
     {
       "id": "stocks",
@@ -39,7 +39,7 @@
       "as_of": "2026-11-25T00:11:43+00:00",
       "fetched_at": "2026-11-25T00:11:43+00:00",
       "status": "fresh",
-      "detail": "22.5 saat önce (sınır 120 saat)"
+      "detail": "23.4 saat önce (sınır 120 saat)"
     },
     {
       "id": "kap_coverage",
@@ -59,7 +59,7 @@
       "as_of": "2026-11-25T01:02:05+00:00",
       "fetched_at": "2026-11-25T01:02:05+00:00",
       "status": "fresh",
-      "detail": "21.7 saat önce (sınır 120 saat)"
+      "detail": "22.6 saat önce (sınır 120 saat)"
     },
     {
       "id": "kap_dividends",
@@ -69,7 +69,7 @@
       "as_of": "2026-11-24",
       "fetched_at": "2026-11-25T01:08:40+00:00",
       "status": "fresh",
-      "detail": "21.6 saat önce (sınır 52 saat); 110 hisseden 14'inde bildirim, 13 işlendi, 0 bekliyor"
+      "detail": "22.5 saat önce (sınır 52 saat); 110 hisseden 14'inde bildirim, 13 işlendi, 0 bekliyor"
     },
     {
       "id": "kap_buybacks",
@@ -79,7 +79,7 @@
       "as_of": "2026-11-24",
       "fetched_at": "2026-11-25T01:08:45+00:00",
       "status": "fresh",
-      "detail": "21.6 saat önce (sınır 52 saat); 110 hisseden 16'inde bildirim, 109 işlendi, 8 bekliyor (tarama tamamlanmadı: sonraki koşu devam eder)"
+      "detail": "22.5 saat önce (sınır 52 saat); 110 hisseden 16'inde bildirim, 109 işlendi, 8 bekliyor (tarama tamamlanmadı: sonraki koşu devam eder)"
     },
     {
       "id": "macro_indicators",
@@ -89,7 +89,7 @@
       "as_of": "2026-11-25T22:00:01+00:00",
       "fetched_at": "2026-11-25T22:00:01+00:00",
       "status": "stale",
-      "detail": "0.7 saat önce (sınır 52 saat); 4 gösterge; EVDS sorunları: TP.FG.J0 (12 ay önceki gözlem yok: TP.FG.J0)"
+      "detail": "1.6 saat önce (sınır 52 saat); 4 gösterge; EVDS sorunları: TP.FG.J0 (12 ay önceki gözlem yok: TP.FG.J0)"
     },
     {
       "id": "turib:indices",
@@ -97,7 +97,7 @@
       "source": "TÜRİB ELÜS bülteni",
       "source_url": "https://www.turib.com.tr",
       "as_of": "2026-11-25",
-      "fetched_at": "2026-11-26T01:41:02+03:00",
+      "fetched_at": "2026-11-26T02:35:43+03:00",
       "status": "fresh",
       "detail": "veri 1 gün önceki"
     },
@@ -107,7 +107,7 @@
       "source": "TÜRİB ELÜS bülteni",
       "source_url": "https://www.turib.com.tr",
       "as_of": "2026-11-25",
-      "fetched_at": "2026-11-26T01:41:02+03:00",
+      "fetched_at": "2026-11-26T02:35:43+03:00",
       "status": "fresh",
       "detail": "veri 1 gün önceki"
     },
@@ -117,7 +117,7 @@
       "source": "Tarım ve Orman Bakanlığı / TMO duyuruları",
       "source_url": "https://www.tmo.gov.tr",
       "as_of": "2026-11-25",
-      "fetched_at": "2026-11-26T01:41:02+03:00",
+      "fetched_at": "2026-11-26T02:35:43+03:00",
       "status": "fresh",
       "detail": "veri 1 gün önceki"
     },
@@ -127,7 +127,7 @@
       "source": "TÜRİB tarihsel seri (varsayımlı maliyet modeli)",
       "source_url": "https://www.turib.com.tr",
       "as_of": "2026-11-26",
-      "fetched_at": "2026-11-26T01:41:02+03:00",
+      "fetched_at": "2026-11-26T02:35:43+03:00",
       "status": "fresh",
       "detail": "veri 0 gün önceki"
     },
@@ -137,7 +137,7 @@
       "source": "TÜRİB ELÜS bülteni",
       "source_url": "https://www.turib.com.tr",
       "as_of": "2026-11-25",
-      "fetched_at": "2026-11-26T01:41:02+03:00",
+      "fetched_at": "2026-11-26T02:35:43+03:00",
       "status": "fresh",
       "detail": "veri 1 gün önceki"
     },
@@ -147,7 +147,7 @@
       "source": "Yahoo Finance (XGIDA/hisseler) + TÜRİB",
       "source_url": "https://finance.yahoo.com",
       "as_of": "2026-11-25",
-      "fetched_at": "2026-11-26T01:41:02+03:00",
+      "fetched_at": "2026-11-26T02:35:43+03:00",
       "status": "fresh",
       "detail": "veri 1 gün önceki"
     },
@@ -157,7 +157,7 @@
       "source": "TCMB döviz kurları + TÜRİB",
       "source_url": "https://www.tcmb.gov.tr/kurlar/kurlar_tr.html",
       "as_of": "2026-11-25",
-      "fetched_at": "2026-11-26T01:41:02+03:00",
+      "fetched_at": "2026-11-26T02:35:43+03:00",
       "status": "fresh",
       "detail": "veri 1 gün önceki"
     },
@@ -167,7 +167,7 @@
       "source": "Yahoo Finance (Brent vadeli)",
       "source_url": "https://finance.yahoo.com",
       "as_of": "2026-11-26",
-      "fetched_at": "2026-11-26T01:41:02+03:00",
+      "fetched_at": "2026-11-26T02:35:43+03:00",
       "status": "fresh",
       "detail": "veri 0 gün önceki"
     },
@@ -177,7 +177,7 @@
       "source": "IMF PortWatch (BM Global Platform AIS)",
       "source_url": "https://portwatch.imf.org/",
       "as_of": "2026-11-22",
-      "fetched_at": "2026-11-26T01:41:02+03:00",
+      "fetched_at": "2026-11-26T02:35:43+03:00",
       "status": "fresh",
       "detail": "veri 4 gün önceki"
     }
