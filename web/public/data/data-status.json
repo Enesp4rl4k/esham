@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-11-25T19:59:45+03:00",
+  "generated_at": "2026-11-25T20:30:08+03:00",
   "sections": [
     {
       "id": "reports",
       "label": "Analiz raporları",
       "source": "Esham otomatik analiz (Yahoo Finance, TradingView, KAP, haber RSS'leri)",
       "source_url": "https://esham.pages.dev/arsiv",
-      "as_of": "2026-11-25T16:59:43+00:00",
-      "fetched_at": "2026-11-25T16:59:43+00:00",
+      "as_of": "2026-11-25T17:30:07+00:00",
+      "fetched_at": "2026-11-25T17:30:07+00:00",
       "status": "fresh",
       "detail": "0.0 saat önce (sınır 26 saat)"
     },
@@ -19,7 +19,7 @@
       "as_of": "2026-11-25T19:59:22+03:00",
       "fetched_at": "2026-11-25T19:59:22+03:00",
       "status": "fresh",
-      "detail": "0.0 saat önce (sınır 26 saat)"
+      "detail": "0.5 saat önce (sınır 26 saat)"
     },
     {
       "id": "economic_calendar",
@@ -29,7 +29,7 @@
       "as_of": "2026-11-25T19:59:22+03:00",
       "fetched_at": "2026-11-25T19:59:22+03:00",
       "status": "fresh",
-      "detail": "0.0 saat önce (sınır 26 saat)"
+      "detail": "0.5 saat önce (sınır 26 saat)"
     },
     {
       "id": "stocks",
@@ -39,7 +39,7 @@
       "as_of": "2026-11-25T00:11:43+00:00",
       "fetched_at": "2026-11-25T00:11:43+00:00",
       "status": "fresh",
-      "detail": "16.8 saat önce (sınır 120 saat)"
+      "detail": "17.3 saat önce (sınır 120 saat)"
     },
     {
       "id": "kap_coverage",
@@ -59,7 +59,7 @@
       "as_of": "2026-11-25T01:02:05+00:00",
       "fetched_at": "2026-11-25T01:02:05+00:00",
       "status": "fresh",
-      "detail": "16.0 saat önce (sınır 120 saat)"
+      "detail": "16.5 saat önce (sınır 120 saat)"
     },
     {
       "id": "kap_dividends",
@@ -69,7 +69,7 @@
       "as_of": "2026-11-24",
       "fetched_at": "2026-11-25T01:08:40+00:00",
       "status": "fresh",
-      "detail": "15.9 saat önce (sınır 52 saat); 110 hisseden 14'inde bildirim, 13 işlendi, 0 bekliyor"
+      "detail": "16.4 saat önce (sınır 52 saat); 110 hisseden 14'inde bildirim, 13 işlendi, 0 bekliyor"
     },
     {
       "id": "kap_buybacks",
@@ -79,7 +79,7 @@
       "as_of": "2026-11-24",
       "fetched_at": "2026-11-25T01:08:45+00:00",
       "status": "fresh",
-      "detail": "15.9 saat önce (sınır 52 saat); 110 hisseden 16'inde bildirim, 109 işlendi, 8 bekliyor (tarama tamamlanmadı: sonraki koşu devam eder)"
+      "detail": "16.4 saat önce (sınır 52 saat); 110 hisseden 16'inde bildirim, 109 işlendi, 8 bekliyor (tarama tamamlanmadı: sonraki koşu devam eder)"
     },
     {
       "id": "macro_indicators",
@@ -89,7 +89,7 @@
       "as_of": "2026-11-24T22:48:41+00:00",
       "fetched_at": "2026-11-24T22:48:41+00:00",
       "status": "stale",
-      "detail": "18.2 saat önce (sınır 52 saat); 4 gösterge; EVDS sorunları: TP.FG.J0 (12 ay önceki gözlem yok: TP.FG.J0)"
+      "detail": "18.7 saat önce (sınır 52 saat); 4 gösterge; EVDS sorunları: TP.FG.J0 (12 ay önceki gözlem yok: TP.FG.J0)"
     },
     {
       "id": "turib:indices",
