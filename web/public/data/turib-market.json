@@ -1,6 +1,6 @@
 {
-  "updatedAt": "2026-11-25T21:39:03+03:00",
-  "date": "2026-11-25",
+  "updatedAt": "2026-11-26T01:41:02+03:00",
+  "date": "2026-11-26",
   "indices": [
     {
       "code": "TRBHUB",
@@ -102,6 +102,26 @@
   },
   "tmoComparison": [
     {
+      "commodity": "BUĞDAY EKMEKLİK",
+      "asOf": "2026-11-25",
+      "tmoProductName": "Ekmeklik Buğday (2. Grup)",
+      "year": 2026,
+      "tmoSeason": "2026",
+      "tmoSource": "https://www.tarimorman.gov.tr/Haber/7092/2026-Yili-Hububat-Alim-Ve-Satis-Fiyatlari-Belirlendi",
+      "tmoAsOf": "2026-06-02",
+      "tmoVerified": true,
+      "tmoPurchasePrice": 16.5,
+      "farmerPremium": 3.014,
+      "totalFarmerIncome": 19.514,
+      "tmoSalesPrice": 18.5,
+      "turibFreePrice": 17.83,
+      "spreadTl": 1.33,
+      "spreadPct": 8.06,
+      "totalSpreadPct": -8.63,
+      "status": "TMO_USTUNDE_PRIMLI",
+      "commentary": "Serbest piyasa fiyatı (17.83 TL/kg), TMO alım tabanının (16.50 TL/kg) %8.1 üzerinde primli seyrediyor. Özel sektör talebi canlı, üretici ürününü TMO yerine ELÜS borsasında satmayı tercih ediyor."
+    },
+    {
       "commodity": "BUĞDAY MAKARNALIK",
       "asOf": "2026-11-25",
       "tmoProductName": "Makarnalık Buğday (2. Grup)",
@@ -120,31 +140,10 @@
       "totalSpreadPct": -9.04,
       "status": "TMO_USTUNDE_PRIMLI",
       "commentary": "Serbest piyasa fiyatı (17.75 TL/kg), TMO alım tabanının (16.50 TL/kg) %7.6 üzerinde primli seyrediyor. Özel sektör talebi canlı, üretici ürününü TMO yerine ELÜS borsasında satmayı tercih ediyor."
-    },
-    {
-      "commodity": "BUĞDAY EKMEKLİK",
-      "asOf": "2026-11-25",
-      "tmoProductName": "Ekmeklik Buğday (2. Grup)",
-      "year": 2026,
-      "tmoSeason": "2026",
-      "tmoSource": "https://www.tarimorman.gov.tr/Haber/7092/2026-Yili-Hububat-Alim-Ve-Satis-Fiyatlari-Belirlendi",
-      "tmoAsOf": "2026-06-02",
-      "tmoVerified": true,
-      "tmoPurchasePrice": 16.5,
-      "farmerPremium": 3.014,
-      "totalFarmerIncome": 19.514,
-      "tmoSalesPrice": 18.5,
-      "turibFreePrice": 17.83,
-      "spreadTl": 1.33,
-      "spreadPct": 8.06,
-      "totalSpreadPct": -8.63,
-      "status": "TMO_USTUNDE_PRIMLI",
-      "commentary": "Serbest piyasa fiyatı (17.83 TL/kg), TMO alım tabanının (16.50 TL/kg) %8.1 üzerinde primli seyrediyor. Özel sektör talebi canlı, üretici ürününü TMO yerine ELÜS borsasında satmayı tercih ediyor.",
-      "stale": true
     }
   ],
   "storageBacktest": {
-    "asOf": "2026-11-25",
+    "asOf": "2026-11-26",
     "productGroup": "BUĞDAY EKMEKLİK",
     "testedSeasonsCount": 6,
     "annualInterestPct": 50.0,
@@ -596,58 +595,58 @@
   "realReturns": [
     {
       "commodityGroup": "BUĞDAY EKMEKLİK",
-      "startDate": "2025-11-25",
+      "startDate": "2025-11-26",
       "endDate": "2026-11-25",
       "asOf": "2026-11-25",
-      "tradingDays": 250,
-      "startPriceTl": 13.52,
+      "tradingDays": 249,
+      "startPriceTl": 13.87,
       "endPriceTl": 17.83,
-      "nominalReturnPct": 31.82,
-      "usdReturnPct": 10.48,
-      "eurReturnPct": 16.43,
-      "fxDateStart": "2025-11-25",
+      "nominalReturnPct": 28.57,
+      "usdReturnPct": 7.72,
+      "eurReturnPct": 14.01,
+      "fxDateStart": "2025-11-26",
       "fxDateEnd": "2026-11-25",
-      "usdTryStart": 42.3668,
+      "usdTryStart": 42.3578,
       "usdTryEnd": 50.5531,
-      "eurTryStart": 48.8415,
+      "eurTryStart": 49.0355,
       "eurTryEnd": 55.2971,
       "source": "Kaynak: T.C. Merkez Bankası (tcmb.gov.tr) döviz kurları; TÜRİB (turib.com.tr) fiyatları.",
       "sourceUrl": "https://www.tcmb.gov.tr/kurlar/kurlar_tr.html",
-      "fetchedAt": "2026-11-25T18:40:27+00:00",
-      "commentary": "'BUĞDAY EKMEKLİK' 2025-11-25 - 2026-11-25 döneminde TL bazında %31.8, USD bazında %10.5, EUR bazında %16.4 değişti (TCMB döviz alış kuru; 2025-11-25 ve 2026-11-25 bültenleri). TÜFE ile arındırılmış getiri bu veri setinde yoktur."
+      "fetchedAt": "2026-11-25T22:42:44+00:00",
+      "commentary": "'BUĞDAY EKMEKLİK' 2025-11-26 - 2026-11-25 döneminde TL bazında %28.6, USD bazında %7.7, EUR bazında %14.0 değişti (TCMB döviz alış kuru; 2025-11-26 ve 2026-11-25 bültenleri). TÜFE ile arındırılmış getiri bu veri setinde yoktur."
     },
     {
       "commodityGroup": "BUĞDAY MAKARNALIK",
-      "startDate": "2025-11-25",
+      "startDate": "2025-11-26",
       "endDate": "2026-11-25",
       "asOf": "2026-11-25",
-      "tradingDays": 222,
-      "startPriceTl": 13.06,
+      "tradingDays": 221,
+      "startPriceTl": 12.86,
       "endPriceTl": 17.75,
-      "nominalReturnPct": 35.96,
-      "usdReturnPct": 13.94,
-      "eurReturnPct": 20.08,
-      "fxDateStart": "2025-11-25",
+      "nominalReturnPct": 38.05,
+      "usdReturnPct": 15.67,
+      "eurReturnPct": 22.42,
+      "fxDateStart": "2025-11-26",
       "fxDateEnd": "2026-11-25",
-      "usdTryStart": 42.3668,
+      "usdTryStart": 42.3578,
       "usdTryEnd": 50.5531,
-      "eurTryStart": 48.8415,
+      "eurTryStart": 49.0355,
       "eurTryEnd": 55.2971,
       "source": "Kaynak: T.C. Merkez Bankası (tcmb.gov.tr) döviz kurları; TÜRİB (turib.com.tr) fiyatları.",
       "sourceUrl": "https://www.tcmb.gov.tr/kurlar/kurlar_tr.html",
-      "fetchedAt": "2026-11-25T18:40:41+00:00",
-      "commentary": "'BUĞDAY MAKARNALIK' 2025-11-25 - 2026-11-25 döneminde TL bazında %36.0, USD bazında %13.9, EUR bazında %20.1 değişti (TCMB döviz alış kuru; 2025-11-25 ve 2026-11-25 bültenleri). TÜFE ile arındırılmış getiri bu veri setinde yoktur."
+      "fetchedAt": "2026-11-25T22:42:57+00:00",
+      "commentary": "'BUĞDAY MAKARNALIK' 2025-11-26 - 2026-11-25 döneminde TL bazında %38.0, USD bazında %15.7, EUR bazında %22.4 değişti (TCMB döviz alış kuru; 2025-11-26 ve 2026-11-25 bültenleri). TÜFE ile arındırılmış getiri bu veri setinde yoktur."
     }
   ],
   "petrolTanker": {
-    "updatedAt": "2026-11-25T21:40:42+03:00",
-    "date": "2026-11-25",
+    "updatedAt": "2026-11-26T01:42:57+03:00",
+    "date": "2026-11-26",
     "oilBenchmarks": {
       "brent": {
-        "price": 90.16,
-        "priceStr": "$90.16",
-        "changePct": 1.554404145077715,
-        "changeStr": "+1.55%"
+        "price": 90.82,
+        "priceStr": "$90.82",
+        "changePct": 2.29781482315836,
+        "changeStr": "+2.30%"
       }
     },
     "straits": [
@@ -690,7 +689,7 @@
       "source": "TÜRİB ELÜS bülteni",
       "sourceUrl": "https://www.turib.com.tr",
       "asOf": "2026-11-25",
-      "fetchedAt": "2026-11-25T21:39:03+03:00",
+      "fetchedAt": "2026-11-26T01:41:02+03:00",
       "stale": false,
       "status": "fresh"
     },
@@ -699,7 +698,7 @@
       "source": "TÜRİB ELÜS bülteni",
       "sourceUrl": "https://www.turib.com.tr",
       "asOf": "2026-11-25",
-      "fetchedAt": "2026-11-25T21:39:03+03:00",
+      "fetchedAt": "2026-11-26T01:41:02+03:00",
       "stale": false,
       "status": "fresh"
     },
@@ -708,16 +707,16 @@
       "source": "Tarım ve Orman Bakanlığı / TMO duyuruları",
       "sourceUrl": "https://www.tmo.gov.tr",
       "asOf": "2026-11-25",
-      "fetchedAt": "2026-11-25T21:39:03+03:00",
-      "stale": true,
-      "status": "stale"
+      "fetchedAt": "2026-11-26T01:41:02+03:00",
+      "stale": false,
+      "status": "fresh"
     },
     "storageBacktest": {
       "label": "Depolama geriye dönük testi",
       "source": "TÜRİB tarihsel seri (varsayımlı maliyet modeli)",
       "sourceUrl": "https://www.turib.com.tr",
-      "asOf": "2026-11-25",
-      "fetchedAt": "2026-11-25T21:39:03+03:00",
+      "asOf": "2026-11-26",
+      "fetchedAt": "2026-11-26T01:41:02+03:00",
       "stale": false,
       "status": "fresh"
     },
@@ -726,7 +725,7 @@
       "source": "TÜRİB ELÜS bülteni",
       "sourceUrl": "https://www.turib.com.tr",
       "asOf": "2026-11-25",
-      "fetchedAt": "2026-11-25T21:39:03+03:00",
+      "fetchedAt": "2026-11-26T01:41:02+03:00",
       "stale": false,
       "status": "fresh"
     },
@@ -735,7 +734,7 @@
       "source": "Yahoo Finance (XGIDA/hisseler) + TÜRİB",
       "sourceUrl": "https://finance.yahoo.com",
       "asOf": "2026-11-25",
-      "fetchedAt": "2026-11-25T21:39:03+03:00",
+      "fetchedAt": "2026-11-26T01:41:02+03:00",
       "stale": false,
       "status": "fresh"
     },
@@ -744,7 +743,7 @@
       "source": "TCMB döviz kurları + TÜRİB",
       "sourceUrl": "https://www.tcmb.gov.tr/kurlar/kurlar_tr.html",
       "asOf": "2026-11-25",
-      "fetchedAt": "2026-11-25T21:39:03+03:00",
+      "fetchedAt": "2026-11-26T01:41:02+03:00",
       "stale": false,
       "status": "fresh"
     },
@@ -752,8 +751,8 @@
       "label": "Brent petrol",
       "source": "Yahoo Finance (Brent vadeli)",
       "sourceUrl": "https://finance.yahoo.com",
-      "asOf": "2026-11-25",
-      "fetchedAt": "2026-11-25T21:39:03+03:00",
+      "asOf": "2026-11-26",
+      "fetchedAt": "2026-11-26T01:41:02+03:00",
       "stale": false,
       "status": "fresh"
     },
@@ -762,7 +761,7 @@
       "source": "IMF PortWatch (BM Global Platform AIS)",
       "sourceUrl": "https://portwatch.imf.org/",
       "asOf": "2026-11-22",
-      "fetchedAt": "2026-11-25T21:39:03+03:00",
+      "fetchedAt": "2026-11-26T01:41:02+03:00",
       "stale": false,
       "status": "fresh"
     }
