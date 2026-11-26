@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-26T18:47:40+03:00",
+  "generated_at": "2026-11-26T18:50:48+03:00",
   "sections": [
     {
       "id": "reports",
       "label": "Analiz raporları",
       "source": "Esham otomatik analiz (Yahoo Finance, TradingView, KAP, haber RSS'leri)",
       "source_url": "https://esham.pages.dev/arsiv",
-      "as_of": "2026-11-26T15:39:07+00:00",
-      "fetched_at": "2026-11-26T15:39:07+00:00",
+      "as_of": "2026-11-26T15:50:47+00:00",
+      "fetched_at": "2026-11-26T15:50:47+00:00",
       "status": "fresh",
-      "detail": "0.1 saat önce (sınır 26 saat)"
+      "detail": "0.0 saat önce (sınır 26 saat)"
     },
     {
       "id": "market_ticker",
@@ -19,7 +19,7 @@
       "as_of": "2026-11-26T18:39:07+03:00",
       "fetched_at": "2026-11-26T18:39:07+03:00",
       "status": "fresh",
-      "detail": "0.1 saat önce (sınır 26 saat)"
+      "detail": "0.2 saat önce (sınır 26 saat)"
     },
     {
       "id": "economic_calendar",
@@ -29,7 +29,7 @@
       "as_of": "2026-11-26T18:39:07+03:00",
       "fetched_at": "2026-11-26T18:39:07+03:00",
       "status": "fresh",
-      "detail": "0.1 saat önce (sınır 26 saat)"
+      "detail": "0.2 saat önce (sınır 26 saat)"
     },
     {
       "id": "stocks",
@@ -39,7 +39,7 @@
       "as_of": "2026-11-25T23:52:44+00:00",
       "fetched_at": "2026-11-25T23:52:44+00:00",
       "status": "fresh",
-      "detail": "15.9 saat önce (sınır 120 saat)"
+      "detail": "16.0 saat önce (sınır 120 saat)"
     },
     {
       "id": "kap_coverage",
@@ -59,7 +59,7 @@
       "as_of": "2026-11-26T00:39:02+00:00",
       "fetched_at": "2026-11-26T00:39:02+00:00",
       "status": "fresh",
-      "detail": "15.1 saat önce (sınır 120 saat)"
+      "detail": "15.2 saat önce (sınır 120 saat)"
     },
     {
       "id": "kap_dividends",
