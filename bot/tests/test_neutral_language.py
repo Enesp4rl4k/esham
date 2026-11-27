@@ -29,11 +29,9 @@ from esham.neutral import (
     NOTE_KAP,
     REPORT_SCHEMA_VERSION,
     classify_filing,
-    extract_amounts,
+    amount_quotes,
     find_banned,
-    format_amount_tr,
     normalize,
-    parse_number_strict,
     strip_banned,
 )
 from esham.publishing import social
@@ -252,7 +250,7 @@ def test_akbank_tier2_end_to_end(news_env, monkeypatch):
     """İnceleme B1: 'Tier 2' başlığı guardrail'a takılıp bildirim kayboluyordu."""
     slug, files, doc = _run(news_env, monkeypatch, FILINGS[0], None)
     assert slug and "Tier 2 Sermaye Benzeri Borçlanma Aracı İhracı" in doc["body"]
-    assert "500 milyon USD" in doc["body"]
+    assert "`Bankamızca 500.000.000 ABD Doları tutarında Tier 2 niteliğinde sermaye benzeri borçlanma aracı ihracı tamamlanmıştır.`" in doc["body"]
     assert "Tier 2" in news_env["posts"][0]
 
 
@@ -262,7 +260,7 @@ def test_kontrolmatik_signalling_end_to_end(news_env, monkeypatch):
     slug, files, doc = _run(news_env, monkeypatch, filing, _good_llm(filing[0], filing[2], filing[4]))
     assert slug and "Demiryolu Sinyalizasyon Projesi Sözleşmesi" in doc["body"]
     assert "sinyalizasyon" in doc["body"].lower().split("### bildirim bilgileri")[0]  # LLM özeti korundu
-    assert "1,2 milyar TL" in doc["body"]
+    assert "1,2 milyar TL" in doc["body"]  # birebir alıntı içinde
     assert "sinyalizasyon" in news_env["posts"][0].lower()
 
 
@@ -383,106 +381,76 @@ def test_no_code_company_shows_name_once(news_env, monkeypatch):
     assert doc["sources"] == ["KAP"] and "" not in doc["tags"]
 
 
-# ---- 5. tutarlar ------------------------------------------------------------------------------------
+# ---- 5. tutarlar: yalnız BİREBİR alıntı (sayı yorumlanmaz) -----------------------------------------
 
-@pytest.mark.parametrize("text,expected", [
-    ("Bağlı ortaklığımız 250,000 USD tutarında sipariş almıştır.", ["250.000 USD"]),
-    ("USD 750,000,000 tutarında tahvil ihracı tamamlanmıştır.", ["750 milyon USD"]),
-    ("Toplam GBP 20.000.000 kredi kullanılmıştır.", ["20 milyon GBP"]),
-    ("Sözleşme bedeli 12,5 milyon EUR'dur.", ["12,5 milyon EUR"]),
-    ("Satış bedeli 6.700.000.000 TL olarak tahsil edilmiştir.", ["6,7 milyar TL"]),
-    ("Bedel 25,000,000.50 USD.", ["25.000.000,50 USD"]),
-    ("Bedel 4.950.000,25 TL.", ["4.950.000,25 TL"]),
-    ("İşin bedeli 250 bin TL'dir.", ["250.000 TL"]),
-    ("Şirketimiz 85 milyon TL tutarında iş almıştır.", ["85 milyon TL"]),
-    ("Ücret ₺1.250.000 olarak belirlendi.", ["1,25 milyon TL"]),
-    ("1 TL nominal değerli 100.000 adet pay ortalama 42,10 TL fiyattan geri alınmıştır.", ["42,10 TL"]),
-    ("Pay oranı %100, 100%.", []),
-    ("Bedel 1,2345 TL.", []),                                   # belirsiz
-    ("Bedel 1.234,567.8 TL.", []),                              # tutarsız ayraçlar
-    ("Gelir Tablosu (Bin TL)\nHasılat 1.234.567 TL", []),        # tablo birimi → hiç tutar yok
-    ("Hasılat Milyon TL\n3.200", []),
-    ("Tutar (TL) 11.000.000.000", []),                          # birim parantezde → güvenli eşleşme yok
-])
-def test_amount_extraction_cases(text, expected):
-    assert [a.formatted() for a in extract_amounts(text)] == expected
+# İncelemenin büyüklük hatası çıkan girdileri: artık hiçbiri ayrıştırılmaz; varsa birebir alıntılanır.
+REVIEW_AMOUNT_INPUTS = [
+    "Pay başına brüt 0,125 TL kâr payı ödenecektir.",
+    "Pay başına brüt 1,875 TL",
+    "1 USD = 34,125 TL kuru kullanılmıştır.",
+    "Sözleşme bedeli 1 250 500 TL",
+    "Sözleşme bedeli 1 250 500 TL",
+    "Bedel USD 1 250 500",
+    "EUR 2027 vadeli tahvil ihraç edilmiştir.",
+    "USD 2031 vadeli 500 milyon USD tutarında tahvil",
+    "Net dönem zararı -5.000.000 TL olmuştur.",
+    "1 TL itibari değerli paylar",
+    "Ortalama fiyat 1.234,567 TL",
+    "Bağlı ortaklığımız 250,000 USD tutarında sipariş almıştır.",
+]
 
 
-def test_no_amount_message_is_not_a_false_negative_claim():
-    facts = pipeline.__dict__  # noqa: F841
+@pytest.mark.parametrize("text", REVIEW_AMOUNT_INPUTS)
+def test_amount_quote_is_verbatim_substring(text):
+    quotes = amount_quotes(text)
+    assert quotes == [text.strip()]  # tek cümle: aynen, karakter karakter
+    for q in quotes:
+        assert q in text
+
+
+def test_amount_quotes_skip_long_and_unsure_segments():
+    long_table = "Hasılat (Bin TL) " + " ".join(f"{i}.000 TL" for i in range(60))
+    assert amount_quotes(long_table) == []                       # 200 karakteri aşan döküm alıntılanmaz
+    assert amount_quotes("Pay oranı %100 olarak belirlenmiştir.") == []  # para birimi yok
+    assert amount_quotes("Tutar TL cinsindendir.") == []         # rakam yok
+    assert amount_quotes("Kod `TL` 5") == []                     # ters tırnak (markdown) içeren parça atlanır
+
+
+def test_amount_quotes_split_sentences_without_breaking_numbers():
+    text = "Satış bedeli 6.700.000.000 TL olarak tahsil edilmiştir. Devir 2027'de yapılacaktır. Ek bedel USD 5,5 milyon."
+    assert amount_quotes(text) == ["Satış bedeli 6.700.000.000 TL olarak tahsil edilmiştir.", "Ek bedel USD 5,5 milyon."]
+
+
+def test_amount_quote_property_fuzz():
+    """Özellik testi: rastgele metinlerde gösterilen her alıntı kaynağın birebir alt dizgisidir."""
+    rng = random.Random(20261127)
+    pieces = ["Şirketimiz", "0,125", "1 250 500", "-5.000.000", "TL", "USD", "EUR", "2027", "vadeli", "₺", "$",
+              "1,250,000.50", "kâr payı", "%12,5", "itibari", ".", ".", "\n", "Tutar:", "Devir", "A.Ş.", "`"]
+    for _ in range(3000):
+        text = " ".join(rng.choice(pieces) for _ in range(rng.randint(3, 40)))
+        for q in amount_quotes(text):
+            assert q in text and q == q.strip() and len(q) <= 200
+            assert re.search(r"\d", q) and "`" not in q
+
+
+def test_no_number_formatting_code_path_remains():
+    """Bildirim tutarını ayrıştıran/biçimlendiren kod yolu kalmamalı."""
+    src = (ROOT / "bot" / "esham" / "neutral.py").read_text(encoding="utf-8")
+    for gone in ("def extract_amounts", "def format_amount_tr", "def parse_number_strict"):
+        assert gone not in src
+    an = (ROOT / "bot" / "esham" / "ai" / "analyzer.py").read_text(encoding="utf-8")
+    assert "extract_amounts" not in an and "formatted()" not in an
+
+
+def test_facts_block_quotes_or_points_to_filing():
     from esham.ai.analyzer import filing_facts_markdown
 
-    md = filing_facts_markdown("X A.Ş.", "XXXXX", "X A.Ş.: Duyuru", "Duyuru", "Tutar (TL) 11.000.000.000", "1")
-    assert NOTE_AMOUNT_MISSING in md and "bulunamadı" not in md
-
-
-_CURRENCIES = [("TL", "TL"), ("TRY", "TL"), ("USD", "USD"), ("ABD Doları", "USD"), ("EUR", "EUR"),
-               ("Avro", "EUR"), ("GBP", "GBP"), ("CHF", "CHF")]
-
-
-def _fmt_tr(v: float, dec: bool) -> str:
-    ip = int(v)
-    s = f"{ip:,}".replace(",", ".")
-    return s + (f",{int(round((v - ip) * 100)):02d}" if dec else "")
-
-
-def _fmt_en(v: float, dec: bool) -> str:
-    ip = int(v)
-    return f"{ip:,}" + (f".{int(round((v - ip) * 100)):02d}" if dec else "")
-
-
-def test_amount_property_never_wrong_magnitude():
-    """Özellik testi: üretilen her tutar ya doğru büyüklükte çıkar ya da hiç çıkmaz; asla yanlış değil."""
-    rng = random.Random(20261127)
-    extracted = 0
-    for _ in range(3000):
-        ip = rng.choice([rng.randint(1, 999), rng.randint(1_000, 999_999), rng.randint(1_000_000, 9_999_999_999)])
-        dec = rng.random() < 0.3
-        value = ip + (rng.randint(1, 99) / 100 if dec else 0)
-        style = rng.choice(["tr", "en", "plain"])
-        if style == "tr":
-            num = _fmt_tr(value, dec)
-        elif style == "en":
-            num = _fmt_en(value, dec)
-        else:
-            num = str(ip) + ((("," if rng.random() < .5 else ".") + f"{int(round((value - ip) * 100)):02d}") if dec else "")
-        cur, unit = rng.choice(_CURRENCIES)
-        amount = f"{cur} {num}" if rng.random() < 0.3 else f"{num} {cur}"
-        text = rng.choice([
-            f"Şirketimiz {amount} tutarında sözleşme imzalamıştır. Oran %12,5 olarak belirlenmiştir.",
-            f"Toplam {amount} bedelle satış tamamlanmıştır.",
-            f"Kredi tutarı: {amount}; vade 3 yıl.",
-        ])
-        got = extract_amounts(text)
-        for a in got:
-            assert a.unit == unit, (text, a)
-            assert abs(a.value - value) < 0.005, (text, a, value)
-            assert a.raw in normalize(text)
-            assert parse_number_strict(a.raw) * a.scale == pytest.approx(a.value)
-        extracted += bool(got)
-    assert extracted > 2000  # kesin biçimlerin büyük çoğunluğu gerçekten çıkarılıyor
-
-
-def test_amount_property_on_real_kap_text():
-    """Gerçek KAP fikstürlerinde çıkan her tutar kaynaktaki bir sayının birebir büyüklüğüdür."""
-    for f in FIX.glob("kap_*.html"):
-        text = BeautifulSoup(f.read_text(encoding="utf-8"), "html.parser").get_text(" ", strip=True)
-        for a in extract_amounts(text, limit=50):
-            assert a.raw in normalize(text)
-            assert parse_number_strict(a.raw) * a.scale == pytest.approx(a.value)
-
-
-@pytest.mark.parametrize("value,unit,expected", [
-    (4_950_000, "TL", "4,95 milyon TL"),
-    (4_950_123, "TL", "4.950.123 TL"),
-    (4_950_000.5, "TL", "4.950.000,50 TL"),
-    (6_712_345_678, "TL", "6.712.345.678 TL"),
-    (1_500_000_000, "USD", "1,5 milyar USD"),
-    (250_000, "USD", "250.000 USD"),
-    (42.1, "TL", "42,10 TL"),
-])
-def test_format_amount_turkish(value, unit, expected):
-    assert format_amount_tr(value, unit) == expected
+    md = filing_facts_markdown("X A.Ş.", "XXXXX", "X A.Ş.: Duyuru", "Duyuru", "Tutar (TL) tablosu ekte.", "1")
+    assert f"- **Tutar:** {NOTE_AMOUNT_MISSING}" in md and "bulunamadı" not in md
+    md = filing_facts_markdown("X A.Ş.", "XXXXX", "X A.Ş.: Kâr Payı", "Kâr Payı",
+                               "Pay başına brüt 0,125 TL kâr payı ödenecektir.", "1")
+    assert "- **Bildirimde geçen ifade:** `Pay başına brüt 0,125 TL kâr payı ödenecektir.`" in md
+    assert "125 TL" not in md.replace("0,125 TL", "")
 
 
 # ---- 6. LLM prompt + son süzgeç ---------------------------------------------------------------------
@@ -582,3 +550,47 @@ def test_one_to_ten_scores_not_rendered_on_site():
     hits = [p for p in web.rglob("*.tsx") if "radar_scores" in p.read_text(encoding="utf-8")]
     assert hits == []
     assert not (ROOT / "web" / "public" / "data" / "bist-quant-valuation.json").exists()
+
+
+# ---- 8. kopya kontrolü KAP numarasına bağlı, yeniden deneme sınırı -----------------------------------
+
+def test_duplicate_check_uses_kap_index_across_days(tmp_path, monkeypatch):
+    from datetime import datetime, timedelta, timezone
+
+    monkeypatch.delenv("GIT_AUTO_PUSH", raising=False)
+    store = ContentStore(tmp_path / "r", tmp_path / "c")
+
+    def draft(day):
+        return ReportDraft(title="X A.Ş.: Duyuru", category="bist", summary="X A.Ş.: Duyuru", body="",
+                           facts="### Bildirim Bilgileri", fallback_summary="X A.Ş.: Duyuru",
+                           kap={"index": "1712345"}, slug="x-a-s-duyuru-1712345",
+                           published_at=datetime(2026, 11, 27, tzinfo=timezone.utc) + timedelta(days=day))
+
+    assert store.publish(draft(0)) is not None
+    assert store.publish(draft(1)) is None and store.last_status == "duplicate"  # ertesi gün yeniden deneme
+
+
+def test_retry_cap_marks_seen_after_limit_and_logs(monkeypatch, caplog):
+    from esham import news_stream as ns
+
+    state = _FakeState()
+    d = Disclosure("Z A.Ş.: Yeni İş İlişkisi", "Z A.Ş.", "2026-11-04", "Yeni İş İlişkisi", ticker="ZZZZZ")
+    monkeypatch.setattr(ns, "get_state", lambda: state)
+    monkeypatch.setattr(ns, "KapSource", lambda: type("K", (), {"latest_disclosures": lambda self: [d]})())
+    monkeypatch.setattr(ns, "NewsDetector", lambda: type("D", (), {"scan": lambda self: []})())
+    monkeypatch.setattr(ns, "is_significant", lambda d, t: True)
+    monkeypatch.setattr(ns, "update_ticker_data", lambda: None)
+    calls = []
+
+    def fake_run(disclosure=None, event=None, publish_social=True):
+        calls.append(1)
+        pipeline._set_status("error")
+        return None
+
+    monkeypatch.setattr(ns, "run_news_report", fake_run)
+    stream = ns.NewsStream()
+    for _ in range(ns.MAX_PUBLISH_ATTEMPTS + 2):
+        stream.check_once(max_publish=5)
+    assert len(calls) == ns.MAX_PUBLISH_ATTEMPTS               # sınırdan sonra yeniden denenmez
+    assert any("Z A.Ş." in k for k in state.seen)
+    assert any("deneme sınırı aşıldı" in r.message for r in caplog.records)

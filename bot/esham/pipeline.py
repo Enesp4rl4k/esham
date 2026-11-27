@@ -589,39 +589,34 @@ def run_gundem_report(
 
 
 def run_sector_report(publish_social: bool = True) -> str | None:
-    """Haftalık sektör rotasyonu raporu."""
+    """Haftalık sektör endeksi değişimleri — yalnız veri tablosu (yorum/yönlendirme yok)."""
     moves = SectorSource().snapshot()
     rows = "\n".join(f"| {m.name} | {m.change_str} |" for m in moves)
     leaders = ", ".join(m.name for m in moves[:3])
     laggards = ", ".join(m.name for m in moves[-3:])
-    body = f"""## Sektör Rotasyonu
+    body = f"""## Haftalık Sektör Endeksi Değişimleri
 
 | Sektör | Değişim |
 | --- | --- |
 {rows}
 
-## Öne Çıkanlar
-
-- **Güçlü:** {leaders}
-- **Zayıf:** {laggards}
-
-Sektör rotasyonu, paranın hangi temalara aktığını gösterir; güçlü sektörlerdeki
-liderler orta vadeli momentum açısından izlenmeye değer."""
+- **En çok yükselen üç sektör:** {leaders}
+- **En çok düşen üç sektör:** {laggards}"""
     draft = ReportDraft(
-        title="Haftalık Sektör Rotasyonu",
+        title="Haftalık Sektör Endeksi Değişimleri",
         category="bist",
-        summary=f"Bu hafta öne çıkan sektörler: {leaders}.",
+        summary=f"Bu hafta en çok yükselen sektör endeksleri: {leaders}.",
         body=body,
         sources=["TradingView"],
-        tags=["Sektör", "Rotasyon", "BIST"],
+        tags=["Sektör", "BIST"],
         ai_generated=False,
     )
 
     card_path = _render_card(
         CardSpec(
             category="bist",
-            kicker="Haftalık Sektör Rotasyonu",
-            headline=f"Güçlü: {leaders}. Zayıf: {laggards}.",
+            kicker="Haftalık Sektör Değişimleri",
+            headline=f"En çok yükselen: {leaders}. En çok düşen: {laggards}.",
             bars=[(m.name, m.change_pct) for m in moves[:6]],
             template="bist",
         )
@@ -635,7 +630,7 @@ liderler orta vadeli momentum açısından izlenmeye değer."""
     slug = draft.resolved_slug()
     if publish_social:
         SocialPublisher().broadcast(
-            f"Haftalık sektör rotasyonu yayında. Güçlü: {leaders}.\n"
+            f"Haftalık sektör endeksi değişimleri yayında. En çok yükselen: {leaders}.\n"
             f"{settings.site_url}/rapor/{slug} #BIST #Sektör",
             image_path=card_path,
         )
@@ -667,62 +662,27 @@ def run_peer_report(sector_key: str = "bankacilik", publish_social: bool = True)
         f"**{_fmt_mult(snap.median_dividend_yield, pct=True)}** | — |"
     )
 
-    # F/K medyanına göre en ucuz / en pahalı iki hisse (varsa)
-    ranked = sorted(
-        (p for p in snap.peers if p.pe is not None), key=lambda p: p.pe
-    )
-    cheapest = ranked[0] if ranked else None
-    priciest = ranked[-1] if ranked and len(ranked) > 1 else None
-
-    cheap_line = (
-        f"- **En düşük F/K:** {cheapest.ticker} ({cheapest.name}) — "
-        f"{_fmt_mult(cheapest.pe)} · {snap.stance('pe', cheapest.pe)}"
-        if cheapest else "- F/K verisi alınamadı; kıyas fiyat performansına dayanıyor."
-    )
-    pricy_line = (
-        f"- **En yüksek F/K:** {priciest.ticker} ({priciest.name}) — "
-        f"{_fmt_mult(priciest.pe)} · {snap.stance('pe', priciest.pe)}"
-        if priciest else ""
-    )
-    notes = "\n".join(f"- {n}" for n in snap.notes)
-    caveat = (
-        "\n> **Not:** Veriler örnek amaçlıdır; gerçek kaynaklara erişilemedi."
-        if snap.sample
-        else ""
-    )
-
-    body = f"""## {snap.sector_name} — Eş Kıyası
+    # Yalnız tarafsız tablo: "en ucuz/pahalı", medyana göre "iskonto/prim" yorumu ve sıralama YOK.
+    body = f"""## {snap.sector_name} — Çarpan Tablosu
 
 | Hisse | Fiyat | Günlük | F/K | PD/DD | FD/FAVÖK | Temettü % | FÖK % |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 {rows}
 {median_line}
 
-## Medyana Göre Konumlanma
+- Medyan, bu tablodaki hisselerden hesaplanır ve gün içi fiyatlarla değişir.
 
-{cheap_line}
-{pricy_line}
+*Çarpanlar Yahoo Finance özet verisinden alınır.*"""
 
-## Değerlendirme
-
-- Sektör medyanı, bu örneklemden hesaplanır ve gün içi fiyatlarla değişir.
-- F/K medyanına **yakın** hisseler iskonto primi olmadan işlem görür; medyanın
-  belirgin **altında** kalanlar için temel/neden, **üstünde** kalanlar için prim
-  gerekçesi aranır (bilanço kalitesi, büyüme, temettü politikası).
-{notes}{caveat}
-
-*Çarpanlar Yahoo Finance özet verisinden alınır; yatırıma yönlendirici değildir.*"""
-
-    cheapest_p = cheapest.ticker if cheapest else "—"
     summary = (
-        f"{snap.sector_name} eş kıyası: medyan F/K {_fmt_mult(snap.median_pe)}, "
-        f"medyan PD/DD {_fmt_mult(snap.median_pb)}. En ucuz: {cheapest_p}."
+        f"{snap.sector_name} çarpan tablosu: medyan F/K {_fmt_mult(snap.median_pe)}, "
+        f"medyan PD/DD {_fmt_mult(snap.median_pb)}."
     )
 
     card_path = _render_card(
         CardSpec(
             category="bist",
-            kicker=f"{snap.sector_name} — Eş Kıyası",
+            kicker=f"{snap.sector_name} — Çarpan Tablosu",
             headline=f"Medyan F/K {_fmt_mult(snap.median_pe)} · PD/DD {_fmt_mult(snap.median_pb)}",
             metrics=[
                 ("Medyan F/K", _fmt_mult(snap.median_pe)),
@@ -736,7 +696,7 @@ def run_peer_report(sector_key: str = "bankacilik", publish_social: bool = True)
     )
 
     draft = ReportDraft(
-        title=f"{snap.sector_name} Sektöründe Eş Kıyası (Peer)",
+        title=f"{snap.sector_name} Sektörü Çarpan Tablosu",
         category="bist",
         summary=summary[:200],
         body=body,
@@ -752,7 +712,7 @@ def run_peer_report(sector_key: str = "bankacilik", publish_social: bool = True)
     slug = draft.resolved_slug()
     if publish_social:
         SocialPublisher().broadcast(
-            f"{snap.sector_name} eş kıyası yayında: medyan F/K "
+            f"{snap.sector_name} çarpan tablosu yayında: medyan F/K "
             f"{_fmt_mult(snap.median_pe)}.\n{settings.site_url}/rapor/{slug} #BIST #Çarpan",
             image_path=card_path,
         )
@@ -783,16 +743,13 @@ def run_global_report(publish_social: bool = True) -> str | None:
         return None
     board = snap.ticker_board()
 
-    # Başlık: en güçlü değişim sinyali
+    # Başlık: en büyük mutlak değişim (yalnız veri; "risk iştahı" yorumu yok)
     headline_tickers = [t for t in snap.tickers if abs(t.change_pct) > 0.3]
     if headline_tickers:
         top = max(headline_tickers, key=lambda t: abs(t.change_pct))
-        headline = (
-            f"{top.label} {top.arrow} {top.change_str} öne çıktı; "
-            f"küresel risk iştahı {('artıyor' if top.change_pct > 0 else 'azalıyor')}."
-        )
+        headline = f"En büyük değişim: {top.label} {top.change_str}."
     else:
-        headline = "Küresel piyasalarda sınırlı hareketlilik; risk iştahı nötr."
+        headline = "İzlenen küresel göstergelerde %0,3'ü aşan değişim yok."
 
     summary = snap.summary_line()
 
@@ -1108,7 +1065,9 @@ def run_weekly_summary(publish_social: bool = True) -> str | None:
     log.info("=== Haftalık Özet Raporu başlatılıyor ===")
     TR_TZ = timezone(timedelta(hours=3))
     today = datetime.now(TR_TZ)
-    week_str = today.strftime("%-d %B %Y haftası")
+    # "%-d %B" Windows'ta geçersiz ve Linux'ta İngilizce ay adı veriyordu → Türkçe ay adları.
+    _AYLAR = ("Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık")
+    week_str = f"{today.day} {_AYLAR[today.month - 1]} {today.year} haftası"
 
     # Anlık veri kaynakları
     bist = BistSource().market_summary()
@@ -1132,9 +1091,9 @@ def run_weekly_summary(publish_social: bool = True) -> str | None:
 
     kap_section = ""
     if insider_disclosures:
-        kap_section += "### İçsel İşlemler\n\n"
+        kap_section += "### Pay Alım Satım ve Geri Alım Bildirimleri\n\n"
         for d in insider_disclosures[:3]:
-            kap_section += f"- **{d.company}** ({d.ticker}): {d.title}\n"
+            kap_section += f"- {d.title}\n"
         kap_section += "\n"
     if notable_disclosures:
         kap_section += "### Öne Çıkan Bildirimler\n\n"
@@ -1148,9 +1107,9 @@ def run_weekly_summary(publish_social: bool = True) -> str | None:
     ai_prompt_context = (
         f"BIST {bist.index}: {bist.price} ({bist.change}), hacim: {bist.volume}\n"
         f"Makro: {macro_ctx}\n"
-        f"Güçlü sektörler: {leaders}\n"
-        f"Zayıf sektörler: {laggards}\n"
-        f"İçsel bildirim sayısı: {len(insider_disclosures)}\n"
+        f"En çok yükselen sektörler: {leaders}\n"
+        f"En çok düşen sektörler: {laggards}\n"
+        f"Pay alım satım/geri alım bildirimi sayısı: {len(insider_disclosures)}\n"
         f"Toplam KAP bildirimi: {len(disclosures)}"
     )
     prompt = f"""
@@ -1175,21 +1134,21 @@ Bülten şu bölümleri içersin:
         body = (
             f"## Haftanın Özeti\n\n"
             f"BIST {bist.index} haftayı **{bist.price}** ({bist.change}) seviyesinde kapattı.\n\n"
-            f"## Sektör Rotasyonu\n\n"
+            f"## Sektör Endeksleri\n\n"
             f"| Sektör | Değişim |\n| --- | --- |\n{sector_rows}\n\n"
-            f"- **Güçlü:** {leaders}\n- **Zayıf:** {laggards}\n\n"
+            f"- **En çok yükselen:** {leaders}\n- **En çok düşen:** {laggards}\n\n"
             f"## Küresel Makro\n\n{macro.to_markdown_table()}\n\n"
             + (f"## KAP & Şirket Haberleri\n\n{kap_section}" if kap_section else "")
-            + "## Gelecek Haftaya Bakış\n\nPiyasa koşulları ve veri akışı takip edilmeye devam edilecek."
+
         )
 
-    summary = f"BIST {bist.index} haftayı {bist.change} ile kapattı. Güçlü sektörler: {leaders}."
+    summary = f"BIST {bist.index} haftayı {bist.change} ile kapattı. En çok yükselen sektörler: {leaders}."
 
     card_path = _render_card(
         CardSpec(
             category="bist",
             kicker="Haftalık Özet",
-            headline=f"Haftanın kazananları: {leaders}. Zayıflar: {laggards}.",
+            headline=f"En çok yükselen: {leaders}. En çok düşen: {laggards}.",
             stat_value=bist.price,
             stat_change=bist.change,
             bars=[(m.name, m.change_pct) for m in sector_moves[:6]],
@@ -1217,7 +1176,7 @@ Bülten şu bölümleri içersin:
     if publish_social:
         SocialPublisher().broadcast(
             f"Haftalık piyasa özeti yayında. "
-            f"BIST {bist.change} | Güçlü: {leaders}\n"
+            f"BIST {bist.change} | En çok yükselen: {leaders}\n"
             f"{settings.site_url}/rapor/{slug}\n"
             f"#BIST100 #HaftalıkÖzet #Borsa",
             image_path=card_path,

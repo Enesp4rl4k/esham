@@ -19,6 +19,7 @@ from pathlib import Path
 
 from ..config import get_logger, settings
 from ..guardrails import allow, validate_report
+from ..neutral import REPORT_SCHEMA_VERSION
 
 log = get_logger(__name__)
 
@@ -60,8 +61,9 @@ class ReportDraft:
     summary_verbatim: bool = False
     # Üretilmiş özet süzgece takılırsa kullanılacak birebir özet (KAP başlığı).
     fallback_summary: str = ""
-    # Web: şema sürümü olmayan eski KAP raporları yalın görünümde gösterilir.
-    schema_version: int | None = None
+    # Tüm üreticiler bu sürümü yazar. Web, eski kayıt kararını YALNIZ bu alana göre verir
+    # (alan yoksa = bu tarafsız dil sürümünden önce üretilmiş kayıt).
+    schema_version: int | None = REPORT_SCHEMA_VERSION
     kap: dict | None = None
 
     def resolved_slug(self) -> str:
@@ -116,8 +118,19 @@ class ContentStore:
         if (self.content_dir / draft.filename()).exists():
             return True
         if draft.kap:
-            # KAP bildirimleri bildirim numarasıyla tekilleşir; varlık bazlı günlük tavan uygulanmaz
-            # (aynı gün aynı başlıklı iki ayrı bildirim kaybolmasın).
+            # KAP bildirimleri bildirim NUMARASIYLA tekilleşir — tarihten bağımsız: rapor yazıldıktan sonra
+            # bir hata olup ertesi gün yeniden denenirse çift rapor/çift gönderi oluşmaz. Varlık bazlı
+            # günlük tavan uygulanmaz (aynı gün aynı başlıklı iki ayrı bildirim kaybolmasın).
+            index = str(draft.kap.get("index") or "")
+            if index:
+                for path in self.content_dir.glob(f"*-{index}.json"):
+                    try:
+                        doc = json.loads(path.read_text(encoding="utf-8"))
+                    except (OSError, ValueError):
+                        continue
+                    if str((doc.get("kap") or {}).get("index") or "") == index:
+                        log.info("[MÜKERRER] KAP bildirimi #%s zaten yayınlanmış (%s)", index, path.name)
+                        return True
             return False
 
         title_lower = draft.title.translate(_TR_MAP).lower()

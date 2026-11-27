@@ -68,7 +68,7 @@ def _ipo_card_spec(company: str, ticker: str, analysis: IpoAnalysis) -> CardSpec
         metrics.append(("İskonto", analysis.discount_rate))
 
     if analysis.offer_size:
-        metrics.append(("Hasılat", analysis.offer_size))
+        metrics.append(("Arz büyüklüğü", analysis.offer_size))
 
     # 4. hücre: Net Kâr Marjı öncelikli, yoksa ilk değerleme çarpanı
     if analysis.net_margin:
@@ -80,11 +80,11 @@ def _ipo_card_spec(company: str, ticker: str, analysis: IpoAnalysis) -> CardSpec
 
     return CardSpec(
         category="ipo",
-        kicker="Halka Arz Analizi",
+        kicker="Halka Arz Belgesi Özeti",
         headline=company,
         ticker=ticker,
         metrics=metrics,
-        discount_pct=analysis.discount_pct_float(),
+        discount_pct=0.0,  # iskonto oranı yalnız metrik olarak gösterilir; vurgu rozeti yok
         fund_usage=analysis.fund_usage_summary(max_items=3),
         template="ipo" if metrics else "bist",
     )
@@ -114,7 +114,7 @@ def analyze_ipo_document(
     result.image_path = _render_card(_ipo_card_spec(company, ticker, analysis))
 
     if publish:
-        summary = analysis.verdict or f"{company} halka arzı için yapılandırılmış analiz."
+        summary = analysis.verdict or f"{company} halka arz belgesinin özeti."
         draft = ReportDraft(
             title=f"{company} Halka Arz Analizi",
             category="ipo",
@@ -160,7 +160,7 @@ def analyze_company_report(
                 kicker=f"Finansal Analiz{' — ' + period if period else ''}",
                 headline=f"{company}: {analysis.summary}" if analysis.summary else company,
                 metrics=list(analysis.ratios.items())[:3],
-                radar_scores=analysis.radar_scores,
+                # 1-10 "radar puanı" karta basılmaz (sektöre kıyas yargısı)
             )
         )
         ContentStore().publish(

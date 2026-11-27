@@ -6,6 +6,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { ChevronRight } from "lucide-react";
 import { TuribMarketClient, type TuribMarketDataset } from "./client";
+import { neutralizeTuribDataset } from "@/lib/turib-neutral";
 
 export const metadata: Metadata = {
   title: "Emtia, Petrol & Boğaz Geçişleri",
@@ -36,7 +37,8 @@ async function getTuribMarketData(): Promise<TuribMarketDataset> {
   try {
     const filePath = path.join(process.cwd(), "public", "data", "turib-market.json");
     const raw = await fs.readFile(filePath, "utf-8");
-    return JSON.parse(raw) as TuribMarketDataset;
+    // Eski "fırsat"/"kâr kalır" metinleri istemci yüküne gitmeden atılır (bkz. lib/turib-neutral.ts).
+    return neutralizeTuribDataset(JSON.parse(raw) as TuribMarketDataset);
   } catch (err) {
     // Dosya yoksa/okunamazsa sayı uydurmayız: boş veri seti, bölümler "veri yok" notuna dönüşür.
     return {

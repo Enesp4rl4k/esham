@@ -24,6 +24,11 @@ const N = rules.normalization;
 const REMOVE_RE = charClass(N.remove);
 const SPACE_RE = charClass(N.space);
 const DASH_RE = charClass(N.dash);
+const CONFUSABLES: Record<string, string> = N.confusables;
+const LEET: Record<string, string> = N.leet;
+const MIXED_SCRIPT_RE =
+  /[^ ]*(?:[A-Za-z][^ ]*[Ͱ-ϿЀ-ӿ]|[Ͱ-ϿЀ-ӿ][^ ]*[A-Za-z])[^ ]*/g;
+const ALNUM_TOKEN_RE = /(?<![a-z0-9])(?=[a-z0-9]*[a-z])(?=[a-z0-9]*[0-9])[a-z0-9]+(?![a-z0-9])/g;
 const LETTER_SPACING_RE = new RegExp(`(?<![a-z0-9])(?:[a-z] ){${N.letter_spacing_min - 1},}[a-z](?![a-z0-9])`, "g");
 const BANNED_RE = new RegExp(BANNED_PATTERNS.map((p) => `(?:${p})`).join("|"), "gu");
 
@@ -31,8 +36,11 @@ const BANNED_RE = new RegExp(BANNED_PATTERNS.map((p) => `(?:${p})`).join("|"), "
 export function normalize(text: string): string {
   let s = (text || "").normalize("NFKC");
   s = s.replace(REMOVE_RE, "").replace(SPACE_RE, " ").replace(DASH_RE, " ");
+  s = s.replace(MIXED_SCRIPT_RE, "karisik alfabe yazim");
   s = s.replace(/İ/g, "i").replace(/I/g, "i").replace(/ı/g, "i").toLowerCase();
+  s = Array.from(s, (ch) => CONFUSABLES[ch] ?? ch).join("");
   s = s.normalize("NFD").replace(/[̀-ͯ]/g, "");
+  s = s.replace(ALNUM_TOKEN_RE, (t) => Array.from(t, (c) => LEET[c] ?? c).join(""));
   s = s.replace(/ {2,}/g, " ").trim();
   return s.replace(LETTER_SPACING_RE, "harf aralikli yazim");
 }
@@ -134,21 +142,17 @@ function trDate(iso: string): string {
 }
 
 /**
- * Bu PR'dan önce üretilmiş (şema sürümü taşımayan) raporlar için gösterim kararı:
- * - KAP raporları: yorum gövdesi HİÇ render edilmez; yalnız başlık (aynen), şirket, tarih, bildirim türü
- *   (eski kayıtta yok), KAP bağlantısı ve not. Süzülmüş yorum gösterilmez.
- * - KAP dışı eski raporlar: AI üretimi olanlar veya yasaklı kalıp taşıyanlar da aynı yalın görünüme
- *   düşer (sabah/küresel/kripto yorumları "BIST için Beklenti" gibi bölümler içeriyordu). Yapay zeka
- *   kullanılmadan, şablonla üretilmiş ve hiçbir kalıp taşımayan veri raporları (VİOP teminat tablosu,
- *   kapanış tablosu) olduğu gibi kalır.
- * - Eski kart görselleri hiçbir eski raporda kullanılmaz (kategori varsayılan görseli).
+ * Eski kayıt kararı YALNIZ `schemaVersion` alanına dayanır (kaynakta "KAP" geçmesi, AI kullanımı veya
+ * kalıp listesi gibi sezgiler kullanılmaz): bu alanı taşımayan her rapor bu tarafsız dil sürümünden önce
+ * üretilmiştir ve gövdesi HİÇ render edilmez. Eski şablon metinleri de ("izlenmeye değer", "En ucuz",
+ * "açılış beklentilerini şekillendirecek", "risk iştahı") yorum içerdiği ve listeyle güvenilir biçimde
+ * ayıklanamadığı için KAP dışı eski raporlar da yalın görünüme düşer.
+ * Yalın görünüm: başlık (aynen), (KAP ise) şirket, tarih, kaynak/KAP bağlantısı ve not. Eski kart
+ * görselleri kullanılmaz (kategori varsayılan görseli). Sürüm 2+ raporlara dokunulmaz.
  */
 export function legacyView<T extends ViewableReport>(report: T): { report: T; minimal: boolean } {
   if (!isLegacy(report)) return { report, minimal: false };
   const kap = isKapReport(report);
-  const dirty = hasBanned(report.body) || hasBanned(report.summary) || report.tags.some(hasBanned);
-  const minimal = kap || report.aiGenerated || dirty;
-  if (!minimal) return { report: { ...report, image: undefined }, minimal: false };
 
   const company = kap ? companyFromTitle(report.title) : "";
   const lines = [

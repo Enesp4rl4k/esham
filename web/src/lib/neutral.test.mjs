@@ -42,9 +42,28 @@ test("eski KAP raporu yalın görünümde: yorum gövdesi yok, başlık aynen, e
   assert.ok(!report.tags.includes("Mega Sözleşme"));
 });
 
-test("şema sürümü taşıyan yeni rapora dokunulmaz", () => {
-  const r = { slug: "s", title: "T", category: "bist", summary: "S", body: "B", publishedAt: "2026-11-27T00:00:00Z", aiGenerated: true, tags: [], sources: ["KAP"], image: "/cards/x.png", schemaVersion: 2 };
-  assert.equal(legacyView(r).report, r);
+test("görünüm kararı YALNIZ schemaVersion'a dayanır: sürüm 2 her üretici için güncel", () => {
+  // Kaynakta KAP geçmesi, AI kullanımı ya da kalıp içermesi yeni raporu "eski kayıt" yapmaz.
+  const producers = [
+    { title: "BIST & Küresel Piyasalar Sabah Raporu", sources: ["KAP", "BIST", "Ekonomik Takvim"], aiGenerated: true },
+    { title: "Haftalık Piyasa Özeti — 27 Kasım 2026 haftası", sources: ["BIST", "KAP", "Yahoo Finance"], aiGenerated: true },
+    { title: "X A.Ş. Halka Arz Analizi", sources: ["KAP", "İzahname", "Fiyat Tespit Raporu"], aiGenerated: true },
+    { title: "X A.Ş. Finansal Analiz", sources: ["KAP", "Finansal Tablolar"], aiGenerated: true },
+    { title: "Küresel Makro Görünümü", sources: ["Yahoo Finance"], aiGenerated: true },
+    { title: "Haftalık Sektör Endeksi Değişimleri", sources: ["TradingView"], aiGenerated: false },
+    { title: "Bankacılık Sektörü Çarpan Tablosu", sources: ["Yahoo Finance"], aiGenerated: false },
+    { title: "Kapanış Bülteni: BIST +%1,2", sources: ["BIST", "TradingView"], aiGenerated: false },
+    { title: "VİOP Piyasa & Teminat Stresi Raporu", sources: ["TradingView", "Takasbank"], aiGenerated: false },
+    { title: "A A.Ş.: Yeni İş İlişkisi", sources: ["KAP", "AAAAA"], aiGenerated: true },
+  ];
+  for (const p of producers) {
+    const r = { slug: "s", category: "bist", summary: "S", body: "Hedef fiyat 150 TL", publishedAt: "2026-11-28T00:00:00Z", tags: [], image: "/cards/x.png", schemaVersion: 2, ...p };
+    const v = legacyView(r);
+    assert.equal(v.minimal, false, p.title);
+    assert.equal(v.report, r, p.title);
+    const old = legacyView({ ...r, schemaVersion: undefined });
+    assert.equal(old.minimal, true, p.title);
+  }
 });
 
 test("tüm eski raporlar: yalın görünümde yasaklı kalıp yok, eski kart yok; 'BIST için Beklenti' render edilmez", () => {
@@ -55,7 +74,7 @@ test("tüm eski raporlar: yalın görünümde yasaklı kalıp yok, eski kart yok
     const { report, minimal: m } = legacyView({ ...doc, tags: doc.tags ?? [], sources: doc.sources ?? [], aiGenerated: doc.aiGenerated !== false });
     if (m) minimal++; else kept++;
     assert.equal(report.image, undefined, f);
-    if (isKapReport(report)) assert.ok(m, f);
+    assert.ok(m, f); // sürüm alanı olmayan her kayıt yalın görünümde
     // KAP başlığı birebir alıntıdır ve süzülmez; denetim başlık dışındaki üretilmiş/şablon metne yapılır.
     const generated = report.body.split(doc.title).join("") + "\n" + report.summary.split(doc.title).join("");
     assert.deepEqual(findBanned(generated), [], f);

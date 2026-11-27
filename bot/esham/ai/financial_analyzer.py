@@ -34,29 +34,21 @@ class FinancialAnalysis:
             if self.ratios
             else "| — | — |"
         )
-        radar = (
-            "\n".join(f"- **{k}:** {v}/10" for k, v in self.radar_scores.items())
-            if self.radar_scores
-            else "- Veri yok"
-        )
-        return f"""## Genel Görünüm
+        return f"""## Özet
 
 {self.summary or 'Özet üretilemedi.'}
 
-## Radar Puanları (Sektöre Kıyasla)
-{radar}
-
-## Temel Oranlar
+## Temel Oranlar (belgeden)
 
 | Oran | Değer |
 | --- | --- |
 {ratios}
 
-## ✅ Olumlu Noktalar
+## Belgede Öne Çıkarılan Bilgiler
 
 {bullets(self.strengths)}
 
-## 🚨 Gizli Tehlikeler / Red Flags
+## Belgede Belirtilen Riskler
 
 {bullets(self.red_flags)}"""
 
@@ -67,8 +59,7 @@ Küçük yatırımcının gözden kaçırabileceği noktalara odaklan.
 
 Şirket: {company} — Dönem: {period}
 
-Ayrıca şirketin sektör ortalamalarına göre durumunu tahmin ederek 5 ana eksende 1 ile 10 arasında puanla (10=Mükemmel, 1=Çok Zayıf). Puanları "radar_scores" objesine koy.
-Eksenler: Büyüme, Kârlılık, Borçluluk, Çarpanlar, Likidite.
+Yalnız belgede yazanları aktar; puan, sektöre kıyas yargısı veya tahmin üretme.
 
 Belge bölümleri:
 \"\"\"
@@ -77,11 +68,10 @@ Belge bölümleri:
 
 Şu JSON şemasını doldur:
 {{
-  "summary": "2-3 cümlelik genel görünüm",
+  "summary": "belgenin 2-3 cümlelik tarafsız özeti",
   "ratios": {{"Net Kâr Marjı": "", "Cari Oran": "", "Net Borç/FAVÖK": "", "Özkaynak Kârlılığı": ""}},
-  "radar_scores": {{"Büyüme": 8, "Kârlılık": 6, "Borçluluk": 4, "Çarpanlar": 7, "Likidite": 5}},
-  "strengths": ["3 olumlu nokta"],
-  "red_flags": ["3 gizli tehlike/riskli nokta"]
+  "strengths": ["belgede şirketin öne çıkardığı 3 bilgi"],
+  "red_flags": ["belgede belirtilen 3 risk"]
 }}"""
 
 

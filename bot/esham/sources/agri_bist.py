@@ -149,8 +149,7 @@ class AgriBistAnalyzer:
         # Makro çıkarım
         macro_takeaway = (
             f"BIST Gıda Endeksi (XGIDA) {xgida.change} hareket ederken, "
-            f"TÜRİB Hububat Endeksi {hububat_chg} seviyesinde. "
-            f"Tarımsal emtia fiyatlarındaki yön, BIST gıda şirketlerinin 1-2 çeyrek sonraki FAVÖK marjlarına doğrudan yansıyacaktır."
+            f"TÜRİB Hububat Endeksi {hububat_chg} seviyesinde."
         )
 
         return AgriBistCorrelationReport(

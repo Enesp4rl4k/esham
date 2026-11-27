@@ -206,12 +206,12 @@ class RegionalArbitrageScanner:
             genel_degerlendirme = (
                 f"TÜRİB bülteninde {top.ucuz_il} ile {top.pahali_il} lisanslı depoları arasında "
                 f"{top.brut_makas_tl_kg:.2f} TL/kg brüt fiyat farkı tespit edildi. "
-                f"Tahmini {nakliye_maliyeti_tl_kg:.2f} TL nakliye düşüldükten sonra net %{top.net_arbitraj_pct:.1f} ({top.net_arbitraj_tl_kg:.2f} TL/kg) arbitraj marjı bulunmaktadır."
+                f"Tahmini {nakliye_maliyeti_tl_kg:.2f} TL nakliye düşüldükten sonra net %{top.net_arbitraj_pct:.1f} ({top.net_arbitraj_tl_kg:.2f} TL/kg) net fiyat farkı hesaplanmaktadır."
             )
         else:
             genel_degerlendirme = (
                 f"Taranan {len(bolgesel_list)} farklı lisanslı depoda fiyatlar bölgesel lojistik dengede seyretmektedir; "
-                f"nakliye maliyetini aşan belirgin bir net arbitraj boşluğu bulunmamaktadır."
+                f"nakliye maliyetini aşan net fiyat farkı hesaplanmamaktadır."
             )
 
         return RegionalArbitrageReport(

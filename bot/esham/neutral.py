@@ -20,7 +20,6 @@ from __future__ import annotations
 import json
 import re
 import unicodedata
-from dataclasses import dataclass
 from pathlib import Path
 
 RULES_PATH = Path(__file__).resolve().parents[2] / "web" / "src" / "lib" / "neutral-rules.json"
@@ -48,6 +47,12 @@ _DASH_RE = re.compile("[" + re.escape(_N["dash"]) + "]")
 _MULTI_SPACE_RE = re.compile(" {2,}")
 _LETTER_SPACING_RE = re.compile(r"(?<![a-z0-9])(?:[a-z] ){%d,}[a-z](?![a-z0-9])" % (_N["letter_spacing_min"] - 1))
 _COMBINING_RE = re.compile("[̀-ͯ]")
+_CONFUSABLES: dict[str, str] = _N["confusables"]
+_LEET: dict[str, str] = _N["leet"]
+_MIXED_SCRIPT_RE = re.compile(
+    r"[^ ]*(?:[A-Za-z][^ ]*[Ͱ-ϿЀ-ӿ]|[Ͱ-ϿЀ-ӿ][^ ]*[A-Za-z])[^ ]*"
+)
+_ALNUM_TOKEN_RE = re.compile(r"(?<![a-z0-9])(?=[a-z0-9]*[a-z])(?=[a-z0-9]*[0-9])[a-z0-9]+(?![a-z0-9])")
 
 
 def normalize(text: str) -> str:
@@ -61,8 +66,13 @@ def normalize(text: str) -> str:
     s = _REMOVE_RE.sub("", s)
     s = _SPACE_RE.sub(" ", s)
     s = _DASH_RE.sub(" ", s)
+    # Latin + Kiril/Yunan harfleri karışık kelime ("сінyal") → işaretlenir; kalan benzer harfler eşlenir.
+    s = _MIXED_SCRIPT_RE.sub("karisik alfabe yazim", s)
     s = s.replace("İ", "i").replace("I", "i").replace("ı", "i").lower()
+    s = "".join(_CONFUSABLES.get(ch, ch) for ch in s)
     s = _COMBINING_RE.sub("", unicodedata.normalize("NFD", s))
+    # Harf + rakam karışık kelimede rakam → harf ("h3def f1yat" → "hedef fiyat")
+    s = _ALNUM_TOKEN_RE.sub(lambda m: "".join(_LEET.get(c, c) for c in m.group(0)), s)
     s = _MULTI_SPACE_RE.sub(" ", s).strip()
     s = _LETTER_SPACING_RE.sub("harf aralikli yazim", s)
     return s
@@ -155,141 +165,40 @@ def sanitize_summary(summary: str, fallback: str) -> str:
     return strip_banned(" | ".join(parts)) or fallback
 
 
-# ---- tutarlar ----------------------------------------------------------------
-# İlke: ayrıştırma KESİN değilse tutar gösterilmez. Belirsiz sayı biçimi tahminle çözülmez.
+# ---- tutarlar: yalnız BİREBİR alıntı ----------------------------------------
+# İlke: sayı ASLA yorumlanmaz, normalleştirilmez ya da yeniden biçimlendirilmez (üç inceleme turunda da
+# ayrıştırma büyüklük hatası üretti: "0,125 TL"→125, "1 250 500 TL"→500, "EUR 2027 vadeli"→2.027 EUR,
+# eksi işaret kaybı). Bunun yerine bildirim metninde para birimi ve rakam geçen kısa cümle/satır,
+# karakter karakter aynı haliyle alıntılanır. Emin olunamazsa (uzun satır, tablo dökümü) hiç gösterilmez.
 
-_CURRENCY = {
-    "tl": "TL", "try": "TL", "₺": "TL", "turk lirasi": "TL",
-    "usd": "USD", "abd dolari": "USD", "amerikan dolari": "USD", "dolar": "USD", "$": "USD",
-    "eur": "EUR", "euro": "EUR", "avro": "EUR", "€": "EUR",
-    "gbp": "GBP", "sterlin": "GBP", "ingiliz sterlini": "GBP", "£": "GBP",
-    "chf": "CHF", "isvicre frangi": "CHF",
-    "jpy": "JPY", "japon yeni": "JPY", "yen": "JPY",
-}
-_SCALES = {
-    "milyar": 1_000_000_000, "billion": 1_000_000_000, "bn": 1_000_000_000,
-    "milyon": 1_000_000, "million": 1_000_000, "mn": 1_000_000,
-    "bin": 1_000, "thousand": 1_000,
-}
-_CUR_ALT = "|".join(sorted((re.escape(k) for k in _CURRENCY), key=len, reverse=True))
-_SCALE_ALT = "|".join(sorted(_SCALES, key=len, reverse=True))
-_NUM = r"\d[\d.,]*\d|\d"
-# Sayı + (ölçek) + para birimi  |  para birimi + sayı + (ölçek)
-_AMOUNT_AFTER_RE = re.compile(
-    rf"(?<![\w.,%])({_NUM})(?: ?({_SCALE_ALT}))? ?({_CUR_ALT})(?![a-z])", re.ASCII
-)
-_AMOUNT_BEFORE_RE = re.compile(
-    rf"(?<![a-z])({_CUR_ALT}) ?({_NUM})(?: ?({_SCALE_ALT})(?![a-z]))?(?![\d%])", re.ASCII
-)
-# Tablo birimi bildirimi: "(Bin TL)", "Milyon TL" başlığı → tablodaki sayıların ölçeği metinden güvenle
-# çıkarılamaz; bu durumda hiçbir tutar gösterilmez.
-_TABLE_UNIT_RE = re.compile(r"(?:\(|^|[^\d ] )(bin|milyon|milyar) (tl|try|usd|eur)\b", re.ASCII | re.M)
-_NOMINAL_RE = re.compile(r"nominal", re.ASCII)
+_CUR_WORD = r"TL|TRY|USD|EUR|GBP|CHF|JPY|ABD Doları|ABD doları|Dolar|dolar|Avro|avro|Euro|euro|Sterlin|sterlin"
+_CURRENCY_RE = re.compile(rf"(?<![A-Za-zÇĞİÖŞÜçğıöşü])(?:{_CUR_WORD})(?![A-Za-zÇĞİÖŞÜçğıöşü])|[₺$€£]")
+_DIGIT_RE = re.compile(r"\d")
+# Cümle sınırı: nokta/ünlem/soru + boşluk + büyük harf ya da satır sonu. "4.950.000" gibi sayılardaki
+# noktalar boşlukla izlenmediği için bölünmez.
+_SEGMENT_RE = re.compile(r"[^\n]+?(?:(?<=[.!?])(?=\s+[A-ZÇĞİÖŞÜ])|(?=\n)|$)")
+QUOTE_MAX_LEN = 200
 
 
-def parse_number_strict(raw: str) -> float | None:
-    """Sayıyı yalnız biçim KESİNSE çözer; belirsizse None.
+def amount_quotes(text: str, limit: int = 3, max_len: int = QUOTE_MAX_LEN) -> list[str]:
+    """Bildirim metninde para birimi VE rakam geçen kısa cümle/satırlar — kaynak metnin BİREBİR alt dizgisi.
 
-    Kesin biçimler: ``4.950.000,00`` (TR), ``25,000,000.50`` (EN), ``250,000`` / ``250.000`` (tek ayraç +
-    tam 3 hane → binlik), ``1,5`` / ``12.5`` (tek ayraç + 1-2 hane → ondalık), ``42`` (düz). Diğer her şey
-    (``1,2345``, ``1.234,567.8``, ``1.23.4``) belirsizdir.
+    Hiçbir sayı ayrıştırılmaz ya da biçimlendirilmez. Uzun (tablo dökümü vb.) veya ters tırnak içeren
+    parçalar atlanır; hiçbiri yoksa boş liste döner ve çağıran "tutar bilgisi için bildirime bakın" der.
     """
-    s = raw.strip()
-    if re.fullmatch(r"\d+", s):
-        return float(s)
-    m = re.fullmatch(r"(\d{1,3}(?:\.\d{3})+)(?:,(\d+))?", s)  # TR binlik
-    if m:
-        return float(m.group(1).replace(".", "") + ("." + m.group(2) if m.group(2) else ""))
-    m = re.fullmatch(r"(\d{1,3}(?:,\d{3})+)(?:\.(\d+))?", s)  # EN binlik
-    if m:
-        return float(m.group(1).replace(",", "") + ("." + m.group(2) if m.group(2) else ""))
-    m = re.fullmatch(r"(\d+)[.,](\d{1,2})", s)  # tek ayraç + 1-2 hane → ondalık
-    if m:
-        return float(f"{m.group(1)}.{m.group(2)}")
-    return None
-
-
-# Geriye dönük ad
-parse_number_tr = parse_number_strict
-
-
-@dataclass(frozen=True)
-class Amount:
-    value: float
-    unit: str  # TL | USD | EUR | GBP | CHF | JPY
-    raw: str  # kaynaktaki sayı dizgisi (birebir)
-    scale: int = 1
-
-    def formatted(self) -> str:
-        return format_amount_tr(self.value, self.unit)
-
-
-def _group_tr(int_part: int) -> str:
-    return f"{int_part:,}".replace(",", ".")
-
-
-def format_amount_tr(value: float, unit: str = "TL") -> str:
-    """Tutarı Türkçe biçimde yazar: 1.5e9 → '1,5 milyar TL', 4950123 → '4.950.123 TL'.
-
-    "milyar/milyon" yalnızca kayıpsızsa (en çok 2 ondalıkla tam) kullanılır; tutar yuvarlanmaz.
-    """
-    unit = unit or "TL"
-    neg = value < 0
-    v = abs(value)
-    for word, scale in (("milyar", 1_000_000_000), ("milyon", 1_000_000)):
-        if v >= scale and abs(v / scale * 100 - round(v / scale * 100)) < 1e-6:
-            scaled = round(v / scale, 2)
-            ip = int(scaled)
-            frac = f"{scaled - ip:.2f}"[2:].rstrip("0")
-            num = _group_tr(ip) + (f",{frac}" if frac else "")
-            return f"{'-' if neg else ''}{num} {word} {unit}"
-    rounded = round(v, 2)
-    ip = int(rounded)
-    cents = int(round((rounded - ip) * 100))
-    return f"{'-' if neg else ''}{_group_tr(ip)}{f',{cents:02d}' if cents else ''} {unit}"
-
-
-def extract_amounts(text: str, limit: int = 5) -> list[Amount]:
-    """Bildirim metninde para birimiyle birlikte ve KESİN biçimde geçen tutarlar.
-
-    Gösterilmeyenler: yüzdeler, belirsiz sayı biçimleri, "nominal" değerler (ör. "1 TL nominal değerli"),
-    tablo birimi ("(Bin TL)") bildirilmiş metinler (o durumda hiç tutar dönmez). Tutarın ANLAMI metinden
-    çıkarılmaz; çağıran taraf "bildirimde geçen tutarlar" diye etiketlemeli, manşet rakamı yapmamalı.
-    """
-    if not text:
-        return []
-    found: list[tuple[int, Amount]] = []
-    seen: set[tuple[float, str]] = set()
-    for line in _LINE_SPLIT_RE.split(text):
-        norm = normalize(line)
-        if _TABLE_UNIT_RE.search(norm):
-            return []
-        hits: list[tuple[int, int, str, str | None, str]] = []
-        for m in _AMOUNT_AFTER_RE.finditer(norm):
-            hits.append((m.start(), m.end(), m.group(1), m.group(2), m.group(3)))
-        for m in _AMOUNT_BEFORE_RE.finditer(norm):
-            hits.append((m.start(), m.end(), m.group(2), m.group(3), m.group(1)))
-        hits.sort()
-        last_end = -1
-        for start, end, num_s, scale_s, cur_s in hits:
-            if start < last_end:
-                continue  # çakışan eşleşme
-            last_end = end
-            window = norm[max(0, start - 25): end + 25]
-            if _NOMINAL_RE.search(window):
-                continue
-            num = parse_number_strict(num_s)
-            if num is None or num <= 0:
-                continue
-            scale = _SCALES.get(scale_s or "", 1)
-            unit = _CURRENCY[cur_s]
-            value = num * scale
-            key = (round(value, 4), unit)
-            if key in seen:
-                continue
-            seen.add(key)
-            found.append((len(found), Amount(value=value, unit=unit, raw=num_s, scale=scale)))
-    return [a for _, a in found][:limit]
+    out: list[str] = []
+    for m in _SEGMENT_RE.finditer(text or ""):
+        seg = m.group(0).strip()
+        if not seg or len(seg) > max_len or "`" in seg:
+            continue
+        if not (_CURRENCY_RE.search(seg) and _DIGIT_RE.search(seg)):
+            continue
+        if seg in out:
+            continue
+        out.append(seg)
+        if len(out) >= limit:
+            break
+    return out
 
 
 # ---- bildirim konusu ---------------------------------------------------------

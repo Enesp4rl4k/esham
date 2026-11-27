@@ -33,6 +33,10 @@ from .sources.news_detector import MarketEvent, NewsDetector
 from .state import get_state
 from .turkish import tr_fold
 
+#: Aynı KAP bildirimi için en fazla yayın denemesi (hata/engel durumlarında). Aşılınca ERROR loglanır,
+#: durum dosyasına `failed_disclosures` olarak yazılır ve bildirim bir daha denenmez.
+MAX_PUBLISH_ATTEMPTS = 3
+
 log = get_logger(__name__)
 
 _cards = CardGenerator()
@@ -272,15 +276,63 @@ class NewsStream:
             log.error("KAP bildirim yayın hatası (%s): %s", item.title[:60], exc)
         if slug:
             log.info("KAP bildirimi yayınlandı: %s (kalan kuyruk: %d).", slug, len(self.queue))
+        key = self._key(item)
         if status in ("published", "duplicate"):
+            self._clear_attempts(key)
             self._mark_seen(item)
+        elif status == "paused":
+            # Acil durdurma: deneme sayılmaz, sonraki taramada yeniden denenir.
+            self._queued.discard(key)
         else:
-            self._queued.discard(self._key(item))
-            log.warning(
-                "KAP bildirimi yayınlanamadı (durum=%s); görüldü işaretlenmedi, sonraki taramada "
-                "yeniden denenecek: %s", status, item.title[:80],
-            )
+            attempts = self._bump_attempts(key)
+            if attempts >= MAX_PUBLISH_ATTEMPTS:
+                log.error(
+                    "KAP bildirimi %d denemede yayınlanamadı (son durum=%s); deneme sınırı aşıldı, "
+                    "bir daha denenmeyecek — elle kontrol gerekir: %s", attempts, status, item.title[:120],
+                )
+                self._record_failure(item, status)
+                self._mark_seen(item)
+            else:
+                self._queued.discard(key)
+                log.warning(
+                    "KAP bildirimi yayınlanamadı (durum=%s, deneme %d/%d); görüldü işaretlenmedi, sonraki "
+                    "taramada yeniden denenecek: %s", status, attempts, MAX_PUBLISH_ATTEMPTS, item.title[:80],
+                )
         return slug
+
+    # ---- yeniden deneme sayacı (kalıcı) ------------------------------------------
+
+    def _attempts(self) -> dict:
+        try:
+            return dict(self._state.get("publish_attempts", {}) or {})
+        except Exception:  # noqa: BLE001 — test durum nesneleri get() taşımayabilir
+            return dict(getattr(self, "_mem_attempts", {}))
+
+    def _save_attempts(self, data: dict) -> None:
+        try:
+            self._state.set("publish_attempts", data)
+        except Exception:  # noqa: BLE001
+            self._mem_attempts = data
+
+    def _bump_attempts(self, key: str) -> int:
+        data = self._attempts()
+        data[key] = int(data.get(key, 0)) + 1
+        self._save_attempts(data)
+        return data[key]
+
+    def _clear_attempts(self, key: str) -> None:
+        data = self._attempts()
+        if key in data:
+            data.pop(key)
+            self._save_attempts(data)
+
+    def _record_failure(self, item: Disclosure, status: str) -> None:
+        try:
+            failed = list(self._state.get("failed_disclosures", []) or [])
+            failed.append({"title": item.title, "date": item.date, "index": item.disclosure_index, "status": status})
+            self._state.set("failed_disclosures", failed[-200:])
+        except Exception:  # noqa: BLE001
+            pass
 
     def _handle_ipo(self, item: Disclosure) -> Path | None:
         """Halka arz belgesini indir + analiz et + yayınla."""

@@ -8,7 +8,7 @@ Tasarım ilkeleri:
 from __future__ import annotations
 
 from ..config import get_logger, settings
-from ..neutral import NOTE_AMOUNT_MISSING, extract_amounts, strip_banned
+from ..neutral import NOTE_AMOUNT_MISSING, amount_quotes, strip_banned
 from ..translation import ensure_turkish, translate_to_turkish, is_mostly_english
 from ..sources import MarketSnapshot
 from .client import LlmClient
@@ -38,11 +38,11 @@ def filing_facts_markdown(
     date: str = "",
 ) -> str:
     """KAP bildirimi için BİREBİR bilgi bloğu (süzülmez): başlık aynen, şirket, tarih, KAP bildirim türü,
-    bildirimde kesin biçimde geçen tutarlar, KAP bağlantısı.
+    para birimi geçen kısa ifadelerin BİREBİR alıntısı (sayı yorumlanmaz), KAP bağlantısı.
 
-    Tutar ayrıştırması kesin değilse tutar listelenmez; "bulunamadı" gibi olumsuz bir iddia da yazılmaz.
+    Alıntı bulunamazsa tutar iddiası yazılmaz; "tutar bilgisi için bildirime bakın" denir.
     """
-    amounts = extract_amounts(text or "")
+    quotes = amount_quotes(text or "")
     who = f"{company} ({ticker})" if ticker and ticker != company else company
     lines = [
         "### Bildirim Bilgileri",
@@ -52,12 +52,10 @@ def filing_facts_markdown(
     if date:
         lines.append(f"- **Tarih:** {date}")
     lines.append(f"- **Bildirim türü (KAP):** {disclosure_type or 'Belirtilmemiş'}")
-    if amounts:
-        lines.append(
-            "- **Bildirim metninde geçen tutarlar:** "
-            + ", ".join(a.formatted() for a in amounts)
-            + " (ne anlama geldikleri için bildirime bakın)"
-        )
+    if quotes:
+        # Sayı yorumlanmaz/biçimlendirilmez: bildirim metninden karakter karakter aynı alıntı.
+        for q in quotes:
+            lines.append(f"- **Bildirimde geçen ifade:** `{q}`")
     else:
         lines.append(f"- **Tutar:** {NOTE_AMOUNT_MISSING}")
     if disclosure_index:
@@ -155,7 +153,7 @@ Yalnızca kaynakta açıklanan tarihler ve süreç adımları. Kaynakta yoksa bu
         summary = _extract("ÖZET")
         if not summary or summary.strip().lower() == event.headline.strip().lower():
             first_clause = event.headline.split('.')[0]
-            summary = f"{first_clause}; sektör dinamikleri ve piyasa fiyatlamaları üzerindeki yansımaları takip ediliyor."
+            summary = first_clause
 
         analiz = _extract("ANALİZ") or _extract("ANALIZ") or raw.strip()
 
@@ -175,7 +173,7 @@ Yalnızca kaynakta açıklanan tarihler ve süreç adımları. Kaynakta yoksa bu
 
     @staticmethod
     def _template_event_analysis(event: "MarketEvent", macro_context: str = "") -> tuple[str, str, str]:
-        """AI devre dışıyken veya başarısız olduğunda zengin, yapılandırılmış finansal analiz üretir."""
+        """AI kapalıyken yalnız kaynaktaki bilgiyi ve veriyi aktarır; dolgu yorum paragrafı üretmez."""
         details_clean = getattr(event, "details", "").strip()
         if details_clean and is_mostly_english(details_clean):
             details_clean = translate_to_turkish(details_clean)
@@ -184,108 +182,15 @@ Yalnızca kaynakta açıklanan tarihler ve süreç adımları. Kaynakta yoksa bu
         if is_mostly_english(first_clause):
             first_clause = ensure_turkish(first_clause) or first_clause
 
-        if event.kind == "TEKNOLOJI_HAREKET":
-            summary = f"{first_clause}; yapay zeka altyapısı, donanım talebi ve teknoloji hisseleri üzerindeki etkileriyle takip ediliyor."
-            
-            detay_metni = details_clean if details_clean else (
-                f"{event.headline}. Yapay zeka ve yüksek teknoloji odaklı bu gelişme, küresel bilişim mimarisi "
-                "ve kurumsal yazılım çözümlerinde yeni bir dönüşüm dalgasını temsil ediyor."
+        parts = [f"### Gelişme\n{details_clean or event.headline}"]
+        if getattr(event, "value_str", "") and getattr(event, "change_pct", 0.0):
+            sign = "+" if event.change_pct >= 0 else ""
+            parts.append(
+                f"### Veri\n- **{event.label}:** {event.value_str} (%{sign}{event.change_pct:.2f})"
             )
-
-            body = (
-                f"### Gelişmenin Detayları\n"
-                f"{detay_metni}\n\n"
-                f"### Teknoloji & Yapay Zeka Ekosistemine Etkisi\n"
-                f"Yapay zeka modellerinin hesaplama maliyetleri ve veri işleme ihtiyaçları katlanarak artarken, "
-                f"yeni nesil çip tasarımları ve sunucu mimarileri teknoloji devlerinin sermaye harcamalarında (CapEx) "
-                f"birinci sıraya yerleşmiş durumda. Söz konusu gelişme, donanım tedarik zinciri ve bulut bilişim "
-                f"sağlayıcıları açısından takip edilen bir başlık.\n\n"
-                f"### Takip Edilen Başlıklar\n"
-                f"- Yeni mimari ve teknolojinin ticari pazara sunulma takvimi ile hacimli üretim metrikleri.\n"
-                f"- Enerji verimliliği, soğutma sistemleri ve veri merkezi altyapı sınırlamalarına yönelik çözümler.\n"
-                f"- Küresel regülasyon kurumlarının büyük teknoloji platformlarına yönelik rekabet ve yapay zeka standartları."
-            )
-            tweet = f"{first_clause} — gelişmenin özeti raporda:"
-
-        elif event.kind == "KRIPTO_HAREKET":
-            if event.change_pct != 0.0:
-                direction = "yükselişle" if event.change_pct >= 0 else "düşüşle"
-                sign = "+" if event.change_pct >= 0 else ""
-                summary = f"{event.label} son 24 saatte %{sign}{event.change_pct:.2f} {direction} {event.value_str} seviyesinde."
-
-                body = (
-                    f"### Piyasa Hareketi\n"
-                    f"{event.label} ({event.value_str}), son 24 saatte **%{sign}{event.change_pct:.2f}** "
-                    f"oranında değişti.\n\n"
-                    f"### Takip Edilen Başlıklar\n"
-                    f"- ABD Merkez Bankası (Fed) faiz beklentileri ve küresel tahvil getirilerindeki yönelim.\n"
-                    f"- Kurumsal saklama çözümleri ve regülatif adımlara ilişkin resmi açıklamalar."
-                )
-            else:
-                summary = f"{first_clause}; dijital varlık ekosistemi ve kurumsal fon hareketleri üzerindeki etkileriyle izleniyor."
-                detay_metni = details_clean if details_clean else (
-                    f"{event.headline}. Dijital varlıklar ve blokzincir teknolojisi ekseninde yaşanan bu gelişme, "
-                    "sektördeki kurumsal benimseme ve güvenlik standartları açısından kritik önem taşıyor."
-                )
-                body = (
-                    f"### Haberin Detayları\n"
-                    f"{detay_metni}\n\n"
-                    f"### Dijital Varlıklar & Düzenleyici Etki\n"
-                    f"Kripto para piyasalarında kurumsal güven, kullanıcı varlıklarının saklama güvencesi ve yasal düzenlemelere uyum "
-                    f"ön planda kalmaya devam ediyor. Büyük platformların attığı stratejik adımlar piyasa likiditesini doğrudan belirliyor.\n\n"
-                    f"### Piyasa Algısı & Likidite Yansıması\n"
-                    f"Gelişmenin ardından majör kripto varlıklar ile altcoinlerdeki risk primi yeniden dengelenirken, "
-                    f"türev piyasalardaki volatilite beklentileri ve fonlama oranları takip ediliyor.\n\n"
-                    f"### Yakından İzlenecekler\n"
-                    f"- İlgili kurum ve platformlardan gelecek resmi açıklamalar ve yasal süreçler.\n"
-                    f"- Kripto varlık fon akımları ve borsa rezerv hareketleri."
-                )
-            tweet = f"{first_clause} — gelişmenin özeti raporda:"
-
-        elif event.category == "gundem":
-            summary = f"{first_clause}; Türkiye ekonomisi, makro dengeler ve piyasa fiyatlamaları üzerindeki yansımalarıyla izleniyor."
-            detay_metni = details_clean if details_clean else (
-                f"{event.headline}. Türkiye ekonomisi ve finansal piyasaları yakından ilgilendiren bu gelişme, "
-                "makroekonomik istikrar ve piyasa beklentileri açısından önem taşıyor."
-            )
-            body = (
-                f"### Gelişmenin Detayları\n"
-                f"{detay_metni}\n\n"
-                f"### Makroekonomik Etki & Politika Görünümü\n"
-                f"Türkiye Cumhuriyet Merkez Bankası (TCMB) para politikası, dezenflasyon patikası ve mali disiplin hedefleri "
-                f"doğrultusunda atılan adımlar, yurtiçi piyasalarda güven ortamı ve risk priminin (CDS) seyrini belirlemeyi sürdürüyor. "
-                f"Söz konusu gelişme, makro dengelerin korunması açısından yakından değerlendiriliyor.\n\n"
-                f"### Piyasa & TL Varlıkları Yansıması\n"
-                f"Gelişmenin Türk Lirası varlıkları, Borsa İstanbul endeksleri ve tahvil faizleri üzerindeki seyri "
-                f"yurtiçi ve yurtdışı yatırımcı algısı üzerinden takip ediliyor.\n\n"
-                f"### Yakından İzlenecekler\n"
-                f"- İlgili kamu otoriteleri ve regülatör kurumların yönlendirmeleri.\n"
-                f"- Enflasyon, cari denge ve rezerv göstergelerindeki dönemsel gerçekleşmeler."
-            )
-            tweet = f"{first_clause} — Türkiye ekonomisi ve piyasa yansımaları değerlendirildi:"
-
-        else:
-            summary = f"{first_clause}; küresel piyasalardaki risk iştahı ve makro varlık fiyatlamaları üzerindeki yansımalarıyla değerlendiriliyor."
-            detay_metni = details_clean if details_clean else (
-                f"{event.headline}. Piyasaların yakından takip ettiği bu gelişme, varlık fiyatlamaları "
-                "ve makroekonomik beklentiler üzerinde doğrudan etkili olma potansiyeli taşıyor."
-            )
-            body = (
-                f"### Gelişmenin Detayları\n"
-                f"{detay_metni}\n\n"
-                f"### Makroekonomik Bağlam & Küresel Risk İştahı\n"
-                f"Küresel enflasyon dinamikleri, merkez bankalarının para politikası patikası ve tahvil faizlerindeki dalgalanma, "
-                f"uluslararası fon akımlarını yönlendiren temel unsurlar olmaya devam ediyor. Gelişmekte olan piyasalar "
-                f"ve riskli varlıklar bu dalgalanmalardan öncelikli olarak etkileniyor.\n\n"
-                f"### Piyasa & Varlık Yansıması\n"
-                f"Gelişmenin küresel tahvil faizleri, emtia (altın, petrol) ve döviz kurları üzerindeki seyri Borsa İstanbul "
-                f"ve Türk Lirası varlıkları açısından çarpan ve getiri arayışı üzerinden izleniyor.\n\n"
-                f"### Yakından İzlenecekler\n"
-                f"- Açıklanacak öncü makroekonomik göstergeler ve merkez bankası yönlendirmeleri.\n"
-                f"- Küresel hisse senedi piyasalarında volatilite endekslerinin (VIX) seyri."
-            )
-            tweet = f"{first_clause} — küresel piyasalar ve makroekonomik yansımaları analiz edildi:"
-
+        body = "\n\n".join(parts)
+        summary = first_clause
+        tweet = f"{first_clause} — ayrıntı raporda:"
         return strip_banned(body), strip_banned(summary) or first_clause, strip_banned(tweet) or first_clause
 
     def generate_breaking_news_tweet(self, headline: str, macro_context: str = "") -> tuple[str, str]:
@@ -485,13 +390,13 @@ Tek cümle (max 140 karakter): kim, neyi açıkladı. Bildirimde tutar/oran vars
 
         sections: list[str] = ["Genel Görünüm (BIST endeksi, genel tablo)"]
         if has_macro:
-            sections.append("Küresel Piyasalar (ABD 10Y faiz, EUR/USD, Altın, VIX, Brent — BIST etkisini yorumla)")
+            sections.append("Küresel Piyasalar (ABD 10Y faiz, EUR/USD, Altın, VIX, Brent — rakamlarıyla)")
         if has_viop:
             sections.append("VİOP & Türev Piyasa (endeks/vadeli fiyat, teminat stresi)")
         if has_sector:
-            sections.append("Sektör Rotasyonu (güçlü ve zayıf sektörler, para akışı)")
+            sections.append("Sektör Endeksleri (en çok yükselen ve düşen sektörler, rakamlarıyla)")
         if has_kap:
-            sections.append("KAP Öne Çıkanlar (önemli bildirimler; içsel işlem varsa vurgula)")
+            sections.append("KAP Bildirimleri (bildirimlerde ne açıklandığı)")
         if has_calendar:
             sections.append("Ekonomik Takvim (bugünün kritik veri açıklamaları)")
         sections.append("Özet (yalnızca yukarıdaki verilerin kısa özeti; tahmin ve görüş yok)")
@@ -717,9 +622,9 @@ Veri: {financial_data_text}
         if snapshot.sector:
             leaders = [s for s in snapshot.sector[:3]]
             laggards = [s for s in snapshot.sector[-3:]]
-            lines.append("\n### Sektör Rotasyonu")
-            lines.append("Güçlü: " + ", ".join(f"{s.name} ({s.change_str})" for s in leaders))
-            lines.append("Zayıf: " + ", ".join(f"{s.name} ({s.change_str})" for s in laggards))
+            lines.append("\n### Sektör Endeksleri")
+            lines.append("En çok yükselen: " + ", ".join(f"{s.name} ({s.change_str})" for s in leaders))
+            lines.append("En çok düşen: " + ", ".join(f"{s.name} ({s.change_str})" for s in laggards))
 
         # TÜRİB ELÜS (Tarımsal Emtia & Hububat)
         if snapshot.turib:
@@ -803,14 +708,14 @@ Veri: {financial_data_text}
                 f"{s.name} ({s.change_str})" for s in snapshot.sector[-3:]
             )
             sector_sec = (
-                f"## Sektör Rotasyonu\n\n"
-                f"- **Güçlü:** {leaders}\n"
-                f"- **Zayıf:** {laggards}\n\n"
+                f"## Sektör Endeksleri\n\n"
+                f"- **En çok yükselen:** {leaders}\n"
+                f"- **En çok düşen:** {laggards}\n\n"
             )
 
         kap = ""
         if snapshot.disclosures:
-            kap = "## KAP Öne Çıkanlar\n\n"
+            kap = "## KAP Bildirimleri\n\n"
             for d in snapshot.disclosures:
                 kap += f"- **{d.title}** — {d.disclosure_type}\n"
             kap += "\n"
