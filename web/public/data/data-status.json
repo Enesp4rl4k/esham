@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-27T02:58:01+03:00",
+  "generated_at": "2026-11-27T03:05:10+03:00",
   "sections": [
     {
       "id": "reports",
@@ -9,7 +9,7 @@
       "as_of": "2026-11-26T23:47:50+00:00",
       "fetched_at": "2026-11-26T23:47:50+00:00",
       "status": "fresh",
-      "detail": "0.2 saat önce (sınır 26 saat)"
+      "detail": "0.3 saat önce (sınır 26 saat)"
     },
     {
       "id": "market_ticker",
@@ -19,7 +19,7 @@
       "as_of": "2026-11-27T02:47:50+03:00",
       "fetched_at": "2026-11-27T02:47:50+03:00",
       "status": "fresh",
-      "detail": "0.2 saat önce (sınır 26 saat)"
+      "detail": "0.3 saat önce (sınır 26 saat)"
     },
     {
       "id": "economic_calendar",
@@ -29,17 +29,17 @@
       "as_of": "2026-11-27T02:47:50+03:00",
       "fetched_at": "2026-11-27T02:47:50+03:00",
       "status": "fresh",
-      "detail": "0.2 saat önce (sınır 26 saat)"
+      "detail": "0.3 saat önce (sınır 26 saat)"
     },
     {
       "id": "stocks",
       "label": "Hisse oranları",
       "source": "Fiyat/piyasa değeri: Yahoo Finance; finansal tablolar: KAP (birincil) / Yahoo (yedek)",
       "source_url": "https://www.kap.org.tr",
-      "as_of": "2026-11-25T23:52:44+00:00",
-      "fetched_at": "2026-11-25T23:52:44+00:00",
+      "as_of": "2026-11-27T00:05:09+00:00",
+      "fetched_at": "2026-11-27T00:05:09+00:00",
       "status": "fresh",
-      "detail": "24.1 saat önce (sınır 120 saat)"
+      "detail": "0.0 saat önce (sınır 120 saat)"
     },
     {
       "id": "kap_coverage",
@@ -49,7 +49,7 @@
       "as_of": null,
       "fetched_at": null,
       "status": "fresh",
-      "detail": "46/110 hissenin finansalı KAP kaynaklı (kalanlar Yahoo yedeği)"
+      "detail": "60/110 hissenin finansalı KAP kaynaklı (kalanlar Yahoo yedeği)"
     },
     {
       "id": "funds",
@@ -59,7 +59,7 @@
       "as_of": "2026-11-26T00:39:02+00:00",
       "fetched_at": "2026-11-26T00:39:02+00:00",
       "status": "fresh",
-      "detail": "23.3 saat önce (sınır 120 saat)"
+      "detail": "23.4 saat önce (sınır 120 saat)"
     },
     {
       "id": "kap_dividends",
@@ -69,7 +69,7 @@
       "as_of": "2026-11-24",
       "fetched_at": "2026-11-26T00:43:33+00:00",
       "status": "fresh",
-      "detail": "23.2 saat önce (sınır 52 saat); 110 hisseden 14'inde bildirim, 13 işlendi, 0 bekliyor"
+      "detail": "23.4 saat önce (sınır 52 saat); 110 hisseden 14'inde bildirim, 13 işlendi, 0 bekliyor"
     },
     {
       "id": "kap_buybacks",
@@ -79,7 +79,7 @@
       "as_of": "2026-11-25",
       "fetched_at": "2026-11-26T00:43:36+00:00",
       "status": "fresh",
-      "detail": "23.2 saat önce (sınır 52 saat); 110 hisseden 15'inde bildirim, 118 işlendi, 0 bekliyor"
+      "detail": "23.4 saat önce (sınır 52 saat); 110 hisseden 15'inde bildirim, 118 işlendi, 0 bekliyor"
     },
     {
       "id": "macro_indicators",
@@ -89,7 +89,7 @@
       "as_of": "2026-11-26T21:57:28+00:00",
       "fetched_at": "2026-11-26T21:57:28+00:00",
       "status": "stale",
-      "detail": "2.0 saat önce (sınır 52 saat); 4 gösterge; EVDS sorunları: TP.FG.J0 (12 ay önceki gözlem yok: TP.FG.J0)"
+      "detail": "2.1 saat önce (sınır 52 saat); 4 gösterge; EVDS sorunları: TP.FG.J0 (12 ay önceki gözlem yok: TP.FG.J0)"
     },
     {
       "id": "turib:indices",
