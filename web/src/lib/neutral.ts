@@ -127,6 +127,17 @@ export interface ViewableReport {
 export const isKapReport = (r: Pick<ViewableReport, "sources">) => r.sources.some((s) => s.toUpperCase() === "KAP");
 export const isLegacy = (r: Pick<ViewableReport, "schemaVersion">) => !(typeof r.schemaVersion === "number" && r.schemaVersion >= REPORT_SCHEMA_VERSION);
 
+/**
+ * Kartta/sayfada başlığın altında gösterilecek özet. Yalın KAP raporunda (şablon yolu: "başlık + olgu bloğu")
+ * özet resmî KAP başlığına eşittir (boş kalmasın diye başlığa düşer; hiçbir şey uydurulmaz). Başlığı aynen
+ * tekrarlayan satır gösterilmez: boş döner.
+ */
+export function distinctSummary(r: { title: string; summary?: string | null }): string {
+  const squash = (t: string) => t.trim().replace(/\s+/g, " ").toLowerCase();
+  const summary = (r.summary ?? "").trim();
+  return summary && squash(summary) !== squash(r.title) ? summary : "";
+}
+
 /** KAP başlığı "ŞİRKET: konu" biçimindedir; şirket kısmı (başlık AYNEN korunur, yalnız ayrıştırılır). */
 export function companyFromTitle(title: string): string {
   const i = title.indexOf(": ");

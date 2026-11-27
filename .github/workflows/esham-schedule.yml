@@ -192,6 +192,26 @@ jobs:
         working-directory: bot
         run: python -m esham.main data-status
 
+      # Yayın kapısı: web testleri (tarafsız dil, rapor biçimi, dizin kuralları) bu koşunun ürettiği yeni raporlarla
+      # birlikte koşar. Geçmezse içerik commit'lenmez, iş KIRMIZI olur: master'a, web testlerini ve dağıtım iş akışını
+      # kıracak bir rapor hiç girmez (2026-11-27: ilk güncel şemalı rapor testleri kırmıştı). Testler `node --test`
+      # ile çalışır, bağımlılık kurulumu gerekmez. Üretilen dosyalar commit'lenmediği için bot durumu da ilerlemez;
+      # aynı bildirim sonraki koşuda yeniden denenir.
+      - name: Node.js Kurulumu (yayın kapısı + web derlemesi)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Yayın kapısı (yeni raporlar web testlerinden geçmeli)
+        run: |
+          if [ -z "$(git status --porcelain -- web/content/reports)" ]; then
+            echo "Yeni/değişen rapor yok; kapı atlandı."
+          else
+            cd web && npm test
+          fi
+
       - name: Yeni raporları ve durumu commit'le
         id: commit_step
         run: |
@@ -221,14 +241,6 @@ jobs:
             fi
             echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
-
-      - name: Node.js Kurulumu (Web Build için)
-        if: steps.commit_step.outputs.has_changes == 'true' || github.event.inputs.force_build == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: web/package-lock.json
 
       - name: Web sitesini derle (+ dosya bütçesi)
         if: steps.commit_step.outputs.has_changes == 'true' || github.event.inputs.force_build == 'true'
