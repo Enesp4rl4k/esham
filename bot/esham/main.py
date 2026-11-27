@@ -8,7 +8,7 @@ Kullanım:
 
 Telegram: komutlar gönderiyi DOĞRUDAN göndermez, giden kutusuna yazar (bot/state/telegram_outbox.json).
     py -m esham.main --send-now morning-report   # yerel: komuttan sonra giden kutusunu hemen gönder
-    py -m esham.main send-outbox                 # bekleyen gönderileri gönder (git işlemi yapmaz)
+    py -m esham.main send-outbox                 # KURU: yerel bekleyenleri listeler; --send ile gönderir (git yok)
 İş akışında gönderim, raporlar yayın kapısından geçip master'a push edildikten SONRA ayrı adımdır.
 """
 from __future__ import annotations
@@ -385,30 +385,6 @@ def _cmd_health(args: argparse.Namespace) -> None:
     sys.exit(report(run_health(args.site, offline=args.offline)))
 
 
-def _cmd_send_outbox(args: argparse.Namespace) -> None:
-    import os
-
-    from .publishing.outbox import send_outbox
-
-    result = send_outbox(phase=args.phase)
-    print("Giden kutusu: " + ", ".join(f"{k}={v}" for k, v in result.items()))
-    out = os.getenv("GITHUB_OUTPUT")
-    if out:
-        with open(out, "a", encoding="utf-8") as fh:
-            for k, v in result.items():
-                fh.write(f"{k}={v}\n")
-
-
-def _cmd_outbox_gate_failed(args: argparse.Namespace) -> None:
-    from .publish_gate import handle_gate_failure
-
-    r = handle_gate_failure(args.reason)
-    print(
-        f"Yayın kapısı kırıldı: {r['dropped_posts']} Telegram gönderisi iptal (hiç gönderilmedi); "
-        f"yeniden denenecek bildirim: {len(r['retry'])}, bırakılan (failed_disclosures): {len(r['given_up'])}"
-    )
-
-
 def _cmd_ipo_pdf(_: argparse.Namespace) -> None:
     generator = IpoPdfGenerator()
     generator.create(
@@ -614,16 +590,9 @@ def build_parser() -> argparse.ArgumentParser:
     hl.add_argument("--offline", action="store_true", help="Ağ sorgusu yapma, yalnızca yerel dosya tazeliği")
     hl.set_defaults(func=_cmd_health)
 
-    so = sub.add_parser("send-outbox", help="Giden kutusundaki bekleyen Telegram gönderilerini gönder")
-    so.add_argument(
-        "--phase", choices=["claim", "deliver", "all"], default="all",
-        help="claim: bekleyenleri bu koşu adına işaretle (gönderme); deliver: işaretlenenleri gönder; all: ikisi",
-    )
-    so.set_defaults(func=_cmd_send_outbox)
+    from .ci_commands import register as _register_ci
 
-    og = sub.add_parser("outbox-gate-failed", help="Yayın kapısı kırıldı: bu koşunun gönderilerini iptal et, döngüyü durduran durumu yaz")
-    og.add_argument("--reason", default="web testleri kırıldı", help="failed_disclosures'a yazılacak neden")
-    og.set_defaults(func=_cmd_outbox_gate_failed)
+    _register_ci(sub)
 
     return parser
 
@@ -636,9 +605,12 @@ def main() -> None:
     args = parser.parse_args()
     args.func(args)
     # Yalnız komut normal biterse (sys.exit ile çıkan başarısız komutta gönderim yapılmaz).
-    if args.send_now and args.func not in (_cmd_send_outbox, _cmd_outbox_gate_failed):
+    from .ci_commands import CI_FUNCS
+
+    if args.send_now and args.func not in CI_FUNCS:
         from .publishing.outbox import send_outbox
 
+        # Yerel gerçek gönderim: YALNIZ bu süreçte (local-…) kuyruğa giren kayıtlar; iş akışının kayıtlarına dokunmaz.
         print("Giden kutusu (--send-now): " + str(send_outbox()))
 
 

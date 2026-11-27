@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from esham import news_stream, publish_gate, state as state_mod
+from esham import news_stream, publish_gate, report_gate, state as state_mod
 from esham.config import settings
 from esham.neutral import NOTE_GENERIC, NOTE_KAP, find_banned
 from esham.publishing import outbox as ob
@@ -72,6 +72,10 @@ class World:
         self.with_image = False
         self.work: Path | None = None
         self.bot_http_calls: list = []
+        self.bad = None
+        self.code_broken = False
+        self.test_runs = 0
+        self.gate = None
 
     # ---- git benzetimi ----
     def _checkout(self) -> Path:
@@ -111,7 +115,8 @@ class World:
         if path.exists():
             self._status = "duplicate"
             return None
-        path.write_text(json.dumps({"slug": slug, "title": d.title, "schemaVersion": 2,
+        broken = self.bad == "all" or d.disclosure_index in (self.bad or ())
+        path.write_text(json.dumps({"slug": slug, "title": d.title, "schemaVersion": 2, "BOZUK": broken,
                                     "kap": {"index": d.disclosure_index}}, ensure_ascii=False), encoding="utf-8")
         img = None
         if self.with_image:
@@ -143,21 +148,35 @@ class World:
         stream.check_once(max_publish=5)
 
     # ---- iş akışı ----
-    def run(self, filings, *, gate_ok=True, push_ok=True, claim_push_ok=True, record_push_ok=True,
-            crash_after_send=False) -> str:
+    def _web_tests(self) -> bool:
+        """Sahte `npm test`: kod kırıksa ya da çalışma ağacında BOZUK işaretli rapor varsa kırılır."""
+        self.test_runs += 1
+        if self.code_broken:
+            return False
+        return not any(json.loads(p.read_text(encoding="utf-8")).get("BOZUK") for p in (self.work / "reports").glob("*.json"))
+
+    def run(self, filings, *, bad=None, code_broken=False, push_ok=True, claim_push_ok=True, record_push_ok=True,
+            crash_after_send=False, deploy_ok=True) -> str:
         self._checkout()
+        self.bad, self.code_broken = bad, code_broken
         self._bot_step(filings)
-        changed_reports = any(p.name not in {q.name for q in (self.origin / "reports").iterdir()}
-                              for p in (self.work / "reports").iterdir())
-        if changed_reports and not gate_ok:
-            publish_gate.handle_gate_failure("web testleri kırıldı (test)")
-            self._commit("state")  # YALNIZ durum + giden kutusu
-            return "gate_failed"
+        origin_names = {q.name for q in (self.origin / "reports").iterdir()}
+        changed = [f"reports/{p.name}" for p in (self.work / "reports").iterdir() if p.name not in origin_names]
+        res = report_gate.run_gate(self.work, runner=self._web_tests, changed=changed,
+                                   head_content=lambda rel: None)
+        self.gate = res
+        if res.status == "code_broken":
+            return "code_broken"  # hiçbir şey commit'lenmez, sayaç artmaz, gönderim yok
+        if res.status == "partial":
+            publish_gate.handle_gate_failure("web testleri kırıldı (test)", res.bad_slugs)
         if not push_ok:
             return "push_failed"
         self._commit("reports", "cards", "state")
-        # --- gönderim adımı (yalnız push başarılıysa) ---
-        claimed = ob.Outbox().claim()  # önce-yaz: in_flight işareti (ve unknown/expired geçişleri)
+        # --- dağıtım + gönderim adımı (yalnız push başarılıysa) ---
+        box = ob.Outbox()
+        if deploy_ok:
+            box.mark_deployed(f"sha-{self.n}")
+        claimed = box.claim()  # önce-yaz: in_flight işareti (ve unknown/expired geçişleri)
         if not claim_push_ok:
             return "claim_push_failed"
         self._commit("state/telegram_outbox.json")
@@ -239,13 +258,14 @@ def test_gate_failure_sends_nothing_and_stops_after_three_attempts(world):
     f = filing(1)
     key = f"{f.company}:{f.title}:{f.date}"
     for i in (1, 2):
-        assert world.run([f], gate_ok=False) == "gate_failed"
+        world.run([f], bad="all")
+        assert world.gate.status == "partial" and world.gate.bad_slugs
         st = world.origin_state()
         assert st["gate_failures"][key]["count"] == i
         assert key not in st.get("seen_disclosures", {})   # yeniden denenecek
         assert world.origin_outbox() == []                  # iptal edilen gönderi commit'lenmedi
         assert world.origin_reports() == []                 # kıran rapor commit'lenmedi
-    assert world.run([f], gate_ok=False) == "gate_failed"
+    world.run([f], bad="all")
     st = world.origin_state()
     (failed,) = st["failed_disclosures"]
     assert failed["status"] == "gate_failed" and failed["attempts"] == 3
@@ -260,7 +280,7 @@ def test_gate_failure_sends_nothing_and_stops_after_three_attempts(world):
 
 def test_gate_failure_once_then_success_sends_once(world):
     f = filing(1)
-    assert world.run([f], gate_ok=False) == "gate_failed"
+    world.run([f], bad="all")
     assert world.transport.sent == []
     assert world.run([f]) == "ok"
     assert len(world.transport.sent) == 1 and len(world.origin_reports()) == 1
@@ -323,12 +343,67 @@ def test_two_filings_in_one_run(world):
     assert len(world.transport.sent) == 2
 
 
-def test_two_filings_gate_failure_rolls_back_both(world):
-    a, b = filing(1), filing(2)
-    world.run([a, b], gate_ok=False)
+def test_one_broken_report_does_not_take_four_healthy_ones_down(world):
+    """Bir bozuk + dört sağlam rapor: dördü yayınlanır ve gönderilir; yalnız bozuğun sayacı artar."""
+    fs = [filing(i) for i in range(1, 6)]
+    bad = fs[2]
+    world.run(fs, bad={bad.disclosure_index})
+    assert world.gate.status == "partial" and len(world.gate.bad) == 1
+    assert len(world.origin_reports()) == 4
+    assert bad.disclosure_index not in " ".join(world.origin_reports())
+    sent_titles = [m["text"].split("\n")[0] for m in world.transport.sent]
+    assert sorted(sent_titles) == sorted(f.title for f in fs if f is not bad)
     st = world.origin_state()
-    assert set(st["gate_failures"]) == {f"{x.company}:{x.title}:{x.date}" for x in (a, b)}
+    assert set(st["gate_failures"]) == {f"{bad.company}:{bad.title}:{bad.date}"}
+    assert st["gate_failures"][f"{bad.company}:{bad.title}:{bad.date}"]["count"] == 1
+    assert "failed_disclosures" not in st or st["failed_disclosures"] == []
+    # sağlamlar bir daha işlenmez; bozuk olan 3. denemede bırakılır, sağlamlara hiçbir şey olmaz
+    world.run(fs, bad={bad.disclosure_index})
+    world.run(fs, bad={bad.disclosure_index})
+    st = world.origin_state()
+    assert [x["index"] for x in st["failed_disclosures"]] == [bad.disclosure_index]
+    assert len(world.transport.sent) == 4 and len(world.origin_reports()) == 4
+
+
+def test_code_broken_gate_counts_nothing_and_next_run_publishes_all(world):
+    """Kod/test kaynaklı kırılma (temel de kırmızı): sayaç artmaz, hiçbir şey commit'lenmez/gönderilmez."""
+    fs = [filing(i) for i in range(1, 4)]
+    for _ in range(4):  # 3 deneme sınırını aşacak kadar koşu: yine de hiçbir bildirim düşmez
+        assert world.run(fs, code_broken=True) == "code_broken"
+    assert world.transport.calls == 0 and world.origin_reports() == []
+    st = world.origin_state()
+    assert not st.get("gate_failures") and not st.get("failed_disclosures")
+    assert world.run(fs) == "ok"                       # kod düzeldi: hepsi yayınlanır ve gönderilir
+    assert len(world.transport.sent) == 3 and len(world.origin_reports()) == 3
+
+
+def test_gate_runs_tests_once_when_everything_passes(world):
+    world.run([filing(1), filing(2)])
+    assert world.gate.status == "passed" and world.test_runs == 1
+
+
+# ---- 5b. ölü bağlantı: dağıtım olmadan gönderim yok -----------------------------------------------
+
+def test_no_send_until_page_is_deployed(world):
+    f = filing(1)
+    assert world.run([f], deploy_ok=False) == "nothing_to_send"   # derleme/dağıtım kırıldı ya da atlandı
+    e = world.origin_outbox()[0]
+    assert e["status"] == "pending" and e["needs_deploy"] and not e["deployed_at"]
+    world.run([f], deploy_ok=False)                                # değişiklik yok, dağıtım yok: yine bekler
     assert world.transport.calls == 0
+    assert world.run([f]) == "ok"                                  # başarılı dağıtım: şimdi gider
+    (msg,) = world.transport.sent
+    assert world.origin_outbox()[0]["deployed_sha"].startswith("sha-")
+
+
+def test_post_without_page_does_not_wait_for_deploy(tmp_path):
+    box = ob.Outbox(tmp_path / "o.json")
+    box.enqueue(f"Sayfasız gönderi\n\n{NOTE_GENERIC}", disclaimer=NOTE_GENERIC)
+    box.enqueue(f"Sayfalı\nhttps://esham.pages.dev/rapor/x-2026-11-27\n\n{NOTE_GENERIC}", disclaimer=NOTE_GENERIC)
+    claimed = box.claim("r1")
+    assert [e["slug"] for e in claimed] == [""]
+    assert box.mark_deployed("abc") == 1
+    assert [e["slug"] for e in box.claim("r1")] == ["x-2026-11-27"]
 
 
 def test_image_post_survives_temp_cleanup(world):
@@ -457,6 +532,30 @@ def test_local_send_outbox_all_phase(tmp_path, monkeypatch):
     assert ob.send_outbox("all", transport=t)["claimed"] == 0 and len(t.sent) == 1
 
 
+def test_local_mode_never_touches_workflow_entries(tmp_path, monkeypatch):
+    """Origin'le eşitlenmiş yerel checkout: iş akışının bekleyenleri yerelden GÖNDERİLMEZ."""
+    p = tmp_path / "o.json"
+    monkeypatch.setenv("GITHUB_RUN_ID", "777")
+    ob.Outbox(p).enqueue(f"İş akışı kaydı\n\n{NOTE_GENERIC}", disclaimer=NOTE_GENERIC)
+    monkeypatch.delenv("GITHUB_RUN_ID")
+    t = FakeTransport()
+    assert ob.send_outbox("all", transport=t, path=p)["claimed"] == 0
+    assert t.calls == 0 and ob.Outbox(p).entries[0]["status"] == "pending"
+
+
+def test_local_send_outbox_cli_is_dry_run_by_default(tmp_path, monkeypatch, capsys):
+    from esham import ci_commands
+    from esham.main import build_parser
+
+    monkeypatch.setenv("ESHAM_OUTBOX_FILE", str(tmp_path / "o.json"))
+    ob.Outbox().enqueue(f"Yerel deneme\n\n{NOTE_GENERIC}", disclaimer=NOTE_GENERIC)
+    before = (tmp_path / "o.json").read_text(encoding="utf-8")
+    monkeypatch.setattr(ob, "TelegramTransport", lambda: pytest.fail("kuru çalıştırmada taşıma kuruldu"))
+    ci_commands.cmd_send_outbox(build_parser().parse_args(["send-outbox"]))
+    assert "KURU" in capsys.readouterr().out
+    assert (tmp_path / "o.json").read_text(encoding="utf-8") == before
+
+
 def test_cli_has_send_now_and_outbox_commands():
     from esham.main import build_parser
 
@@ -464,7 +563,10 @@ def test_cli_has_send_now_and_outbox_commands():
     a = p.parse_args(["--send-now", "morning-report"])
     assert a.send_now and a.command == "morning-report"
     assert p.parse_args(["send-outbox", "--phase", "claim"]).phase == "claim"
-    assert p.parse_args(["outbox-gate-failed", "--reason", "x"]).reason == "x"
+    assert p.parse_args(["send-outbox", "--send"]).send
+    assert p.parse_args(["send-outbox", "--ci", "--deployed-sha", "abc"]).deployed_sha == "abc"
+    assert p.parse_args(["report-gate", "--reason", "x"]).reason == "x"
+    assert p.parse_args(["commit-push", "--message", "m", "a", "b"]).paths == ["a", "b"]
 
 
 class _Resp:

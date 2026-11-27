@@ -9,11 +9,16 @@ Yeni akış (``.github/workflows/esham-schedule.yml``):
 
 1. Bot koşusu HİÇBİR ŞEY göndermez. ``SocialPublisher.broadcast`` her mesajı bu dosyaya ``pending``
    kaydı olarak yazar (``bot/state/telegram_outbox.json``; durumla birlikte commit'lenir).
-2. Yayın kapısı geçer → raporlar + durum + giden kutusu commit + push.
-3. Push başarılıysa ayrı adım: ``send-outbox --phase claim`` bekleyen kayıtları ``in_flight`` yapar ve bu
-   işaret commit + push edilir (önce-yaz / write-ahead). ANCAK bundan sonra ``--phase deliver`` gönderir
-   ve her kaydı ``sent`` / ``pending`` (kesin ret, sınırlı yeniden deneme) / ``unknown`` (belirsiz)
-   olarak işaretler; sonuç ikinci küçük commit ile push edilir.
+2. Yayın kapısı (rapor başına) → kapıdan geçen raporlar + durum + giden kutusu commit + push. Push
+   reddedilirse kutu ANAHTAR BAZINDA birleşir (``merge_outboxes``; git sürücüsü ``outbox_merge_driver``):
+   son durumlar pending/in_flight'ı her zaman yener, hiçbir geçiş son durumdan geri gitmez (``TRANSITIONS``).
+3. Derleme/dağıtım BAŞARIYLA biterse bekleyen sayfalı kayıtlar o commit'le "dağıtıldı" işaretlenir; sayfası
+   yayında olmayan kayıt gönderilmez (ölü bağlantı yok).
+4. Ayrı adım: master'ın güncel kutusu okunur, ``send-outbox --ci --phase claim`` gönderilebilir ve hâlâ
+   ``pending`` olan kayıtları ``in_flight`` yapar; bu işaret commit + push edilir (önce-yaz / write-ahead).
+   ANCAK bundan sonra ``--phase deliver`` diski yeniden okuyup hâlâ bu koşu adına ``in_flight`` olanları
+   gönderir ve ``sent`` / ``pending`` (kesin ret, sınırlı yeniden deneme) / ``unknown`` (belirsiz) işaretler;
+   sonuç ikinci küçük commit ile push edilir.
 
 Teslim garantisi: Telegram'a EN FAZLA BİR KEZ (at-most-once). Kayıt anahtarı (``key``) idempotans
 anahtarıdır; aynı anahtar ikinci kez kuyruğa giremez. Gönderimden ÖNCE ``in_flight`` işareti origin'e
@@ -22,8 +27,9 @@ kaydı ``in_flight`` (başka koşuya ait) görür ve ``unknown`` yapar: YENİDEN
 yerine kaçan gönderi tercih edilir. Kesin ret (Telegram HTTP 4xx yanıtı, bağlantı hiç kurulamadı) dışındaki
 her hata belirsiz sayılır ve yeniden denenmez.
 
-Yerel/elle kullanım: ``python -m esham.main --send-now <komut>`` komuttan sonra giden kutusunu hemen
-gönderir; ``python -m esham.main send-outbox`` bekleyenleri gönderir (git işlemi yapmaz).
+Yerel/elle kullanım (yalnız yerel ``local-…`` kayıtları; iş akışıyla aynı anda kullanmayın):
+``python -m esham.main --send-now <komut>`` komuttan sonra gönderir; ``send-outbox`` varsayılan KURU çalışır,
+gerçek gönderim ``send-outbox --send`` ister (git işlemi yapmaz).
 """
 from __future__ import annotations
 
@@ -62,6 +68,85 @@ EXPIRED = "expired"      # bekleme süresi doldu
 SKIPPED = "skipped"      # kimlik bilgisi yok (dry-run): gönderilmedi, sonra da gönderilmez
 BLOCKED = "blocked"      # gönderim öncesi tarafsız dil/uyarı denetimine takıldı
 TERMINAL = {SENT, FAILED, UNKNOWN, EXPIRED, SKIPPED, BLOCKED}
+
+# ---- durum makinesi (TEK YER) --------------------------------------------------------------------
+#: İzinli geçişler. Son durumdan (TERMINAL) hiçbir geçiş yoktur. ``in_flight → pending`` yalnız kesin retle
+#: (deneme sayısı artar) ya da hiç denenmeden (acil durdurma / günlük tavan) olur.
+TRANSITIONS: dict[str, frozenset[str]] = {
+    PENDING: frozenset({IN_FLIGHT, EXPIRED}),
+    IN_FLIGHT: frozenset({SENT, PENDING, FAILED, UNKNOWN, SKIPPED, BLOCKED}),
+    **{t: frozenset() for t in TERMINAL},
+}
+#: İki son durum çakışırsa (meşru akışta olmaz) "gitmiş olabilir" anlamı taşıyan kazanır.
+_TERMINAL_PRIORITY = {SENT: 6, UNKNOWN: 5, BLOCKED: 4, FAILED: 3, SKIPPED: 2, EXPIRED: 1}
+
+
+class IllegalTransition(RuntimeError):
+    pass
+
+
+def move(entry: dict, new: str) -> None:
+    """Kaydın durumunu değiştirir; izinsiz geçişte (ör. ``sent → pending``) durur."""
+    old = entry.get("status")
+    if new not in TRANSITIONS.get(old, frozenset()):
+        raise IllegalTransition(f"{entry.get('key')}: {old} → {new} geçişine izin yok")
+    entry["status"] = new
+
+
+def _progress(e: dict) -> tuple:
+    """Birleştirme sırası: son durum her zaman kazanır; sonra deneme sayısı; eşitse in_flight > pending."""
+    status = e.get("status")
+    if status in TERMINAL:
+        return (2, _TERMINAL_PRIORITY.get(status, 0), 0)
+    return (1, int(e.get("attempts") or 0), 1 if status == IN_FLIGHT else 0)
+
+
+def merge_entry(a: dict, b: dict) -> dict:
+    """Aynı anahtarlı iki kaydı birleştirir. Sonuç hiçbir zaman ikisinden "geride" değildir."""
+    win, lose = (a, b) if _progress(a) >= _progress(b) else (b, a)
+    out = dict(win)
+    for f in ("deployed_at", "deployed_sha"):
+        if not out.get(f) and lose.get(f):
+            out[f] = lose[f]
+    return out
+
+
+def merge_outboxes(base: list[dict], ours: list[dict], theirs: list[dict]) -> list[dict]:
+    """Anahtar bazında üç yollu birleştirme (git birleştirme sürücüsü ve testler kullanır).
+
+    - İki tarafta da olan anahtar: ``merge_entry`` (son durum pending/in_flight'ı yener).
+    - Bir tarafta silinmiş (budama / kapı iptali), öbür tarafta tabandan farksız: silinir.
+    - Bir tarafta silinmiş, öbür tarafta DEĞİŞMİŞ: değişen tutulur (hiçbir son durum kaybolmaz).
+    """
+    bmap = {e["key"]: e for e in base}
+    omap = {e["key"]: e for e in ours}
+    tmap = {e["key"]: e for e in theirs}
+    order = [e["key"] for e in theirs] + [e["key"] for e in ours if e["key"] not in tmap]
+    out: list[dict] = []
+    for key in order:
+        o, t, b = omap.get(key), tmap.get(key), bmap.get(key)
+        if o is not None and t is not None:
+            out.append(merge_entry(o, t))
+            continue
+        present = o if o is not None else t
+        if b is not None and present == b:
+            continue  # öbür taraf sildi, bu taraf dokunmadı
+        out.append(present)
+    return out
+
+
+def load_entries(path: Path) -> list[dict]:
+    text = path.read_text(encoding="utf-8") if path.exists() else ""
+    if not text.strip():
+        return []
+    return list(json.loads(text).get("entries", []))
+
+
+def dump_entries(path: Path, entries: list[dict]) -> None:
+    path.write_text(
+        json.dumps({"version": OUTBOX_VERSION, "entries": entries}, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
 #: Telegram gönderisinin sonunda bulunması gereken uyarı satırları (tek kaynak: neutral-rules.json).
 KNOWN_DISCLAIMERS = (NOTE_KAP, NOTE_GENERIC)
@@ -300,6 +385,10 @@ class Outbox:
             "last_error": "",
             "sent_at": None,
             "message_id": "",
+            # Rapor sayfasına bağlantı veren gönderi, sayfayı içeren dağıtım BAŞARIYLA bitmeden gönderilmez.
+            "needs_deploy": bool(meta.get("slug")),
+            "deployed_at": None,
+            "deployed_sha": "",
         }
         entry["image"], entry["image_card"] = self._keep_image(image_path, key, entry["slug"])
         self.entries.append(entry)
@@ -340,50 +429,87 @@ class Outbox:
                 return p
         return None
 
-    # -- gönderim --
-    def claim(self, run_id: str | None = None) -> list[dict]:
-        """Önce-yaz: bekleyenleri bu koşu adına ``in_flight`` yapar (dosyaya yazar, GÖNDERMEZ).
+    # -- dağıtım işareti --
+    def mark_deployed(self, sha: str) -> int:
+        """Dağıtım adımı BAŞARIYLA bitti: o dağıtımın içerdiği (yani şu an kutuda bekleyen) kayıtlar gönderilebilir."""
+        n = 0
+        for e in self.entries:
+            if e["status"] == PENDING and e.get("needs_deploy") and not e.get("deployed_at"):
+                e["deployed_at"] = self.clock()
+                e["deployed_sha"] = sha
+                n += 1
+        if n:
+            self.save()
+        return n
 
-        Başka (bitmiş/çökmüş) bir koşunun ``in_flight`` kaydı ``unknown`` olur: gönderilmiş olabilir,
-        yeniden gönderilmez.
+    def undeployed(self) -> int:
+        return sum(1 for e in self.entries
+                   if e["status"] == PENDING and e.get("needs_deploy") and not e.get("deployed_at"))
+
+    # -- gönderim --
+    @staticmethod
+    def _in_scope(e: dict, local_only: bool) -> bool:
+        """Yerel kip yalnız yerel koşuların (``local-…``) kayıtlarına dokunur; iş akışının kayıtlarına asla."""
+        return not local_only or str(e.get("created_run", "")).startswith("local-")
+
+    def claimable(self, *, require_deploy: bool = True, local_only: bool = False) -> list[dict]:
+        now = self.clock()
+        return [
+            e for e in self.entries
+            if e["status"] == PENDING and self._in_scope(e, local_only)
+            and now - float(e.get("created_at") or 0) <= MAX_PENDING_AGE_SECONDS
+            and not (require_deploy and e.get("needs_deploy") and not e.get("deployed_at"))
+        ]
+
+    def claim(self, run_id: str | None = None, *, require_deploy: bool = True, local_only: bool = False) -> list[dict]:
+        """Önce-yaz: gönderilebilir bekleyenleri bu koşu adına ``in_flight`` yapar (dosyaya yazar, GÖNDERMEZ).
+
+        - Başka (bitmiş/çökmüş) bir koşunun ``in_flight`` kaydı ``unknown`` olur: yeniden gönderilmez.
+        - 6 saatten eski bekleyen ``expired`` olur.
+        - ``require_deploy``: sayfası henüz başarılı bir dağıtıma girmemiş kayıt bekler (ölü bağlantı yok).
         """
         run_id = run_id or current_run_id()
         now = self.clock()
-        claimed: list[dict] = []
         for e in self.entries:
+            if not self._in_scope(e, local_only):
+                continue
             if e["status"] == IN_FLIGHT and e.get("claim_run") != run_id:
-                e["status"] = UNKNOWN
+                move(e, UNKNOWN)
                 e["last_error"] = f"önceki koşu ({e.get('claim_run')}) gönderim sonucunu kaydedemedi"
                 log.warning("Giden kutusu: %s belirsiz (unknown); at-most-once gereği yeniden gönderilmez.", e["key"])
-            elif e["status"] == PENDING:
-                if now - float(e.get("created_at") or 0) > MAX_PENDING_AGE_SECONDS:
-                    e["status"] = EXPIRED
-                    log.warning("Giden kutusu: %s bayatladı (expired); gönderilmeyecek.", e["key"])
-                    continue
-                e["status"] = IN_FLIGHT
-                e["claim_run"] = run_id
-                e["claimed_at"] = now
-                claimed.append(e)
+            elif e["status"] == PENDING and now - float(e.get("created_at") or 0) > MAX_PENDING_AGE_SECONDS:
+                move(e, EXPIRED)
+                log.warning("Giden kutusu: %s bayatladı (expired); gönderilmeyecek.", e["key"])
+        claimed = self.claimable(require_deploy=require_deploy, local_only=local_only)
+        for e in claimed:
+            move(e, IN_FLIGHT)
+            e["claim_run"] = run_id
+            e["claimed_at"] = now
         self.prune()
         self.save()
         return claimed
 
     def deliver(self, transport: Transport, run_id: str | None = None) -> dict[str, int]:
-        """Bu koşunun ``in_flight`` kayıtlarını gönderir; her sonuçtan hemen sonra dosyaya yazar."""
+        """Bu koşunun ``in_flight`` kayıtlarını gönderir; her sonuçtan hemen sonra dosyaya yazar.
+
+        Dosya, claim'in push'u sırasında master'la anahtar bazında birleşmiş olabilir: yalnız HÂLÂ bu koşu
+        adına ``in_flight`` olan kayıt gönderilir.
+        """
         run_id = run_id or current_run_id()
+        self.entries = self._load()  # diskteki (birleşmiş) güncel hâli oku
         counts = {"sent": 0, "retry": 0, "failed": 0, "unknown": 0, "skipped": 0, "blocked": 0}
         for e in self.entries:
             if e["status"] != IN_FLIGHT or e.get("claim_run") != run_id:
                 continue
             if settings.paused or self.sent_today() >= settings.max_posts_per_day:
                 # Acil durdurma / günlük tavan: gönderme, beklet (süresi dolarsa expired). Hiç denenmedi.
-                e["status"] = PENDING
+                move(e, PENDING)
                 e["claim_run"] = ""
                 self.save()
                 continue
             problems = validate_post(e.get("text", ""), e.get("disclaimer", ""), e.get("verbatim", []))
             if problems:
-                e["status"] = BLOCKED
+                move(e, BLOCKED)
                 e["last_error"] = "; ".join(problems)
                 counts["blocked"] += 1
                 log.error("Giden kutusu: %s gönderilmedi (%s).", e["key"], e["last_error"])
@@ -395,7 +521,7 @@ class Outbox:
 
     def _apply_result(self, e: dict, res: SendResult, counts: dict[str, int]) -> None:
         if res.outcome == "sent":
-            e["status"] = SENT
+            move(e, SENT)
             e["sent_at"] = self.clock()
             e["message_id"] = res.message_id
             counts["sent"] += 1
@@ -404,33 +530,35 @@ class Outbox:
             e["last_error"] = res.error
             e["claim_run"] = ""
             if e["attempts"] >= MAX_SEND_ATTEMPTS:
-                e["status"] = FAILED
+                move(e, FAILED)
                 counts["failed"] += 1
                 log.error("Giden kutusu: %s %d denemede gönderilemedi (%s); bırakıldı.",
                           e["key"], e["attempts"], res.error)
             else:
-                e["status"] = PENDING
+                move(e, PENDING)
                 counts["retry"] += 1
                 log.warning("Giden kutusu: %s gönderilemedi (%s), deneme %d/%d; sonraki koşuda yeniden.",
                             e["key"], res.error, e["attempts"], MAX_SEND_ATTEMPTS)
         elif res.outcome == "dry_run":
-            e["status"] = SKIPPED
+            move(e, SKIPPED)
             e["last_error"] = "Telegram kimlik bilgisi yok (dry-run)"
             counts["skipped"] += 1
         else:
-            e["status"] = UNKNOWN
+            move(e, UNKNOWN)
             e["last_error"] = res.error
             counts["unknown"] += 1
             log.error("Giden kutusu: %s gönderim sonucu belirsiz (%s); yeniden GÖNDERİLMEZ.", e["key"], res.error)
 
-    def drop_run(self, run_id: str | None = None) -> list[dict]:
-        """Yayın kapısı kırıldı: bu koşunun (henüz hiç commit'lenmemiş) bekleyen kayıtlarını siler.
+    def drop_run(self, run_id: str | None = None, slugs: set[str] | None = None) -> list[dict]:
+        """Yayın kapısı: bu koşunun (henüz hiç commit'lenmemiş) bekleyen kayıtlarını siler; ``slugs``
+        verilirse YALNIZ o raporlara ait olanları (kapıdan geçen raporların gönderileri kalır).
 
         Silinir (``dropped`` işaretlenmez): bildirim kapı düzelince yeniden yayınlanırsa aynı anahtarla
         tekrar kuyruğa girebilmelidir. Bu kayıtlar hiç gönderilmedi, origin'de de yok.
         """
         run_id = run_id or current_run_id()
-        dropped = [e for e in self.entries if e.get("created_run") == run_id and e["status"] == PENDING]
+        dropped = [e for e in self.entries if e.get("created_run") == run_id and e["status"] == PENDING
+                   and (slugs is None or e.get("slug") in slugs)]
         if dropped:
             keys = {e["key"] for e in dropped}
             self.entries = [e for e in self.entries if e["key"] not in keys]
@@ -469,12 +597,32 @@ class Outbox:
         )
 
 
-def send_outbox(phase: str = "all", transport: Transport | None = None, path: Path | None = None) -> dict:
-    """``claim`` | ``deliver`` | ``all``. İş akışı claim ile deliver arasında commit + push yapar."""
+def send_outbox(
+    phase: str = "all",
+    transport: Transport | None = None,
+    path: Path | None = None,
+    *,
+    ci: bool = False,
+    deployed_sha: str = "",
+) -> dict:
+    """``claim`` | ``deliver`` | ``all``.
+
+    - ``ci=True`` (yalnız iş akışı): tüm kayıtlar, dağıtım işareti ZORUNLU. ``deployed_sha`` verilirse önce
+      bekleyenler o (başarılı) dağıtımla işaretlenir. İş akışı claim ile deliver arasında commit + push yapar.
+    - ``ci=False`` (yerel / uzun ömürlü kip): YALNIZ yerel koşuların (``local-…``) kayıtları; dağıtım işareti
+      aranmaz (yerelde dağıtım adımı yoktur). İş akışının kayıtlarına dokunulmaz.
+    """
     box = Outbox(path)
     result: dict[str, Any] = {}
     if phase in ("claim", "all"):
-        result["claimed"] = len(box.claim())
+        if ci and deployed_sha:
+            result["deployed"] = box.mark_deployed(deployed_sha)
+        result["claimed"] = len(box.claim(require_deploy=ci, local_only=not ci))
     if phase in ("deliver", "all"):
         result.update(box.deliver(transport or TelegramTransport()))
     return result
+
+
+def preview_outbox(path: Path | None = None) -> list[dict]:
+    """Yerel kuru çalıştırma: gönderilecek yerel kayıtları DOSYAYA DOKUNMADAN döner."""
+    return Outbox(path).claimable(require_deploy=False, local_only=True)

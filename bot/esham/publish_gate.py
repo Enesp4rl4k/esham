@@ -1,16 +1,19 @@
-"""Yayın kapısı kırıldığında döngüyü durduran durum kaydı.
+"""Yayın kapısının durum kayıtları (kapı mantığı: ``report_gate.py``).
 
-İş akışı (``.github/workflows/esham-schedule.yml``) yeni raporlarla web testlerini koşar. Testler kırılırsa
-raporlar commit'lenmez, Telegram'a hiçbir şey gitmez ve bu modül YALNIZ şunları yazar (sonra yalnız durum
-dosyası + giden kutusu commit'lenir):
+Rapor başına kapı bir ya da birkaç raporu ayırdıysa (``partial``) YALNIZ o raporlar için:
 
-- bu koşunun giden kutusu kayıtları silinir (hiç gönderilmediler, origin'de de yoklar),
-- bu koşuda yayınlanan her KAP bildirimi için ``gate_failures`` sayacı artar. Sayaç
+- bu koşunun o raporlara ait giden kutusu kayıtları silinir (hiç gönderilmediler, origin'de de yoklar),
+- o raporlara dönüşen KAP bildirimleri için ``gate_failures`` sayacı artar (aynı koşudaki sağlam raporlara
+  ve bildirimlere dokunulmaz; onlar commit'lenir ve gönderilir). Sayaç
   ``MAX_PUBLISH_ATTEMPTS`` (3) altındaysa bildirimin "görüldü" işareti kaldırılır, sonraki koşu yeniden
   dener; sınıra ulaşınca ``failed_disclosures``'a neden ve deneme sayısıyla yazılır ve bir daha denenmez.
 
 Sayaç ``publish_attempts``'tan AYRIDIR: o sayaç başarılı rapor yazımında sıfırlanır; kapı ise rapor
 yazıldıktan SONRA kırıldığı için aynı sayaç her koşuda sıfırlanır ve sınıra hiç ulaşılmazdı.
+
+Testler yeni raporlar OLMADAN da kırıksa (``code_broken``) hiçbir sayaç artmaz: koşunun durumu atılır, master'daki
+duruma yalnız ``code_gate_broken`` işareti eklenir (günde bir commit = günlük tek uyarı); bildirimler sonraki
+koşuda yeniden denenir (gönderimsiz, sınırsız).
 """
 from __future__ import annotations
 
@@ -43,11 +46,15 @@ def reset_run_publications(state: StateStore) -> None:
         state.set("run_publications", [p for p in pubs if p.get("run") == run])
 
 
-def handle_gate_failure(reason: str, state: StateStore | None = None, outbox: Outbox | None = None) -> dict:
+def handle_gate_failure(reason: str, slugs: list[str] | set[str], state: StateStore | None = None,
+                        outbox: Outbox | None = None) -> dict:
+    """YALNIZ kapıdan geçemeyen raporlar (``slugs``) için: gönderileri iptal, KAP bildirimlerinin sayacı artar.
+    Aynı koşudaki sağlam raporlara ve bildirimlere dokunulmaz."""
     state = state or get_state()
     outbox = outbox or Outbox()
     run = current_run_id()
-    dropped = outbox.drop_run(run)
+    slugs = set(slugs)
+    dropped = outbox.drop_run(run, slugs=slugs)
 
     now = time.time()
     counters: dict = {
@@ -57,7 +64,7 @@ def handle_gate_failure(reason: str, state: StateStore | None = None, outbox: Ou
     seen: dict = dict(state.get("seen_disclosures", {}) or {})
     failed = list(state.get("failed_disclosures", []) or [])
     retry, given_up = [], []
-    for p in [p for p in (state.get("run_publications", []) or []) if p.get("run") == run]:
+    for p in [p for p in (state.get("run_publications", []) or []) if p.get("run") == run and p.get("slug") in slugs]:
         key = p["key"]
         c = counters.get(key, {"count": 0})
         c = {"count": int(c.get("count", 0)) + 1, "last": now, "reason": reason[:300]}
@@ -79,9 +86,21 @@ def handle_gate_failure(reason: str, state: StateStore | None = None, outbox: Ou
     state.set("gate_failures", counters)
     state.set("seen_disclosures", seen)
     state.set("failed_disclosures", failed[-200:])
-    state.set("run_publications", [])
     state.set("last_gate_failure", {
-        "run": run, "at": now, "reason": reason[:300],
+        "run": run, "at": now, "reason": reason[:300], "reports": sorted(slugs),
         "dropped_posts": [e["key"] for e in dropped], "retry": retry, "given_up": given_up,
     })
     return {"dropped_posts": len(dropped), "retry": retry, "given_up": given_up}
+
+
+def code_broken_marker(head_state: dict, today: str) -> tuple[dict, bool]:
+    """Kod/test kırık (temel kırmızı): koşunun durumu ATILIR (hiçbir sayaç artmaz, bildirimler sonraki koşuda
+    yeniden denenir). Yalnız master'daki duruma ``code_gate_broken`` işareti eklenir; günde bir kez
+    commit'lenir (günlük tek uyarı). Döner: (yazılacak durum, bugün ilk uyarı mı)."""
+    st = dict(head_state)
+    mark = dict(st.get("code_gate_broken") or {})
+    first_today = mark.get("last_alert_day") != today
+    mark.setdefault("since", today)
+    mark["last_alert_day"] = today
+    st["code_gate_broken"] = mark
+    return st, first_today
