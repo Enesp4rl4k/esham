@@ -17,7 +17,7 @@ import {
   getReportImageUrl,
 } from "@/lib/content";
 import { Markdown } from "@/components/Markdown";
-import { Disclaimer } from "@/components/Disclaimer";
+import { Disclaimer, SummaryNotice } from "@/components/Disclaimer";
 import { RelatedReports } from "@/components/RelatedReports";
 import { ShareButtons } from "@/components/ShareButtons";
 import { ReadingProgress } from "@/components/ReadingProgress";
@@ -213,6 +213,8 @@ export default async function ReportPage({
       {report.summary && report.summary.trim().toLowerCase() !== report.title.trim().toLowerCase() && (
         <p className="text-xl text-zinc-400 leading-relaxed mb-8">{report.summary}</p>
       )}
+
+      <SummaryNotice kap={report.sources.some((s) => s.toUpperCase() === "KAP")} />
 
       <div className="flex flex-wrap items-center justify-between gap-4 border-y border-zinc-800 py-4 mb-10">
         <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-400">

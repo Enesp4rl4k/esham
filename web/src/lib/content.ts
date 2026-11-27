@@ -31,6 +31,7 @@ import { getUniverseTickers } from "./stocks";
 import type { CategorySlug, IpoMeta, Report } from "./content-utils";
 import { CATEGORIES } from "./content-utils";
 import { isThinReport } from "./thin-content";
+import { sanitizeReport } from "./neutral";
 
 const REPORTS_DIR = path.join(process.cwd(), "content", "reports");
 
@@ -97,7 +98,7 @@ function parseReport(raw: unknown, file: string): Report | null {
     console.warn(`[content] Bilinmeyen kategori "${String(r.category)}": ${file}`);
     return null;
   }
-  return {
+  const report: Report = {
     slug: r.slug,
     title: r.title,
     category: r.category,
@@ -112,6 +113,9 @@ function parseReport(raw: unknown, file: string): Report | null {
     image: typeof r.image === "string" ? r.image : undefined,
     ipo: parseIpoMeta(r.ipo),
   };
+  // Eski raporlardaki piyasa yargısı (sinyal, destek/direnç, "MEGA" vb.) görüntülemede gizlenir;
+  // dosyalar değiştirilmez. Bkz. neutral.ts.
+  return sanitizeReport(report).report;
 }
 
 let cache: Report[] | null = null;

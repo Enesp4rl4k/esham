@@ -61,7 +61,7 @@ export const CATEGORIES: Record<CategorySlug, CategoryMeta> = {
   bist: {
     label: "BIST & Sektör",
     description:
-      "Borsa İstanbul endeks beklentileri, sektör rotasyonları ve yabancı takas hareketleri.",
+      "Borsa İstanbul endeks ve sektör verileri ile KAP bildirimlerinin özetleri.",
     accent: "cyan",
   },
   global: {

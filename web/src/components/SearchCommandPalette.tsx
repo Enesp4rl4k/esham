@@ -28,7 +28,7 @@ interface SearchItem {
 
 const DEFAULT_ITEMS: SearchItem[] = [
   // BIST Hisseleri
-  { id: "THYAO", title: "THYAO", subtitle: "Türk Hava Yolları — DCF, Key Levels & Bilanço", category: "hisse", href: "/hisse/THYAO", badge: "BIST 30" },
+  { id: "THYAO", title: "THYAO", subtitle: "Türk Hava Yolları — Finansallar & Bilanço", category: "hisse", href: "/hisse/THYAO", badge: "BIST 30" },
   { id: "ASELS", title: "ASELS", subtitle: "Aselsan Elektronik — Savunma Sanayi & Bilanço", category: "hisse", href: "/hisse/ASELS", badge: "BIST 30" },
   { id: "BIMAS", title: "BIMAS", subtitle: "BİM Birleşik Mağazalar — Perakende & TÜRİB Korelasyonu", category: "hisse", href: "/hisse/BIMAS", badge: "BIST 30" },
   { id: "TUPRS", title: "TUPRS", subtitle: "Tüpraş Rafinerileri — Rafineri Marjları & DCF", category: "hisse", href: "/hisse/TUPRS", badge: "BIST 30" },

@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  Compass,
   TrendingUp,
   TrendingDown,
   Layers,
@@ -109,25 +108,19 @@ export function MorningCockpit({
       }
     : isViopPositive
     ? {
-        label: "Pozitif / Alıcılı Açılış",
-        badgeClass: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-        summary:
-          "VİOP F_XU030 vadeli kontratı spot piyasaya göre primli işlem görüyor. Kurumsal vadeli alımlar açılışta pozitif risk iştahını destekliyor.",
+        // Yalnızca veriyi tanımlar; açılış yönü tahmini yapılmaz (yatırım tavsiyesi gibi okunmasın).
+        label: "Vadeli > Spot",
+        badgeClass: "bg-zinc-800 text-zinc-200 border-zinc-700",
+        summary: "VİOP F_XU030 vadeli kontratı spot endeksin üzerinde işlem görüyor (basis pozitif).",
       }
     : {
-        label: "Satıcılı / Temkinli Açılış",
-        badgeClass: "bg-rose-500/15 text-rose-400 border-rose-500/30",
-        summary:
-          "VİOP kontratında basis iskontosu ve temkinli fiyatlama izleniyor; açılışta direnç seviyelerinde kâr realizasyonu görülebilir.",
+        label: "Vadeli < Spot",
+        badgeClass: "bg-zinc-800 text-zinc-200 border-zinc-700",
+        summary: "VİOP F_XU030 vadeli kontratı spot endeksin altında işlem görüyor (basis negatif).",
       };
 
-  // 2. BIST-30 Öncü Pivot Seviyeleri
-  // Yalnızca TARİHLİ (updated_at) bist-quant-valuation.json'daki hesaplanmış seviyelerden; tarihsiz dosya gösterilmez,
-  // veri olmayan hisse listelenmez, hiç veri yoksa kart hiç çizilmez (boş kutu yok).
-  const pivotAsOf: string | null = typeof quantData?.updated_at === "string" ? quantData.updated_at.slice(0, 10) : null;
-  const pivotList: { ticker: string; pivot: number }[] = ["THYAO", "GARAN", "ASELS", "TUPRS", "KCHOL", "EREGL"]
-    .map((ticker) => ({ ticker, pivot: quantData?.[ticker]?.key_levels?.pivot_noktasi }))
-    .filter((x): x is { ticker: string; pivot: number } => typeof x.pivot === "number");
+  // 2. Teknik pivot seviyeleri kartı kaldırıldı (destek/direnç/pivot yatırım tavsiyesi gibi okunur).
+  void quantData;
 
   // 3. Sabahın En Kritik 3 KAP Haberi
   const topKapReports = reports.slice(0, 3);
@@ -177,7 +170,7 @@ export function MorningCockpit({
         {!isOpen && (
           <div className="px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono bg-zinc-950/60">
             <div className="flex items-center gap-3 text-zinc-400">
-              <span className="text-zinc-400">Açılış Görünümü:</span>
+              <span className="text-zinc-400">Vadeli / Spot:</span>
               <span className={`px-2 py-0.5 rounded text-xs font-bold border ${openingSentiment.badgeClass}`}>
                 {openingSentiment.label}
               </span>
@@ -249,53 +242,6 @@ export function MorningCockpit({
                 <span className="text-zinc-400">{hasViop ? (isViopPositive ? "Contango" : "Backwardation") : "—"}</span>
               </div>
             </div>
-
-            {/* 2. KART: Kritik BIST-30 Seviyeleri (Pivot & Kırılma) */}
-            {pivotAsOf && pivotList.length > 0 && (
-            <div className="flex flex-col justify-between p-4 rounded-xl border border-zinc-800/80 bg-zinc-900/60 shadow-inner">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                      <Compass className="w-4 h-4" />
-                    </span>
-                    <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
-                      Kritik Pivotlar
-                    </h3>
-                  </div>
-                  <span className="text-xs font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
-                    BIST-30
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-1.5 mb-2 font-mono text-xs">
-                  {pivotList.map((item) => (
-                    <Link
-                      key={item.ticker}
-                      href={`/hisse/${item.ticker}`}
-                      className="p-1.5 rounded bg-zinc-950/70 hover:bg-zinc-800/80 border border-zinc-800/60 hover:border-cyan-500/40 transition-colors flex items-center justify-between group"
-                    >
-                      <span className="font-bold text-white group-hover:text-cyan-400">
-                        ${item.ticker}
-                      </span>
-                      <span className="text-xs text-zinc-400">
-                        P: <strong className="text-cyan-300">{fmt(item.pivot, 2)}</strong>
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-
-                <p className="text-xs text-zinc-400 font-sans mt-2">
-                  * Pivot üzeri fiyatlamalar alıcılı trendi, altı ise S1 destek testini tetikler.
-                </p>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-zinc-800/70 flex items-center justify-between text-xs font-mono text-zinc-400">
-                <span>Veri tarihi: {pivotAsOf}</span>
-                <span className="text-zinc-400">—</span>
-              </div>
-            </div>
-            )}
 
             {/* 3. KART: Günün En Kritik 3 KAP Haberi */}
             <div className="flex flex-col justify-between p-4 rounded-xl border border-zinc-800/80 bg-zinc-900/60 shadow-inner">
