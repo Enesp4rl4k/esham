@@ -1,11 +1,13 @@
 """Veri grafiği paylaşım kartları → ``web/public/veri-kart/<slug>-<boyut>.png``.
 
-1. ``node web/scripts/veri-scenes.mjs <geçici klasör>``: her veri kümesi için sahne (grafiğin tek tanımı, web/src/lib/veri.ts).
+1. ``node web/scripts/veri-scenes.mjs [--all-variants]``: her veri kümesi için sahne (grafiğin tek tanımı, web/src/lib/veri.ts)
+   sabit klasöre yazılır: ``web/.veri-scenes/yayin`` (ya da ``…/taslak``; git dışı).
 2. ``esham.publishing.veri_cards``: sahneyi PNG'ye çizer; PNG sahnenin sha256 özetini taşır.
 Veri dosyası değiştiyse bu iş aynı commit'te çalıştırılmalıdır; aksi halde web testi (kart ↔ sahne özeti) başarısız olur
 ve dağıtım durur — eski sayılı bir kart yayımlanmaz.
 
-Taslak/varyant: ``--all-variants --out <depo içi klasör>`` tüm görsel varyantları <slug>-<boyut>-<varyant>.png adıyla yazar.
+Taslak/varyant: ``--all-variants`` tüm görsel varyantları ``web/.veri-scenes/taslak-png/<slug>-<boyut>-<varyant>.png``
+adıyla yazar (git dışı; oradan elle kopyalanır). Komut satırından yol alınmaz.
 """
 from __future__ import annotations
 
@@ -13,7 +15,6 @@ import argparse
 import shutil
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 from ..publishing import veri_cards
@@ -21,37 +22,23 @@ from ..publishing import veri_cards
 ROOT = Path(__file__).resolve().parents[3]
 WEB = ROOT / "web"
 OUT = WEB / "public" / "veri-kart"
+SCENES = WEB / ".veri-scenes"
+SCRIPT = WEB / "scripts" / "veri-scenes.mjs"
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Veri grafiği kartlarını üretir")
-    ap.add_argument("--out", type=Path, default=OUT)
-    ap.add_argument("--all-variants", action="store_true")
-    ap.add_argument("--scenes-dir", type=Path, help="sahneleri geçici klasör yerine bu klasöre yaz (silinmez)")
+    ap.add_argument("--all-variants", action="store_true", help="taslak: tüm varyantlar (web/.veri-scenes/taslak-png)")
     args = ap.parse_args(argv)
-    # CLI yolları depo içinde kalmalı (taslaklar depo içinde üretilip elle kopyalanır)
-    for name in ("out", "scenes_dir"):
-        p = getattr(args, name)
-        if p is not None:
-            r = p.resolve()
-            if not r.is_relative_to(ROOT):
-                print(f"yol depo içinde olmalı: {r}", file=sys.stderr)
-                return 2
-            setattr(args, name, r)
     node = shutil.which("node")
     if not node:
         print("node bulunamadı (web/scripts/veri-scenes.mjs için gerekli)", file=sys.stderr)
         return 2
-    def run(tmp: str) -> int:
-        cmd = [node, str(WEB / "scripts" / "veri-scenes.mjs"), tmp] + (["--all-variants"] if args.all_variants else [])
-        subprocess.run(cmd, check=True, cwd=WEB)
-        return veri_cards.main([tmp, str(args.out), "--name", "full" if args.all_variants else "published"])
-
-    if args.scenes_dir:
-        args.scenes_dir.mkdir(parents=True, exist_ok=True)
-        return run(str(args.scenes_dir))
-    with tempfile.TemporaryDirectory(prefix="esham-veri-") as tmp:
-        return run(tmp)
+    if args.all_variants:
+        subprocess.run([node, str(SCRIPT), "--all-variants"], check=True, cwd=WEB)
+        return veri_cards.main([str(SCENES / "taslak"), str(SCENES / "taslak-png"), "--name", "full"])
+    subprocess.run([node, str(SCRIPT)], check=True, cwd=WEB)
+    return veri_cards.main([str(SCENES / "yayin"), str(OUT), "--name", "published"])
 
 
 if __name__ == "__main__":

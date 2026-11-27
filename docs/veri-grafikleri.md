@@ -85,7 +85,7 @@ web/src/lib/veri.ts  validateDataset · tableRows · toCsv · textAlternative ·
 cd bot
 python -m esham.jobs.publish_veri_tbb_sube          # yalnız eksik çeyrekleri indirir (ağ)
 python -m esham.jobs.publish_veri_cards             # kartları yeniden üretir (node gerekir)
-python -m esham.jobs.publish_veri_cards --all-variants --out <depo içi klasör>   # taslak varyantlar
+python -m esham.jobs.publish_veri_cards --all-variants  # taslak varyantlar → web/.veri-scenes/taslak-png/
 ```
 
 ### Zamanlama (henüz KURULU DEĞİL)
