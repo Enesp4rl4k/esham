@@ -22,7 +22,7 @@ export type PeriodType = "quarter" | "month" | "year";
 /** İzin verilen birimler (gösterimdeki yazımıyla). */
 export const UNITS = ["adet", "kişi", "TL", "bin TL", "milyon TL", "milyar TL", "%", "USD", "milyon USD"] as const;
 export type Unit = (typeof UNITS)[number];
-const INTEGER_UNITS: readonly string[] = ["adet", "kişi"];
+const INTEGER_UNITS: ReadonlySet<string> = new Set(["adet", "kişi"]);
 
 export interface VeriFile {
   /** Kaynak dosyanın özgün adı (ör. "Banka Çalışan ve Şube Sayıları-Eylül 2026.xlsx") */
@@ -219,7 +219,7 @@ export function validateDataset(d: unknown): string[] {
         return;
       }
       filled++;
-      if (INTEGER_UNITS.includes(ds.unit) && (!Number.isInteger(v) || v < 0)) e.push(`${at} ${p}: '${ds.unit}' birimi negatif olmayan tam sayı ister`);
+      if (INTEGER_UNITS.has(ds.unit) && (!Number.isInteger(v) || v < 0)) e.push(`${at} ${p}: '${ds.unit}' birimi negatif olmayan tam sayı ister`);
       const pr = sr.provenance[i];
       if (!pr || !isStr(pr.file) || !files[pr.file] || !isStr(pr.sheet) || !isStr(pr.cell) || !CELL_RE.test(pr.cell) || !isStr(pr.label))
         e.push(`${at} ${p}: dolu değerin kaynağı eksik (file/sheet/cell/label)`);
@@ -321,7 +321,7 @@ export function isIndexableDataset(ds: VeriDataset): boolean {
 export function veriSitemap(siteUrl: string, all: VeriDataset[]): { url: string; lastModified: Date; changeFrequency: "weekly" | "monthly"; priority: number }[] {
   const idx = all.filter(isIndexableDataset);
   if (!idx.length) return [];
-  const newest = idx.map((d) => d.updatedAt).sort().at(-1) as string;
+  const newest = idx.map((d) => d.updatedAt).sort((a, b) => a.localeCompare(b)).at(-1) as string;
   return [
     { url: `${siteUrl}/veri`, lastModified: new Date(newest), changeFrequency: "weekly", priority: 0.7 },
     ...idx.map((d) => ({ url: `${siteUrl}/veri/${d.slug}`, lastModified: new Date(d.updatedAt), changeFrequency: "monthly" as const, priority: 0.7 })),
@@ -554,7 +554,9 @@ export interface SceneOptions {
 
 /** "https://ornek.com.tr/" → "ornek.com.tr" */
 export function displayDomain(siteUrl: string): string {
-  return siteUrl.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+  let s = siteUrl.replace(/^https?:\/\//, "");
+  while (s.endsWith("/")) s = s.slice(0, -1);
+  return s;
 }
 
 /**

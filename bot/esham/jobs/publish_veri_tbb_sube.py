@@ -224,11 +224,22 @@ def _entries_from_existing(existing: dict[str, Any]) -> dict[str, tuple[T.Parsed
     return out
 
 
+def _inside_repo(p: Path) -> Path:
+    """CLI'dan gelen yolu depo içinde tutar (dışarı yazma/okuma yok)."""
+    r = p.resolve()
+    if not r.is_relative_to(ROOT):
+        raise SystemExit(f"yol depo içinde olmalı: {r}")
+    return r
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--from-dir", type=Path, help="ağsız: <YYYY-QN>.xlsx dosyaları ve sources.json içeren klasör")
     ap.add_argument("--out", type=Path, default=OUT_FILE)
     args = ap.parse_args(argv)
+    args.out = _inside_repo(args.out)
+    if args.from_dir:
+        args.from_dir = _inside_repo(args.from_dir)
     today = date.today()
     existing = load_existing(args.out)
     entries = _entries_from_existing(existing) if existing else {}

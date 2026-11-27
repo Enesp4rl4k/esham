@@ -17,7 +17,7 @@ export function loadDatasets(): VeriDataset[] {
   const out = fs
     .readdirSync(DATA_DIR)
     .filter((f) => f.endsWith(".json"))
-    .sort()
+    .sort((a, b) => a.localeCompare(b))
     .map((f) => {
       const ds = assertValid(JSON.parse(fs.readFileSync(path.join(DATA_DIR, f), "utf8")), `public/data/veri/${f}`);
       if (`${ds.slug}.json` !== f) throw new Error(`public/data/veri/${f}: dosya adı slug ile aynı olmalı (${ds.slug})`);

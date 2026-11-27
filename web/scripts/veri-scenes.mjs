@@ -6,20 +6,28 @@
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import os from "node:os";
 import { CARD_SIZES, DEFAULT_VARIANT, VARIANTS, assertValid, buildScene, displayDomain, sceneJson } from "../src/lib/veri.ts";
 import { SITE_URL } from "../src/lib/config.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = path.join(here, "..", "public", "data", "veri");
-const out = process.argv[2];
-if (!out) {
+const arg = process.argv[2];
+if (!arg) {
   console.error("kullanım: node scripts/veri-scenes.mjs <çıkış klasörü> [--all-variants]");
+  process.exit(2);
+}
+// Çıkış yalnız depo içinde ya da sistem geçici klasöründe olabilir (yol dışına yazma yok).
+const out = path.resolve(arg);
+const allowed = [path.resolve(here, "..", ".."), path.resolve(os.tmpdir())];
+if (!allowed.some((b) => out === b || out.startsWith(b + path.sep))) {
+  console.error(`çıkış klasörü depo ya da geçici klasör içinde olmalı: ${out}`);
   process.exit(2);
 }
 const variants = process.argv.includes("--all-variants") ? Object.keys(VARIANTS) : [DEFAULT_VARIANT];
 mkdirSync(out, { recursive: true });
 let n = 0;
-for (const f of readdirSync(dataDir).filter((x) => x.endsWith(".json")).sort()) {
+for (const f of readdirSync(dataDir).filter((x) => x.endsWith(".json")).sort((a, b) => a.localeCompare(b))) {
   const ds = assertValid(JSON.parse(readFileSync(path.join(dataDir, f), "utf8")), f);
   for (const size of CARD_SIZES) {
     for (const v of variants) {

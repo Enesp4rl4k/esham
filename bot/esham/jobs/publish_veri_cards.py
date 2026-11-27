@@ -5,7 +5,7 @@
 Veri dosyası değiştiyse bu iş aynı commit'te çalıştırılmalıdır; aksi halde web testi (kart ↔ sahne özeti) başarısız olur
 ve dağıtım durur — eski sayılı bir kart yayımlanmaz.
 
-Taslak/varyant: ``--all-variants --out <klasör>`` tüm görsel varyantları <slug>-<boyut>-<varyant>.png adıyla yazar.
+Taslak/varyant: ``--all-variants --out <depo içi klasör>`` tüm görsel varyantları <slug>-<boyut>-<varyant>.png adıyla yazar.
 """
 from __future__ import annotations
 
@@ -29,6 +29,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--all-variants", action="store_true")
     ap.add_argument("--scenes-dir", type=Path, help="sahneleri geçici klasör yerine bu klasöre yaz (silinmez)")
     args = ap.parse_args(argv)
+    # CLI yolları depo içinde kalmalı (taslaklar depo içinde üretilip elle kopyalanır)
+    for name in ("out", "scenes_dir"):
+        p = getattr(args, name)
+        if p is not None:
+            r = p.resolve()
+            if not r.is_relative_to(ROOT):
+                print(f"yol depo içinde olmalı: {r}", file=sys.stderr)
+                return 2
+            setattr(args, name, r)
     node = shutil.which("node")
     if not node:
         print("node bulunamadı (web/scripts/veri-scenes.mjs için gerekli)", file=sys.stderr)
