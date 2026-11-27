@@ -146,26 +146,29 @@ test("eski türetilmiş başlıkta ve şirket satırında hisse kodu deseni yok 
   }
 });
 
-test("aynı gün aynı türetilmiş başlık: raporun kendi yayın saati ayırıcı olur; KAP başlığı ve saatsiz kayıt değişmez", () => {
-  const mk = (title, publishedAt, extra = {}) => ({ title, sources: ["X"], publishedAt, legacyMinimal: true, ...extra });
-  const out = disambiguateLegacyTitles([
-    mk("Halka arz belgesi özeti — 6 Temmuz 2026", "2026-07-06T10:05:00Z"),
-    mk("Halka arz belgesi özeti — 6 Temmuz 2026", "2026-07-06T11:30:00Z"),
-    mk("Sabah bülteni — 6 Temmuz 2026", "2026-07-06T05:30:00Z"),
-    mk("Gündem notu — 6 Temmuz 2026", "2026-07-06"),
-    mk("Gündem notu — 6 Temmuz 2026", "2026-07-06"),
-    mk("A A.Ş.: Duyuru", "2026-07-06T10:00:00Z", { sources: ["KAP"] }),
-    mk("A A.Ş.: Duyuru", "2026-07-06T11:00:00Z", { sources: ["KAP"] }),
-  ]);
-  assert.deepEqual(out.map((r) => r.title), [
-    "Halka arz belgesi özeti — 6 Temmuz 2026 · 13:05",
-    "Halka arz belgesi özeti — 6 Temmuz 2026 · 14:30",
-    "Sabah bülteni — 6 Temmuz 2026",
-    "Gündem notu — 6 Temmuz 2026",
-    "Gündem notu — 6 Temmuz 2026",
-    "A A.Ş.: Duyuru",
-    "A A.Ş.: Duyuru",
-  ]);
+test("ortak vektörler: aynı gün başlık ayırıcısı (Python disambiguate_legacy_titles ile aynı)", () => {
+  for (const [docs, expected] of vectors.disambiguate) {
+    const out = disambiguateLegacyTitles(docs.map((d) => ({ ...d, legacyTitleDerived: d.derived })));
+    assert.deepEqual(out.map((r) => r.title), expected);
+  }
+});
+
+test("KAP kaynaklı ama bizim türettiğimiz başlık ayrıştırılır; resmî KAP başlığı değişmez (gerçek eski raporlar)", () => {
+  const views = [];
+  for (const f of readdirSync(reportsDir).filter((x) => x.endsWith(".json"))) {
+    const doc = JSON.parse(readFileSync(new URL(f, reportsDir), "utf-8"));
+    const v = legacyView({ ...doc, tags: doc.tags ?? [], sources: doc.sources ?? [] });
+    views.push({ ...v.report, legacyMinimal: true, legacyTitleDerived: v.titleDerived, _orig: doc.title });
+  }
+  const out = disambiguateLegacyTitles(views);
+  const kapDerived = out.filter((r) => r.legacyTitleDerived && r.sources.includes("KAP") && r.title !== r._orig);
+  assert.ok(kapDerived.length > 0);
+  assert.ok(out.filter((r) => r.title.startsWith("Halka arz belgesi özeti — 7 Temmuz 2026")).every((r) => / · \d\d:\d\d/.test(r.title)));
+  for (const r of out.filter((x) => !x.legacyTitleDerived)) assert.equal(r.title, r._orig);
+  // Birim: KAP kaynaklı örnek
+  const v = (t) => legacyView({ slug: "s", category: "ipo", summary: "", body: "", aiGenerated: true, tags: [], sources: ["KAP", "İzahname"], title: t, publishedAt: "2026-07-07T10:05:00Z" });
+  assert.equal(v("X A.Ş. Halka Arz Analizi").titleDerived, true);
+  assert.equal(v("X A.Ş.: Duyuru").titleDerived, false);
 });
 
 test("resmî KAP başlığında şirket ön eki yoksa yalnız yapılandırılmış kap.company gösterilir; kod/tahmin yok", () => {

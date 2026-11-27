@@ -172,28 +172,41 @@ export function legacyTitle(r: Pick<ViewableReport, "title" | "sources" | "categ
   return date ? `${typ} — ${date}` : typ;
 }
 
-/** Aynı gün aynı türetilmiş başlığı alan eski kayıtları ayırmak için yayın saati (İstanbul, "13:45"); saat yoksa boş. */
-function trTime(iso: string): string {
+/** Yayın zamanı ayırıcıları (İstanbul): dakika "13:45"; ISO metni saniye de taşıyorsa saniye "13:45:07". Saat alanı yoksa null. */
+function trClock(iso: string): { hm: string; hms: string | null } | null {
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime()) || !/T\d\d:\d\d/.test(iso)) return "";
+  if (Number.isNaN(d.getTime()) || !/T\d\d:\d\d/.test(iso)) return null;
   const ist = new Date(d.getTime() + 3 * 3600 * 1000);
-  return `${String(ist.getUTCHours()).padStart(2, "0")}:${String(ist.getUTCMinutes()).padStart(2, "0")}`;
+  const p = (n: number) => String(n).padStart(2, "0");
+  const hm = `${p(ist.getUTCHours())}:${p(ist.getUTCMinutes())}`;
+  return { hm, hms: /T\d\d:\d\d:\d\d/.test(iso) ? `${hm}:${p(ist.getUTCSeconds())}` : null };
 }
 
 /**
- * Yalın görünümdeki eski kayıtlardan türetilmiş başlığı aynı olanlara, raporun kendi yayın saatini ekler
- * ("… — 7 Temmuz 2026 · 13:45"). Resmî KAP başlıkları aynen kalır; saat alanı yoksa ayırıcı eklenmez.
+ * Yalın görünümde BİZİM türetmiş olduğumuz başlıklardan (`legacyTitleDerived`, `legacyView` işaretler; KAP kaynaklı
+ * olsa da) aynı olanlara raporun kendi yayın saatini ekler ("… — 7 Temmuz 2026 · 13:45"). Aynı dakikada
+ * yayınlananlarda saniye de eklenir; hâlâ aynıysa çakışma kabul edilir. Resmî KAP başlıkları aynen kalır;
+ * saat alanı yoksa ayırıcı eklenmez. Python `disambiguate_legacy_titles` ile aynı (ortak vektörler).
  */
-export function disambiguateLegacyTitles<T extends Pick<ViewableReport, "title" | "sources" | "publishedAt"> & { legacyMinimal?: boolean }>(
+export function disambiguateLegacyTitles<T extends Pick<ViewableReport, "title" | "publishedAt"> & { legacyTitleDerived?: boolean }>(
   reports: T[],
 ): T[] {
-  const derived = (r: T) => r.legacyMinimal === true && !isOfficialKapTitle(r);
-  const count = new Map<string, number>();
-  for (const r of reports) if (derived(r)) count.set(r.title, (count.get(r.title) ?? 0) + 1);
-  return reports.map((r) => {
-    if (!derived(r) || (count.get(r.title) ?? 0) < 2) return r;
-    const time = trTime(r.publishedAt);
-    return time ? { ...r, title: `${r.title} · ${time}` } : r;
+  const group = (rs: T[]) => {
+    const m = new Map<string, number>();
+    for (const r of rs) if (r.legacyTitleDerived === true) m.set(r.title, (m.get(r.title) ?? 0) + 1);
+    return m;
+  };
+  const first = group(reports);
+  const step1 = reports.map((r) => {
+    if (r.legacyTitleDerived !== true || (first.get(r.title) ?? 0) < 2) return r;
+    const c = trClock(r.publishedAt);
+    return c ? { ...r, title: `${r.title} · ${c.hm}` } : r;
+  });
+  const second = group(step1);
+  return step1.map((r, k) => {
+    if (r.legacyTitleDerived !== true || (second.get(r.title) ?? 0) < 2 || r === reports[k]) return r;
+    const c = trClock(r.publishedAt);
+    return c?.hms ? { ...r, title: `${reports[k].title} · ${c.hms}` } : r;
   });
 }
 
@@ -212,8 +225,8 @@ export function legacySummary(r: Pick<ViewableReport, "title" | "sources">): str
  */
 export function legacyView<T extends ViewableReport & { ipo?: object }>(
   report: T,
-): { report: T; minimal: boolean } {
-  if (!isLegacy(report)) return { report, minimal: false };
+): { report: T; minimal: boolean; titleDerived: boolean } {
+  if (!isLegacy(report)) return { report, minimal: false, titleDerived: false };
   const official = isOfficialKapTitle(report);
   const title = legacyTitle(report);
   // Şirket: başlıktaki ön ek, yoksa raporun yapılandırılmış `kap.company` alanı; ikisi de yoksa şirket satırı
@@ -250,5 +263,6 @@ export function legacyView<T extends ViewableReport & { ipo?: object }>(
       ipo,
     },
     minimal: true,
+    titleDerived: !official, // başlığı biz türettik (KAP kaynaklı olsa da)
   };
 }

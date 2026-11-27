@@ -242,5 +242,49 @@ def legacy_title(doc: dict) -> str:
     return f"{typ} — {date}" if date else typ
 
 
+def _clock(iso: str) -> tuple[str, str | None] | None:
+    """İstanbul saatiyle ("13:45", "13:45:07" ya da None); saat alanı yoksa None. Web `trClock` ile aynı."""
+    from datetime import datetime, timedelta, timezone
+
+    raw = str(iso)
+    if not re.search(r"T\d\d:\d\d", raw):
+        return None
+    try:
+        dt = datetime.fromisoformat(raw.replace("Z", "+00:00")).astimezone(timezone(timedelta(hours=3)))
+    except ValueError:
+        return None
+    hm = f"{dt.hour:02d}:{dt.minute:02d}"
+    return hm, (f"{hm}:{dt.second:02d}" if re.search(r"T\d\d:\d\d:\d\d", raw) else None)
+
+
+def disambiguate_legacy_titles(docs: list[dict]) -> list[dict]:
+    """Bizim türettiğimiz (`title_derived` True) aynı eski başlıklara yayın saati, aynı dakikada saniye ekler
+    (web `disambiguateLegacyTitles` ile aynı; ortak vektörler). Resmî KAP başlıkları ve saatsiz kayıtlar değişmez."""
+
+    def counts(titles: list[str]) -> dict[str, int]:
+        c: dict[str, int] = {}
+        for d, t in zip(docs, titles):
+            if d.get("title_derived") is True:
+                c[t] = c.get(t, 0) + 1
+        return c
+
+    base = [str(d.get("title", "")) for d in docs]
+    first = counts(base)
+    step1 = list(base)
+    for k, d in enumerate(docs):
+        if d.get("title_derived") is True and first.get(base[k], 0) > 1:
+            c = _clock(str(d.get("publishedAt", "")))
+            if c:
+                step1[k] = f"{base[k]} · {c[0]}"
+    second = counts(step1)
+    out = list(step1)
+    for k, d in enumerate(docs):
+        if d.get("title_derived") is True and step1[k] != base[k] and second.get(step1[k], 0) > 1:
+            c = _clock(str(d.get("publishedAt", "")))
+            if c and c[1]:
+                out[k] = f"{base[k]} · {c[1]}"
+    return [{**d, "title": t} for d, t in zip(docs, out)]
+
+
 def legacy_summary(doc: dict) -> str:
     return NOTE_LEGACY_SUMMARY_KAP if is_official_kap_title(doc) else NOTE_LEGACY_SUMMARY

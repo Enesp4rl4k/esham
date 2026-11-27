@@ -117,8 +117,8 @@ function parseReport(raw: unknown, file: string): Report | null {
   };
   // Eski (şema sürümü taşımayan) KAP raporlarında ve yorum içeren eski raporlarda yorum gövdesi hiç
   // gösterilmez; yalın görünüm kullanılır. Dosyalar değiştirilmez. Bkz. neutral.ts `legacyView`.
-  const { report: viewed, minimal } = legacyView(report);
-  return minimal ? { ...viewed, legacyMinimal: true } : viewed;
+  const { report: viewed, minimal, titleDerived } = legacyView(report);
+  return minimal ? { ...viewed, legacyMinimal: true, legacyTitleDerived: titleDerived } : viewed;
 }
 
 function parseKapMeta(raw: unknown): Report["kap"] {

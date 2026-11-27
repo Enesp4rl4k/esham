@@ -110,6 +110,10 @@ FILINGS = [
      "KAP bildirimi"),
     ("TÜRKİYE GARANTİ BANKASI A.Ş.: Geri Alınan Paylara İlişkin Bildirim", "Payların Geri Alınmasına İlişkin Bildirim",
      "TÜRKİYE GARANTİ BANKASI A.Ş.", "GARAN", _garan_buyback_text(), "Payların Geri Alınmasına İlişkin Bildirim"),
+    # Konusu yapay zekâ olan gerçek bildirim reddedilmez: yayınlanır, Telegram metni oluşur (her kipte).
+    ("ASELSAN ELEKTRONİK SANAYİ VE TİCARET A.Ş.: Yapay Zeka Destekli Analiz Platformu İçin Sözleşme İmzalanması",
+     "Yeni İş İlişkisi", "ASELSAN ELEKTRONİK SANAYİ VE TİCARET A.Ş.", "ASELS",
+     "Yapay zeka destekli analiz platformu geliştirilmesi için sözleşme imzalanmıştır.", "Yeni İş İlişkisi"),
     # KAP'ın resmî başlığı yasaklı kalıp içerse bile AYNEN yayınlanır (olgusal kaynak).
     ("ABC A.Ş.: Mega Sözleşme İmzalanması Hk.", "Yeni İş İlişkisi", "ABC A.Ş.", "ABCDE",
      "Şirketimiz 20.000.000 TL tutarında sözleşme imzalamıştır.", "Yeni İş İlişkisi"),
@@ -608,3 +612,27 @@ def test_newsletter_legacy_non_kap_uses_neutral_title(tmp_path, monkeypatch):
     assert r["summary"] == "Eski kayıt; içerik gösterilmiyor."
     _s, html_body, text_body = newsletter.build_digest([r])
     assert "Güvenli liman" not in html_body + text_body and "izleniyor" not in html_body + text_body
+
+
+@pytest.mark.parametrize("docs,expected", VECTORS["disambiguate"])
+def test_shared_vectors_disambiguate(docs, expected):
+    from esham.neutral import disambiguate_legacy_titles
+
+    out = disambiguate_legacy_titles([{**d, "title_derived": d["derived"]} for d in docs])
+    assert [d["title"] for d in out] == expected
+
+
+def test_newsletter_disambiguates_kap_sourced_derived_titles(tmp_path, monkeypatch):
+    import dataclasses
+
+    from esham import newsletter
+
+    for n, hhmm in enumerate(("10:05:00", "11:30:00")):
+        old = {"slug": f"h{n}", "title": f"Firma{n} A.Ş. Halka Arz Analizi", "summary": "yorum",
+               "sources": ["KAP", "İzahname"], "publishedAt": f"2026-07-07T{hhmm}Z", "category": "ipo"}
+        (tmp_path / f"2026-07-07-h{n}.json").write_text(json.dumps(old, ensure_ascii=False), encoding="utf-8")
+    monkeypatch.setattr(newsletter, "settings",
+                        dataclasses.replace(newsletter.settings, content_dir=tmp_path, newsletter_limit=10))
+    titles = sorted(r["title"] for r in newsletter.latest_reports())
+    assert titles == ["Halka arz belgesi özeti — 7 Temmuz 2026 · 13:05", "Halka arz belgesi özeti — 7 Temmuz 2026 · 14:30"]
+

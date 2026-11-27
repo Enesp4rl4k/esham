@@ -52,6 +52,8 @@ export interface Report {
   kap?: { url?: string; company?: string; type?: string; index?: string };
   /** Eski kayıt yalın görünümde gösteriliyorsa true (görüntüleme anında atanır). */
   legacyMinimal?: boolean;
+  /** Görünen başlık eski kayıt için bizim türettiğimiz başlıksa true (resmî KAP başlığı değil). */
+  legacyTitleDerived?: boolean;
 }
 
 export interface CategoryMeta {

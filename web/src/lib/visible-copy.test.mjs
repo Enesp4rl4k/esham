@@ -54,10 +54,11 @@ test("derlenmiş çıktı (varsa): aynı ifadeler yok", { skip: !existsSync(outR
 });
 
 test("üretilmiş metin süzgeci aynı ifadeleri yakalar; olgusal tanım ve şirket adı serbest", () => {
-  for (const t of ["Düşük = ucuz", "Yüksek = verimli", "Raporlar yapay zeka ile analiz edilir."]) {
+  for (const t of ["Düşük = ucuz", "Yüksek = verimli", "Düşük F/K = ucuz", "Yüksek = fazla ödeme", "Düşük = az borçlu"]) {
     assert.ok(findBanned(t).length > 0, t);
   }
-  for (const t of ["Fiyat / hisse başına kâr", "MEGA METAL Sanayi ve Ticaret A.Ş.", "/hisseler/tarama/dusuk-fk"]) {
+  // Konusu yapay zekâ olan gerçek bildirimler süzgeçten geçer; "yapay zeka destekli" yasağı yalnız sitenin kendi metni için (FORBIDDEN).
+  for (const t of ["ASELSAN A.Ş.: Yapay Zeka Destekli Analiz Platformu İçin Sözleşme İmzalanması", "Fiyat / hisse başına kâr", "MEGA METAL Sanayi ve Ticaret A.Ş.", "/hisseler/tarama/dusuk-fk"]) {
     assert.deepEqual(findBanned(t), [], t);
   }
 });
