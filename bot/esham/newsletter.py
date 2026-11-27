@@ -29,6 +29,7 @@ from email.mime.text import MIMEText
 from pathlib import Path
 
 from .config import get_logger, settings
+from .neutral import sanitize_summary
 
 log = get_logger(__name__)
 
@@ -195,6 +196,8 @@ def latest_reports(limit: int | None = None) -> list[dict]:
         doc = _read_json(path)
         if not isinstance(doc, dict) or not doc.get("slug"):
             continue
+        # Eski raporların özetindeki "MEGA SÖZLEŞME | ..." gibi etiketler e-postaya taşınmaz.
+        doc["summary"] = sanitize_summary(str(doc.get("summary", "")), str(doc.get("title", "")))
         reports.append(doc)
         if len(reports) >= limit:
             break

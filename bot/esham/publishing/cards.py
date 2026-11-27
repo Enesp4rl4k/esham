@@ -540,6 +540,12 @@ class CardGenerator:
           template="market" → _render_market
           template="news"   → _render_news
         """
+        # Sansasyonel/yargı içeren etiket ("MEGA İŞ ANLAŞMASI", "AL SİNYALİ" vb.) karta basılmaz.
+        from ..neutral import find_banned
+        if find_banned(spec.kicker):
+            spec.kicker = ""
+        spec.metrics = [(k, v) for k, v in spec.metrics if not find_banned(f"{k} {v}")]
+
         template = spec.template
         # Kategori bazlı otomatik yönlendirme
         if template == "auto":

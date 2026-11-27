@@ -59,9 +59,10 @@ def test_temerrut_classification_and_no_emojis():
         is_insider=False,
     )
     
-    # Must be classified as Risk / Temerrüt Bildirimi, NOT Pozitif
-    assert "Risk / Temerrüt Bildirimi" in body
-    assert "Pozitif (Yeni Sipariş" not in body
+    # Konu tarafsız etiketle verilir; "Pozitif"/"Risk" gibi yargı etiketi yok.
+    assert "**Konu:** Temerrüt bildirimi" in body
+    assert "Pozitif" not in body
+    assert "Sinyal" not in body
     assert "🟢" not in body
     assert "🚨" not in body
     assert "⚡" not in body

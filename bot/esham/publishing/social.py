@@ -2,6 +2,9 @@
 
 Twitter/X paylaşımları manuel olarak yapılır.
 Bot yalnızca Telegram kanalına otomatik yayın yapar.
+
+Her gönderi: (1) yasaklı piyasa yargısı/tavsiye kalıplarından deterministik olarak süzülür,
+(2) guardrail'dan geçer, (3) sonuna "yatırım tavsiyesi değildir" uyarısı eklenir.
 """
 from __future__ import annotations
 
@@ -11,9 +14,21 @@ import requests
 
 from ..config import get_logger, settings
 from ..guardrails import allow, validate_tweet
+from ..neutral import DISCLAIMER_GENERIC, strip_banned
 from ..state import get_state
 
 log = get_logger(__name__)
+
+
+def prepare_post(message: str, disclaimer: str | None = None) -> str:
+    """Gönderi metnini süzer ve uyarı satırını ekler. Süzgeç sonrası metin boşsa "" döner."""
+    clean = strip_banned(message or "")
+    if not clean:
+        return ""
+    note = disclaimer or DISCLAIMER_GENERIC
+    if note not in clean:
+        clean = f"{clean}\n\n{note}"
+    return clean
 
 
 class SocialPublisher:
@@ -55,15 +70,20 @@ class SocialPublisher:
             log.error("Telegram gönderimi başarısız: %s", exc)
             return False
 
-    def broadcast(self, message: str, image_path: Path | None = None) -> None:
-        """Telegram'a yayın yapar. Guardrail + günlük tavan kontrolü yapar.
+    def broadcast(self, message: str, image_path: Path | None = None, disclaimer: str | None = None) -> None:
+        """Telegram'a yayın yapar. Süzgeç + guardrail + günlük tavan kontrolü yapar.
 
         Twitter paylaşımı bu fonksiyonla yapılmaz — manuel olarak yapılır.
+        280 karakter sınırı uyarı satırı eklenmeden ÖNCEKİ metne uygulanır (Telegram açıklama sınırı 1024).
         """
         if settings.paused:
             log.info("[PAUSED] Paylaşım atlandı: %s", message[:60])
             return
-        if not allow("sosyal paylaşım", validate_tweet(message)):
+        core = strip_banned(message or "")
+        if not core:
+            log.warning("Paylaşım süzgeç sonrası boş kaldı; atlandı: %s", (message or "")[:60])
+            return
+        if not allow("sosyal paylaşım", validate_tweet(core)):
             return
 
         state = get_state()
@@ -74,12 +94,12 @@ class SocialPublisher:
             )
             return
 
-        sent = self.post_telegram(message, image_path)
+        sent = self.post_telegram(prepare_post(core, disclaimer), image_path)
         if sent:
             state.increment_daily_post_count()
 
     def broadcast_thread(self, tweets: list[str],
-                         image_path: Path | None = None) -> None:
+                         image_path: Path | None = None, disclaimer: str | None = None) -> None:
         """Uzun içerikleri (sabah bülteni, haftalık özet) Telegram'a gönderir.
 
         Tüm parçaları birleşik tek mesaj olarak iletir.
@@ -87,7 +107,10 @@ class SocialPublisher:
         """
         if settings.paused or not tweets:
             return
-        if not allow("sosyal paylaşım (thread)", validate_tweet(tweets[0])):
+        parts = [p for p in (strip_banned(t) for t in tweets) if p]
+        if not parts:
+            return
+        if not allow("sosyal paylaşım (thread)", validate_tweet(parts[0])):
             return
 
         state = get_state()
@@ -95,7 +118,7 @@ class SocialPublisher:
             log.warning("Günlük tavan; thread atlandı.")
             return
 
-        tg_text = "\n\n".join(tweets)
+        tg_text = prepare_post("\n\n".join(parts), disclaimer)
         sent = self.post_telegram(tg_text, image_path)
         if sent:
             state.increment_daily_post_count()

@@ -140,6 +140,13 @@ class ContentStore:
             if tr_title:
                 draft.title = tr_title
 
+        # Deterministik son süzgeç: hangi üretici (LLM, şablon) yazmış olursa olsun piyasa yargısı/tavsiye
+        # kalıpları yayına gitmez. Süzgeçten sonra hâlâ ihlal kalırsa guardrail yayını engeller.
+        from ..neutral import find_banned, sanitize_summary, strip_banned
+        draft.body = strip_banned(draft.body)
+        draft.summary = sanitize_summary(draft.summary, draft.title)
+        draft.tags = [t for t in draft.tags if not find_banned(t)]
+
         violations = validate_report(draft.title, draft.summary, draft.body)
         if not allow(f"rapor '{draft.title}'", violations):
             return None

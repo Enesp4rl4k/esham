@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from .config import get_logger, settings
 from .evals.checks import contains_investment_advice
+from .neutral import find_banned
 from .translation import is_mostly_english
 
 log = get_logger(__name__)
@@ -25,11 +26,17 @@ def _mode() -> str:
 
 
 def validate_report(title: str, summary: str, body: str) -> list[str]:
-    """Bir raporun metnini denetler; ihlal listesi döner (boşsa temiz)."""
+    """Bir raporun metnini denetler; ihlal listesi döner (boşsa temiz).
+
+    Başlık KAP bildiriminin kendi başlığıdır (olgusal alıntı); yasaklı kalıp denetimi özet ve gövdeye uygulanır.
+    """
     text = " ".join([title or "", summary or "", body or ""])
     violations: list[str] = []
     if contains_investment_advice(text):
         violations.append("örtük/açık yatırım tavsiyesi kalıbı")
+    banned = find_banned(f"{summary or ''}\n{body or ''}")
+    if banned:
+        violations.append(f"piyasa yargısı/tavsiye kalıbı: {', '.join(sorted(set(banned))[:5])}")
     if is_mostly_english(title):
         violations.append(f"başlık Türkçe değil / İngilizce kaldı: {title[:50]}")
     return violations
@@ -41,6 +48,9 @@ def validate_tweet(text: str) -> list[str]:
         violations.append(f"tweet {TWEET_LIMIT} karakteri aşıyor ({len(text)})")
     if contains_investment_advice(text):
         violations.append("örtük/açık yatırım tavsiyesi kalıbı")
+    banned = find_banned(text)
+    if banned:
+        violations.append(f"piyasa yargısı/tavsiye kalıbı: {', '.join(sorted(set(banned))[:5])}")
     if is_mostly_english(text):
         violations.append(f"tweet Türkçe değil / İngilizce kaldı: {text[:50]}")
     return violations
