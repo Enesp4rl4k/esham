@@ -18,6 +18,7 @@ import requests
 from .ai import MarketAIAnalyzer
 from .ai.analyzer import NEUTRAL_RULES
 from .config import get_logger, settings
+from .formatting import tr_number
 from .neutral import strip_banned
 from .publishing import ContentStore, ReportDraft
 from .publishing.content_store import slugify
@@ -290,10 +291,10 @@ def run_viop_report(
 
 | Gösterge | Değer |
 | --- | --- |
-| Teminatlı hesap | {snap.margined_account_count:,} |
+| Teminatlı hesap | {tr_number(snap.margined_account_count, 0)} |
 | Margin-call toplam | {snap.margin_call_pretty()} |
 | Gereken teminat | {snap.required_pretty()} |
-| Margin-call / Gereken | %{snap.margin_call_to_required_pct:.3f} |
+| Margin-call / Gereken | %{tr_number(snap.margin_call_to_required_pct, 3)} |
 
 ## Teminat Stresi: {stress.level}
 

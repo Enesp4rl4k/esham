@@ -25,6 +25,12 @@ class FinancialAnalysis:
     radar_scores: dict[str, int] = field(default_factory=dict)  # Büyüme, Kârlılık, Borçluluk, Çarpanlar, Likidite (1-10)
     ai_generated: bool = True
 
+    def has_content(self) -> bool:
+        """AI kapalı/başarısızken yalnız iskele metni vardır → yayın yapılmaz."""
+        return self.ai_generated and any([
+            any(v for v in self.ratios.values()), self.strengths, self.red_flags,
+        ])
+
     def to_markdown(self) -> str:
         def bullets(items: list[str]) -> str:
             return "\n".join(f"- {i}" for i in items) if items else "- Belirtilmemiş"

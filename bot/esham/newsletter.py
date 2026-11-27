@@ -29,7 +29,7 @@ from email.mime.text import MIMEText
 from pathlib import Path
 
 from .config import get_logger, settings
-from .neutral import NOTE_GENERIC, REPORT_SCHEMA_VERSION, sanitize_summary
+from .neutral import NOTE_GENERIC, is_legacy, legacy_summary, legacy_title, sanitize_summary
 
 log = get_logger(__name__)
 
@@ -196,14 +196,13 @@ def latest_reports(limit: int | None = None) -> list[dict]:
         doc = _read_json(path)
         if not isinstance(doc, dict) or not doc.get("slug"):
             continue
-        # Eski (şema sürümü taşımayan) raporların özeti yorum içerebilir: web'deki yalın görünümle aynı
-        # kural — KAP raporunda yalnız KAP başlığı (aynen), diğerlerinde süzülmüş özet.
-        title = str(doc.get("title", ""))
-        legacy = not (isinstance(doc.get("schemaVersion"), int) and doc["schemaVersion"] >= REPORT_SCHEMA_VERSION)
-        if legacy and "KAP" in (doc.get("sources") or []):
-            doc["summary"] = title
+        # Web ile AYNI görünüm kararı (neutral.is_legacy / legacy_title / legacy_summary): sürümsüz kayıtta
+        # eski özet ve yorum taşıyan başlık gösterilmez.
+        if is_legacy(doc):
+            doc["summary"] = legacy_summary(doc)
+            doc["title"] = legacy_title(doc)
         else:
-            doc["summary"] = sanitize_summary(str(doc.get("summary", "")), title)
+            doc["summary"] = sanitize_summary(str(doc.get("summary", "")), str(doc.get("title", "")))
         reports.append(doc)
         if len(reports) >= limit:
             break

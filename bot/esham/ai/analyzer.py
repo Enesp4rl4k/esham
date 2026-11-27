@@ -8,7 +8,7 @@ Tasarım ilkeleri:
 from __future__ import annotations
 
 from ..config import get_logger, settings
-from ..neutral import NOTE_AMOUNT_MISSING, amount_quotes, strip_banned
+from ..neutral import NOTE_AMOUNT_MISSING, strip_banned
 from ..translation import ensure_turkish, translate_to_turkish, is_mostly_english
 from ..sources import MarketSnapshot
 from .client import LlmClient
@@ -38,11 +38,9 @@ def filing_facts_markdown(
     date: str = "",
 ) -> str:
     """KAP bildirimi için BİREBİR bilgi bloğu (süzülmez): başlık aynen, şirket, tarih, KAP bildirim türü,
-    para birimi geçen kısa ifadelerin BİREBİR alıntısı (sayı yorumlanmaz), KAP bağlantısı.
-
-    Alıntı bulunamazsa tutar iddiası yazılmaz; "tutar bilgisi için bildirime bakın" denir.
+    "Tutar bilgisi için bildirime bakın." notu ve KAP bağlantısı. ``text`` bilinçli olarak kullanılmaz:
+    bildirim gövdesinden hiçbir rakam rapora taşınmaz.
     """
-    quotes = amount_quotes(text or "")
     who = f"{company} ({ticker})" if ticker and ticker != company else company
     lines = [
         "### Bildirim Bilgileri",
@@ -52,12 +50,8 @@ def filing_facts_markdown(
     if date:
         lines.append(f"- **Tarih:** {date}")
     lines.append(f"- **Bildirim türü (KAP):** {disclosure_type or 'Belirtilmemiş'}")
-    if quotes:
-        # Sayı yorumlanmaz/biçimlendirilmez: bildirim metninden karakter karakter aynı alıntı.
-        for q in quotes:
-            lines.append(f"- **Bildirimde geçen ifade:** `{q}`")
-    else:
-        lines.append(f"- **Tutar:** {NOTE_AMOUNT_MISSING}")
+    # Bildirim gövdesinden hiçbir tutar/rakam alınmaz (ne ayrıştırma ne alıntı); okur bildirime yönlendirilir.
+    lines.append(f"- **Tutar:** {NOTE_AMOUNT_MISSING}")
     if disclosure_index:
         lines.append(
             f"- **Kaynak:** [KAP bildirimi #{disclosure_index}](https://www.kap.org.tr/tr/Bildirim/{disclosure_index})"
@@ -284,17 +278,16 @@ Bildirim içeriği:
 Şu formatta yanıt ver (kısa ve somut maddeler):
 
 ## ÖZET
-Tek cümle (max 140 karakter): kim, neyi açıkladı. Bildirimde tutar/oran varsa birimiyle ekle.
+Tek cümle (max 140 karakter): kim, neyi açıkladı. Tutar/rakam YAZMA (okur bildirime yönlendirilir).
 
 ## BİLDİRİM
 - **Ne açıklandı:** Bildirimdeki ifadelere sadık 1-2 cümle.
 - **Taraflar:** Bildirimde geçen şirket/kişi/kurumlar; yoksa "Belirtilmemiş".
-- **Tutar / oran:** Bildirimde geçtiği şekliyle ve neyin tutarı olduğu; yoksa "Belirtilmemiş".
 - **Tarihler:** Bildirimde geçen tarih ve süreler; yoksa "Belirtilmemiş".
 - **Açıklanan sonraki adım:** Yalnızca bildirimde yazan süreç adımı (ör. SPK onayı, genel kurul); yoksa "Belirtilmemiş".
 
 ## TWEET
-260 karakteri aşmayan tek, tarafsız cümle: [Şirket] [ne açıkladı]. Varsa tutarı birimiyle ekle.
+260 karakteri aşmayan tek, tarafsız cümle: [Şirket] [ne açıkladı]. Tutar/rakam yazma.
 - EMOJİ KULLANMA. Hashtag EKLEME. Yorum ekleme.
 """
         raw = self.client.generate(prompt, disable_thinking=True, task_type="analysis")

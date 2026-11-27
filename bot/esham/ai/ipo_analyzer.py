@@ -90,6 +90,13 @@ class IpoAnalysis:
             meta["risks"] = list(self.risks)
         return meta
 
+    def has_content(self) -> bool:
+        """Belgeden en az bir alan ayıklandı mı? AI kapalı/başarısızken her şey boştur → yayın yapılmaz."""
+        return self.ai_generated and any([
+            self.price, self.discount_rate, self.offer_size, self.net_margin, self.fund_usage,
+            self.commitments, self.strengths, self.risks, any(v for v in self.valuation.values()),
+        ])
+
     def to_markdown(self) -> str:
         def bullets(items: list[str]) -> str:
             return "\n".join(f"- {i}" for i in items) if items else "- Belirtilmemiş"

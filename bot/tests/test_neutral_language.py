@@ -29,7 +29,6 @@ from esham.neutral import (
     NOTE_KAP,
     REPORT_SCHEMA_VERSION,
     classify_filing,
-    amount_quotes,
     find_banned,
     normalize,
     strip_banned,
@@ -250,7 +249,7 @@ def test_akbank_tier2_end_to_end(news_env, monkeypatch):
     """İnceleme B1: 'Tier 2' başlığı guardrail'a takılıp bildirim kayboluyordu."""
     slug, files, doc = _run(news_env, monkeypatch, FILINGS[0], None)
     assert slug and "Tier 2 Sermaye Benzeri Borçlanma Aracı İhracı" in doc["body"]
-    assert "`Bankamızca 500.000.000 ABD Doları tutarında Tier 2 niteliğinde sermaye benzeri borçlanma aracı ihracı tamamlanmıştır.`" in doc["body"]
+    assert "500.000.000" not in doc["body"] and NOTE_AMOUNT_MISSING in doc["body"]  # bildirim gövdesinden rakam yok
     assert "Tier 2" in news_env["posts"][0]
 
 
@@ -260,7 +259,7 @@ def test_kontrolmatik_signalling_end_to_end(news_env, monkeypatch):
     slug, files, doc = _run(news_env, monkeypatch, filing, _good_llm(filing[0], filing[2], filing[4]))
     assert slug and "Demiryolu Sinyalizasyon Projesi Sözleşmesi" in doc["body"]
     assert "sinyalizasyon" in doc["body"].lower().split("### bildirim bilgileri")[0]  # LLM özeti korundu
-    assert "1,2 milyar TL" in doc["body"]  # birebir alıntı içinde
+    assert NOTE_AMOUNT_MISSING in doc["body"].split("### Bildirim Bilgileri")[1]
     assert "sinyalizasyon" in news_env["posts"][0].lower()
 
 
@@ -381,76 +380,64 @@ def test_no_code_company_shows_name_once(news_env, monkeypatch):
     assert doc["sources"] == ["KAP"] and "" not in doc["tags"]
 
 
-# ---- 5. tutarlar: yalnız BİREBİR alıntı (sayı yorumlanmaz) -----------------------------------------
+# ---- 5. tutarlar: rapora hiçbir tutar/rakam taşınmaz ---------------------------------------------------
 
-# İncelemenin büyüklük hatası çıkan girdileri: artık hiçbiri ayrıştırılmaz; varsa birebir alıntılanır.
-REVIEW_AMOUNT_INPUTS = [
+# Üç inceleme turunun tutar girdileri + üçüncü turun alıntı örnekleri (olumsuzlama kesilmesi, "Şti."/"T.C."
+# sonrası bölünme, tek satıra inmiş tablolar). Hiçbirinden olgu bloğuna rakam geçmemeli.
+AMOUNT_REGRESSION_INPUTS = [
     "Pay başına brüt 0,125 TL kâr payı ödenecektir.",
-    "Pay başına brüt 1,875 TL",
-    "1 USD = 34,125 TL kuru kullanılmıştır.",
     "Sözleşme bedeli 1 250 500 TL",
-    "Sözleşme bedeli 1 250 500 TL",
     "Bedel USD 1 250 500",
     "EUR 2027 vadeli tahvil ihraç edilmiştir.",
-    "USD 2031 vadeli 500 milyon USD tutarında tahvil",
     "Net dönem zararı -5.000.000 TL olmuştur.",
-    "1 TL itibari değerli paylar",
-    "Ortalama fiyat 1.234,567 TL",
     "Bağlı ortaklığımız 250,000 USD tutarında sipariş almıştır.",
+    "Sözleşme bedeli 5 milyon TL'dir. Ancak sözleşme henüz imzalanmamıştır.",
+    "İhaleye 5 milyon TL teklif verilmiştir. İhale kazanılamamıştır.",
+    "X Ltd. Şti. ile 12 milyon TL tutarında sözleşme imzalanmıştır.",
+    "T.C. Ziraat Bankası A.Ş. ile 300 milyon TL kredi.",
+    "Hasılat (Bin TL) 2025 1.234.567 2024 987.654 Net Kâr 2025 345.678",
+    "Sermaye 1.000.000.000 TL Kayıtlı Sermaye Tavanı 5.000.000.000 TL Bildirim İçeriği Şirketimiz 30 milyon TL sipariş almıştır.",
 ]
 
 
-@pytest.mark.parametrize("text", REVIEW_AMOUNT_INPUTS)
-def test_amount_quote_is_verbatim_substring(text):
-    quotes = amount_quotes(text)
-    assert quotes == [text.strip()]  # tek cümle: aynen, karakter karakter
-    for q in quotes:
-        assert q in text
+def _facts_digits(md: str, title: str, index: str) -> str:
+    """Olgu bloğundaki rakamlar — başlık (KAP'ın kendi metni), tarih ve bildirim numarası hariç."""
+    rest = md.replace(title, "").replace(f"#{index}", "").replace(f"/Bildirim/{index}", "")
+    return "".join(re.findall(r"\d", rest))
 
 
-def test_amount_quotes_skip_long_and_unsure_segments():
-    long_table = "Hasılat (Bin TL) " + " ".join(f"{i}.000 TL" for i in range(60))
-    assert amount_quotes(long_table) == []                       # 200 karakteri aşan döküm alıntılanmaz
-    assert amount_quotes("Pay oranı %100 olarak belirlenmiştir.") == []  # para birimi yok
-    assert amount_quotes("Tutar TL cinsindendir.") == []         # rakam yok
-    assert amount_quotes("Kod `TL` 5") == []                     # ters tırnak (markdown) içeren parça atlanır
-
-
-def test_amount_quotes_split_sentences_without_breaking_numbers():
-    text = "Satış bedeli 6.700.000.000 TL olarak tahsil edilmiştir. Devir 2027'de yapılacaktır. Ek bedel USD 5,5 milyon."
-    assert amount_quotes(text) == ["Satış bedeli 6.700.000.000 TL olarak tahsil edilmiştir.", "Ek bedel USD 5,5 milyon."]
-
-
-def test_amount_quote_property_fuzz():
-    """Özellik testi: rastgele metinlerde gösterilen her alıntı kaynağın birebir alt dizgisidir."""
-    rng = random.Random(20261127)
-    pieces = ["Şirketimiz", "0,125", "1 250 500", "-5.000.000", "TL", "USD", "EUR", "2027", "vadeli", "₺", "$",
-              "1,250,000.50", "kâr payı", "%12,5", "itibari", ".", ".", "\n", "Tutar:", "Devir", "A.Ş.", "`"]
-    for _ in range(3000):
-        text = " ".join(rng.choice(pieces) for _ in range(rng.randint(3, 40)))
-        for q in amount_quotes(text):
-            assert q in text and q == q.strip() and len(q) <= 200
-            assert re.search(r"\d", q) and "`" not in q
-
-
-def test_no_number_formatting_code_path_remains():
-    """Bildirim tutarını ayrıştıran/biçimlendiren kod yolu kalmamalı."""
-    src = (ROOT / "bot" / "esham" / "neutral.py").read_text(encoding="utf-8")
-    for gone in ("def extract_amounts", "def format_amount_tr", "def parse_number_strict"):
-        assert gone not in src
-    an = (ROOT / "bot" / "esham" / "ai" / "analyzer.py").read_text(encoding="utf-8")
-    assert "extract_amounts" not in an and "formatted()" not in an
-
-
-def test_facts_block_quotes_or_points_to_filing():
+@pytest.mark.parametrize("text", AMOUNT_REGRESSION_INPUTS + [_garan_buyback_text()] + [
+    BeautifulSoup((FIX / f).read_text(encoding="utf-8"), "html.parser").get_text(" ", strip=True)
+    for f in ("kap_div_aygaz_teklif_1700009.html", "kap_div_avod_dagitim_yok_1700335.html",
+              "kap_div_yigit_kesinlesen_1700660.html", "kap_buyback_kzgyo_1700896.html")
+])
+def test_facts_block_carries_no_number_from_filing_body(text):
     from esham.ai.analyzer import filing_facts_markdown
 
-    md = filing_facts_markdown("X A.Ş.", "XXXXX", "X A.Ş.: Duyuru", "Duyuru", "Tutar (TL) tablosu ekte.", "1")
-    assert f"- **Tutar:** {NOTE_AMOUNT_MISSING}" in md and "bulunamadı" not in md
-    md = filing_facts_markdown("X A.Ş.", "XXXXX", "X A.Ş.: Kâr Payı", "Kâr Payı",
-                               "Pay başına brüt 0,125 TL kâr payı ödenecektir.", "1")
-    assert "- **Bildirimde geçen ifade:** `Pay başına brüt 0,125 TL kâr payı ödenecektir.`" in md
-    assert "125 TL" not in md.replace("0,125 TL", "")
+    md = filing_facts_markdown("X A.Ş.", "XXXXX", "X A.Ş.: Bildirim", "Özel Durum Açıklaması (Genel)", text, "1700000")
+    assert _facts_digits(md, "X A.Ş.: Bildirim", "1700000") == ""
+    assert f"- **Tutar:** {NOTE_AMOUNT_MISSING}" in md
+    assert "https://www.kap.org.tr/tr/Bildirim/1700000" in md
+
+
+@pytest.mark.parametrize("text", AMOUNT_REGRESSION_INPUTS)
+def test_template_report_has_no_number_from_filing_body(news_env, monkeypatch, text):
+    filing = ("X A.Ş.: Bildirim", "Özel Durum Açıklaması (Genel)", "X A.Ş.", "XXXXX", text, "KAP bildirimi")
+    slug, _, doc = _run(news_env, monkeypatch, filing, None, index="1700000")
+    body = doc["body"].replace(filing[0], "").replace("#1700000", "").replace("/Bildirim/1700000", "")
+    body = body.replace("2026-11-04", "")  # bildirim tarihi
+    assert re.findall(r"\d", body) == [], body
+    (post,) = news_env["posts"]
+    assert not re.findall(r"\d", post.replace(filing[0], "").split("http")[0])
+
+
+def test_no_amount_code_path_remains():
+    """Bildirim tutarını ayrıştıran, biçimlendiren ya da alıntılayan kod yolu kalmamalı."""
+    src = (ROOT / "bot" / "esham" / "neutral.py").read_text(encoding="utf-8")
+    for gone in ("def extract_amounts", "def format_amount_tr", "def parse_number_strict", "def amount_quotes"):
+        assert gone not in src
+    an = (ROOT / "bot" / "esham" / "ai" / "analyzer.py").read_text(encoding="utf-8")
+    assert "amount_quotes" not in an and "extract_amounts" not in an
 
 
 # ---- 6. LLM prompt + son süzgeç ---------------------------------------------------------------------
@@ -527,8 +514,8 @@ def test_newsletter_uses_verbatim_title_for_legacy_kap(tmp_path, monkeypatch):
 
     monkeypatch.setattr(newsletter, "settings",
                         dataclasses.replace(newsletter.settings, content_dir=tmp_path, newsletter_limit=10))
-    got = {r["slug"]: r["summary"] for r in newsletter.latest_reports()}
-    assert got == {"a": "X A.Ş.: Duyuru", "b": "Y A.Ş. bildirim yayımladı."}
+    got = {r["slug"]: (r["title"], r["summary"]) for r in newsletter.latest_reports()}
+    assert got == {"a": ("X A.Ş.: Duyuru", "KAP bildirimi — eski kayıt."), "b": ("Y A.Ş.: Duyuru", "Y A.Ş. bildirim yayımladı.")}
     _subject, html_body, text_body = newsletter.build_digest(newsletter.latest_reports())
     assert neutral.NOTE_GENERIC in text_body and "yapay zeka tarafından üretilir" not in html_body
 
@@ -594,3 +581,30 @@ def test_retry_cap_marks_seen_after_limit_and_logs(monkeypatch, caplog):
     assert len(calls) == ns.MAX_PUBLISH_ATTEMPTS               # sınırdan sonra yeniden denenmez
     assert any("Z A.Ş." in k for k in state.seen)
     assert any("deneme sınırı aşıldı" in r.message for r in caplog.records)
+
+
+# ---- 9. eski kayıt görünümü: web ile ortak vektörler, bülten aynı kararı kullanır ------------------------
+
+@pytest.mark.parametrize("doc,title,summary", VECTORS["legacy"], ids=[v[0]["title"][:30] for v in VECTORS["legacy"]])
+def test_shared_vectors_legacy_title(doc, title, summary):
+    from esham.neutral import legacy_summary, legacy_title
+
+    assert legacy_title(doc) == title and legacy_summary(doc) == summary
+
+
+def test_newsletter_legacy_non_kap_uses_neutral_title(tmp_path, monkeypatch):
+    import dataclasses
+
+    from esham import newsletter
+
+    old = {"slug": "c", "title": "Altın +1,49% yükseldi (4.145). Güvenli liman talebi artıyor.",
+           "summary": "Altın yükseldi; piyasa fiyatlamaları üzerindeki yansımalarıyla izleniyor.",
+           "sources": ["Yahoo Finance"], "publishedAt": "2026-08-01T12:00:00Z", "category": "global"}
+    (tmp_path / "2026-08-01-c.json").write_text(json.dumps(old, ensure_ascii=False), encoding="utf-8")
+    monkeypatch.setattr(newsletter, "settings",
+                        dataclasses.replace(newsletter.settings, content_dir=tmp_path, newsletter_limit=10))
+    (r,) = newsletter.latest_reports()
+    assert r["title"] == "Küresel piyasa notu — 1 Ağustos 2026"
+    assert r["summary"] == "Eski kayıt; içerik gösterilmiyor."
+    _s, html_body, text_body = newsletter.build_digest([r])
+    assert "Güvenli liman" not in html_body + text_body and "izleniyor" not in html_body + text_body

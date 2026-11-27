@@ -135,51 +135,87 @@ export function companyFromTitle(title: string): string {
 
 const KAP_QUERY_URL = "https://www.kap.org.tr/tr/bildirim-sorgu";
 
+const LEGACY = rules.legacy;
+const OWN_TEMPLATES: [RegExp, string][] = LEGACY.own_templates.map(([p, t]: string[]) => [new RegExp(p), t]);
+export const NOTE_LEGACY_SUMMARY_KAP: string = rules.notes.legacy_summary_kap;
+export const NOTE_LEGACY_SUMMARY: string = rules.notes.legacy_summary;
+
+function ownTemplateType(title: string): string | null {
+  const n = normalize(title);
+  for (const [rx, typ] of OWN_TEMPLATES) if (rx.test(n)) return typ;
+  return null;
+}
+
+/** Eski kaydın başlığı KAP'ın kendi metni mi? KAP kaynaklı ve bizim şablon başlıklarımızdan biri değilse. */
+export function isOfficialKapTitle(r: Pick<ViewableReport, "title" | "sources">): boolean {
+  return isKapReport(r) && ownTemplateType(r.title) === null;
+}
+
+/** Python `_tr_date` ile aynı: İstanbul saatiyle "12 Eylül 2026". */
 function trDate(iso: string): string {
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("tr-TR", { day: "2-digit", month: "long", year: "numeric", timeZone: "Europe/Istanbul" });
+  if (Number.isNaN(d.getTime())) return "";
+  const ist = new Date(d.getTime() + 3 * 3600 * 1000);
+  return `${ist.getUTCDate()} ${LEGACY.months[ist.getUTCMonth()]} ${ist.getUTCFullYear()}`;
+}
+
+/** Sürümsüz kaydın görünen başlığı: resmî KAP başlığı aynen; diğerleri "<tür> — <tarih>" (Python `legacy_title`). */
+export function legacyTitle(r: Pick<ViewableReport, "title" | "sources" | "category" | "publishedAt">): string {
+  if (isOfficialKapTitle(r)) return r.title;
+  const categoryTypes = LEGACY.category_types as Record<string, string>;
+  const typ = ownTemplateType(r.title) ?? categoryTypes[r.category] ?? "Piyasa notu";
+  const date = trDate(r.publishedAt);
+  return date ? `${typ} — ${date}` : typ;
+}
+
+export function legacySummary(r: Pick<ViewableReport, "title" | "sources">): string {
+  return isOfficialKapTitle(r) ? NOTE_LEGACY_SUMMARY_KAP : NOTE_LEGACY_SUMMARY;
 }
 
 /**
  * Eski kayıt kararı YALNIZ `schemaVersion` alanına dayanır (kaynakta "KAP" geçmesi, AI kullanımı veya
  * kalıp listesi gibi sezgiler kullanılmaz): bu alanı taşımayan her rapor bu tarafsız dil sürümünden önce
- * üretilmiştir ve gövdesi HİÇ render edilmez. Eski şablon metinleri de ("izlenmeye değer", "En ucuz",
- * "açılış beklentilerini şekillendirecek", "risk iştahı") yorum içerdiği ve listeyle güvenilir biçimde
- * ayıklanamadığı için KAP dışı eski raporlar da yalın görünüme düşer.
- * Yalın görünüm: başlık (aynen), (KAP ise) şirket, tarih, kaynak/KAP bağlantısı ve not. Eski kart
- * görselleri kullanılmaz (kategori varsayılan görseli). Sürüm 2+ raporlara dokunulmaz.
+ * üretilmiştir ve gövdesi HİÇ render edilmez.
+ * Yalın görünüm: görünen başlık (resmî KAP başlığı aynen; bizim eski başlıklarımız yorum taşıyabildiği için
+ * "<tür> — <tarih>"), (KAP ise) şirket, tarih, kaynak/KAP bağlantısı ve not. Eski kart görselleri ve eski
+ * halka arz "değerlendirme" metni kullanılmaz. Yalın görünüm noindex'tir (bkz. content.ts isIndexableReport).
+ * Sürüm 2+ raporlara dokunulmaz.
  */
-export function legacyView<T extends ViewableReport>(report: T): { report: T; minimal: boolean } {
+export function legacyView<T extends ViewableReport & { ipo?: object }>(
+  report: T,
+): { report: T; minimal: boolean } {
   if (!isLegacy(report)) return { report, minimal: false };
-  const kap = isKapReport(report);
-
-  const company = kap ? companyFromTitle(report.title) : "";
-  const lines = [
-    "### Bildirim Bilgileri",
-    `- **Başlık:** ${report.title}`,
-    ...(company ? [`- **Şirket:** ${company}`] : []),
-    `- **Yayın tarihi:** ${trDate(report.publishedAt)}`,
-    ...(kap
-      ? [
-          "- **Bildirim türü:** Bu eski kayıtta saklanmamış.",
-          `- **Kaynak:** [KAP bildirim sorgulama](${KAP_QUERY_URL})`,
-          "",
-          `> ${NOTE_LEGACY}`,
-        ]
-      : [
-          `- **Kaynaklar:** ${report.sources.join(", ") || "Belirtilmemiş"}`,
-          "",
-          "> Bu sayfa eski bir kayıttır; içeriği güncel yayın ilkelerimize göre gösterilmemektedir.",
-        ]),
-  ];
+  const official = isOfficialKapTitle(report);
+  const title = legacyTitle(report);
+  const company = official ? companyFromTitle(report.title) : "";
+  const lines = official
+    ? [
+        "### Bildirim Bilgileri",
+        `- **Başlık (KAP):** ${report.title}`,
+        ...(company ? [`- **Şirket:** ${company}`] : []),
+        `- **Yayın tarihi:** ${trDate(report.publishedAt)}`,
+        "- **Bildirim türü:** Bu eski kayıtta saklanmamış.",
+        `- **Kaynak:** [KAP bildirim sorgulama](${KAP_QUERY_URL})`,
+        "",
+        `> ${NOTE_LEGACY}`,
+      ]
+    : [
+        "### Kayıt Bilgileri",
+        `- **Yayın tarihi:** ${trDate(report.publishedAt)}`,
+        `- **Kaynaklar:** ${report.sources.join(", ") || "Belirtilmemiş"}`,
+        "",
+        "> Bu sayfa eski bir kayıttır; içeriği güncel yayın ilkelerimize göre gösterilmemektedir.",
+      ];
+  const ipo = report.ipo ? ({ ...report.ipo, verdict: undefined, confidence: undefined } as T["ipo"]) : report.ipo;
   return {
     report: {
       ...report,
+      title,
       body: lines.join("\n"),
-      summary: kap ? report.title : `${report.title} (eski kayıt)`,
+      summary: legacySummary(report),
       tags: report.tags.filter((t) => !hasBanned(t)),
       image: undefined,
+      ipo,
     },
     minimal: true,
   };

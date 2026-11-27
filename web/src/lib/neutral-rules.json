@@ -4,7 +4,9 @@
     "kap": "Bu içerik, kamuya açık bir KAP bildiriminin otomatik özetidir; yatırım tavsiyesi değildir.",
     "generic": "Bu içerik, kamuya açık verilerin otomatik özetidir; yatırım tavsiyesi değildir.",
     "legacy": "Bu sayfa eski bir kayıttır; yalnızca bildirimin temel bilgileri gösterilir. Ayrıntı için KAP'taki bildirime bakın.",
-    "amount_missing": "Tutar bilgisi için bildirime bakın."
+    "amount_missing": "Tutar bilgisi için bildirime bakın.",
+    "legacy_summary_kap": "KAP bildirimi — eski kayıt.",
+    "legacy_summary": "Eski kayıt; içerik gösterilmiyor."
   },
   "normalization": {
     "remove": "​‌‍⁠﻿­︎️᠎",
@@ -176,5 +178,73 @@
     "\\b(dusuk|yuksek) degerlenmis",
     "\\b(outperform|underperform|accumulate)\\b",
     "\\b(upside|downside)\\b"
-  ]
+  ],
+  "legacy": {
+    "_doc": "Sürümsüz (eski) raporların görünen başlığı. KAP kaynaklı ve bizim şablonlarımızla eşleşmeyen başlık KAP'ın kendi metnidir ve aynen kalır; diğerleri '<tür> — <gün Ay yıl>' biçiminde tarafsız türetilir. Kalıplar normalize edilmiş başlığa uygulanır.",
+    "own_templates": [
+      [
+        "^bist & kuresel piyasalar sabah raporu",
+        "Sabah bülteni"
+      ],
+      [
+        "halka arz( halka arz)? analizi$",
+        "Halka arz belgesi özeti"
+      ],
+      [
+        "finansal analiz",
+        "Finansal tablo özeti"
+      ],
+      [
+        "^haftalik piyasa ozeti",
+        "Haftalık piyasa özeti"
+      ],
+      [
+        "^kapanis bulteni",
+        "Kapanış bülteni"
+      ],
+      [
+        "^bist (seans )?acilis",
+        "Açılış bülteni"
+      ],
+      [
+        "^viop piyasa",
+        "VİOP teminat raporu"
+      ],
+      [
+        "^kuresel makro gorunumu",
+        "Küresel makro görünümü"
+      ],
+      [
+        "^haftalik sektor",
+        "Haftalık sektör endeksleri"
+      ],
+      [
+        "es kiyasi",
+        "Sektör çarpan tablosu"
+      ]
+    ],
+    "category_types": {
+      "bist": "BIST piyasa notu",
+      "global": "Küresel piyasa notu",
+      "viop": "VİOP notu",
+      "gundem": "Gündem notu",
+      "kripto": "Kripto piyasa notu",
+      "teknoloji": "Teknoloji haberi notu",
+      "ipo": "Halka arz notu"
+    },
+    "months": [
+      "Ocak",
+      "Şubat",
+      "Mart",
+      "Nisan",
+      "Mayıs",
+      "Haziran",
+      "Temmuz",
+      "Ağustos",
+      "Eylül",
+      "Ekim",
+      "Kasım",
+      "Aralık"
+    ]
+  }
 }

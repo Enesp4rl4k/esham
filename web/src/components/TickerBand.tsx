@@ -104,7 +104,7 @@ export async function TickerBand() {
                 className="font-medium text-xs"
                 aria-hidden="true"
               >
-                Esham — Yapay Zeka Piyasa Analizi
+                Esham — Kamuya Açık Bildirim ve Veri Özetleri
               </span>
               <span className="opacity-20 select-none" aria-hidden="true">·</span>
             </div>
@@ -155,7 +155,7 @@ export async function TickerBand() {
             ))}
             <span className="opacity-30" aria-hidden="true">·</span>
             <span style={{ color: "var(--accent)" }} className="font-medium">
-              Esham — Yapay Zeka Piyasa Analizi
+              Esham — Kamuya Açık Bildirim ve Veri Özetleri
             </span>
             <span className="opacity-30" aria-hidden="true">·</span>
           </div>

@@ -113,6 +113,11 @@ def analyze_ipo_document(
     result = IpoResult(analysis=analysis)
     result.image_path = _render_card(_ipo_card_spec(company, ticker, analysis))
 
+    if publish and not analysis.has_content():
+        # İçerik yoksa (AI kapalı/başarısız: tüm alanlar "Belirtilmemiş") rapor ve Telegram gönderisi YOK.
+        # Bildirim kaybolmaz: news_stream slug alamayınca yalın KAP raporunu yayınlar.
+        log.warning("Halka arz analizi içerik üretmedi (AI kapalı/başarısız); yayın yapılmadı: %s", company)
+        publish = False
     if publish:
         summary = analysis.verdict or f"{company} halka arz belgesinin özeti."
         draft = ReportDraft(
@@ -152,6 +157,9 @@ def analyze_company_report(
     text = load_document_text(source)
     analysis = FinancialReportAnalyzer().analyze(text, company, period)
 
+    if publish and not analysis.has_content():
+        log.warning("Finansal analiz içerik üretmedi (AI kapalı/başarısız); yayın yapılmadı: %s", company)
+        publish = False
     if publish:
         title = f"{company} Finansal Analiz" + (f" — {period}" if period else "")
         card_path = _render_card(

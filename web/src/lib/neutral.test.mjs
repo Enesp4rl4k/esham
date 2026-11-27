@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
-import { findBanned, normalize, stripBanned, legacyView, NOTE_KAP, isKapReport } from "./neutral.ts";
+import { findBanned, normalize, stripBanned, legacyView, legacyTitle, legacySummary, NOTE_KAP, isKapReport } from "./neutral.ts";
+import { isIndexable } from "./thin-content.ts";
 
 const vectors = JSON.parse(readFileSync(new URL("./neutral-vectors.json", import.meta.url), "utf-8"));
 const reportsDir = new URL("../../content/reports/", import.meta.url);
@@ -35,10 +36,11 @@ test("eski KAP raporu yalın görünümde: yorum gövdesi yok, başlık aynen, e
   const { report, minimal } = legacyView({ ...doc, tags: doc.tags ?? [], sources: doc.sources ?? [] });
   assert.equal(minimal, true);
   assert.equal(report.image, undefined);
-  assert.ok(report.body.includes(`- **Başlık:** ${doc.title}`));
+  assert.ok(report.body.includes(`- **Başlık (KAP):** ${doc.title}`));
+  assert.equal(report.title, doc.title); // resmî KAP başlığı aynen
   assert.ok(report.body.includes("- **Şirket:** TÜRKİYE İŞ BANKASI A.Ş."));
   for (const gone of ["Hızlı Bakış", "Finansal Sinyal", "4950000", "Sözleşme Tutarı"]) assert.ok(!report.body.includes(gone), gone);
-  assert.equal(report.summary, doc.title);
+  assert.equal(report.summary, "KAP bildirimi — eski kayıt.");
   assert.ok(!report.tags.includes("Mega Sözleşme"));
 });
 
@@ -85,4 +87,32 @@ test("tüm eski raporlar: yalın görünümde yasaklı kalıp yok, eski kart yok
 
 test("not metni tek kaynaktan", () => {
   assert.match(NOTE_KAP, /yatırım tavsiyesi değildir/);
+});
+
+test("ortak vektörler: eski kayıt görünen başlığı ve özeti (Python legacy_title/legacy_summary ile aynı)", () => {
+  for (const [doc, title, summary] of vectors.legacy) {
+    assert.equal(legacyTitle(doc), title, doc.title);
+    assert.equal(legacySummary(doc), summary, doc.title);
+  }
+});
+
+test("eski KAP dışı başlık yorum taşımaz; kartta başlık tekrarı yok", () => {
+  for (const f of readdirSync(reportsDir).filter((x) => x.endsWith(".json"))) {
+    const doc = JSON.parse(readFileSync(new URL(f, reportsDir), "utf-8"));
+    const { report } = legacyView({ ...doc, tags: doc.tags ?? [], sources: doc.sources ?? [], aiGenerated: doc.aiGenerated !== false });
+    assert.ok(!report.summary.includes(report.title), f);
+    if (report.title !== doc.title) {
+      assert.match(report.title, / — \d{1,2} \S+ \d{4}$/, f);
+      for (const bad of ["takip ediliyor", "izleniyor", "Güvenli liman", "risk iştahı", "rotasyon"]) assert.ok(!report.title.includes(bad), f);
+    }
+  }
+});
+
+test("dizin kararı tek fonksiyon: yalın görünüm ⇒ noindex (ipo meta veriye rağmen)", () => {
+  const hun = JSON.parse(readFileSync(new URL("2026-11-10-hun-yenilenebilir-enerji-uretim-a-s-halka-arz-analizi.json", reportsDir), "utf-8"));
+  const { report, minimal } = legacyView({ ...hun, tags: hun.tags ?? [], sources: hun.sources ?? [] });
+  assert.equal(minimal, true);
+  assert.equal(isIndexable({ ...report, legacyMinimal: minimal }), false);
+  assert.equal(report.ipo?.verdict, undefined);
+  assert.equal(isIndexable({ body: "x", ipo: { company: "X", ticker: "Y" } }), true); // sürüm 2 halka arz
 });

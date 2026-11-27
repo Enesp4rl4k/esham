@@ -56,7 +56,7 @@ export async function GET() {
   xmlns:dc="http://purl.org/dc/elements/1.1/"
   xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Esham — Yapay Zeka Destekli Ekonomi Analizi</title>
+    <title>Esham — Kamuya Açık Bildirim ve Veri Özetleri</title>
     <link>${SITE_URL}</link>
     <atom:link href="${SITE_URL}/feed.xml" rel="self" type="application/rss+xml" />
     <description>BIST, küresel makro ve halka arz raporları her gün yapay zeka ile analiz edilir.</description>

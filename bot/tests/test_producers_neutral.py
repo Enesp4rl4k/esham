@@ -162,6 +162,26 @@ def _event():
                        headline="VIX endeksi +%1,83 yükseldi (16,10).", key="k", tags=["Makro"])
 
 
+IPO_JSON = {"price": "45,50 TL", "offer_size": "1 milyar TL", "fund_usage": ["Kapasite artırımı %50"],
+            "strengths": ["Belgede ihracat payı yüzde 40 olarak belirtilmiş"], "risks": ["Kur riski"],
+            "commitments": ["Fiyat istikrarı 30 gün"], "valuation": {"F/K": "8,1"},
+            "verdict": "İzahnamede 45,50 TL fiyatla 1 milyar TL büyüklüğünde arz belirtilmiştir.", "confidence": "orta"}
+FIN_JSON = {"summary": "Belgede 9 aylık hasılat ve net kâr açıklanmıştır.", "ratios": {"Net Kâr Marjı": "%12"},
+            "strengths": ["İhracat payı belgede yüzde 40"], "red_flags": ["Kısa vadeli borç artışı belgede belirtilmiş"]}
+
+
+def _with_llm_json(data, fn):
+    import pytest as _pt
+
+    mp = _pt.MonkeyPatch()
+    mp.setattr(LlmClient, "enabled", property(lambda self: True))
+    mp.setattr(LlmClient, "generate_json", lambda self, *a, **k: dict(data))
+    try:
+        return fn()
+    finally:
+        mp.undo()
+
+
 PRODUCERS = {
     "sabah bülteni": lambda: pipeline.run_morning_report(publish_social=True),
     "VİOP": lambda: pipeline.run_viop_report(publish=True),
@@ -175,8 +195,10 @@ PRODUCERS = {
     "KAP haber": lambda: pipeline.run_news_report(disclosure=DISCLOSURES[0], publish_social=True),
     "makro olay": lambda: pipeline.run_news_report(event=_event(), publish_social=True),
     "haftalık özet": lambda: pipeline.run_weekly_summary(publish_social=True),
-    "halka arz analizi": lambda: analysis.analyze_ipo_document("x", company="X A.Ş.", ticker="XXXXX", make_pdf=False),
-    "finansal tablo analizi": lambda: analysis.analyze_company_report("x", company="X A.Ş.", period="2026/9"),
+    "halka arz analizi": lambda: _with_llm_json(IPO_JSON, lambda: analysis.analyze_ipo_document(
+        "x", company="X A.Ş.", ticker="XXXXX", make_pdf=False)),
+    "finansal tablo analizi": lambda: _with_llm_json(FIN_JSON, lambda: analysis.analyze_company_report(
+        "x", company="X A.Ş.", period="2026/9")),
 }
 
 
@@ -212,3 +234,42 @@ def test_every_publishing_producer_is_covered():
                "run_sector_report", "run_peer_report", "run_global_report", "run_news_report", "run_weekly_summary",
                "analyze_ipo_document", "analyze_company_report"}
     assert producers <= covered, producers - covered
+
+
+@pytest.mark.parametrize("name", ["halka arz", "finansal tablo"])
+def test_analysis_without_content_is_not_published(name, monkeypatch):
+    """AI kapalıyken (tüm alanlar "Belirtilmemiş") rapor da Telegram gönderisi de yok."""
+    monkeypatch.setattr(LlmClient, "enabled", property(lambda self: False))
+    if name == "halka arz":
+        res = analysis.analyze_ipo_document("x", company="X A.Ş.", ticker="XXXXX", make_pdf=False)
+        assert res.slug is None and res.report_path is None
+    else:
+        analysis.analyze_company_report("x", company="X A.Ş.", period="2026/9")
+    assert _Store.drafts == [] and _Social.posts == []
+
+
+def test_ipo_without_content_falls_back_to_minimal_kap_report(monkeypatch):
+    """news_stream: halka arz analizi yayınlanmazsa bildirim kaybolmaz → yalın KAP raporu, IPO gönderisi yok."""
+    from esham import news_stream as ns
+
+    monkeypatch.setattr(LlmClient, "enabled", property(lambda self: False))
+    published = []
+    monkeypatch.setattr(ns, "run_news_report", lambda disclosure=None, **k: (pipeline._set_status("published"),
+                                                                              published.append(disclosure.title), "s")[2])
+    monkeypatch.setattr(ns, "get_state", lambda: type("S", (), {"load_seen": lambda s: set(), "save_seen": lambda s, k: None})())
+    monkeypatch.setattr(ns, "KapSource", lambda: type("K", (), {"resolve_attachment_url": lambda s, i: None})())
+    monkeypatch.setattr(ns, "NewsDetector", lambda: object())
+    stream = ns.NewsStream()
+    sent = []
+    stream.social = type("So", (), {"broadcast": lambda s, m, **k: sent.append(m)})()
+    d = Disclosure("X A.Ş.: Fiyat Tespit Raporu", "X A.Ş.", "2026-11-27", "Fiyat Tespit Raporu", ticker="XXXXX")
+    stream._handle_ipo(d)
+    assert published == ["X A.Ş.: Fiyat Tespit Raporu"] and sent == []
+
+def test_viop_table_uses_turkish_number_format():
+    """`1,000` İngilizce binlik Türkçe okurda "1" gibi okunuyordu; sayı türü belli (adet, oran) → Türkçe biçim."""
+    pipeline.run_viop_report(publish=True)
+    (d,) = _Store.drafts
+    assert "| Teminatlı hesap | 1.000 |" in d.body
+    assert "| Margin-call / Gereken | %0,100 |" in d.body
+    assert "1,000" not in d.body and "0.100" not in d.body

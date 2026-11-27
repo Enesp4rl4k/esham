@@ -1,5 +1,5 @@
 {
-  "_doc": "Ortak davranış vektörleri: bot/tests/test_neutral_language.py ve web/src/lib/neutral.test.mjs aynı dosyayı koşar. block: find_banned boş olmamalı; keep: boş olmalı; normalize: [girdi, beklenen]; strip: [girdi, beklenen strip_banned çıktısı].",
+  "_doc": "Ortak davranış vektörleri: bot/tests/test_neutral_language.py ve web/src/lib/neutral.test.mjs aynı dosyayı koşar. block: find_banned boş olmamalı; keep: boş olmalı; normalize: [girdi, beklenen]; strip: [girdi, beklenen strip_banned çıktısı]. legacy: [eski kayıt, beklenen görünen başlık, beklenen özet].",
   "block": [
     "Hisse alınabilir.",
     "Bu seviyelerden satılmalı.",
@@ -339,6 +339,137 @@
     [
       "## A\n### Boğa senaryosu\nmetin\n#### alt\nalt metin\n### Temiz\nkalır",
       "## A\n### Temiz\nkalır"
+    ]
+  ],
+  "legacy": [
+    [
+      {
+        "title": "TÜRKİYE İŞ BANKASI A.Ş.: Yurt İçinde Sermaye Benzeri Tahvil İhracına İlişkin SPK Başvurusu",
+        "sources": [
+          "KAP",
+          "ISATR"
+        ],
+        "category": "bist",
+        "publishedAt": "2026-11-04T16:41:09Z"
+      },
+      "TÜRKİYE İŞ BANKASI A.Ş.: Yurt İçinde Sermaye Benzeri Tahvil İhracına İlişkin SPK Başvurusu",
+      "KAP bildirimi — eski kayıt."
+    ],
+    [
+      {
+        "title": "Goldman Sachs International- 17/07/2026 Tarihinde ihraç edilecek Yatırım Kuruluşu Varantları",
+        "sources": [
+          "KAP"
+        ],
+        "category": "bist",
+        "publishedAt": "2026-07-16T09:00:00Z"
+      },
+      "Goldman Sachs International- 17/07/2026 Tarihinde ihraç edilecek Yatırım Kuruluşu Varantları",
+      "KAP bildirimi — eski kayıt."
+    ],
+    [
+      {
+        "title": "HUN YENİLENEBİLİR ENERJİ ÜRETİM A.Ş. Halka Arz Analizi",
+        "sources": [
+          "KAP",
+          "İzahname",
+          "Fiyat Tespit Raporu"
+        ],
+        "category": "ipo",
+        "publishedAt": "2026-11-10T10:00:00Z"
+      },
+      "Halka arz belgesi özeti — 10 Kasım 2026",
+      "Eski kayıt; içerik gösterilmiyor."
+    ],
+    [
+      {
+        "title": "BIST & Küresel Piyasalar Sabah Raporu",
+        "sources": [
+          "KAP",
+          "BIST",
+          "Ekonomik Takvim"
+        ],
+        "category": "bist",
+        "publishedAt": "2026-07-06T05:30:00Z"
+      },
+      "Sabah bülteni — 6 Temmuz 2026",
+      "Eski kayıt; içerik gösterilmiyor."
+    ],
+    [
+      {
+        "title": "Kapanış Bülteni: BIST +1,20%",
+        "sources": [
+          "BIST",
+          "TradingView"
+        ],
+        "category": "bist",
+        "publishedAt": "2026-09-12T21:30:00Z"
+      },
+      "Kapanış bülteni — 13 Eylül 2026",
+      "Eski kayıt; içerik gösterilmiyor."
+    ],
+    [
+      {
+        "title": "Altın +1,49% yükseldi (4.145). Güvenli liman talebi artıyor.",
+        "sources": [
+          "Yahoo Finance"
+        ],
+        "category": "global",
+        "publishedAt": "2026-08-01T12:00:00Z"
+      },
+      "Küresel piyasa notu — 1 Ağustos 2026",
+      "Eski kayıt; içerik gösterilmiyor."
+    ],
+    [
+      {
+        "title": "BIST Bankacılık sektörü +3,14% ile güçlü yükseldi; sektör rotasyonu ve para akışı takip ediliyor.",
+        "sources": [
+          "Yahoo Finance"
+        ],
+        "category": "bist",
+        "publishedAt": "2026-08-03T12:00:00Z"
+      },
+      "BIST piyasa notu — 3 Ağustos 2026",
+      "Eski kayıt; içerik gösterilmiyor."
+    ],
+    [
+      {
+        "title": "Haftalık Piyasa Özeti — 10 July 2026 haftası",
+        "sources": [
+          "BIST",
+          "KAP",
+          "Yahoo Finance"
+        ],
+        "category": "bist",
+        "publishedAt": "2026-07-10T15:30:00Z"
+      },
+      "Haftalık piyasa özeti — 10 Temmuz 2026",
+      "Eski kayıt; içerik gösterilmiyor."
+    ],
+    [
+      {
+        "title": "THYAO Finansal Analiz — 2025/Q1",
+        "sources": [
+          "KAP",
+          "Finansal Tablolar"
+        ],
+        "category": "bist",
+        "publishedAt": "2026-07-01T10:00:00Z"
+      },
+      "Finansal tablo özeti — 1 Temmuz 2026",
+      "Eski kayıt; içerik gösterilmiyor."
+    ],
+    [
+      {
+        "title": "Bitcoin +3.90% ile güçlü yükseldi",
+        "sources": [
+          "CoinDesk"
+        ],
+        "category": "kripto",
+        "publishedAt": "2026-08-05T23:59:00Z"
+      },
+      "Kripto piyasa notu — 6 Ağustos 2026",
+      "Eski kayıt; içerik gösterilmiyor."
     ]
   ]
 }

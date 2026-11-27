@@ -165,40 +165,11 @@ def sanitize_summary(summary: str, fallback: str) -> str:
     return strip_banned(" | ".join(parts)) or fallback
 
 
-# ---- tutarlar: yalnız BİREBİR alıntı ----------------------------------------
-# İlke: sayı ASLA yorumlanmaz, normalleştirilmez ya da yeniden biçimlendirilmez (üç inceleme turunda da
-# ayrıştırma büyüklük hatası üretti: "0,125 TL"→125, "1 250 500 TL"→500, "EUR 2027 vadeli"→2.027 EUR,
-# eksi işaret kaybı). Bunun yerine bildirim metninde para birimi ve rakam geçen kısa cümle/satır,
-# karakter karakter aynı haliyle alıntılanır. Emin olunamazsa (uzun satır, tablo dökümü) hiç gösterilmez.
-
-_CUR_WORD = r"TL|TRY|USD|EUR|GBP|CHF|JPY|ABD Doları|ABD doları|Dolar|dolar|Avro|avro|Euro|euro|Sterlin|sterlin"
-_CURRENCY_RE = re.compile(rf"(?<![A-Za-zÇĞİÖŞÜçğıöşü])(?:{_CUR_WORD})(?![A-Za-zÇĞİÖŞÜçğıöşü])|[₺$€£]")
-_DIGIT_RE = re.compile(r"\d")
-# Cümle sınırı: nokta/ünlem/soru + boşluk + büyük harf ya da satır sonu. "4.950.000" gibi sayılardaki
-# noktalar boşlukla izlenmediği için bölünmez.
-_SEGMENT_RE = re.compile(r"[^\n]+?(?:(?<=[.!?])(?=\s+[A-ZÇĞİÖŞÜ])|(?=\n)|$)")
-QUOTE_MAX_LEN = 200
-
-
-def amount_quotes(text: str, limit: int = 3, max_len: int = QUOTE_MAX_LEN) -> list[str]:
-    """Bildirim metninde para birimi VE rakam geçen kısa cümle/satırlar — kaynak metnin BİREBİR alt dizgisi.
-
-    Hiçbir sayı ayrıştırılmaz ya da biçimlendirilmez. Uzun (tablo dökümü vb.) veya ters tırnak içeren
-    parçalar atlanır; hiçbiri yoksa boş liste döner ve çağıran "tutar bilgisi için bildirime bakın" der.
-    """
-    out: list[str] = []
-    for m in _SEGMENT_RE.finditer(text or ""):
-        seg = m.group(0).strip()
-        if not seg or len(seg) > max_len or "`" in seg:
-            continue
-        if not (_CURRENCY_RE.search(seg) and _DIGIT_RE.search(seg)):
-            continue
-        if seg in out:
-            continue
-        out.append(seg)
-        if len(out) >= limit:
-            break
-    return out
+# ---- tutarlar ----------------------------------------------------------------
+# Rapor ve kartlarda bildirimden HİÇBİR tutar gösterilmez. Üç inceleme turunda hem sayı ayrıştırma
+# (büyüklük hataları) hem de birebir alıntı (olumsuzlamanın kesilmesi, "T.C."/"Şti." sonrası bölünme,
+# tek satıra inmiş KAP tablolarından bağlamsız parçalar) yanıltıcı çıktı üretti. Olgu bloğu her zaman
+# NOTE_AMOUNT_MISSING ("Tutar bilgisi için bildirime bakın.") ve KAP bağlantısını gösterir.
 
 
 # ---- bildirim konusu ---------------------------------------------------------
@@ -221,3 +192,54 @@ def classify_filing(title: str = "", disclosure_type: str = "") -> str:
     if normalize(dtype) in _GENERIC_TYPES or len(dtype) > 90:
         return GENERIC_LABEL
     return dtype
+
+
+# ---- eski (sürümsüz) kayıtların görünümü ------------------------------------
+# web/src/lib/neutral.ts `legacyTitle` / `legacyView` ile aynı kural (ortak vektörlerle test edilir).
+
+_LEGACY = RULES["legacy"]
+_OWN_TEMPLATES = [(re.compile(p, re.ASCII), t) for p, t in _LEGACY["own_templates"]]
+NOTE_LEGACY_SUMMARY_KAP: str = RULES["notes"]["legacy_summary_kap"]
+NOTE_LEGACY_SUMMARY: str = RULES["notes"]["legacy_summary"]
+
+
+def is_legacy(doc: dict) -> bool:
+    v = doc.get("schemaVersion")
+    return not (isinstance(v, int) and v >= REPORT_SCHEMA_VERSION)
+
+
+def _own_template_type(title: str) -> str | None:
+    n = normalize(title)
+    for rx, typ in _OWN_TEMPLATES:
+        if rx.search(n):
+            return typ
+    return None
+
+
+def is_official_kap_title(doc: dict) -> bool:
+    """Eski kaydın başlığı KAP'ın kendi metni mi? KAP kaynaklı ve bizim şablon başlıklarımızdan biri değilse."""
+    return "KAP" in (doc.get("sources") or []) and _own_template_type(str(doc.get("title", ""))) is None
+
+
+def _tr_date(iso: str) -> str:
+    from datetime import datetime, timedelta, timezone
+
+    try:
+        dt = datetime.fromisoformat(str(iso).replace("Z", "+00:00")).astimezone(timezone(timedelta(hours=3)))
+    except ValueError:
+        return ""
+    return f"{dt.day} {_LEGACY['months'][dt.month - 1]} {dt.year}"
+
+
+def legacy_title(doc: dict) -> str:
+    """Sürümsüz kaydın görünen başlığı: resmî KAP başlığı aynen; diğerleri '<tür> — <tarih>'."""
+    title = str(doc.get("title", ""))
+    if is_official_kap_title(doc):
+        return title
+    typ = _own_template_type(title) or _LEGACY["category_types"].get(str(doc.get("category", "")), "Piyasa notu")
+    date = _tr_date(str(doc.get("publishedAt", "")))
+    return f"{typ} — {date}" if date else typ
+
+
+def legacy_summary(doc: dict) -> str:
+    return NOTE_LEGACY_SUMMARY_KAP if is_official_kap_title(doc) else NOTE_LEGACY_SUMMARY

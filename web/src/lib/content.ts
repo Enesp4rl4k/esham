@@ -30,7 +30,7 @@ export {
 import { getUniverseTickers } from "./stocks";
 import type { CategorySlug, IpoMeta, Report } from "./content-utils";
 import { CATEGORIES } from "./content-utils";
-import { isThinReport } from "./thin-content";
+import { isIndexable } from "./thin-content";
 import { legacyView } from "./neutral";
 
 const REPORTS_DIR = path.join(process.cwd(), "content", "reports");
@@ -164,9 +164,13 @@ export function getAllReports(): Report[] {
   return reports;
 }
 
-/** İnce içerik kapısını geçen (indekslenebilir) raporlar; bkz. thin-content.ts. */
-export function isIndexableReport(r: Report): boolean {
-  return !isThinReport(r);
+/**
+ * Dizin kararı TEK yerden (rapor sayfası robots, sitemap ve RSS bunu kullanır):
+ * yalın görünümdeki eski kayıt ⇒ noindex ⇒ sitemap/RSS dışı; aksi halde ince içerik kapısı (thin-content.ts).
+ * Eski halka arz kayıtlarının `ipo` meta verisi ince içerik kuralını atlatıyordu; yalın görünüm önce gelir.
+ */
+export function isIndexableReport(r: Pick<Report, "legacyMinimal" | "body" | "ipo">): boolean {
+  return isIndexable(r);
 }
 
 export function getIndexableReports(): Report[] {
