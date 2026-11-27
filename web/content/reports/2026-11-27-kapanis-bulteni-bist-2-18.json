@@ -1,0 +1,20 @@
+{
+  "slug": "kapanis-bulteni-bist-2-18-2026-11-27",
+  "title": "Kapanış Bülteni: BIST +2,18%",
+  "category": "bist",
+  "summary": "BIST XU100 günü +2,18% ile 10.977,01 seviyesinde kapattı.",
+  "publishedAt": "2026-11-27T23:24:23.325949Z",
+  "author": "Esham AI",
+  "aiGenerated": false,
+  "sources": [
+    "BIST",
+    "TradingView"
+  ],
+  "tags": [
+    "BIST",
+    "Kapanış"
+  ],
+  "body": "## Kapanış Görünümü\n\n| Piyasa | Değer | Değişim |\n| --- | --- | --- |\n| BIST XU100 | 10.977,01 | +2,18% |\n| VİOP XU030 | 13.763,83 | +2,31% |\n\nHacim: 6,4 Milyar TL.",
+  "image": "/cards/kapanis-bulteni-bist-2-18-2026-11-27.png",
+  "schemaVersion": 2
+}
