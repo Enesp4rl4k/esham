@@ -6,11 +6,13 @@ on:
   pull_request:
     paths:
       - "bot/**"
+      - "web/src/lib/neutral-*.json"  # bot süzgeci bu ortak kural/vektör dosyalarını okur
       - ".github/workflows/bot-tests.yml"
   push:
     branches: [master]
     paths:
       - "bot/**"
+      - "web/src/lib/neutral-*.json"  # bot süzgeci bu ortak kural/vektör dosyalarını okur
       - ".github/workflows/bot-tests.yml"
   workflow_dispatch: {}
 

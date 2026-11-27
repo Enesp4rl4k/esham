@@ -46,6 +46,12 @@ export interface Report {
   image?: string;
   /** Halka arz raporlarında yapılandırılmış meta (eski raporlarda yoktur). */
   ipo?: IpoMeta;
+  /** Bot rapor şema sürümü (2+: tarafsız dil sürümü). Yoksa eski kayıttır; bkz. neutral.ts `legacyView`. */
+  schemaVersion?: number;
+  /** KAP bildirimi meta verisi (yeni raporlarda): bağlantı, şirket, KAP bildirim türü. */
+  kap?: { url?: string; company?: string; type?: string; index?: string };
+  /** Eski kayıt yalın görünümde gösteriliyorsa true (görüntüleme anında atanır). */
+  legacyMinimal?: boolean;
 }
 
 export interface CategoryMeta {

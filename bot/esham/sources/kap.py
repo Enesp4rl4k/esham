@@ -56,21 +56,22 @@ def pick_ticker(codes: str) -> str:
 
     KAP, çok pay gruplu şirketlerde tüm kodları verir (İş Bankası: "ISATR, ISBTR, ISCTR, ...").
     Eskiden ilki alınıyordu → ISATR (kurucu pay, fiyatı ~4,95 milyon TL) rapor/kartlara yansıyordu.
-    Evrende (universe) olan kod önceliklidir; hiçbiri yoksa listedeki ilk kod.
+    Tek kod varsa o kod; birden çok kod varsa evrende (universe) olan kod. Evren dışı çok pay gruplu
+    şirkette hangi kodun işlem gördüğü bilinemediği için TAHMİN EDİLMEZ: "" döner ve kod gösterilmez.
     """
     items = [c.strip().upper() for c in (codes or "").split(",") if c.strip()]
     if not items:
         return ""
+    if len(items) == 1:
+        return items[0]
     try:
         from ..universe import load_universe
 
         known = {str(u["ticker"]) for u in load_universe()}
-    except Exception:  # noqa: BLE001 — evren okunamazsa eski davranış
+    except Exception:  # noqa: BLE001
         known = set()
-    for code in items:
-        if code in known:
-            return code
-    return items[0]
+    matches = [c for c in items if c in known]
+    return matches[0] if len(matches) == 1 else ""
 
 
 def _strip_disclosure_suffix(text: str) -> str:

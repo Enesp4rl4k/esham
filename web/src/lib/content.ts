@@ -31,7 +31,7 @@ import { getUniverseTickers } from "./stocks";
 import type { CategorySlug, IpoMeta, Report } from "./content-utils";
 import { CATEGORIES } from "./content-utils";
 import { isThinReport } from "./thin-content";
-import { sanitizeReport } from "./neutral";
+import { legacyView } from "./neutral";
 
 const REPORTS_DIR = path.join(process.cwd(), "content", "reports");
 
@@ -112,10 +112,26 @@ function parseReport(raw: unknown, file: string): Report | null {
     tags: Array.isArray(r.tags) ? r.tags.map(String) : [],
     image: typeof r.image === "string" ? r.image : undefined,
     ipo: parseIpoMeta(r.ipo),
+    schemaVersion: typeof r.schemaVersion === "number" ? r.schemaVersion : undefined,
+    kap: parseKapMeta(r.kap),
   };
-  // Eski raporlardaki piyasa yargısı (sinyal, destek/direnç, "MEGA" vb.) görüntülemede gizlenir;
-  // dosyalar değiştirilmez. Bkz. neutral.ts.
-  return sanitizeReport(report).report;
+  // Eski (şema sürümü taşımayan) KAP raporlarında ve yorum içeren eski raporlarda yorum gövdesi hiç
+  // gösterilmez; yalın görünüm kullanılır. Dosyalar değiştirilmez. Bkz. neutral.ts `legacyView`.
+  const { report: viewed, minimal } = legacyView(report);
+  return minimal ? { ...viewed, legacyMinimal: true } : viewed;
+}
+
+function parseKapMeta(raw: unknown): Report["kap"] {
+  if (!raw || typeof raw !== "object") return undefined;
+  const m = raw as Record<string, unknown>;
+  const str = (v: unknown) => (typeof v === "string" && v.trim() ? v : undefined);
+  const url = str(m.url);
+  return {
+    url: url && url.startsWith("https://www.kap.org.tr/") ? url : undefined,
+    company: str(m.company),
+    type: str(m.type),
+    index: str(m.index),
+  };
 }
 
 let cache: Report[] | null = null;

@@ -28,9 +28,10 @@ def _mode() -> str:
 def validate_report(title: str, summary: str, body: str) -> list[str]:
     """Bir raporun metnini denetler; ihlal listesi döner (boşsa temiz).
 
-    Başlık KAP bildiriminin kendi başlığıdır (olgusal alıntı); yasaklı kalıp denetimi özet ve gövdeye uygulanır.
+    Başlık KAP bildiriminin kendi başlığıdır (olgusal alıntı); tavsiye/yasaklı kalıp denetimi yalnız
+    üretilmiş özet ve gövdeye uygulanır. Birebir kısımlar (``ReportDraft.facts``) buraya verilmez.
     """
-    text = " ".join([title or "", summary or "", body or ""])
+    text = " ".join([summary or "", body or ""])
     violations: list[str] = []
     if contains_investment_advice(text):
         violations.append("örtük/açık yatırım tavsiyesi kalıbı")

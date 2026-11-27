@@ -243,6 +243,23 @@ export interface SectionMeta {
 }
 
 const NO_DATA = "Veri yok";
+
+/**
+ * Arbitraj sınıfı yalnız veri tanımı olarak gösterilir ("fırsat" dili yok). Eski veri dosyaları
+ * (YUKSEK_FIRSAT/SINIRLI_FIRSAT) da aynı tarafsız etikete çevrilir.
+ */
+function arbitrageLevelLabel(level: string): string {
+  if (level === "NET_FARK_0_50_USTU" || level === "YUKSEK_FIRSAT") return "Net fark > 0,50 ₺/kg";
+  if (level === "NET_FARK_POZITIF" || level === "SINIRLI_FIRSAT") return "Net fark 0–0,50 ₺/kg";
+  return "Net fark yok";
+}
+
+/** Girdi fiyatı etiketi: eski "marj baskısı/pozitif/negatif" yorumları yerine yalnız fiyat yönü. */
+function inputPriceLabel(label: string, change: string): string {
+  const n = parseFloat(String(change).replace("%", "").replace(",", "."));
+  if (Number.isNaN(n)) return label.startsWith("Girdi fiyatı") ? label : NO_DATA;
+  return n > 0 ? "Girdi fiyatı yükseldi" : n < 0 ? "Girdi fiyatı düştü" : "Girdi fiyatı yatay";
+}
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 const isPos = (v: unknown): v is number => isNum(v) && v > 0;
 const NoSource = ({ what }: { what: string }) => (
@@ -926,7 +943,7 @@ export function TuribMarketClient({
             <div className="p-4 md:p-6 border-b" style={{ borderColor: "var(--border)" }}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <h3 className="font-display font-bold text-base md:text-lg">
-                  En Yüksek Net Arbitraj Fırsatları
+                  En Yüksek Net Fiyat Farkları
                 </h3>
                 <span className="text-xs text-zinc-400 font-mono">
                   {dataset.regionalArbitrage.date ? `Veri tarihi: ${dataset.regionalArbitrage.date} · ` : ""}
@@ -946,7 +963,7 @@ export function TuribMarketClient({
                     <th className="py-3 px-4">Brüt Makas</th>
                     <th className="py-3 px-4">Tahmini Nakliye</th>
                     <th className="py-3 px-4">Net Arbitraj</th>
-                    <th className="py-3 px-4 md:px-6 text-right">Fırsat Seviyesi</th>
+                    <th className="py-3 px-4 md:px-6 text-right">Net Fark Sınıfı</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y" style={{ borderColor: "var(--border)" }}>
@@ -970,8 +987,8 @@ export function TuribMarketClient({
                           +{op.netArbitrage.toFixed(2)} ₺/kg (%{op.netArbitragePct.toFixed(1)})
                         </td>
                         <td className="py-3.5 px-4 md:px-6 text-right">
-                          <span className="px-2.5 py-0.5 rounded text-xs font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                            {op.opportunityLevel}
+                          <span className="px-2.5 py-0.5 rounded text-xs font-semibold bg-zinc-800 border border-zinc-700 text-zinc-200">
+                            {arbitrageLevelLabel(op.opportunityLevel)}
                           </span>
                         </td>
                       </tr>
@@ -1053,14 +1070,10 @@ export function TuribMarketClient({
                         <span className="font-semibold text-zinc-300">{c.commodityChange}</span>
                       </div>
                       <div className="flex justify-between pt-1 border-t border-zinc-800">
-                        <span className="text-zinc-400">Marj Baskısı:</span>
-                        <span className="font-semibold text-zinc-200">{c.marginPressure}</span>
+                        <span className="text-zinc-400">Girdi Fiyatı:</span>
+                        <span className="font-semibold text-zinc-200">{inputPriceLabel(c.marginPressure, c.commodityChange)}</span>
                       </div>
                     </div>
-
-                    <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                      {c.commentary}
-                    </p>
                   </div>
                 </div>
               );

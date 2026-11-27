@@ -22,7 +22,7 @@ from typing import Union
 from .analysis import analyze_ipo_document
 from .config import get_logger, settings
 from .news_queue import NewsQueue
-from .pipeline import run_news_report
+from .pipeline import last_news_status, run_news_report
 from .publishing.cards import CardGenerator, CardSpec
 from .publishing.social import SocialPublisher
 from .publishing.ticker_data import update_ticker_data
@@ -103,7 +103,7 @@ def _is_analyzable_ipo(d: Disclosure) -> bool:
 def _company_and_ticker(d: Disclosure) -> tuple[str, str]:
     """KAP'ın yapılandırılmış alanlarından (kapTitle/stockCodes) doğrudan alır —
     artık başlık metnini regex'le ayrıştırmaya gerek yok."""
-    return d.company, d.ticker or d.company
+    return d.company, d.ticker
 
 
 class NewsStream:
@@ -129,9 +129,18 @@ class NewsStream:
         # sıfırdan başlar ve yakın zamanda paylaşılmış haberler tekrar kuyruğa girerdi.
         self._state = get_state()
         self._seen: set[str] = self._state.load_seen()
+        # Kuyrukta bekleyen (henüz kalıcı karar verilmemiş) bildirimler — aynı süreçte tekrar kuyruğa girmesin.
+        self._queued: set[str] = set()
 
     def _key(self, d: Disclosure) -> str:
         return f"{d.company}:{d.title}:{d.date}"
+
+    def _mark_seen(self, d: Disclosure) -> None:
+        """Bildirimi kalıcı olarak "görüldü" işaretler — YALNIZ yayın veya kalıcı karar sonrası."""
+        key = self._key(d)
+        self._queued.discard(key)
+        self._seen.add(key)
+        self._state.save_seen(self._seen)
 
     # ---- KAP taraması ----------------------------------------------------------
 
@@ -140,22 +149,24 @@ class NewsStream:
 
         Önem filtresi: insider/IPO her zaman kuyruğa girer (ayrı, öncelikli işlem
         görürler). Genel KAP akışındaki rutin/idari bildirimler (genel kurul
-        çağrısı, imza sirküleri, yatırımcı sunumu vb.) filtrelenir — aksi halde
-        her önemsiz KAP bildirimi paylaşılır ve akış gürültüye/veri yığılmasına
-        döner.
+        çağrısı, imza sirküleri, yatırımcı sunumu vb.) filtrelenir.
+
+        "Görüldü" işareti: filtrelenen bildirim (kalıcı karar) hemen işaretlenir; kuyruğa alınan bildirim
+        ise ancak yayınlanınca veya kalıcı bir karar (mükerrer) verilince işaretlenir. Böylece tek turda
+        servis edilemeyen ya da hata alan bildirim kaybolmaz, sonraki taramada yeniden kuyruğa girer.
         """
         added = 0
         skipped = 0
         for d in self.kap.latest_disclosures():
             key = self._key(d)
-            if key in self._seen:
+            if key in self._seen or key in self._queued:
                 continue
-            self._seen.add(key)
 
             # Post-arz bildirimleri (tamamlanmış arzlara ait rutin açıklamalar)
             # hiçbir zaman paylaşılmaz — category kontrolünden önce elenir.
             if _is_post_ipo(d):
                 skipped += 1
+                self._seen.add(key)
                 log.debug("Post-arz bildirimi filtrelendi: %s", d.title)
                 continue
 
@@ -165,6 +176,7 @@ class NewsStream:
                 d, settings.kap_min_importance
             ):
                 skipped += 1
+                self._seen.add(key)
                 log.debug(
                     "Filtrelendi (skor=%d, eşik=%d): %s",
                     score(d), settings.kap_min_importance, d.title,
@@ -172,9 +184,11 @@ class NewsStream:
                 continue
 
             self.queue.enqueue(d, category)
+            self._queued.add(key)
             added += 1
+        if skipped:
+            self._state.save_seen(self._seen)
         if added or skipped:
-            self._state.save_seen(self._seen)  # süreç yeniden başlasa da kalıcı
             log.info(
                 "KAP tarama: %d yeni haber kuyruğa alındı, %d önemsiz bildirim filtrelendi "
                 "(bekleyen: %d).",
@@ -210,11 +224,15 @@ class NewsStream:
     # ---- yayın -----------------------------------------------------------------
 
     def publish_next(self) -> bool:
-        """Kuyruktan tek öğe servis eder; yayınlandıysa True.
+        """Kuyruktan tek öğe servis eder; bir öğe işlendiyse True (yayınlanmış olması gerekmez).
 
         Öğe türüne göre yönlendirme:
-        - MarketEvent  → run_news_report(event=...) — makro/sektör AI analizi
+        - MarketEvent  → run_news_report(event=...) — makro/sektör özeti
         - Disclosure   → IPO ise tam analiz, değilse run_news_report(disclosure=...)
+
+        "Yayınlandı" logu yalnız gerçekten yayınlanınca yazılır. KAP bildirimi yalnız yayın veya kalıcı
+        karar (mükerrer) sonrası "görüldü" işaretlenir; hata/duraklatma/engel durumunda sonraki taramada
+        yeniden denenir.
         """
         item = self.queue.dequeue()
         if item is None:
@@ -222,33 +240,47 @@ class NewsStream:
 
         # ---- makro/sektör olayı ------------------------------------------------
         if isinstance(item, MarketEvent):
+            slug = None
             try:
-                run_news_report(event=item, publish_social=True)
+                slug = run_news_report(event=item, publish_social=True)
             except Exception as exc:
                 log.error("Makro olay yayın hatası (%s): %s", item.label, exc)
-            log.info("Makro olay yayınlandı (kalan kuyruk: %d).", len(self.queue))
+            if slug:
+                log.info("Makro olay yayınlandı (kalan kuyruk: %d).", len(self.queue))
             return True
 
         # ---- KAP bildirimi (Disclosure) ----------------------------------------
-        category, _ = _classify(item)
-
         # Fiyat tespit/izahname → halka arz tam analiz (mevcut IPO pipeline'ı)
         if self.analyze_ipo and _is_analyzable_ipo(item):
             try:
-                img_path = self._handle_ipo(item)
+                self._handle_ipo(item)
             except Exception as exc:
-                log.error("IPO analiz hatası: %s", exc)
-            log.info("IPO bildirimi yayınlandı (kalan kuyruk: %d).", len(self.queue))
+                log.error("IPO analiz hatası; sonraki taramada yeniden denenecek: %s", exc)
             return True
 
-        # Diğer KAP bildirimleri → AI analiz raporu + tweet
+        self._publish_disclosure(item)
+        return True
+
+    def _publish_disclosure(self, item: Disclosure) -> str | None:
+        """KAP bildirimini rapora dönüştürür; görüldü işaretini sonuca göre koyar."""
+        slug = None
+        status = "error"
         try:
-            run_news_report(disclosure=item, publish_social=True)
+            slug = run_news_report(disclosure=item, publish_social=True)
+            status = last_news_status()
         except Exception as exc:
             log.error("KAP bildirim yayın hatası (%s): %s", item.title[:60], exc)
-
-        log.info("KAP bildirimi yayınlandı (kalan kuyruk: %d).", len(self.queue))
-        return True
+        if slug:
+            log.info("KAP bildirimi yayınlandı: %s (kalan kuyruk: %d).", slug, len(self.queue))
+        if status in ("published", "duplicate"):
+            self._mark_seen(item)
+        else:
+            self._queued.discard(self._key(item))
+            log.warning(
+                "KAP bildirimi yayınlanamadı (durum=%s); görüldü işaretlenmedi, sonraki taramada "
+                "yeniden denenecek: %s", status, item.title[:80],
+            )
+        return slug
 
     def _handle_ipo(self, item: Disclosure) -> Path | None:
         """Halka arz belgesini indir + analiz et + yayınla."""
@@ -270,15 +302,22 @@ class NewsStream:
             )
         except Exception as exc:
             log.error("Halka arz otomatik analizi başarısız (%s); haber raporuna düşülüyor.", exc)
-            run_news_report(disclosure=item, publish_social=True)
+            self._publish_disclosure(item)
             return None
 
         if result.slug:
+            self._mark_seen(item)
+            log.info("IPO bildirimi yayınlandı: %s (kalan kuyruk: %d).", result.slug, len(self.queue))
             link = f"{settings.site_url}/rapor/{result.slug}"
+            code = f" ({ticker})" if ticker and ticker != company else ""
             self.social.broadcast(
-                f"📄 HALKA ARZ ANALİZİ: {company} ({ticker})\n{link}\n#HalkaArz #BIST",
+                f"HALKA ARZ BELGESİ ÖZETİ: {company}{code}\n{link}\n#HalkaArz #BIST",
                 image_path=result.image_path,
+                verbatim=[company],
             )
+        else:
+            # Analiz yayınlanamadıysa bildirim kaybolmasın: yalın KAP raporu.
+            self._publish_disclosure(item)
         return result.image_path
 
     # ---- çalıştırma modları ----------------------------------------------------

@@ -1,68 +1,69 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { findBanned, stripBanned, sanitizeSummary, sanitizeReport } from "./neutral.ts";
+import { readFileSync, readdirSync } from "node:fs";
+import { findBanned, normalize, stripBanned, legacyView, NOTE_KAP, isKapReport } from "./neutral.ts";
 
-// Gerçek eski rapor: İş Bankası tahvil başvurusu ("MEGA SÖZLEŞME", "Finansal Sinyal", ISATR fiyatı 4950000.00 TL)
-const legacy = JSON.parse(
-  readFileSync(
-    new URL(
-      "../../content/reports/2026-11-04-turkiye-is-bankasi-a-s-yurt-icinde-sermaye-benzeri-tahvil-ihracina-iliskin-spk-basvurusu.json",
-      import.meta.url,
-    ),
-    "utf-8",
-  ),
-);
+const vectors = JSON.parse(readFileSync(new URL("./neutral-vectors.json", import.meta.url), "utf-8"));
+const reportsDir = new URL("../../content/reports/", import.meta.url);
 
-test("yasaklı kalıplar büyük/küçük harf ve aksan duyarsız yakalanır", () => {
-  for (const t of ["Finansal Sinyal: Pozitif", "FİNANSAL SİNYAL", "Pivot Üstü: Boğa / Altı: Ayı", "İLK KÂR SATIŞI",
-    "Olası Tepki Alım Tabanı", "KRİTİK DİRENÇ", "MEGA SÖZLEŞME", "pozitif haber akışı etkisi yaratması beklenir"]) {
-    assert.ok(findBanned(t).length > 0, t);
-  }
-  for (const t of ["Kasım ayı içinde ödenecektir.", "MEGA POLİETİLEN A.Ş.", "Satış bedeli nakit varlıkları destekler.",
-    "Bu sayfa, kamuya açık bir KAP bildiriminin otomatik özetidir; yatırım tavsiyesi değildir."]) {
-    assert.deepEqual(findBanned(t), [], t);
-  }
+// ---- ortak vektörler (Python tarafı bot/tests/test_neutral_language.py aynı dosyayı koşar) ----
+
+test("ortak vektörler: yasaklanması gerekenler yakalanır", () => {
+  const missed = vectors.block.filter((t) => findBanned(t).length === 0);
+  assert.deepEqual(missed, []);
 });
 
-test("eski rapor gövdesi görüntülemede temizlenir; olgusal giriş korunur", () => {
-  const body = stripBanned(legacy.body);
-  assert.deepEqual(findBanned(body), []);
-  assert.ok(body.includes("Hızlı Bakış"));
-  assert.ok(!body.includes("4950000"));
-  assert.ok(!body.includes("Sözleşme Tutarı"));
-  assert.ok(!body.includes("| Metrik |"));
+test("ortak vektörler: olgusal ifadeler korunur", () => {
+  const over = vectors.keep.filter((t) => findBanned(t).length > 0).map((t) => [t, findBanned(t)]);
+  assert.deepEqual(over, []);
 });
 
-test("özetteki 'MEGA SÖZLEŞME |' etiketi düşer", () => {
-  assert.equal(
-    sanitizeSummary("🔥 MEGA SÖZLEŞME | GARAN: İştirak satışının tamamlanması", "başlık"),
-    "GARAN: İştirak satışının tamamlanması",
-  );
-  assert.equal(sanitizeSummary("Temiz özet.", "başlık"), "Temiz özet.");
+test("ortak vektörler: normalizasyon", () => {
+  for (const [input, expected] of vectors.normalize) assert.equal(normalize(input), expected, JSON.stringify(input));
 });
 
-test("sanitizeReport: KAP raporunda bir şey ayıklandıysa eski kart gizlenir; temiz rapora dokunulmaz", () => {
-  const { report, changed } = sanitizeReport(legacy);
-  assert.equal(changed, true);
+test("ortak vektörler: strip", () => {
+  for (const [input, expected] of vectors.strip) assert.equal(stripBanned(input), expected);
+});
+
+// ---- eski raporlar ----
+
+const load = (name) => JSON.parse(readFileSync(new URL(name, reportsDir), "utf-8"));
+
+test("eski KAP raporu yalın görünümde: yorum gövdesi yok, başlık aynen, eski kart yok", () => {
+  const doc = load("2026-11-04-turkiye-is-bankasi-a-s-yurt-icinde-sermaye-benzeri-tahvil-ihracina-iliskin-spk-basvurusu.json");
+  const { report, minimal } = legacyView({ ...doc, tags: doc.tags ?? [], sources: doc.sources ?? [] });
+  assert.equal(minimal, true);
   assert.equal(report.image, undefined);
+  assert.ok(report.body.includes(`- **Başlık:** ${doc.title}`));
+  assert.ok(report.body.includes("- **Şirket:** TÜRKİYE İŞ BANKASI A.Ş."));
+  for (const gone of ["Hızlı Bakış", "Finansal Sinyal", "4950000", "Sözleşme Tutarı"]) assert.ok(!report.body.includes(gone), gone);
+  assert.equal(report.summary, doc.title);
   assert.ok(!report.tags.includes("Mega Sözleşme"));
-  assert.ok(!report.summary.includes("MEGA"));
-
-  const clean = { title: "T", summary: "S", body: "### Hızlı Bakış\nMetin.\n\n\n", tags: ["KAP"], sources: ["KAP"], image: "/cards/x.png" };
-  const r2 = sanitizeReport(clean);
-  assert.equal(r2.changed, false);
-  assert.equal(r2.report, clean);
 });
 
-test("tüm mevcut rapor gövdeleri süzgeçten sonra temizdir", async () => {
-  const { readdirSync } = await import("node:fs");
-  const dir = new URL("../../content/reports/", import.meta.url);
-  let dirty = 0;
-  for (const f of readdirSync(dir).filter((x) => x.endsWith(".json"))) {
-    const doc = JSON.parse(readFileSync(new URL(f, dir), "utf-8"));
-    const { report } = sanitizeReport({ ...doc, tags: doc.tags ?? [], sources: doc.sources ?? [] });
-    if (findBanned(report.body).length || findBanned(report.summary).length || report.tags.some((t) => findBanned(t).length)) dirty++;
+test("şema sürümü taşıyan yeni rapora dokunulmaz", () => {
+  const r = { slug: "s", title: "T", category: "bist", summary: "S", body: "B", publishedAt: "2026-11-27T00:00:00Z", aiGenerated: true, tags: [], sources: ["KAP"], image: "/cards/x.png", schemaVersion: 2 };
+  assert.equal(legacyView(r).report, r);
+});
+
+test("tüm eski raporlar: yalın görünümde yasaklı kalıp yok, eski kart yok; 'BIST için Beklenti' render edilmez", () => {
+  let minimal = 0;
+  let kept = 0;
+  for (const f of readdirSync(reportsDir).filter((x) => x.endsWith(".json"))) {
+    const doc = JSON.parse(readFileSync(new URL(f, reportsDir), "utf-8"));
+    const { report, minimal: m } = legacyView({ ...doc, tags: doc.tags ?? [], sources: doc.sources ?? [], aiGenerated: doc.aiGenerated !== false });
+    if (m) minimal++; else kept++;
+    assert.equal(report.image, undefined, f);
+    if (isKapReport(report)) assert.ok(m, f);
+    // KAP başlığı birebir alıntıdır ve süzülmez; denetim başlık dışındaki üretilmiş/şablon metne yapılır.
+    const generated = report.body.split(doc.title).join("") + "\n" + report.summary.split(doc.title).join("");
+    assert.deepEqual(findBanned(generated), [], f);
+    assert.ok(!/BIST için Beklenti/i.test(report.body), f);
   }
-  assert.equal(dirty, 0);
+  assert.ok(minimal > 0 && kept >= 0);
+});
+
+test("not metni tek kaynaktan", () => {
+  assert.match(NOTE_KAP, /yatırım tavsiyesi değildir/);
 });

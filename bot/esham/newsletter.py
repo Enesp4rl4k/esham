@@ -29,7 +29,7 @@ from email.mime.text import MIMEText
 from pathlib import Path
 
 from .config import get_logger, settings
-from .neutral import sanitize_summary
+from .neutral import NOTE_GENERIC, REPORT_SCHEMA_VERSION, sanitize_summary
 
 log = get_logger(__name__)
 
@@ -196,8 +196,14 @@ def latest_reports(limit: int | None = None) -> list[dict]:
         doc = _read_json(path)
         if not isinstance(doc, dict) or not doc.get("slug"):
             continue
-        # Eski raporların özetindeki "MEGA SÖZLEŞME | ..." gibi etiketler e-postaya taşınmaz.
-        doc["summary"] = sanitize_summary(str(doc.get("summary", "")), str(doc.get("title", "")))
+        # Eski (şema sürümü taşımayan) raporların özeti yorum içerebilir: web'deki yalın görünümle aynı
+        # kural — KAP raporunda yalnız KAP başlığı (aynen), diğerlerinde süzülmüş özet.
+        title = str(doc.get("title", ""))
+        legacy = not (isinstance(doc.get("schemaVersion"), int) and doc["schemaVersion"] >= REPORT_SCHEMA_VERSION)
+        if legacy and "KAP" in (doc.get("sources") or []):
+            doc["summary"] = title
+        else:
+            doc["summary"] = sanitize_summary(str(doc.get("summary", "")), title)
         reports.append(doc)
         if len(reports) >= limit:
             break
@@ -259,15 +265,14 @@ def build_digest(reports: list[dict]) -> tuple[str, str, str]:
         <div style="font-size:22px;font-weight:bold;color:#f59e0b;">Es</div>
         <div style="display:inline;font-size:22px;font-weight:bold;color:#fafafa;">ham</div>
         <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#71717a;
-             margin-top:6px;">Yapay zeka destekli piyasa analizi</div>
+             margin-top:6px;">Kamuya açık bildirim ve veri özetleri</div>
       </td></tr>
       <tr><td style="padding-top:18px;border-top:1px solid #27272a;margin-top:18px;">
         {''.join(items_html)}
       </td></tr>
       <tr><td style="padding-top:20px;font-size:12px;color:#71717a;line-height:1.6;
               border-top:1px solid #27272a;margin-top:8px;">
-        Bu e-posta Esham'ın günlük otomatik gönderimidir. Tüm içerik yapay zeka
-        tarafından üretilir ve <strong>yatırım tavsiyesi niteliği taşımaz</strong>.<br>
+        Bu e-posta Esham'ın günlük otomatik gönderimidir. {html.escape(NOTE_GENERIC)}<br>
         Abonelikten çıkmak için:
         <a href="{settings.site_url}" style="color:#a1a1aa;">bülten sayfası</a>
         veya iletişime geçin.
@@ -279,7 +284,7 @@ def build_digest(reports: list[dict]) -> tuple[str, str, str]:
     text_body = (
         f"Esham Günlük Bülten — {today}\n{'=' * 40}\n\n"
         + "\n\n".join(items_text)
-        + "\n\n---\nTüm içerik yapay zeka tarafından üretilir, yatırım tavsiyesi taşımaz."
+        + f"\n\n---\n{NOTE_GENERIC}"
     )
     return subject, html_body, text_body
 

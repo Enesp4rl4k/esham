@@ -108,7 +108,6 @@ export function MacroBarometerCard({ data }: MacroBarometerCardProps) {
             <span className="text-xl font-extrabold text-cyan-400">
               %{data.hisse_risk_primi_erp_yuzde.toFixed(1)}
             </span>
-            <span className="text-xs text-zinc-400 font-mono">Cazip</span>
           </div>
           <span className="text-xs text-zinc-400 block mt-1.5 font-sans">
             BIST Beklenen vs Tahvil

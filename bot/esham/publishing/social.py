@@ -8,6 +8,7 @@ Her gönderi: (1) yasaklı piyasa yargısı/tavsiye kalıplarından deterministi
 """
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
 
 import requests
@@ -20,9 +21,10 @@ from ..state import get_state
 log = get_logger(__name__)
 
 
-def prepare_post(message: str, disclaimer: str | None = None) -> str:
-    """Gönderi metnini süzer ve uyarı satırını ekler. Süzgeç sonrası metin boşsa "" döner."""
-    clean = strip_banned(message or "")
+def prepare_post(message: str, disclaimer: str | None = None, *, filtered: bool = False) -> str:
+    """Gönderi metnini süzer (``filtered=True`` ise zaten süzülmüştür) ve uyarı satırını ekler.
+    Süzgeç sonrası metin boşsa "" döner."""
+    clean = (message or "").strip() if filtered else strip_banned(message or "")
     if not clean:
         return ""
     note = disclaimer or DISCLAIMER_GENERIC
@@ -70,20 +72,44 @@ class SocialPublisher:
             log.error("Telegram gönderimi başarısız: %s", exc)
             return False
 
-    def broadcast(self, message: str, image_path: Path | None = None, disclaimer: str | None = None) -> None:
+    def broadcast(
+        self,
+        message: str,
+        image_path: Path | None = None,
+        disclaimer: str | None = None,
+        verbatim: Sequence[str] = (),
+    ) -> None:
         """Telegram'a yayın yapar. Süzgeç + guardrail + günlük tavan kontrolü yapar.
 
+        ``verbatim``: mesajda geçen BİREBİR kaynak metinleri (ör. KAP başlığı). Bunları içeren satırlar
+        süzülmez ve guardrail denetiminde maskelenir — olgusal kaynak bozulmaz.
         Twitter paylaşımı bu fonksiyonla yapılmaz — manuel olarak yapılır.
         280 karakter sınırı uyarı satırı eklenmeden ÖNCEKİ metne uygulanır (Telegram açıklama sınırı 1024).
         """
         if settings.paused:
             log.info("[PAUSED] Paylaşım atlandı: %s", message[:60])
             return
-        core = strip_banned(message or "")
+        verbatim = [v for v in verbatim if v]
+        lines = []
+        for line in (message or "").splitlines():
+            if any(v in line for v in verbatim):
+                lines.append(line)
+            else:
+                cleaned = strip_banned(line)
+                if cleaned or not line.strip():
+                    lines.append(cleaned)
+        core = "\n".join(lines).strip()
         if not core:
             log.warning("Paylaşım süzgeç sonrası boş kaldı; atlandı: %s", (message or "")[:60])
             return
-        if not allow("sosyal paylaşım", validate_tweet(core)):
+        masked = core
+        for v in verbatim:
+            masked = masked.replace(v, "")
+        # Tavsiye/yasaklı kalıp denetimi maskelenmiş (birebir kısmı çıkarılmış) metne; dil ve uzunluk
+        # denetimi tüm metne uygulanır.
+        violations = [v for v in validate_tweet(masked) if "Türkçe değil" not in v and "karakteri aşıyor" not in v]
+        violations += [v for v in validate_tweet(core) if "Türkçe değil" in v or "karakteri aşıyor" in v]
+        if not allow("sosyal paylaşım", violations):
             return
 
         state = get_state()
@@ -94,7 +120,7 @@ class SocialPublisher:
             )
             return
 
-        sent = self.post_telegram(prepare_post(core, disclaimer), image_path)
+        sent = self.post_telegram(prepare_post(core, disclaimer, filtered=True), image_path)
         if sent:
             state.increment_daily_post_count()
 
@@ -118,7 +144,7 @@ class SocialPublisher:
             log.warning("Günlük tavan; thread atlandı.")
             return
 
-        tg_text = prepare_post("\n\n".join(parts), disclaimer)
+        tg_text = prepare_post("\n\n".join(parts), disclaimer, filtered=True)
         sent = self.post_telegram(tg_text, image_path)
         if sent:
             state.increment_daily_post_count()

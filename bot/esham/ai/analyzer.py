@@ -8,7 +8,7 @@ Tasarım ilkeleri:
 from __future__ import annotations
 
 from ..config import get_logger, settings
-from ..neutral import classify_filing, extract_amounts, strip_banned
+from ..neutral import NOTE_AMOUNT_MISSING, extract_amounts, strip_banned
 from ..translation import ensure_turkish, translate_to_turkish, is_mostly_english
 from ..sources import MarketSnapshot
 from .client import LlmClient
@@ -35,25 +35,31 @@ def filing_facts_markdown(
     disclosure_type: str,
     text: str,
     disclosure_index: str = "",
+    date: str = "",
 ) -> str:
-    """KAP bildirimi için deterministik, yalnızca bildirimden türetilen bilgi bloğu."""
-    topic = classify_filing(title, disclosure_type)
+    """KAP bildirimi için BİREBİR bilgi bloğu (süzülmez): başlık aynen, şirket, tarih, KAP bildirim türü,
+    bildirimde kesin biçimde geçen tutarlar, KAP bağlantısı.
+
+    Tutar ayrıştırması kesin değilse tutar listelenmez; "bulunamadı" gibi olumsuz bir iddia da yazılmaz.
+    """
     amounts = extract_amounts(text or "")
-    lines = ["### Bildirim Bilgileri"]
     who = f"{company} ({ticker})" if ticker and ticker != company else company
-    lines.append(f"- **Şirket:** {who}")
-    lines.append(f"- **Bildirim başlığı:** {title}")
-    lines.append(f"- **Bildirim türü:** {disclosure_type or 'Belirtilmemiş'}")
-    if topic:
-        lines.append(f"- **Konu:** {topic}")
+    lines = [
+        "### Bildirim Bilgileri",
+        f"- **Başlık (KAP):** {title}",
+        f"- **Şirket:** {who}",
+    ]
+    if date:
+        lines.append(f"- **Tarih:** {date}")
+    lines.append(f"- **Bildirim türü (KAP):** {disclosure_type or 'Belirtilmemiş'}")
     if amounts:
         lines.append(
             "- **Bildirim metninde geçen tutarlar:** "
             + ", ".join(a.formatted() for a in amounts)
-            + " (tutarların ne anlama geldiği için bildirimin aslına bakınız)"
+            + " (ne anlama geldikleri için bildirime bakın)"
         )
     else:
-        lines.append("- **Bildirim metninde geçen tutarlar:** Para birimiyle belirtilmiş tutar bulunamadı.")
+        lines.append(f"- **Tutar:** {NOTE_AMOUNT_MISSING}")
     if disclosure_index:
         lines.append(
             f"- **Kaynak:** [KAP bildirimi #{disclosure_index}](https://www.kap.org.tr/tr/Bildirim/{disclosure_index})"
@@ -352,22 +358,19 @@ Haber Başlığı: {news_title}
         sector_context: str = "",
         disclosure_index: str = "",
     ) -> tuple[str, str, str]:
-        """KAP bildirimi için tarafsız özet üretir: bildirimde NE açıklandı.
+        """KAP bildirimi için tarafsız ÜRETİLMİŞ özet: bildirimde NE açıklandı.
 
-        Döndürür: (body_markdown, summary_line, tweet_text)
-        - body_markdown : web raporuna yazılacak markdown gövde (sonunda deterministik bilgi bloğu)
-        - summary_line  : tek cümlelik özet (liste/OG description için)
-        - tweet_text    : sosyal medya paylaşımı için kısa metin
+        Döndürür: (generated_body, summary_line, tweet_text). Hepsi tarafsız dil süzgecinden geçmiştir.
+        Birebir bilgi bloğu (başlık, şirket, tür, tutarlar, bağlantı) burada DEĞİL, çağıran tarafta
+        ``filing_facts_markdown`` ile ayrıca eklenir ve süzülmez.
 
-        Piyasa yargısı (sinyal, fiyat/haber etkisi tahmini, seviye) üretilmez. ``macro_context`` ve
-        ``sector_context`` geriye dönük uyumluluk için kabul edilir ama prompt'a konmaz: bildirim
-        özetine piyasa yorumu taşımasınlar. ``is_insider`` de yalnızca uyumluluk içindir.
-
-        Graceful degradation: AI kapalı/başarısızsa deterministik şablon döner.
+        AI kapalı/başarısızsa yorum üretilmez: gövde boş, özet ve tweet KAP başlığının kendisidir.
+        ``macro_context``/``sector_context``/``is_insider``/``disclosure_index`` geriye dönük uyumluluk içindir.
         """
+        code = f" ({ticker})" if ticker else ""
         prompt = f"""Sen bir KAP (Kamuyu Aydınlatma Platformu) bildirimi özetleyicisisin. Görevin bildirimde NE açıklandığını sade ve tarafsız Türkçe ile aktarmak.
 {NEUTRAL_RULES}
-Şirket: {company} ({ticker})
+Şirket: {company}{code}
 Bildirim türü: {disclosure_type}
 Başlık: {title}
 Bildirim içeriği:
@@ -389,17 +392,11 @@ Tek cümle (max 140 karakter): kim, neyi açıkladı. Bildirimde tutar/oran vars
 260 karakteri aşmayan tek, tarafsız cümle: [Şirket] [ne açıkladı]. Varsa tutarı birimiyle ekle.
 - EMOJİ KULLANMA. Hashtag EKLEME. Yorum ekleme.
 """
-        facts = filing_facts_markdown(company, ticker, title, disclosure_type, raw_text, disclosure_index)
         raw = self.client.generate(prompt, disable_thinking=True, task_type="analysis")
         if raw:
-            body, summary, tweet = self._parse_news_analysis(raw, title, company, ticker, is_insider)
-            return f"{body}\n\n{facts}", summary, tweet
-
-        log.info("AI kapalı/başarısız; şablon bildirim özeti üretiliyor.")
-        return self._template_news_analysis(
-            title, disclosure_type, company, ticker, is_insider,
-            raw_text=raw_text, disclosure_index=disclosure_index,
-        )
+            return self._parse_news_analysis(raw, title, company, ticker, is_insider)
+        log.info("AI kapalı/başarısız; yorum üretilmiyor, yalın KAP bilgisi yayınlanacak.")
+        return self._template_news_analysis(title, disclosure_type, company, ticker, is_insider, raw_text=raw_text)
 
     # ---- yardımcılar (generate_news_analysis) ----------------------------------
 
@@ -407,7 +404,9 @@ Tek cümle (max 140 karakter): kim, neyi açıkladı. Bildirimde tutar/oran vars
     def _parse_news_analysis(
         raw: str, title: str, company: str, ticker: str, is_insider: bool
     ) -> tuple[str, str, str]:
-        """AI çıktısını (body, summary, tweet) üçlüsüne dönüştürür ve yasaklı içeriği süzer."""
+        """AI çıktısını (generated_body, summary, tweet) üçlüsüne dönüştürür ve yasaklı içeriği süzer.
+
+        Özet süzgece takılır/boş kalırsa KAP başlığı (birebir) kullanılır."""
         import re
 
         def _extract(section: str) -> str:
@@ -415,24 +414,22 @@ Tek cümle (max 140 karakter): kim, neyi açıkladı. Bildirimde tutar/oran vars
             m = re.search(pattern, raw, re.DOTALL | re.IGNORECASE)
             return m.group(1).strip() if m else ""
 
-        fallback_summary = f"{company} ({ticker}): {title[:110]}"
-        summary = strip_banned(_extract("ÖZET")) or fallback_summary
-        if summary.strip().lower() == title.strip().lower():
-            summary = fallback_summary
-
+        summary = strip_banned(_extract("ÖZET")) or title
         tweet = strip_banned(_extract("TWEET"))
         if not tweet or len(tweet.strip()) < 30 or tweet.strip().lower() == title.strip().lower():
             tweet = summary
-        if len(tweet) > 230:
+        if len(tweet) > 230 and tweet != title:
             tweet = tweet[:230].rsplit(" ", 1)[0].rstrip(" ,.;:") + "…"
 
         detail = strip_banned(
             _extract("BİLDİRİM") or _extract("BILDIRIM") or _extract("ANALİZ") or _extract("ANALIZ")
         )
-        body = f"### Hızlı Bakış\n{summary}"
+        parts = []
+        if summary != title:
+            parts.append(f"### Özet\n{summary}")
         if detail:
-            body += f"\n\n### Bildirim Özeti\n{detail}"
-        return body, summary, tweet
+            parts.append(f"### Bildirim Özeti\n{detail}")
+        return "\n\n".join(parts), summary, tweet
 
     @staticmethod
     def _template_news_analysis(
@@ -444,19 +441,8 @@ Tek cümle (max 140 karakter): kim, neyi açıkladı. Bildirimde tutar/oran vars
         raw_text: str = "",
         disclosure_index: str = "",
     ) -> tuple[str, str, str]:
-        """AI yokken yalnızca bildirimden türetilen olgusal özet üretir (yorum/sinyal yok)."""
-        summary = f"{company} ({ticker}): {title[:110]}"
-        topic = classify_filing(title, disclosure_type)
-        lead = f"**{company}** ({ticker}), Kamuyu Aydınlatma Platformu'nda `{title}` başlıklı bildirim yayımladı."
-        if topic:
-            lead += f" Bildirimin konusu: {topic.lower()}."
-        facts = filing_facts_markdown(company, ticker, title, disclosure_type, raw_text, disclosure_index)
-        body = f"### Hızlı Bakış\n{lead}\n\n{facts}"
-
-        _prefix = f"${ticker} ({company}): "
-        _max_title = max(10, 230 - len(_prefix))
-        tweet = f"{_prefix}{title[:_max_title]}"
-        return body, summary, tweet
+        """AI yokken yorum üretilmez: gövde boş; özet ve tweet KAP başlığının kendisi (birebir)."""
+        return "", title, title
 
     @staticmethod
     def generate_sector_movement_analysis(

@@ -1,0 +1,238 @@
+{
+  "_doc": "Ortak davranış vektörleri: bot/tests/test_neutral_language.py ve web/src/lib/neutral.test.mjs aynı dosyayı koşar. block: find_banned boş olmamalı; keep: boş olmalı; normalize: [girdi, beklenen]; strip: [girdi, beklenen strip_banned çıktısı].",
+  "block": [
+    "Hisse alınabilir.",
+    "Bu seviyelerden satılmalı.",
+    "Analistlerin hedef fiyatı 120 TL.",
+    "Hisse 50 TL direncini kırdı.",
+    "Hedef fiyatlarımız yükseltildi.",
+    "HEDEF FİYAT 120 TL",
+    "hedef  fiyat 120 TL",
+    "hedef-fiyat 120 TL",
+    "hedef fiyat 120 TL",
+    "hedef​fiyat 120 TL",
+    "di​renç 50 TL",
+    "s i n y a l",
+    "AlSinyali geldi",
+    "Güçlü AL",
+    "AL",
+    "Strong buy",
+    "Buy",
+    "sell signal",
+    "Target price 120",
+    "price target raised",
+    "support at 50, resistance at 60",
+    "take profit at 60",
+    "stop loss 45",
+    "stop-loss seviyesi 45",
+    "zarar kes 45",
+    "Bullish görünüm",
+    "bull run",
+    "🚀🚀 ASELS",
+    "📈 Yükseliş bekleniyor",
+    "🟢 AL",
+    "⬆️ yukarı yönlü",
+    "pozitif ayrışma bekleniyor",
+    "negatif ayrışma",
+    "prim potansiyeli yüksek",
+    "%30 yükseliş potansiyeli",
+    "%30 getiri bekleniyor",
+    "%40 yukarı potansiyel",
+    "değerlenme potansiyeli",
+    "hisse ucuz kaldı",
+    "hisse pahalı",
+    "fırsat kaçırmayın",
+    "Kaçırmayın!",
+    "tavan serisi devam edebilir",
+    "hisse tavana kitlendi, taban olmaz",
+    "fiyatın yükselmesi beklenir",
+    "fiyatın yükselmesi bekleniyor",
+    "hisse fiyatının artması beklenmektedir",
+    "yükseliş öngörülüyor",
+    "ralli başlayabilir",
+    "Hisse için olumlu.",
+    "Hisseyi portföyde tutmaya devam.",
+    "Tut",
+    "Endekste destek 9.500, direnç 10.000",
+    "destek 9.500 puan",
+    "ilk destek 9.500",
+    "Destekten tepki",
+    "aşırı alım bölgesinde",
+    "Aşırı alımda",
+    "RSI 75",
+    "RSI(14) 75",
+    "Hareketli ortalamanın üstünde",
+    "MACD al verdi",
+    "Fib %61,8",
+    "boğa piyasası",
+    "boğalar kontrolde",
+    "ayılar baskın",
+    "Ayı senaryosunda",
+    "iskontolu işlem görüyor",
+    "F/K bazında ucuz",
+    "adil değeri 80 TL",
+    "Bilanço beklentilerin üzerinde, hisseye talep artabilir",
+    "MEGA İŞ ANLAŞMASI",
+    "MEGA ANLAŞMA",
+    "Mega-Sözleşme",
+    "Dev sözleşme",
+    "Tarihi anlaşma",
+    "Rekor sözleşme",
+    "Tier-1 anlaşma",
+    "Kâr satışı gelebilir",
+    "Kar realizasyonu",
+    "Kâr al",
+    "Pozitif sinyal",
+    "Finansal Sinyal: Pozitif",
+    "Pozitif (Yeni Sipariş)",
+    "Nötr-Pozitif",
+    "pozitif etkisi olabilir",
+    "olumlu etkilemesi beklenir",
+    "olumlu etkileyecektir",
+    "yatırımcıların ilgisini çekebilir",
+    "Alım fırsatı",
+    "Alım için uygun seviye",
+    "Kademeli alım yapılabilir",
+    "Kademeli alım",
+    "Hisse üzerinde kısa vadede pozitif haber akışı etkisi yaratması beklenir.",
+    "Pivot Üstü: Boğa / Altı: Ayı",
+    "İlk Kar Satışı Bölgesi",
+    "Olası Tepki Alım Tabanı",
+    "Kritik Direnç (R1 / 20G)",
+    "Stratejik Sınıf: TIER-1 (MEGA İŞ ANLAŞMASI)",
+    "hedef fiyat 120 TL",
+    "HEDEF‑FİYAT",
+    "di­renç 50",
+    "Güçlü AL",
+    "piyasa yansıması güçlü olacak",
+    "Endeksin 11.000 puana yükselmesi öngörülüyor",
+    "kurumsal para girişi hızlandı",
+    "tavsiye ederim",
+    "🔥 Dev ihale"
+  ],
+  "keep": [
+    "Şirketimiz ile Boğaziçi Elektrik arasında sözleşme imzalanmıştır.",
+    "Hedef şirketin paylarının %60'ı devralınacaktır.",
+    "Hedef şirket ile birleşme işlemi SPK onayına sunulmuştur.",
+    "Yatırım teşvik belgesi kapsamında devlet desteği alınmıştır.",
+    "Ar-Ge destek programı kapsamında hibe sağlanmıştır.",
+    "Pay alım satım sözleşmesi imzalanmıştır.",
+    "Bağımsız denetçi olumlu görüş vermiştir.",
+    "Kayıtlı sermaye tavanı 5.000.000.000 TL'ye yükseltilmiştir.",
+    "Kayıtlı sermaye tavanının 2026-2030 yılları için geçerli olması",
+    "Tier 2 sermaye benzeri borçlanma aracı ihracı tamamlanmıştır.",
+    "İlave ana sermaye (AT1 / Tier 1) niteliğinde tahvil ihracı",
+    "Demiryolu sinyalizasyon sistemi ihalesini kazandık.",
+    "Sinyal işleme modülleri tedarik sözleşmesi imzalanmıştır.",
+    "Planlı bakım kapsamında katalizör değişimi yapılacaktır.",
+    "Garanti karşılığı teminat mektubu verilmiştir.",
+    "Garanti kâr payı dağıtım tarihi 15.05.2026",
+    "İklimle ilgili risk ve fırsatlar TSRS kapsamında raporlanmıştır.",
+    "Satış bölgesi müdürlüğü kurulmuştur.",
+    "Satıştan 100 milyon TL para girişi sağlanacaktır.",
+    "İşlemin 2027 yılında tamamlanması beklenir.",
+    "Bina deprem direnci raporu alınmıştır.",
+    "Yatırım amaçlı gayrimenkullerin adil değer ölçümü yapılmıştır.",
+    "TMO alım tabanı fiyatı açıklandı.",
+    "Pozitif Elektronik A.Ş. ile sözleşme",
+    "Gerekli izinlerin mutlaka alınması gerekmektedir.",
+    "Mega Polietilen paylarının devri",
+    "Kasım ayı bilançosu",
+    "Gelir tablosunda fiyat etkisi ve hacim etkisi ayrıştırılmıştır.",
+    "Halka arzda hisseye talep 3,2 kat olmuştur.",
+    "Pivot Gayrimenkul A.Ş. ile kira sözleşmesi",
+    "Bu içerik, kamuya açık bir KAP bildiriminin otomatik özetidir; yatırım tavsiyesi değildir.",
+    "Bu içerik, kamuya açık verilerin otomatik özetidir; yatırım tavsiyesi değildir.",
+    "AKBANK T.A.Ş.: Tier 2 Sermaye Benzeri Borçlanma Aracı İhracı",
+    "KONTROLMATİK TEKNOLOJİ A.Ş.: Demiryolu Sinyalizasyon Projesi Sözleşmesi",
+    "BORUSAN BİRLEŞİK BORU FABRİKALARI A.Ş.: Yeni İş İlişkisi",
+    "Bakımın 45 gün sürmesi beklenir.",
+    "SPK tarafından değerlendirilmesi beklenmektedir.",
+    "Belgelerin getirilmesi beklenmektedir.",
+    "Fabrikanın kurulmasının 2027'de tamamlanması bekleniyor.",
+    "Satış bedeli şirketin nakit varlıklarını destekler.",
+    "Nominal değerin üzerinde primli satış yapılacaktır.",
+    "İskontolu finansman bonosu ihraç edilecektir.",
+    "Pay başına brüt 4,65 TL nakit kâr payı dağıtılacaktır.",
+    "Sıra, sektördeki 12 hisse üzerinden hesaplanır.",
+    "Sermaye artırımı A grubu paylar için yapılacaktır.",
+    "Garanti BBVA ile kredi sözleşmesi imzalanmıştır.",
+    "BULLS GİRİŞİM SERMAYESİ YATIRIM ORTAKLIĞI A.Ş.: Sermaye Artırımı"
+  ],
+  "normalize": [
+    [
+      "HEDEF FİYAT",
+      "hedef fiyat"
+    ],
+    [
+      "hedef  fiyat",
+      "hedef fiyat"
+    ],
+    [
+      "hedef-fiyat",
+      "hedef fiyat"
+    ],
+    [
+      "hedef–fiyat",
+      "hedef fiyat"
+    ],
+    [
+      "hedef fiyat",
+      "hedef fiyat"
+    ],
+    [
+      "hedef​fiyat",
+      "hedeffiyat"
+    ],
+    [
+      "di­renç",
+      "direnc"
+    ],
+    [
+      "KÂR SATIŞI",
+      "kar satisi"
+    ],
+    [
+      "Iğdır ŞİŞLİ",
+      "igdir sisli"
+    ],
+    [
+      "ⅠⅡ ﬁyat",
+      "iii fiyat"
+    ],
+    [
+      "⬆️ yukarı",
+      "⬆ yukari"
+    ],
+    [
+      "s i n y a l",
+      "harf aralikli yazim"
+    ],
+    [
+      "  boşluk  ",
+      "bosluk"
+    ]
+  ],
+  "strip": [
+    [
+      "### Hızlı Bakış\nŞirket bildirim yayımladı.\n\n### Finansal Sinyal: Pozitif\n- Hisse üzerinde etki.\n\n### Bildirim Bilgileri\n- Tutar: 5 TL",
+      "### Hızlı Bakış\nŞirket bildirim yayımladı.\n\n### Bildirim Bilgileri\n- Tutar: 5 TL"
+    ],
+    [
+      "Şirket sözleşme imzaladı. Hedef fiyat 150 TL. Teslimat 2027'de.",
+      "Şirket sözleşme imzaladı. Teslimat 2027'de."
+    ],
+    [
+      "| Metrik | Seviye |\n| :--- | :--- |\n| Kritik Destek | 125 TL |\n\nSon satır.",
+      "Son satır."
+    ],
+    [
+      "- **Ne açıklandı:** Bakım başladı.\r\n- **Piyasa:** RSI 75, aşırı alım.\r\nAL",
+      "- **Ne açıklandı:** Bakım başladı."
+    ],
+    [
+      "## A\n### Boğa senaryosu\nmetin\n#### alt\nalt metin\n### Temiz\nkalır",
+      "## A\n### Temiz\nkalır"
+    ]
+  ]
+}

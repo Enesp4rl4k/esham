@@ -59,8 +59,9 @@ def test_temerrut_classification_and_no_emojis():
         is_insider=False,
     )
     
-    # Konu tarafsız etiketle verilir; "Pozitif"/"Risk" gibi yargı etiketi yok.
-    assert "**Konu:** Temerrüt bildirimi" in body
+    # AI yokken yorum üretilmez: gövde boş, özet KAP başlığının kendisi; yargı etiketi yok.
+    assert body == ""
+    assert summary == "İşleme Açılan Temerrüt Sırası"
     assert "Pozitif" not in body
     assert "Sinyal" not in body
     assert "🟢" not in body

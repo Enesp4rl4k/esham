@@ -1,14 +1,19 @@
-"""Tarafsız dil koruması: KAP raporu/kart/Telegram çıktısında yatırım tavsiyesi gibi okunan içerik olmamalı.
+"""Tarafsız dil koruması: KAP raporu/kart/Telegram çıktısında yatırım tavsiyesi gibi okunan içerik olmamalı,
+ve hiçbir bildirim sessizce kaybolmamalı.
 
-SPK mevzuatına göre yatırım danışmanlığı yalnızca yetkili kurumlarca yapılabilir. Esham'ın çıktısı bir
-KAP bildiriminin NE SÖYLEDİĞİNİN özetidir; al/sat sinyali, hedef fiyat, destek/direnç, kâr satışı/tepki
-alım bölgesi, boğa/ayı, "pozitif sinyal", fiyat/haber akışı etkisi tahmini ve "MEGA" gibi etiketler içermez.
+İlkeler (bkz. esham/neutral.py):
+- Süzgeç YALNIZ üretilmiş yoruma uygulanır; KAP başlığı ve bildirimden birebir bilgi süzülmez.
+- Üretilmiş kısım reddedilirse yalın rapor yayınlanır (başlık aynen, şirket, tarih, tür, KAP bağlantısı).
+- Konu etiketi KAP'ın kendi bildirim türüdür; genel türde "KAP bildirimi".
+- Tutar yalnız kesin ayrıştırılabiliyorsa gösterilir.
+- Normalizasyon + kalıplar tek veri dosyasından; davranış eşitliği ortak vektörlerle (TS de aynı dosyayı koşar).
 
 Testler ağsız ve anahtarsızdır: LLM çağrısı sahte bir istemciyle değiştirilir.
 """
 from __future__ import annotations
 
 import json
+import random
 import re
 from pathlib import Path
 
@@ -20,96 +25,100 @@ from esham.ai.analyzer import MarketAIAnalyzer
 from esham.ai.client import LlmClient
 from esham.guardrails import validate_report, validate_tweet
 from esham.neutral import (
-    BANNED_PATTERNS,
-    DISCLAIMER_KAP,
+    NOTE_AMOUNT_MISSING,
+    NOTE_KAP,
+    REPORT_SCHEMA_VERSION,
     classify_filing,
     extract_amounts,
     find_banned,
-    fold,
     format_amount_tr,
-    parse_number_tr,
+    normalize,
+    parse_number_strict,
     strip_banned,
 )
 from esham.publishing import social
-from esham.publishing.content_store import ContentStore
+from esham.publishing.content_store import ContentStore, ReportDraft
 from esham.sources import Disclosure
 from esham.sources.kap import pick_ticker
 from esham.turkish import tr_upper
 
 ROOT = Path(__file__).resolve().parents[2]
 FIX = Path(__file__).parent / "fixtures"
-
-# Testin KENDİ yasaklı ifade listesi (insan okunur, modülden bağımsız). Katlanmış (büyük/küçük harf ve
-# aksan duyarsız) alt dize olarak aranır; modüldeki kalıplardan daha katıdır (ör. çıplak "destek", "mega").
-GUARD_PHRASES = [
-    "Finansal Sinyal", "sinyal", "Pozitif (", "Negatif (", "pozitif haber akışı", "etkisi yaratması beklenir",
-    "İlk Kar Satışı", "Kâr satışı", "Tepki Alım", "Alım Tabanı", "Destek", "Direnç", "Pivot", "Fibonacci",
-    "RSI", "Boğa", "Ayı Senaryo", "Boğa / Ayı", "Hedef Fiyat", "Adil Değer", "MEGA", "TIER-1", "Key Level", "Teknik Eşik",
-    "Aşırı Alım", "Aşırı Satım", "katalizör", "Hisse üzerinde", "Piyasa Yansıması", "AL sinyali",
-    "Temel Finansal Çarpanlar", "Ciro Etki Çarpanı", "İçsel İşlem", "insider trading",
-]
+VECTORS = json.loads((ROOT / "web" / "src" / "lib" / "neutral-vectors.json").read_text(encoding="utf-8"))
 
 
-def _guard_hits(text: str) -> list[str]:
-    """Kelime başında eşleşen koruma ifadeleri ("rsi" → "karşılık" içinde sayılmaz, "sinyal" → "sinyali" sayılır)."""
-    f = fold(text)
-    return [p for p in GUARD_PHRASES if re.search(r"(?<![a-z0-9])" + re.escape(fold(p)), f)]
+# ---- 1. ortak davranış vektörleri (web/src/lib/neutral.test.mjs aynı dosyayı koşar) ----------------
 
+@pytest.mark.parametrize("text", VECTORS["block"])
+def test_shared_vectors_block(text):
+    assert find_banned(text), (text, normalize(text))
+
+
+@pytest.mark.parametrize("text", VECTORS["keep"])
+def test_shared_vectors_keep(text):
+    assert not find_banned(text), find_banned(text)
+
+
+@pytest.mark.parametrize("raw,expected", VECTORS["normalize"])
+def test_shared_vectors_normalize(raw, expected):
+    assert normalize(raw) == expected
+
+
+@pytest.mark.parametrize("raw,expected", VECTORS["strip"])
+def test_shared_vectors_strip(raw, expected):
+    assert strip_banned(raw) == expected
+
+
+def test_rules_are_single_source():
+    """Python kalıpları ve notları web'in okuduğu dosyadan gelir (kopya liste yok)."""
+    rules = json.loads((ROOT / "web" / "src" / "lib" / "neutral-rules.json").read_text(encoding="utf-8"))
+    assert list(neutral.BANNED_PATTERNS) == rules["patterns"]
+    assert NOTE_KAP == rules["notes"]["kap"]
+    ts = (ROOT / "web" / "src" / "lib" / "neutral.ts").read_text(encoding="utf-8")
+    assert 'from "./neutral-rules.json"' in ts and "BANNED_PATTERNS: readonly string[] = rules.patterns" in ts
+
+
+# ---- fikstür bildirimler -----------------------------------------------------------------------------
 
 def _garan_buyback_text() -> str:
     html = (FIX / "kap_buyback_garan_1700856.html").read_text(encoding="utf-8")
     return BeautifulSoup(html, "html.parser").get_text(" ", strip=True)
 
 
-# (title, disclosure_type, company, ticker, raw_text, beklenen konu)
-FIXTURE_FILINGS = [
-    (
-        "TÜRKİYE İŞ BANKASI A.Ş.: Yurt İçinde Sermaye Benzeri Tahvil İhracına İlişkin SPK Başvurusu",
-        "Özel Durum Açıklaması (Genel)", "TÜRKİYE İŞ BANKASI A.Ş.", "ISCTR",
-        "Bankamızca yurt içinde 30 milyar TL'ye kadar sermaye benzeri tahvil ihracı için SPK'ya başvurulmuştur.",
-        "Borçlanma aracı ihracı",
-    ),
-    (
-        "TÜRKİYE GARANTİ BANKASI A.Ş.: İştirak satışının tamamlanması",
-        "Özel Durum Açıklaması (Genel)", "TÜRKİYE GARANTİ BANKASI A.Ş.", "GARAN",
-        "İştirakimizin %100 payının satışına ilişkin pay alım satım sözleşmesi kapsamında devir işlemleri "
-        "tamamlanmış olup satış bedeli 6.700.000.000 TL olarak tahsil edilmiştir.",
-        "Pay / iştirak alım-satımı",
-    ),
-    (
-        "ASELSAN ELEKTRONİK SANAYİ VE TİCARET A.Ş.: Sözleşme İmzalanması",
-        "Yeni İş İlişkisi", "ASELSAN ELEKTRONİK SANAYİ VE TİCARET A.Ş.", "ASELS",
-        "Şirketimiz ile yurt dışı bir müşteri arasında toplam 1,5 milyar USD tutarında sözleşme imzalanmıştır. "
-        "Teslimatların 2027-2029 yıllarında yapılması planlanmaktadır.",
-        "Sözleşme / iş ilişkisi",
-    ),
-    (
-        "TÜRKİYE GARANTİ BANKASI A.Ş.: Geri Alınan Paylara İlişkin Bildirim",
-        "Pay Geri Alım Bildirimi", "TÜRKİYE GARANTİ BANKASI A.Ş.", "GARAN",
-        _garan_buyback_text(),
-        "Pay geri alımı",
-    ),
-    (
-        "AYGAZ A.Ş.: Kar Payı Dağıtım İşlemlerine İlişkin Bildirim",
-        "Kar Payı Dağıtım İşlemlerine İlişkin Bildirim", "AYGAZ A.Ş.", "AYGAZ",
-        "Yönetim kurulumuz pay başına brüt 4,65 TL nakit kâr payı dağıtılmasını genel kurula önermiştir.",
-        "Kâr payı",
-    ),
-    (
-        "Borsa İstanbul: İşleme Açılan Temerrüt Sırası",
-        "Duyuru", "Borsa İstanbul", "XYZAB",
-        "Takasbank temerrüt takası çerçevesinde ihale usulü ile satış yapılacaktır.",
-        "Temerrüt bildirimi",
-    ),
-    (
-        "DEMO HOLDİNG A.Ş.: Pay Alım Satım Bildirimi",
-        "Pay Alım Satım Bildirimi", "DEMO HOLDİNG A.Ş.", "DEMOH",
-        "Yönetim kurulu üyemiz 12.11.2026 tarihinde 150.000 adet payı 42,10 TL fiyattan satın almıştır.",
-        "Pay alım satım bildirimi",
-    ),
+# (title, KAP türü, şirket, kod, metin, beklenen etiket)
+FILINGS = [
+    ("AKBANK T.A.Ş.: Tier 2 Sermaye Benzeri Borçlanma Aracı İhracı", "Özel Durum Açıklaması (Genel)",
+     "AKBANK T.A.Ş.", "AKBNK",
+     "Bankamızca 500.000.000 ABD Doları tutarında Tier 2 niteliğinde sermaye benzeri borçlanma aracı ihracı tamamlanmıştır.",
+     "KAP bildirimi"),
+    ("KONTROLMATİK TEKNOLOJİ A.Ş.: Demiryolu Sinyalizasyon Projesi Sözleşmesi", "Yeni İş İlişkisi",
+     "KONTROLMATİK TEKNOLOJİ A.Ş.", "KONTR",
+     "Şirketimiz ile TCDD arasında 1,2 milyar TL tutarında demiryolu sinyalizasyon sözleşmesi imzalanmıştır.",
+     "Yeni İş İlişkisi"),
+    ("TÜPRAŞ A.Ş.: Planlı Bakım Çalışması", "Özel Durum Açıklaması (Genel)", "TÜPRAŞ A.Ş.", "TUPRS",
+     "İzmit rafinerisinde katalizör değişimi amacıyla planlı bakım başlatılmıştır. Bakımın 45 gün sürmesi beklenir.",
+     "KAP bildirimi"),
+    ("X A.Ş.: Kayıtlı Sermaye Tavanı Artırımı", "Esas Sözleşme Tadili", "X A.Ş.", "XXXXX",
+     "Kayıtlı sermaye tavanının 5.000.000.000 TL'ye yükseltilmesi için SPK'ya başvurulmuştur.",
+     "Esas Sözleşme Tadili"),
+    ("BİRLEŞİM MÜHENDİSLİK A.Ş.: Yeni İş İlişkisi", "Özel Durum Açıklaması (Genel)", "BİRLEŞİM MÜHENDİSLİK A.Ş.", "BRLSM",
+     "Şirketimiz 85 milyon TL tutarında iklimlendirme işi almıştır.", "KAP bildirimi"),
+    ("X A.Ş.: Sürdürülebilirlik Raporu", "Sürdürülebilirlik Raporu", "X A.Ş.", "XXXXX",
+     "TSRS kapsamında iklimle ilgili risk ve fırsatlar raporumuz yayımlanmıştır.", "Sürdürülebilirlik Raporu"),
+    ("X A.Ş.: Pay Geri Alım", "Payların Geri Alınmasına İlişkin Bildirim", "X A.Ş.", "XXXXX",
+     "1 TL nominal değerli 100.000 adet pay ortalama 42,10 TL fiyattan geri alınmıştır.",
+     "Payların Geri Alınmasına İlişkin Bildirim"),
+    ("X A.Ş.: Eurobond İhracı", "Özel Durum Açıklaması (Genel)", "X A.Ş.", "XXXXX",
+     "USD 750,000,000 tutarında tahvil ihracı tamamlanmıştır. Toplam GBP 20.000.000 kredi kullanılmıştır.",
+     "KAP bildirimi"),
+    ("TÜRKİYE GARANTİ BANKASI A.Ş.: Geri Alınan Paylara İlişkin Bildirim", "Payların Geri Alınmasına İlişkin Bildirim",
+     "TÜRKİYE GARANTİ BANKASI A.Ş.", "GARAN", _garan_buyback_text(), "Payların Geri Alınmasına İlişkin Bildirim"),
+    # KAP'ın resmî başlığı yasaklı kalıp içerse bile AYNEN yayınlanır (olgusal kaynak).
+    ("ABC A.Ş.: Mega Sözleşme İmzalanması Hk.", "Yeni İş İlişkisi", "ABC A.Ş.", "ABCDE",
+     "Şirketimiz 20.000.000 TL tutarında sözleşme imzalamıştır.", "Yeni İş İlişkisi"),
 ]
+IDS = [f[0][:34] for f in FILINGS]
 
-# Eski şablonun ve "sinyal" üreten bir LLM'in tipik çıktısı — süzgecin yakalaması gereken içerik.
 BAD_LLM_OUTPUT = """## ÖZET
 Şirket bildirimi açıkladı; hisse üzerinde kısa vadede pozitif haber akışı etkisi yaratması beklenir.
 
@@ -117,141 +126,53 @@ BAD_LLM_OUTPUT = """## ÖZET
 **Finansal Sinyal:** Pozitif
 - **Ne açıklandı:** Şirket, bildirimde belirtilen işlemi tamamladığını açıkladı.
 - **Piyasa Yansıması:** 131,77 TL direnç ve 125,47 TL kritik destek izlenmeli; pivot üstü boğa.
-- **Tutar / oran:** Bildirimde belirtildiği şekliyle.
 - **Değerlendirme:** TIER-1 (MEGA İŞ ANLAŞMASI), hedef fiyat 150 TL, ilk kâr satışı bölgesi 140 TL.
 
-| Metrik | Seviye | Teknik Anlam / Sinyal |
-| :--- | :--- | :--- |
-| **Kritik Destek** | 125,47 TL | Olası Tepki Alım Tabanı |
+## TWEET
+MEGA İŞ ANLAŞMASI! 🚀 Güçlü AL, hedef  fiyat 150 TL.
+"""
+ALL_BAD_LLM_OUTPUT = """## ÖZET
+Hedef fiyat 150 TL, güçlü AL.
+
+## BİLDİRİM
+- Hisse üzerinde pozitif etki bekleniyor; RSI 75.
 
 ## TWEET
-MEGA İŞ ANLAŞMASI! Boğa senaryosunda AL sinyali, hedef fiyat 150 TL.
+🚀🚀 Strong buy
 """
 
 
-# ---- yasaklı kalıp listesi ----------------------------------------------------------------
+def _good_llm(title: str, company: str, raw: str) -> str:
+    return f"""## ÖZET
+{company}, {title.split(': ', 1)[1]} hakkında bildirim yayımladı.
 
-@pytest.mark.parametrize("text", [
-    "Finansal Sinyal: Pozitif", "FİNANSAL SİNYAL", "finansal sinyal", "Fınansal Sınyal",
-    "Pivot Üstü: Boğa / Altı: Ayı", "PIVOT ÜSTÜ: BOĞA", "boga",
-    "İlk Kar Satışı Bölgesi", "İLK KÂR SATIŞI", "ilk kar satisi",
-    "Olası Tepki Alım Tabanı", "OLASI TEPKİ ALIM TABANI",
-    "Kritik Direnç (R1 / 20G)", "KRİTİK DİRENÇ", "kritik direnc",
-    "Hisse üzerinde kısa vadede pozitif haber akışı etkisi yaratması beklenir.",
-    "Stratejik Sınıf: TIER-1 (MEGA İŞ ANLAŞMASI)", "Mega Sözleşme", "MEGA SÖZLEŞME",
-    "Hedef fiyat 150 TL", "14G RSI 72", "Aşırı Alım", "Yükseliş potansiyeli %30",
-    "Ayı senaryosu", "AL sinyali geldi", "alım fırsatı", "tavsiye ederim",
-])
-def test_banned_phrases_detected_case_and_diacritic_insensitive(text):
-    assert find_banned(text), text
+## BİLDİRİM
+- **Ne açıklandı:** {raw[:300]}
+- **Taraflar:** Belirtilmemiş
+
+## TWEET
+{company}: {raw[:180]}
+"""
 
 
-@pytest.mark.parametrize("text", [
-    DISCLAIMER_KAP,
-    neutral.DISCLAIMER_GENERIC,
-    "Kasım ayı içinde ödenecektir.",
-    "Satış bedeli şirketin nakit varlıklarını destekler.",
-    "MEGA POLİETİLEN TEKNOLOJİ A.Ş.: Pay Alım Satım Bildirimi",
-    "Nominal değerin üzerinde primli satış yapılacaktır.",
-    "İskontolu finansman bonosu ihraç edilecektir.",
-    "Pay başına brüt 4,65 TL nakit kâr payı dağıtılacaktır.",
-    "Bankamızca 30 milyar TL'ye kadar tahvil ihracı için SPK'ya başvurulmuştur.",
-    "TMO alım tabanı 12,50 TL/kg olarak açıklandı.",
-    "Sıra, sektördeki 12 hisse üzerinden hesaplanır.",
-])
-def test_factual_filing_language_is_not_banned(text):
-    assert not find_banned(text), find_banned(text)
-
-
-def test_web_display_filter_uses_same_pattern_list():
-    """Web, eski raporları görüntüleme anında aynı listeyle temizler; iki liste ayrışmamalı."""
-    src = (ROOT / "web" / "src" / "lib" / "neutral.ts").read_text(encoding="utf-8")
-    m = re.search(r"export const BANNED_PATTERNS: readonly string\[\] = (\[.*?\]);", src, re.S)
-    assert m, "web/src/lib/neutral.ts içinde BANNED_PATTERNS bulunamadı"
-    assert json.loads(m.group(1)) == list(BANNED_PATTERNS)
-
-
-# ---- deterministik süzgeç ------------------------------------------------------------------
-
-def test_strip_banned_removes_sections_rows_and_sentences():
-    out = strip_banned(BAD_LLM_OUTPUT)
-    assert not find_banned(out), find_banned(out)
-    assert not _guard_hits(out), _guard_hits(out)
-    assert "Şirket, bildirimde belirtilen işlemi tamamladığını açıkladı." in out
-    assert "| Metrik |" not in out  # gövde satırı kalmayan tablo başlığıyla birlikte gider
-
-
-def test_strip_banned_cleans_legacy_report_body():
-    """Eski bir KAP raporu (İş Bankası tahvil başvurusu) gövdesi: sinyal, çarpanlar ve teknik seviyeler gider."""
-    doc = json.loads((ROOT / "web" / "content" / "reports" /
-                      "2026-11-04-turkiye-is-bankasi-a-s-yurt-icinde-sermaye-benzeri-tahvil-ihracina-iliskin-spk-basvurusu.json"
-                      ).read_text(encoding="utf-8"))
-    assert find_banned(doc["body"])  # eski içerik gerçekten sorunlu
-    out = strip_banned(doc["body"])
-    assert not find_banned(out)
-    assert "4950000" not in out and "Sözleşme Tutarı" not in out
-    assert "Hızlı Bakış" in out
-
-
-# ---- üreticiler: KAP bildirimi özetleri -----------------------------------------------------
-
-def _assert_neutral(body: str, summary: str, tweet: str) -> None:
-    for name, text in (("body", body), ("summary", summary), ("tweet", tweet)):
-        assert not find_banned(text), (name, find_banned(text), text)
-        assert not _guard_hits(text), (name, _guard_hits(text), text)
-
-
-@pytest.mark.parametrize("filing", FIXTURE_FILINGS, ids=[f[3] + "-" + f[5] for f in FIXTURE_FILINGS])
-def test_template_generator_is_neutral_for_fixture_filings(filing):
-    title, dtype, company, ticker, raw, topic = filing
-    body, summary, tweet = MarketAIAnalyzer._template_news_analysis(
-        title, dtype, company, ticker, False, raw_text=raw, disclosure_index="1700856",
-    )
-    _assert_neutral(body, summary, tweet)
-    assert f"**Konu:** {topic}" in body
-    assert "https://www.kap.org.tr/tr/Bildirim/1700856" in body
-
-
-@pytest.mark.parametrize("filing", FIXTURE_FILINGS, ids=[f[3] + "-" + f[5] for f in FIXTURE_FILINGS])
-def test_llm_generator_output_is_post_filtered(monkeypatch, filing):
-    """LLM kurala uymayıp sinyal/seviye yazsa bile yayına giden metin temizdir (gerçek LLM çağrısı yok)."""
-    prompts: list[str] = []
-
-    def fake_generate(self, prompt, **kwargs):
-        prompts.append(prompt)
-        return BAD_LLM_OUTPUT
-
-    monkeypatch.setattr(LlmClient, "generate", fake_generate)
-    title, dtype, company, ticker, raw, _topic = filing
-    body, summary, tweet = MarketAIAnalyzer().generate_news_analysis(
-        title=title, disclosure_type=dtype, company=company, ticker=ticker, raw_text=raw,
-        macro_context="XU100 %2 yükseldi; boğa piyasası sürüyor",
-    )
-    _assert_neutral(body, summary, tweet)
-    assert "### Bildirim Bilgileri" in body
-    # Prompt tarafsızlık kurallarını içerir ve piyasa bağlamını bildirim özetine taşımaz.
-    assert "hedef fiyat" in prompts[0].lower() and "YAZMA" in prompts[0]
-    assert "Finansal Sinyal" not in prompts[0]
-    assert "boğa piyasası" not in prompts[0]
-
-
-def test_sector_movement_text_is_data_only():
-    body, summary, tweet = MarketAIAnalyzer.generate_sector_movement_analysis("Bankacılık", -1.234, "x")
-    _assert_neutral(body, summary, tweet)
-    assert "%-1,23" in body
-
-
-# ---- uçtan uca: run_news_report (rapor JSON + kart + Telegram) ------------------------------
+# ---- 2. uçtan uca: run_news_report ------------------------------------------------------------------
 
 class _FakeState:
     def __init__(self) -> None:
         self.n = 0
+        self.seen: set[str] = set()
 
     def get_daily_post_count(self) -> int:
         return self.n
 
     def increment_daily_post_count(self) -> None:
         self.n += 1
+
+    def load_seen(self) -> set[str]:
+        return set(self.seen)
+
+    def save_seen(self, keys: set[str]) -> None:
+        self.seen = set(keys)
 
 
 @pytest.fixture
@@ -281,83 +202,274 @@ def news_env(monkeypatch, tmp_path):
     return {"cards": cards, "posts": posts, "dir": tmp_path / "reports", "kap": _FakeKap}
 
 
-@pytest.mark.parametrize("llm_output", [None, BAD_LLM_OUTPUT], ids=["sablon", "kotu-llm"])
-@pytest.mark.parametrize("filing", FIXTURE_FILINGS, ids=[f[3] + "-" + f[5] for f in FIXTURE_FILINGS])
-def test_run_news_report_outputs_are_neutral(news_env, monkeypatch, filing, llm_output):
-    title, dtype, company, ticker, raw, topic = filing
+def _run(news_env, monkeypatch, filing, llm_output, index="1700000"):
+    title, dtype, company, ticker, raw, _label = filing
     monkeypatch.setattr(LlmClient, "generate", lambda self, prompt, **kw: llm_output)
     news_env["kap"].detail = raw
     d = Disclosure(title=title, company=company, date="2026-11-04", disclosure_type=dtype,
-                   raw_text=title.split(": ", 1)[-1], ticker=ticker, disclosure_index="1700000",
-                   is_insider="alım satım" in dtype.lower() or "geri alım" in dtype.lower())
-
+                   raw_text=title.split(": ", 1)[-1], ticker=ticker, disclosure_index=index)
     slug = pipeline.run_news_report(disclosure=d, publish_social=True)
-    assert slug
+    files = list(news_env["dir"].glob("*.json"))
+    doc = json.loads(files[0].read_text(encoding="utf-8")) if files else None
+    return slug, files, doc
 
-    (report_file,) = list(news_env["dir"].glob("*.json"))
-    doc = json.loads(report_file.read_text(encoding="utf-8"))
-    _assert_neutral(doc["body"], doc["summary"], " ".join(doc["tags"]))
-    assert not any(find_banned(t) for t in doc["tags"])
+
+def _generated_part(doc: dict) -> str:
+    body = doc["body"]
+    return body.split("### Bildirim Bilgileri")[0]
+
+
+@pytest.mark.parametrize("mode", ["sablon", "iyi-llm", "kotu-llm", "tamamen-kotu-llm"])
+@pytest.mark.parametrize("filing", FILINGS, ids=IDS)
+def test_every_filing_is_published_never_silently_dropped(news_env, monkeypatch, filing, mode):
+    title, dtype, company, ticker, raw, label = filing
+    llm = {"sablon": None, "iyi-llm": _good_llm(title, company, raw), "kotu-llm": BAD_LLM_OUTPUT,
+           "tamamen-kotu-llm": ALL_BAD_LLM_OUTPUT}[mode]
+    slug, files, doc = _run(news_env, monkeypatch, filing, llm)
+
+    assert slug and len(files) == 1 and pipeline.last_news_status() == "published"
+    assert doc["title"] == title                                  # başlık AYNEN
+    assert f"- **Başlık (KAP):** {title}" in doc["body"]          # birebir blok süzülmedi
+    assert f"- **Bildirim türü (KAP):** {dtype}" in doc["body"]
+    assert "https://www.kap.org.tr/tr/Bildirim/1700000" in doc["body"]
+    assert doc["schemaVersion"] == REPORT_SCHEMA_VERSION
+    assert doc["kap"]["url"] == "https://www.kap.org.tr/tr/Bildirim/1700000"
+    # Üretilmiş kısım ve özet yasaklı kalıp taşımaz (birebir başlık hariç)
+    assert not find_banned(_generated_part(doc)), find_banned(_generated_part(doc))
+    assert doc["summary"] == title or not find_banned(doc["summary"])
 
     (spec,) = news_env["cards"]
-    assert spec.kicker == tr_upper(topic)
-    assert not find_banned(spec.kicker) and "MEGA" not in spec.kicker and "İÇSEL" not in spec.kicker
-    # Manşet rakamı/fiyat/RSI/destek çipi yok: bildirimden anlamı bilinmeyen sayı karta basılmaz.
-    assert spec.stat_value == "" and spec.stat_change == "" and spec.metrics == [] and spec.sparkline is None
+    assert spec.kicker == tr_upper(label) and spec.headline == title[:120]
+    assert spec.stat_value == "" and spec.metrics == [] and spec.sparkline is None
 
     (post,) = news_env["posts"]
-    assert post.rstrip().endswith(DISCLAIMER_KAP)
-    assert not find_banned(post) and not _guard_hits(post)
+    assert post.rstrip().endswith(NOTE_KAP)
+    masked = post.replace(title, "")
+    assert not find_banned(masked), find_banned(masked)
 
 
-def test_garanti_subsidiary_sale_is_not_labelled_mega_deal(news_env, monkeypatch):
-    """Bildirildi: Garanti iştirak satışı kartında 'MEGA İŞ ANLAŞMASI' yazıyordu."""
-    monkeypatch.setattr(LlmClient, "generate", lambda self, prompt, **kw: None)
-    title, dtype, company, ticker, raw, _ = FIXTURE_FILINGS[1]
-    news_env["kap"].detail = raw
-    pipeline.run_news_report(disclosure=Disclosure(title, company, "2026-11-03", dtype, ticker=ticker,
-                                                   disclosure_index="1"), publish_social=False)
-    (spec,) = news_env["cards"]
-    assert spec.kicker == "PAY / İŞTİRAK ALIM-SATIMI"
-    doc = json.loads(next(news_env["dir"].glob("*.json")).read_text(encoding="utf-8"))
-    assert "Mega" not in json.dumps(doc, ensure_ascii=False)
-    assert "6,7 milyar TL" in doc["body"]  # tutar bildirimden, birimiyle, Türkçe biçimde
+def test_akbank_tier2_end_to_end(news_env, monkeypatch):
+    """İnceleme B1: 'Tier 2' başlığı guardrail'a takılıp bildirim kayboluyordu."""
+    slug, files, doc = _run(news_env, monkeypatch, FILINGS[0], None)
+    assert slug and "Tier 2 Sermaye Benzeri Borçlanma Aracı İhracı" in doc["body"]
+    assert "500 milyon USD" in doc["body"]
+    assert "Tier 2" in news_env["posts"][0]
 
 
-def test_is_bank_bond_card_has_no_price_headline(news_env, monkeypatch):
-    """Bildirildi: İş Bankası tahvil başvurusu kartında '4950000.00 TL' (ISATR hisse fiyatı) vardı."""
-    monkeypatch.setattr(LlmClient, "generate", lambda self, prompt, **kw: None)
-    title, dtype, company, ticker, raw, _ = FIXTURE_FILINGS[0]
-    news_env["kap"].detail = raw
-    pipeline.run_news_report(disclosure=Disclosure(title, company, "2026-11-04", dtype, ticker=ticker,
-                                                   disclosure_index="2"), publish_social=False)
-    (spec,) = news_env["cards"]
-    assert spec.stat_value == "" and spec.kicker == "BORÇLANMA ARACI İHRACI"
-    doc = json.loads(next(news_env["dir"].glob("*.json")).read_text(encoding="utf-8"))
-    assert "4950000" not in doc["body"] and "30 milyar TL" in doc["body"]
+def test_kontrolmatik_signalling_end_to_end(news_env, monkeypatch):
+    """İnceleme B1: 'Sinyalizasyon' başlığı guardrail'a takılıp bildirim kayboluyordu."""
+    filing = FILINGS[1]
+    slug, files, doc = _run(news_env, monkeypatch, filing, _good_llm(filing[0], filing[2], filing[4]))
+    assert slug and "Demiryolu Sinyalizasyon Projesi Sözleşmesi" in doc["body"]
+    assert "sinyalizasyon" in doc["body"].lower().split("### bildirim bilgileri")[0]  # LLM özeti korundu
+    assert "1,2 milyar TL" in doc["body"]
+    assert "sinyalizasyon" in news_env["posts"][0].lower()
 
 
-# ---- etiketleme ve tutarlar --------------------------------------------------------------
+def test_guardrail_rejection_publishes_minimal_report(news_env, monkeypatch, caplog):
+    """Üretilmiş metnin tamamı reddedilse bile yalın rapor yayınlanır; 'yayınlandı' logu gerçek yayında."""
+    filing = FILINGS[3]
+    slug, files, doc = _run(news_env, monkeypatch, filing, ALL_BAD_LLM_OUTPUT)
+    assert slug and doc["summary"] == filing[0]
+    assert doc["body"].startswith("### Bildirim Bilgileri")
+    assert news_env["posts"] and filing[0] in news_env["posts"][0]
 
-def test_pick_ticker_prefers_traded_share_class():
-    assert pick_ticker("ISATR, ISBTR, ISCTR, ISKUR") == "ISCTR"
-    assert pick_ticker("GARAN") == "GARAN"
-    assert pick_ticker("ZZZZA, ZZZZB") == "ZZZZA"
+
+def test_duplicate_is_a_decision_and_card_not_rendered(news_env, monkeypatch):
+    filing = FILINGS[2]
+    _run(news_env, monkeypatch, filing, None)
+    news_env["cards"].clear()
+    slug, files, _ = _run(news_env, monkeypatch, filing, None)
+    assert slug is None and pipeline.last_news_status() == "duplicate"
+    assert news_env["cards"] == []  # karar kart çiziminden önce
+
+
+def test_same_title_different_filings_both_published(news_env, monkeypatch):
+    filing = FILINGS[6]
+    a, *_ = _run(news_env, monkeypatch, filing, None, index="1")
+    b, files, _ = _run(news_env, monkeypatch, filing, None, index="2")
+    assert a and b and a != b and len(files) == 2
+
+
+# ---- 3. news_stream: görüldü işareti yalnız karar sonrası ------------------------------------------
+
+def test_news_stream_marks_seen_only_after_decision(monkeypatch):
+    from esham import news_stream as ns
+
+    state = _FakeState()
+    d1 = Disclosure("A A.Ş.: Yeni İş İlişkisi", "A A.Ş.", "2026-11-04", "Yeni İş İlişkisi", ticker="AAAAA")
+    d2 = Disclosure("B A.Ş.: Yeni İş İlişkisi", "B A.Ş.", "2026-11-04", "Yeni İş İlişkisi", ticker="BBBBB")
+
+    class _Kap:
+        def latest_disclosures(self):
+            return [d1, d2]
+
+    monkeypatch.setattr(ns, "get_state", lambda: state)
+    monkeypatch.setattr(ns, "KapSource", _Kap)
+    monkeypatch.setattr(ns, "NewsDetector", lambda: type("D", (), {"scan": lambda self: []})())
+    monkeypatch.setattr(ns, "is_significant", lambda d, t: True)
+    monkeypatch.setattr(ns, "update_ticker_data", lambda: None)
+    outcomes = {"A A.Ş.: Yeni İş İlişkisi": ("error", None), "B A.Ş.: Yeni İş İlişkisi": ("published", "b-slug")}
+
+    def fake_run(disclosure=None, event=None, publish_social=True):
+        status, slug = outcomes[disclosure.title]
+        pipeline._set_status(status)
+        return slug
+
+    monkeypatch.setattr(ns, "run_news_report", fake_run)
+    stream = ns.NewsStream()
+    stream.check_once(max_publish=5)
+    assert any("B A.Ş." in k for k in state.seen)
+    assert not any("A A.Ş." in k for k in state.seen)  # hata → yeniden denenecek
+
+    # Sonraki turda A yeniden kuyruğa girer ve başarılı olursa işaretlenir.
+    outcomes["A A.Ş.: Yeni İş İlişkisi"] = ("published", "a-slug")
+    stream.check_once(max_publish=5)
+    assert any("A A.Ş." in k for k in state.seen)
+
+
+def test_news_stream_leftovers_beyond_max_publish_are_not_lost(monkeypatch):
+    from esham import news_stream as ns
+
+    state = _FakeState()
+    items = [Disclosure(f"S{i} A.Ş.: Yeni İş İlişkisi", f"S{i} A.Ş.", "2026-11-04", "Yeni İş İlişkisi") for i in range(4)]
+    monkeypatch.setattr(ns, "get_state", lambda: state)
+    monkeypatch.setattr(ns, "KapSource", lambda: type("K", (), {"latest_disclosures": lambda self: items})())
+    monkeypatch.setattr(ns, "NewsDetector", lambda: type("D", (), {"scan": lambda self: []})())
+    monkeypatch.setattr(ns, "is_significant", lambda d, t: True)
+    monkeypatch.setattr(ns, "update_ticker_data", lambda: None)
+
+    def fake_run(disclosure=None, event=None, publish_social=True):
+        pipeline._set_status("published")
+        return "slug"
+
+    monkeypatch.setattr(ns, "run_news_report", fake_run)
+    ns.NewsStream().check_once(max_publish=2)
+    assert len(state.seen) == 2
+    ns.NewsStream().check_once(max_publish=2)  # yeni süreç (GitHub Actions --once) kalanları alır
+    assert len(state.seen) == 4
+
+
+# ---- 4. konu etiketi: KAP'ın kendi türü -------------------------------------------------------------
+
+@pytest.mark.parametrize("title,dtype,expected", [
+    ("BİRLEŞİM MÜHENDİSLİK A.Ş.: Yeni İş İlişkisi", "Özel Durum Açıklaması (Genel)", "KAP bildirimi"),
+    ("BORUSAN BİRLEŞİK BORU FABRİKALARI A.Ş.: 2026 2. Çeyrek Finansal Takvim", "Finansal Rapor Takvimi",
+     "Finansal Rapor Takvimi"),
+    ("BİRKO BİRLEŞİK KOYUNLULULAR A.Ş.: Fon Kullanım Raporu", "Özel Durum Açıklaması (Genel)", "KAP bildirimi"),
+    ("X A.Ş.: Birleşik Arap Emirlikleri'nde Şube Açılışı", "Özel Durum Açıklaması (Genel)", "KAP bildirimi"),
+    ("SKY ALP A.Ş.: Sunucu İhtiyaçları Satın Alım İhalesi", "Yeni İş İlişkisi", "Yeni İş İlişkisi"),
+    ("X A.Ş.: İştirakimiz MPG'nin Yeni Siparişleri", "Özel Durum Açıklaması (Genel)", "KAP bildirimi"),
+    ("X A.Ş.: Kayıtlı Sermaye Tavanı", "Esas Sözleşme Tadili", "Esas Sözleşme Tadili"),
+    ("X A.Ş.: Pay Alım Satım Bildirimi", "Pay Alım Satım Bildirimi", "Pay Alım Satım Bildirimi"),
+    ("X A.Ş.: Duyuru", "", "KAP bildirimi"),
+    ("X A.Ş.: Duyuru", "Duyuru", "KAP bildirimi"),
+])
+def test_label_comes_from_kap_type_not_title(title, dtype, expected):
+    assert classify_filing(title, dtype) == expected
+
+
+def test_pick_ticker_never_guesses():
+    assert pick_ticker("ISATR, ISBTR, ISCTR, ISKUR") == "ISCTR"   # evrende tek eşleşme
+    assert pick_ticker("GARAN") == "GARAN"                         # tek kod
+    assert pick_ticker("ZZZZA, ZZZZB") == ""                       # evren dışı çok pay grubu → tahmin yok
     assert pick_ticker("") == ""
 
 
-@pytest.mark.parametrize("title,dtype,expected", [
-    ("TÜRKİYE GARANTİ BANKASI A.Ş.: İştirak satışının tamamlanması", "Özel Durum Açıklaması (Genel)",
-     "Pay / iştirak alım-satımı"),
-    ("TÜRKİYE İŞ BANKASI A.Ş.: Yurt İçinde Sermaye Benzeri Tahvil İhracına İlişkin SPK Başvurusu", "ÖDA",
-     "Borçlanma aracı ihracı"),
-    ("X A.Ş.: Geri Alınan Paylara İlişkin Bildirim", "Pay Geri Alım Bildirimi", "Pay geri alımı"),
-    ("X A.Ş.: Sermaye Artırımından Elde Edilen Fonun Kullanım Yerlerine İlişkin Rapor", "ÖDA", "Sermaye artırımı"),
-    ("X A.Ş.: Yeni İş İlişkisi", "Yeni İş İlişkisi", "Sözleşme / iş ilişkisi"),
-    ("X A.Ş.: SPK Onayı ve İhraç Belgesi", "ÖDA", None),
+def test_no_code_company_shows_name_once(news_env, monkeypatch):
+    filing = ("ÖRNEK A.Ş.: Yeni İş İlişkisi", "Yeni İş İlişkisi", "ÖRNEK A.Ş.", "", "Sözleşme imzalanmıştır.", "")
+    slug, _, doc = _run(news_env, monkeypatch, filing, None)
+    assert "- **Şirket:** ÖRNEK A.Ş.\n" in doc["body"] and "(ÖRNEK A.Ş.)" not in doc["body"]
+    assert doc["sources"] == ["KAP"] and "" not in doc["tags"]
+
+
+# ---- 5. tutarlar ------------------------------------------------------------------------------------
+
+@pytest.mark.parametrize("text,expected", [
+    ("Bağlı ortaklığımız 250,000 USD tutarında sipariş almıştır.", ["250.000 USD"]),
+    ("USD 750,000,000 tutarında tahvil ihracı tamamlanmıştır.", ["750 milyon USD"]),
+    ("Toplam GBP 20.000.000 kredi kullanılmıştır.", ["20 milyon GBP"]),
+    ("Sözleşme bedeli 12,5 milyon EUR'dur.", ["12,5 milyon EUR"]),
+    ("Satış bedeli 6.700.000.000 TL olarak tahsil edilmiştir.", ["6,7 milyar TL"]),
+    ("Bedel 25,000,000.50 USD.", ["25.000.000,50 USD"]),
+    ("Bedel 4.950.000,25 TL.", ["4.950.000,25 TL"]),
+    ("İşin bedeli 250 bin TL'dir.", ["250.000 TL"]),
+    ("Şirketimiz 85 milyon TL tutarında iş almıştır.", ["85 milyon TL"]),
+    ("Ücret ₺1.250.000 olarak belirlendi.", ["1,25 milyon TL"]),
+    ("1 TL nominal değerli 100.000 adet pay ortalama 42,10 TL fiyattan geri alınmıştır.", ["42,10 TL"]),
+    ("Pay oranı %100, 100%.", []),
+    ("Bedel 1,2345 TL.", []),                                   # belirsiz
+    ("Bedel 1.234,567.8 TL.", []),                              # tutarsız ayraçlar
+    ("Gelir Tablosu (Bin TL)\nHasılat 1.234.567 TL", []),        # tablo birimi → hiç tutar yok
+    ("Hasılat Milyon TL\n3.200", []),
+    ("Tutar (TL) 11.000.000.000", []),                          # birim parantezde → güvenli eşleşme yok
 ])
-def test_classify_filing_uses_title_and_type_only(title, dtype, expected):
-    assert classify_filing(title, dtype) == expected
+def test_amount_extraction_cases(text, expected):
+    assert [a.formatted() for a in extract_amounts(text)] == expected
+
+
+def test_no_amount_message_is_not_a_false_negative_claim():
+    facts = pipeline.__dict__  # noqa: F841
+    from esham.ai.analyzer import filing_facts_markdown
+
+    md = filing_facts_markdown("X A.Ş.", "XXXXX", "X A.Ş.: Duyuru", "Duyuru", "Tutar (TL) 11.000.000.000", "1")
+    assert NOTE_AMOUNT_MISSING in md and "bulunamadı" not in md
+
+
+_CURRENCIES = [("TL", "TL"), ("TRY", "TL"), ("USD", "USD"), ("ABD Doları", "USD"), ("EUR", "EUR"),
+               ("Avro", "EUR"), ("GBP", "GBP"), ("CHF", "CHF")]
+
+
+def _fmt_tr(v: float, dec: bool) -> str:
+    ip = int(v)
+    s = f"{ip:,}".replace(",", ".")
+    return s + (f",{int(round((v - ip) * 100)):02d}" if dec else "")
+
+
+def _fmt_en(v: float, dec: bool) -> str:
+    ip = int(v)
+    return f"{ip:,}" + (f".{int(round((v - ip) * 100)):02d}" if dec else "")
+
+
+def test_amount_property_never_wrong_magnitude():
+    """Özellik testi: üretilen her tutar ya doğru büyüklükte çıkar ya da hiç çıkmaz; asla yanlış değil."""
+    rng = random.Random(20261127)
+    extracted = 0
+    for _ in range(3000):
+        ip = rng.choice([rng.randint(1, 999), rng.randint(1_000, 999_999), rng.randint(1_000_000, 9_999_999_999)])
+        dec = rng.random() < 0.3
+        value = ip + (rng.randint(1, 99) / 100 if dec else 0)
+        style = rng.choice(["tr", "en", "plain"])
+        if style == "tr":
+            num = _fmt_tr(value, dec)
+        elif style == "en":
+            num = _fmt_en(value, dec)
+        else:
+            num = str(ip) + ((("," if rng.random() < .5 else ".") + f"{int(round((value - ip) * 100)):02d}") if dec else "")
+        cur, unit = rng.choice(_CURRENCIES)
+        amount = f"{cur} {num}" if rng.random() < 0.3 else f"{num} {cur}"
+        text = rng.choice([
+            f"Şirketimiz {amount} tutarında sözleşme imzalamıştır. Oran %12,5 olarak belirlenmiştir.",
+            f"Toplam {amount} bedelle satış tamamlanmıştır.",
+            f"Kredi tutarı: {amount}; vade 3 yıl.",
+        ])
+        got = extract_amounts(text)
+        for a in got:
+            assert a.unit == unit, (text, a)
+            assert abs(a.value - value) < 0.005, (text, a, value)
+            assert a.raw in normalize(text)
+            assert parse_number_strict(a.raw) * a.scale == pytest.approx(a.value)
+        extracted += bool(got)
+    assert extracted > 2000  # kesin biçimlerin büyük çoğunluğu gerçekten çıkarılıyor
+
+
+def test_amount_property_on_real_kap_text():
+    """Gerçek KAP fikstürlerinde çıkan her tutar kaynaktaki bir sayının birebir büyüklüğüdür."""
+    for f in FIX.glob("kap_*.html"):
+        text = BeautifulSoup(f.read_text(encoding="utf-8"), "html.parser").get_text(" ", strip=True)
+        for a in extract_amounts(text, limit=50):
+            assert a.raw in normalize(text)
+            assert parse_number_strict(a.raw) * a.scale == pytest.approx(a.value)
 
 
 @pytest.mark.parametrize("value,unit,expected", [
@@ -366,60 +478,107 @@ def test_classify_filing_uses_title_and_type_only(title, dtype, expected):
     (4_950_000.5, "TL", "4.950.000,50 TL"),
     (6_712_345_678, "TL", "6.712.345.678 TL"),
     (1_500_000_000, "USD", "1,5 milyar USD"),
-    (30_000_000_000, "TL", "30 milyar TL"),
-    (6_700_000_000, "TL", "6,7 milyar TL"),
-    (2_500_000, "EUR", "2,5 milyon EUR"),
-    (850.0, "TL", "850 TL"),
+    (250_000, "USD", "250.000 USD"),
     (42.1, "TL", "42,10 TL"),
 ])
 def test_format_amount_turkish(value, unit, expected):
     assert format_amount_tr(value, unit) == expected
 
 
-@pytest.mark.parametrize("raw,expected", [
-    ("4.950.000,00", 4_950_000.0), ("1,5", 1.5), ("25,000,000", 25_000_000.0), ("150.000", 150_000.0),
-    ("30", 30.0), ("12.5", 12.5),
-])
-def test_parse_number_tr(raw, expected):
-    assert parse_number_tr(raw) == expected
+# ---- 6. LLM prompt + son süzgeç ---------------------------------------------------------------------
+
+def test_llm_prompt_is_neutral_and_output_is_filtered(monkeypatch):
+    prompts: list[str] = []
+    monkeypatch.setattr(LlmClient, "generate", lambda self, prompt, **kw: prompts.append(prompt) or BAD_LLM_OUTPUT)
+    title, dtype, company, ticker, raw, _ = FILINGS[1]
+    body, summary, tweet = MarketAIAnalyzer().generate_news_analysis(
+        title=title, disclosure_type=dtype, company=company, ticker=ticker, raw_text=raw,
+        macro_context="XU100 %2 yükseldi; boğa piyasası sürüyor",
+    )
+    for t in (body, summary, tweet):
+        assert not find_banned(t), t
+    assert "Şirket, bildirimde belirtilen işlemi tamamladığını açıkladı." in body
+    assert "hedef fiyat" in prompts[0].lower() and "YAZMA" in prompts[0]
+    assert "boğa piyasası" not in prompts[0]
 
 
-def test_extract_amounts_keeps_unit_and_skips_percentages():
-    text = ("Satış bedeli 6.700.000.000 TL olup %100 pay devredilmiştir. Ayrıca 25,000,000 USD ve "
-            "30 milyar TL'ye kadar ihraç; 100% oranında.")
-    got = [(a.value, a.unit) for a in extract_amounts(text)]
-    assert got == [(6_700_000_000.0, "TL"), (25_000_000.0, "USD"), (30_000_000_000.0, "TL")]
-    assert extract_amounts("Pay oranı %100, 100%") == []
+def test_template_produces_no_commentary():
+    body, summary, tweet = MarketAIAnalyzer._template_news_analysis(
+        FILINGS[0][0], FILINGS[0][1], FILINGS[0][2], FILINGS[0][3], False, raw_text=FILINGS[0][4])
+    assert body == "" and summary == FILINGS[0][0] and tweet == FILINGS[0][0]
 
 
-# ---- guardrail ve gönderi uyarısı ----------------------------------------------------------
+# ---- 7. guardrail, gönderi, depo, bülten, PDF -------------------------------------------------------
 
-def test_guardrails_block_banned_content():
+def test_guardrails_check_generated_text_only():
     assert validate_report("Başlık", "Özet", "Hisse üzerinde pozitif haber akışı etkisi yaratması beklenir.")
     assert validate_tweet("GARAN için AL sinyali")
-    # KAP başlığı olgusal alıntıdır; şirket adı "Mega" içerse bile rapor engellenmez.
-    assert not validate_report("MEGA POLİETİLEN A.Ş.: Pay Alım Satım Bildirimi", "Özet", "Gövde")
+    assert not validate_report("ABC A.Ş.: Mega Sözleşme İmzalanması", "", "")  # KAP başlığı alıntıdır
 
 
-def test_prepare_post_strips_and_appends_disclaimer():
-    msg = social.prepare_post("GARAN bildirimi yayımladı.\nAL sinyali, hedef fiyat 150 TL", DISCLAIMER_KAP)
-    assert msg.startswith("GARAN bildirimi yayımladı.") and msg.endswith(DISCLAIMER_KAP)
-    assert not find_banned(msg)
-    assert social.prepare_post("MEGA İŞ ANLAŞMASI! AL sinyali", DISCLAIMER_KAP) == ""
+def test_broadcast_keeps_verbatim_title_and_filters_rest(monkeypatch):
+    posts: list[str] = []
+    monkeypatch.setattr(social, "get_state", lambda: _FakeState())
+    monkeypatch.setattr(social.SocialPublisher, "post_telegram", lambda self, m, image_path=None: posts.append(m) or True)
+    title = "ABC A.Ş.: Mega Sözleşme İmzalanması Hk."
+    social.SocialPublisher().broadcast(f"{title}\nHedef fiyat 150 TL\nhttps://esham.pages.dev/rapor/x",
+                                       disclaimer=NOTE_KAP, verbatim=[title])
+    (p,) = posts
+    assert title in p and "Hedef fiyat" not in p and p.endswith(NOTE_KAP)
 
 
-def test_content_store_filters_legacy_style_draft(tmp_path, monkeypatch):
-    from esham.publishing.content_store import ReportDraft
-
+def test_content_store_filters_generated_but_not_facts(tmp_path, monkeypatch):
     monkeypatch.delenv("GIT_AUTO_PUSH", raising=False)
     draft = ReportDraft(
-        title="X A.Ş.: İştirak satışının tamamlanması", category="bist",
-        summary="🔥 MEGA SÖZLEŞME | X A.Ş. (XXXXX): İştirak satışının tamamlanması",
+        title="X A.Ş.: Tier 2 Sinyalizasyon", category="bist",
+        summary="🔥 MEGA SÖZLEŞME | X A.Ş.: Tier 2 Sinyalizasyon",
         body=BAD_LLM_OUTPUT, tags=["Mega Sözleşme", "XXXXX", "KAP"],
+        facts="### Bildirim Bilgileri\n- **Başlık (KAP):** X A.Ş.: Tier 2 Sinyalizasyon",
+        fallback_summary="X A.Ş.: Tier 2 Sinyalizasyon", schema_version=2,
     )
-    path = ContentStore(tmp_path / "r", tmp_path / "c").publish(draft)
-    assert path is not None
+    store = ContentStore(tmp_path / "r", tmp_path / "c")
+    path = store.publish(draft)
+    assert path is not None and store.last_status == "published"
     doc = json.loads(path.read_text(encoding="utf-8"))
-    assert doc["summary"] == "X A.Ş. (XXXXX): İştirak satışının tamamlanması"
+    assert doc["summary"] == "X A.Ş.: Tier 2 Sinyalizasyon"
     assert doc["tags"] == ["XXXXX", "KAP"]
-    assert not find_banned(doc["body"])
+    assert doc["body"].endswith("- **Başlık (KAP):** X A.Ş.: Tier 2 Sinyalizasyon")
+    assert not find_banned(_generated_part(doc))
+
+
+def test_newsletter_uses_verbatim_title_for_legacy_kap(tmp_path, monkeypatch):
+    from esham import newsletter
+
+    legacy = {"slug": "a", "title": "X A.Ş.: Duyuru", "summary": "MEGA SÖZLEŞME | hisseye talep artabilir",
+              "sources": ["KAP"], "publishedAt": "2026-11-01T00:00:00Z", "category": "bist"}
+    new = {"slug": "b", "title": "Y A.Ş.: Duyuru", "summary": "Y A.Ş. bildirim yayımladı.", "sources": ["KAP"],
+           "schemaVersion": 2, "publishedAt": "2026-11-02T00:00:00Z", "category": "bist"}
+    (tmp_path / "2026-11-01-a.json").write_text(json.dumps(legacy, ensure_ascii=False), encoding="utf-8")
+    (tmp_path / "2026-11-02-b.json").write_text(json.dumps(new, ensure_ascii=False), encoding="utf-8")
+    import dataclasses
+
+    monkeypatch.setattr(newsletter, "settings",
+                        dataclasses.replace(newsletter.settings, content_dir=tmp_path, newsletter_limit=10))
+    got = {r["slug"]: r["summary"] for r in newsletter.latest_reports()}
+    assert got == {"a": "X A.Ş.: Duyuru", "b": "Y A.Ş. bildirim yayımladı."}
+    _subject, html_body, text_body = newsletter.build_digest(newsletter.latest_reports())
+    assert neutral.NOTE_GENERIC in text_body and "yapay zeka tarafından üretilir" not in html_body
+
+
+def test_ipo_pdf_filters_generated_fields(tmp_path):
+    from esham.publishing.ipo_pdf import IpoPdfGenerator
+
+    html = IpoPdfGenerator(tmp_path).build_html({
+        "company_name": "X A.Ş.", "ticker": "XXXXX", "strengths": ["Güçlü AL", "Kapasite artırımı"],
+        "verdict": "Halka arz cazip. Fon kullanımı belgede yer alıyor.",
+    })
+    assert "Güçlü AL" not in html and "cazip" not in html.lower()
+    assert "Kapasite artırımı" in html and neutral.NOTE_GENERIC in html
+
+
+def test_one_to_ten_scores_not_rendered_on_site():
+    """1-10 'radar puanı' modülü kapsam dışı; yalnızca sitede görünmediğini doğrula."""
+    web = ROOT / "web" / "src"
+    hits = [p for p in web.rglob("*.tsx") if "radar_scores" in p.read_text(encoding="utf-8")]
+    assert hits == []
+    assert not (ROOT / "web" / "public" / "data" / "bist-quant-valuation.json").exists()
