@@ -18,6 +18,7 @@ from .ai import (
 )
 from .config import get_logger
 from .documents import load_document_text
+from .sentences import safe_truncate
 from .publishing import ContentStore, ReportDraft
 from .publishing.cards import CardGenerator, CardSpec
 from .publishing.ipo_pdf import IpoPdfGenerator
@@ -123,7 +124,7 @@ def analyze_ipo_document(
         draft = ReportDraft(
             title=f"{company} Halka Arz Analizi",
             category="ipo",
-            summary=summary[:200],
+            summary=safe_truncate(summary, 200),
             body=analysis.to_markdown(),
             sources=["KAP", "İzahname", "Fiyat Tespit Raporu"],
             tags=[ticker, "Halka Arz"],

@@ -18,8 +18,12 @@ import requests
 from .ai import MarketAIAnalyzer
 from .ai.analyzer import NEUTRAL_RULES
 from .config import get_logger, settings
-from .formatting import tr_number
+from datetime import datetime
+
+from . import market_text
+from .formatting import TR_TZ, tr_date, tr_datetime, tr_number, tr_pct
 from .neutral import strip_banned
+from .sentences import safe_truncate
 from .publishing import ContentStore, ReportDraft
 from .publishing.content_store import slugify
 from .publishing.cards import CardGenerator, CardSpec
@@ -36,13 +40,18 @@ from .sources.global_macro import GlobalMacroSource
 from .sources.kap import KapSource
 from .sources.news_detector import MarketEvent
 from .sources.peer import PeerSource
-from .sources.sector import SectorSource
+from .sources.sector import SectorSource, movers_lines
 from .sources.turib import TuribSource
 from .sources.viop import ViopSource, assess_margin_stress
 
 log = get_logger(__name__)
 
 _cards = CardGenerator()
+
+
+def _now() -> datetime:
+    """Rapor üretim anı (TSİ). Testler sabit zamana bağlar; tazelik kararları buna göre verilir."""
+    return datetime.now(TR_TZ)
 
 
 def _render_card(spec: CardSpec) -> Path | None:
@@ -144,23 +153,23 @@ def run_morning_report(publish_social: bool = True) -> str | None:
     snapshot = gather_snapshot()
 
     analyzer = MarketAIAnalyzer()
+    now = _now()
+    if snapshot.macro is not None:
+        _drop_stale_macro(snapshot.macro, now)
     # Rapor + tweet thread tek AI çağrısında üretilir (rate limit önlemi)
-    body, ai_used, thread_tweets = analyzer.generate_morning_report_and_thread(snapshot)
+    body, ai_used, thread_tweets = analyzer.generate_morning_report_and_thread(snapshot, now=now)
 
     bist = snapshot.bist
-    change = bist.change if bist else ""
-    price = bist.price if bist else ""
-    index = bist.index if bist else "XU100"
-    summary = (
-        f"{index} endeksi {price} seviyesinde, {change} değişimle güne başladı. "
-        "Küresel makro gelişmeler ve KAP gündemi sabah bülteninde."
+    # Sabah raporu seans ÖNCESİ de koşabilir: endeks rakamı "güne başladı" diye değil, ne olduğu ve hangi
+    # zamana ait olduğuyla yazılır. Zaman damgası yoksa/eskiyse BIST cümlesi hiç yazılmaz.
+    bist_line = market_text.bist_last_short(bist, now)
+    summary = " ".join(
+        p for p in (bist_line, "Küresel makro gelişmeler ve KAP gündemi sabah bülteninde.") if p
     )
-    # Kart görseli için kısa başlık — sparkline + büyük stat olduğunda sol kolona
-    # fazla alan kalmaz, bu yüzden sadece kısa ve çarpıcı bir ifade kullan.
+    bist_ok = bist_line is not None
     card_headline = (
-        f"Küresel makro ve KAP gündemli sabah bülteni"
-        if not change else
-        f"{change} değişimle {'yükseliş' if change.startswith('+') else 'düşüş'} — sabah bülteni"
+        f"Son işlem {tr_datetime(bist.as_of)} — sabah bülteni" if bist_ok and bist and bist.as_of
+        else "Küresel makro ve KAP gündemli sabah bülteni"
     )
 
     card_path = _render_card(
@@ -168,9 +177,9 @@ def run_morning_report(publish_social: bool = True) -> str | None:
             category="bist",
             kicker=f"{bist.index} Endeksi" if bist else "BIST",
             headline=card_headline,
-            stat_value=bist.price if bist else "",
-            stat_change=bist.change if bist else "",
-            sparkline=BistSource().fetch_closes("1d", "15m") if bist else None,
+            stat_value=bist.price if bist_ok and bist else "",
+            stat_change=bist.change if bist_ok and bist else "",
+            sparkline=BistSource().fetch_closes("1d", "15m") if bist_ok else None,
             template="bist",
         )
     )
@@ -270,8 +279,10 @@ def run_viop_report(
 
     if prior_pct is None:
         from .state import get_state
-        prior_pct = get_state().get_margin_prev_pct() or snap.margin_call_to_required_pct
+        # Önceki kayıt yoksa bugünkü değerle "kıyaslanıp" Sabit denmez: karşılaştırma yok (None).
+        prior_pct = get_state().get_margin_prev_pct()
     stress = assess_margin_stress(snap.margin_call_to_required_pct, prior_pct)
+    margin_as_of = getattr(snap, "as_of", "") or ""
     from .state import get_state
     get_state().set_margin_prev_pct(snap.margin_call_to_required_pct)
 
@@ -280,21 +291,24 @@ def run_viop_report(
         if quote.has_futures
         else ""
     )
+    fetched = f"\n\nTradingView verisi; alınma zamanı {tr_datetime(quote.fetched_at)}." if quote.fetched_at else ""
     body = f"""## VİOP Piyasa Görünümü
 
-| Enstrüman | Değer | Değişim |
+| Enstrüman | Son değer | Önceki kapanışa göre |
 | --- | --- | --- |
-| Endeks {quote.index_symbol} | {quote.index_price} | {quote.index_change} |
-{futures_line}
+| BIST 30 endeksi ({quote.index_symbol}, dayanak) | {quote.index_price} | {quote.index_change} |
+{futures_line}{fetched}
 
-## Marketwide Teminat (Takasbank)
+## Piyasa Geneli Teminat (Takasbank)
+
+Veri tarihi: {margin_as_of or 'belirtilmemiş'}
 
 | Gösterge | Değer |
 | --- | --- |
 | Teminatlı hesap | {tr_number(snap.margined_account_count, 0)} |
 | Margin-call toplam | {snap.margin_call_pretty()} |
 | Gereken teminat | {snap.required_pretty()} |
-| Margin-call / Gereken | %{tr_number(snap.margin_call_to_required_pct, 3)} |
+| Margin-call / Gereken | {tr_pct(snap.margin_call_to_required_pct, 3, signed=False)} |
 
 ## Teminat Stresi: {stress.level}
 
@@ -304,8 +318,8 @@ def run_viop_report(
 > gereken toplam teminata oranıdır (Takasbank verisi)."""
 
     summary = (
-        f"VİOP teminat stresi: {stress.level}. Margin-call toplam "
-        f"{snap.margin_call_pretty()}."
+        f"VİOP teminat stresi ({margin_as_of or 'veri tarihi belirtilmemiş'}): {stress.level}. "
+        f"Margin-call toplam {snap.margin_call_pretty()}."
     )
     if not publish:
         return None
@@ -345,8 +359,9 @@ def run_viop_report(
 
     if publish_social:
         SocialPublisher().broadcast(
-            f"VİOP piyasa görünümü: {quote.index_symbol} {quote.index_price} "
-            f"({quote.index_change}). Teminat stresi: {stress.level}.\n"
+            f"VİOP piyasa görünümü: BIST 30 ({quote.index_symbol}) {quote.index_price}, "
+            f"önceki kapanışa göre {quote.index_change}. Teminat stresi ({margin_as_of or 'tarih yok'}): "
+            f"{stress.level}.\n"
             f"{settings.site_url}/rapor/{slug}\n#VİOP #BIST100",
             image_path=card_path,
         )
@@ -370,9 +385,10 @@ def _opening_viop_line() -> str:
         return ""
     if quote is None or not quote.has_futures or not quote.futures_change:
         return ""
+    when = f" (veri alınma zamanı {tr_datetime(quote.fetched_at)})" if quote.fetched_at else ""
     return (
-        f"\n\n**VİOP Görünümü:** Vadeli endeks kontratı ({quote.futures_symbol}) "
-        f"seansa {quote.futures_change} değişimle başladı."
+        f"\n\n**VİOP Görünümü:** Vadeli endeks kontratı ({quote.futures_symbol}) {quote.futures_price}; "
+        f"önceki kapanışa göre {quote.futures_change}{when}."
     )
 
 
@@ -388,41 +404,45 @@ def run_opening_report(publish_social: bool = False) -> str | None:
     if not bist or not bist.price:
         log.error("BIST verisi temin edilemedi; yapay veri basılmaması için rapor iptal edildi.")
         return None
+    now = _now()
+    open_sentence = market_text.bist_open(bist, now)
+    if open_sentence is None:
+        # Açılış alanı yoksa son fiyat "açılış" diye YAZILMAZ; bugünün seansına ait değilse rapor yok.
+        log.error("Bugünün açılış verisi yok/doğrulanamadı (as_of=%s); açılış raporu üretilmedi.", bist.as_of)
+        return None
 
-    # Sektör rotasyonu ve VİOP kotasyonu
+    # Sektörler (günlük, önceki kapanışa göre) ve VİOP kotasyonu
     sector_summary = ""
     try:
         from .sources.sector import SectorSource
         moves = SectorSource().snapshot()
-        top_gainers = [m for m in moves if m.change_pct > 0][:3]
-        top_losers = [m for m in moves if m.change_pct < 0][:3]
-        sec_lines = []
-        if top_gainers:
-            sec_lines.append("**Yükselen Sektörler:** " + ", ".join(f"{m.name} (%{m.change_pct:+.2f})" for m in top_gainers))
-        if top_losers:
-            sec_lines.append("**Düşen Sektörler:** " + ", ".join(f"{m.name} (%{m.change_pct:+.2f})" for m in top_losers))
-        if sec_lines:
-            sector_summary = "\n\n" + "\n\n".join(sec_lines)
+        if moves:
+            sector_summary = (
+                f"\n\n**Sektör endeksleri — {market_text.sector_heading_note(moves)}:**\n\n"
+                + market_text.sector_movers_md(moves)
+            )
     except Exception as exc:
         log.debug("Açılış sektörel görünüm alınamadı: %s", exc)
 
     viop_line = _opening_viop_line()
 
-    open_val = bist.open_price or bist.price
-    open_chg = bist.open_change or bist.change
+    open_val = bist.open_price
+    open_chg = bist.open_change
 
+    # Son işlem açılıştan farklıysa ne olduğu ve ne zamana ait olduğuyla eklenir ("seans içi" yalnız seans açıksa).
     current_note = ""
-    if bist.open_price and bist.price and bist.open_price != bist.price:
-        current_note = f" (Seans içi güncel seviye: **{bist.price}** / **{bist.change}**)"
+    last = market_text.bist_last(bist, now)
+    if last and bist.price != bist.open_price:
+        current_note = f" {last}{market_text.session_note(bist)}"
 
     body = f"""## BIST Seans Açılışı
 
-Borsa İstanbul {bist.index} endeksi seansa **{open_val}** puan seviyesinde, **{open_chg}** açılış değişimi ile başladı.{current_note}{viop_line}{sector_summary}"""
+{open_sentence}{current_note}{viop_line}{sector_summary}"""
 
     draft = ReportDraft(
-        title=f"BIST Seans Açılışı: {bist.index} {open_chg}",
+        title=f"BIST Seans Açılışı ({tr_date(bist.as_of)}): {bist.index} {open_chg}",
         category="bist",
-        summary=f"{bist.index} endeksi {open_val} ({open_chg}) ile yeni seansa başladı.{current_note}",
+        summary=f"{open_sentence}{current_note}",
         body=body,
         sources=["Borsa İstanbul", "TradingView", "VİOP"],
         tags=["BIST100", "Açılış", "Seans"],
@@ -449,7 +469,7 @@ Borsa İstanbul {bist.index} endeksi seansa **{open_val}** puan seviyesinde, **{
     slug = draft.resolved_slug()
     if publish_social:
         SocialPublisher().broadcast(
-            f"BIST açılış: {bist.index} {open_val} ({open_chg})\n"
+            f"BIST açılış ({tr_date(bist.as_of)}): {bist.index} {open_val}, açılışın önceki kapanışa göre farkı {open_chg}\n"
             f"{settings.site_url}/rapor/{slug} #BIST100",
             image_path=card_path,
         )
@@ -463,22 +483,28 @@ def run_closing_report(publish_social: bool = True) -> str | None:
     if not bist or not bist.price:
         log.error("BIST verisi temin edilemedi; yapay veri basılmaması için rapor iptal edildi.")
         return None
+    close_sentence = market_text.bist_close(bist, _now())
+    if close_sentence is None:
+        # "kapattı" yalnız bugünün seansı bitmişse doğrudur; seans açıkken ya da veri bugüne ait değilse yazılmaz.
+        log.error("Bugünün kapanışı doğrulanamadı (as_of=%s, seans açık=%s); kapanış raporu üretilmedi.",
+                  bist.as_of, bist.market_open)
+        return None
     quote = ViopSource().market_quote()
     if quote is None:
         log.error("VİOP kotasyonu temin edilemedi; örnek veri basılmaması için kapanış raporu iptal edildi.")
         return None
     body = f"""## Kapanış Görünümü
 
-| Piyasa | Değer | Değişim |
+{close_sentence}
+
+| Piyasa | Son değer | Önceki kapanışa göre |
 | --- | --- | --- |
 | BIST {bist.index} | {bist.price} | {bist.change} |
-| VİOP {quote.index_symbol} | {quote.index_price} | {quote.index_change} |
-
-Hacim: {bist.volume or '—'}."""
+| BIST 30 ({quote.index_symbol}, VİOP dayanağı) | {quote.index_price} | {quote.index_change} |"""
     draft = ReportDraft(
-        title=f"Kapanış Bülteni: BIST {bist.change}",
+        title=f"Kapanış Bülteni ({tr_date(bist.as_of)}): BIST {bist.index} {bist.change}",
         category="bist",
-        summary=f"BIST {bist.index} günü {bist.change} ile {bist.price} seviyesinde kapattı.",
+        summary=close_sentence,
         body=body,
         sources=["BIST", "TradingView"],
         tags=["BIST", "Kapanış"],
@@ -489,7 +515,7 @@ Hacim: {bist.volume or '—'}."""
         CardSpec(
             category="bist",
             kicker=f"{bist.index} Kapanış",
-            headline=f"VİOP {quote.index_symbol} {quote.index_price} ({quote.index_change}) ile eşlik etti.",
+            headline=f"BIST 30 ({quote.index_symbol}) {quote.index_price}, önceki kapanışa göre {quote.index_change}.",
             stat_value=bist.price,
             stat_change=bist.change,
             sparkline=BistSource().fetch_closes("1d", "15m"),
@@ -505,8 +531,8 @@ Hacim: {bist.volume or '—'}."""
     slug = draft.resolved_slug()
     if publish_social:
         SocialPublisher().broadcast(
-            f"Kapanış: BIST {bist.index} {bist.price} ({bist.change})\n"
-            f"Hacim: {bist.volume} | VİOP {quote.index_symbol}: {quote.index_price} ({quote.index_change})\n"
+            f"{close_sentence}\n"
+            f"BIST 30 ({quote.index_symbol}): {quote.index_price}, önceki kapanışa göre {quote.index_change}\n"
             f"{settings.site_url}/rapor/{slug} #BIST100 #Borsa",
             image_path=card_path,
         )
@@ -591,22 +617,28 @@ def run_gundem_report(
 
 def run_sector_report(publish_social: bool = True) -> str | None:
     """Haftalık sektör endeksi değişimleri — yalnız veri tablosu (yorum/yönlendirme yok)."""
-    moves = SectorSource().snapshot()
+    # Eskiden "haftalık" başlığıyla GÜNLÜK değişim (chartPreviousClose) yayınlanıyordu; artık gerçekten
+    # haftalık: son kapanış / önceki haftanın son kapanışı (sources/bars.period_change).
+    moves = SectorSource().snapshot(period="1w")
+    if not moves:
+        log.error("Haftalık sektör verisi temin edilemedi; rapor üretilmedi.")
+        return None
     rows = "\n".join(f"| {m.name} | {m.change_str} |" for m in moves)
-    leaders = ", ".join(m.name for m in moves[:3])
-    laggards = ", ".join(m.name for m in moves[-3:])
+    ups, downs = movers_lines(moves, 3, with_values=True)
+    note = market_text.sector_heading_note(moves)
     body = f"""## Haftalık Sektör Endeksi Değişimleri
 
-| Sektör | Değişim |
+Sektör endeksleri — {note}.
+
+| Sektör | Haftalık değişim |
 | --- | --- |
 {rows}
 
-- **En çok yükselen üç sektör:** {leaders}
-- **En çok düşen üç sektör:** {laggards}"""
+{market_text.sector_movers_md(moves)}"""
     draft = ReportDraft(
         title="Haftalık Sektör Endeksi Değişimleri",
         category="bist",
-        summary=f"Bu hafta en çok yükselen sektör endeksleri: {leaders}.",
+        summary=f"Sektör endeksleri — {note}. Yükselenler: {ups}. Düşenler: {downs}.",
         body=body,
         sources=["TradingView"],
         tags=["Sektör", "BIST"],
@@ -617,7 +649,7 @@ def run_sector_report(publish_social: bool = True) -> str | None:
         CardSpec(
             category="bist",
             kicker="Haftalık Sektör Değişimleri",
-            headline=f"En çok yükselen: {leaders}. En çok düşen: {laggards}.",
+            headline=safe_truncate(f"Yükselenler: {ups}. Düşenler: {downs}.", 120),
             bars=[(m.name, m.change_pct) for m in moves[:6]],
             template="bist",
         )
@@ -631,7 +663,7 @@ def run_sector_report(publish_social: bool = True) -> str | None:
     slug = draft.resolved_slug()
     if publish_social:
         SocialPublisher().broadcast(
-            f"Haftalık sektör endeksi değişimleri yayında. En çok yükselen: {leaders}.\n"
+            f"Sektör endeksleri — {note}. Yükselenler: {ups}.\n"
             f"{settings.site_url}/rapor/{slug} #BIST #Sektör",
             image_path=card_path,
         )
@@ -699,7 +731,7 @@ def run_peer_report(sector_key: str = "bankacilik", publish_social: bool = True)
     draft = ReportDraft(
         title=f"{snap.sector_name} Sektörü Çarpan Tablosu",
         category="bist",
-        summary=summary[:200],
+        summary=safe_truncate(summary, 200),
         body=body,
         sources=["Yahoo Finance"],
         tags=["Peer", "Çarpan", snap.sector_name, "BIST"],
@@ -726,8 +758,20 @@ def _fmt_mult(value: float | None, *, pct: bool = False) -> str:
     if value is None:
         return "—"
     if pct:
-        return f"%{value:.1f}"
-    return f"{value:.2f}".replace(".", ",")
+        return tr_pct(value, 1, signed=False)  # eskiden "%3.0" (İngilizce ondalık nokta)
+    return tr_number(value, 2)
+
+
+def _drop_stale_macro(snap, now: datetime):
+    """Tazelik koruması: veri zamanı sınırdan eski enstrüman tabloya hiç girmez (eski veri güncel sunulmaz)."""
+    from .freshness import market_as_of_status
+
+    kept = [t for t in snap.tickers if market_as_of_status(t.as_of, now) != "stale"]
+    if len(kept) != len(snap.tickers):
+        log.warning("Eski makro veri atlandı: %s",
+                    [t.label for t in snap.tickers if t not in kept])
+    snap.tickers = kept
+    return snap
 
 
 def run_global_report(publish_social: bool = True) -> str | None:
@@ -738,19 +782,20 @@ def run_global_report(publish_social: bool = True) -> str | None:
     Rapor: markdown tablosu.
     """
     log.info("=== Küresel Makro Raporu başlatılıyor ===")
-    snap = GlobalMacroSource().snapshot()
+    snap = _drop_stale_macro(GlobalMacroSource().snapshot(), _now())
     if not snap.tickers:
         log.error("Küresel makro verisi temin edilemedi; örnek veri yayınlanamaz.")
         return None
     board = snap.ticker_board()
 
-    # Başlık: en büyük mutlak değişim (yalnız veri; "risk iştahı" yorumu yok)
-    headline_tickers = [t for t in snap.tickers if abs(t.change_pct) > 0.3]
+    # Başlık: en büyük mutlak YÜZDE değişim (yalnız veri; "risk iştahı" yorumu yok). Faizler (baz puanla
+    # ölçülür) yüzde değişimle kıyaslanamayacağı için bu sıralamaya girmez.
+    headline_tickers = [t for t in snap.tickers if not t.is_rate and abs(t.change_pct) > 0.3]
     if headline_tickers:
         top = max(headline_tickers, key=lambda t: abs(t.change_pct))
-        headline = f"En büyük değişim: {top.label} {top.change_str}."
+        headline = f"Önceki kapanışa göre en büyük mutlak yüzde değişim: {top.label} {top.change_str}."
     else:
-        headline = "İzlenen küresel göstergelerde %0,3'ü aşan değişim yok."
+        headline = "İzlenen küresel göstergelerde önceki kapanışa göre %0,3'ü aşan değişim yok."
 
     summary = snap.summary_line()
 
@@ -791,7 +836,7 @@ def run_global_report(publish_social: bool = True) -> str | None:
     slug = draft.resolved_slug()
 
     if publish_social:
-        final_tweet = ai_tweet if ai_tweet else f"Küresel makro: {summary}\n"
+        final_tweet = ai_tweet if ai_tweet else f"Küresel makro görünümü. {summary}\n"
         final_tweet += f"\n{settings.site_url}/rapor/{slug}\n#Makro #Borsa #KüreselPiyasalar"
         SocialPublisher().broadcast(
             final_tweet,
@@ -883,7 +928,7 @@ def run_news_report(
         label = classify_filing(title, disc_type)
         card_kicker = tr_upper(label)
         tags = [t for t in (ticker, "KAP", "BIST") if t]
-        card_headline = title[:120]
+        card_headline = safe_truncate(title, 120)
         card_ticker_val = ticker
         post_disclaimer = NOTE_KAP
         verbatim_parts = [title]
@@ -930,7 +975,7 @@ def run_news_report(
         }
         tags = event.tags or ["Makro", "Piyasa"]
         card_kicker = "SON DAKİKA" if event.kind == "SON_DAKIKA" else event.label
-        card_headline = title_line[:120] if event.kind == "SON_DAKIKA" else event.headline[:120]
+        card_headline = safe_truncate(title_line if event.kind == "SON_DAKIKA" else event.headline, 120)
         card_ticker_val = "" if event.kind == "SON_DAKIKA" else event.label
 
         if event.kind in ("SON_DAKIKA", "HISSE_HAREKET", "TEKNOLOJI_HAREKET", "KRIPTO_HAREKET", "MAKRO_HAREKET"):
@@ -1042,8 +1087,7 @@ def run_news_report(
         link_suffix = f"\n\n{link}\n{hashtags}"
         max_body = 280 - len(link_suffix)
         tweet_body = tweet_text.strip()
-        if len(tweet_body) > max_body:
-            tweet_body = tweet_body[:max_body].rsplit(" ", 1)[0].rstrip(" ,.;:") + "…"
+        tweet_body = safe_truncate(tweet_body, max_body)  # yarım sayı / açık parantez bırakmaz
         verbatim = [p for p in verbatim_parts if p] + ([tweet_body] if tweet_text == fallback_summary else [])
         SocialPublisher().broadcast(
             f"{tweet_body}{link_suffix}", image_path=card_path, disclaimer=post_disclaimer, verbatim=verbatim,
@@ -1061,30 +1105,34 @@ def run_weekly_summary(publish_social: bool = True) -> str | None:
     ve öne çıkan KAP bildirimlerini AI ile özetler. Sabah bülteninden farkı:
     geriye dönük haftalık perspektif sunar, anlık değil özetleyici.
     """
-    from datetime import datetime, timedelta, timezone
-
     log.info("=== Haftalık Özet Raporu başlatılıyor ===")
-    TR_TZ = timezone(timedelta(hours=3))
-    today = datetime.now(TR_TZ)
+    today = _now()
     # "%-d %B" Windows'ta geçersiz ve Linux'ta İngilizce ay adı veriyordu → Türkçe ay adları.
     _AYLAR = ("Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık")
     week_str = f"{today.day} {_AYLAR[today.month - 1]} {today.year} haftası"
 
-    # Anlık veri kaynakları
-    bist = BistSource().market_summary()
+    # Veri kaynakları. Eskiden "haftayı X ile kapattı" cümlesinde GÜNLÜK değişim ve "haftalık" sektör başlığı
+    # altında günlük değişimler yayınlanıyordu; artık haftalık değişim iki kapanış tarihiyle hesaplanır.
+    bist_src = BistSource()
+    bist = bist_src.market_summary()
     if not bist or not bist.price:
         log.error("BIST verisi temin edilemedi; yapay veri basılmaması için rapor iptal edildi.")
         return None
-    macro = GlobalMacroSource().snapshot()
-    sector_moves = SectorSource().snapshot()
-    disclosures = KapSource().latest_disclosures()
+    week = bist_src.weekly_change()
+    week_sentence = market_text.bist_week(bist.index, week)
+    if week_sentence is None:
+        log.error("Haftalık BIST değişimi hesaplanamadı; haftalık özet üretilmedi (günlük değişim haftalık sunulmaz).")
+        return None
+    macro = _drop_stale_macro(GlobalMacroSource().snapshot(), _now())
+    sector_moves = SectorSource().snapshot(period="1w")
+    disclosures = KapSource().latest_disclosures(days=7)
 
-    # Sektör tablosu
+    # Sektör tablosu (haftalık değişime göre sıralı; yükselen/düşen listeleri işarete göre süzülür)
     sector_rows = "\n".join(
-        f"| {m.name} | {m.change_str} |" for m in sector_moves[:8]
+        f"| {m.name} | {m.change_str} |" for m in sector_moves
     )
-    leaders = ", ".join(m.name for m in sector_moves[:3])
-    laggards = ", ".join(m.name for m in sector_moves[-3:])
+    ups, downs = movers_lines(sector_moves, 3)
+    sector_note = market_text.sector_heading_note(sector_moves) if sector_moves else ""
 
     # KAP öne çıkanlar (insider + önemli)
     insider_disclosures = [d for d in disclosures if d.is_insider]
@@ -1106,23 +1154,22 @@ def run_weekly_summary(publish_social: bool = True) -> str | None:
     analyzer = MarketAIAnalyzer()
     macro_ctx = macro.summary_line()
     ai_prompt_context = (
-        f"BIST {bist.index}: {bist.price} ({bist.change}), hacim: {bist.volume}\n"
-        f"Makro: {macro_ctx}\n"
-        f"En çok yükselen sektörler: {leaders}\n"
-        f"En çok düşen sektörler: {laggards}\n"
-        f"Pay alım satım/geri alım bildirimi sayısı: {len(insider_disclosures)}\n"
-        f"Toplam KAP bildirimi: {len(disclosures)}"
+        f"{week_sentence}\n"
+        f"Makro ({macro_ctx})\n"
+        f"Sektör endeksleri, {sector_note}: yükselenler {ups}; düşenler {downs}\n"
+        f"Son 7 günde pay alım satım/geri alım bildirimi sayısı: {len(insider_disclosures)}\n"
+        f"Son 7 günde toplam KAP bildirimi: {len(disclosures)}"
     )
     prompt = f"""
 Tarafsız, Türkçe bir "haftalık piyasa veri özeti" yaz. Hafta: {week_str}.
-Markdown kullan. ASLA yer tutucu yazma.
+Markdown kullan. ASLA yer tutucu yazma. Her rakamı verilerde yazdığı anlamla ve tarihiyle aktar.
 {NEUTRAL_RULES}
 Veriler:
 {ai_prompt_context}
 
 Bülten şu bölümleri içersin:
 1. Haftanın Özeti (BIST performansı rakamlarıyla)
-2. Sektörler (en çok yükselen/düşen sektörler, rakamlarıyla)
+2. Sektörler (yükselen/düşen sektörler, rakamlarıyla)
 3. Küresel Makro (faiz, döviz, emtia değişimleri, rakamlarıyla)
 4. KAP & Şirket Haberleri (öne çıkan bildirimlerde ne açıklandığı)
 5. Gelecek Hafta Takvimi (yalnızca açıklanmış veri/etkinlik tarihleri)
@@ -1132,26 +1179,28 @@ Bülten şu bölümleri içersin:
 
     if not body:
         # Şablon fallback
+        sector_md = (
+            f"## Sektör Endeksleri\n\nSektör endeksleri — {sector_note}.\n\n"
+            f"| Sektör | Haftalık değişim |\n| --- | --- |\n{sector_rows}\n\n"
+            f"{market_text.sector_movers_md(sector_moves)}\n\n"
+            if sector_moves else ""
+        )
         body = (
-            f"## Haftanın Özeti\n\n"
-            f"BIST {bist.index} haftayı **{bist.price}** ({bist.change}) seviyesinde kapattı.\n\n"
-            f"## Sektör Endeksleri\n\n"
-            f"| Sektör | Değişim |\n| --- | --- |\n{sector_rows}\n\n"
-            f"- **En çok yükselen:** {leaders}\n- **En çok düşen:** {laggards}\n\n"
-            f"## Küresel Makro\n\n{macro.to_markdown_table()}\n\n"
-            + (f"## KAP & Şirket Haberleri\n\n{kap_section}" if kap_section else "")
-
+            f"## Haftanın Özeti\n\n{week_sentence}\n\n"
+            + sector_md
+            + (f"## Küresel Makro\n\n{macro.to_markdown_table()}\n\n" if macro.tickers else "")
+            + (f"## KAP & Şirket Haberleri (son 7 gün)\n\n{kap_section}" if kap_section else "")
         )
 
-    summary = f"BIST {bist.index} haftayı {bist.change} ile kapattı. En çok yükselen sektörler: {leaders}."
+    summary = f"{week_sentence} Yükselen sektörler (haftalık): {ups}."
 
     card_path = _render_card(
         CardSpec(
             category="bist",
             kicker="Haftalık Özet",
-            headline=f"En çok yükselen: {leaders}. En çok düşen: {laggards}.",
-            stat_value=bist.price,
-            stat_change=bist.change,
+            headline=safe_truncate(f"Yükselenler: {ups}. Düşenler: {downs}.", 120),
+            stat_value=tr_number(week.last_close) if week else bist.price,
+            stat_change=tr_pct(week.pct) if week else "",
             bars=[(m.name, m.change_pct) for m in sector_moves[:6]],
             template="bist",
         )
@@ -1176,8 +1225,7 @@ Bülten şu bölümleri içersin:
 
     if publish_social:
         SocialPublisher().broadcast(
-            f"Haftalık piyasa özeti yayında. "
-            f"BIST {bist.change} | En çok yükselen: {leaders}\n"
+            f"Haftalık piyasa özeti yayında. {week_sentence}\n"
             f"{settings.site_url}/rapor/{slug}\n"
             f"#BIST100 #HaftalıkÖzet #Borsa",
             image_path=card_path,

@@ -41,7 +41,7 @@ def test_futures_row_without_price_is_not_a_quote():
 def test_real_futures_row_is_parsed():
     q = ViopSource()._parse_quote(_payload(IDX, FUT))
     assert q.has_futures and q.futures_symbol == "XU030D"
-    assert q.futures_price == "16.200,00" and q.futures_change == "+1,20%"
+    assert q.futures_price == "16.200,00" and q.futures_change == "+%1,20"
 
 
 def test_no_index_row_gives_none():
@@ -83,7 +83,7 @@ def test_viop_report_skips_futures_row_when_missing(monkeypatch):
     monkeypatch.setattr(state, "get_state", lambda: SimpleNamespace(
         get_margin_prev_pct=lambda: None, set_margin_prev_pct=lambda *_: None))
     assert pipeline.run_viop_report(prior_pct=10.0, publish=True, publish_social=False) is None
-    assert "Vadeli" not in captured["body"] and "Endeks XU030" in captured["body"]
+    assert "Vadeli" not in captured["body"] and "BIST 30 endeksi (XU030" in captured["body"]
 
 
 def test_viop_report_none_quote_aborts(monkeypatch):
@@ -105,7 +105,7 @@ def _patch_quote(monkeypatch, quote=None, exc=None):
 def test_opening_line_uses_real_futures_quote(monkeypatch):
     _patch_quote(monkeypatch, ViopSource()._parse_quote(_payload(IDX, FUT)))
     line = pipeline._opening_viop_line()
-    assert "XU030D" in line and "+1,20%" in line
+    assert "XU030D" in line and "+%1,20" in line and "seansa" not in line
 
 
 def test_opening_line_empty_without_futures(monkeypatch):

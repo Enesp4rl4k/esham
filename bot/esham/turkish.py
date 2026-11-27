@@ -23,6 +23,20 @@ def tr_upper(s: str) -> str:
     return s.translate(_UPPER_MAP).upper()
 
 
+import re as _re
+
+# KAP API'sinin kendisi, bildirimi giren kurumun yazdığı tipografik kesme işaretini (’) kayıplı bir kod
+# sayfasından geçirip "?" olarak saklıyor: "Bulgaristan?da", "Kurulu?na", "CEO?nun". Bizim zincirimizde
+# (requests .json() → UTF-8) karakter kaybı YOK; veri bize "?" ile geliyor. Türkçe metinde harf/rakam ile
+# harf arasında "?" meşru olarak bulunmaz; kesme işaretine geri çevrilir.
+_LOST_APOSTROPHE_RE = _re.compile(r"(?<=[^\W_])\?(?=[^\W\d_])")
+
+
+def repair_lost_apostrophes(s: str) -> str:
+    """'Bulgaristan?da' -> "Bulgaristan'da"; kelime içi olmayan '?' (soru) dokunulmaz."""
+    return _LOST_APOSTROPHE_RE.sub("'", s or "")
+
+
 def tr_fold(s: str) -> str:
     """Aksan-toleranslı katlama + küçük harf — anahtar kelime eşleştirmesi için.
 

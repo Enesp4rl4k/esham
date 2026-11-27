@@ -16,6 +16,9 @@ from dataclasses import dataclass, field
 import requests
 
 from ..config import default_headers, get_logger, sample_data_allowed, settings
+from datetime import datetime
+
+from ..formatting import from_epoch, tr_bp, tr_datetime, tr_pct
 from ..formatting import tr_number as _tr_number
 from ..http import retry_get
 
@@ -32,35 +35,70 @@ MACRO_TICKERS: list[tuple[str, str, str, int]] = [
     ("^TNX",    "ABD 10Y",  "%",   2),  # ABD 10 yıllık tahvil faizi
     ("EURUSD=X", "EUR/USD", "",    3),  # Euro/Dolar
     ("TRY=X",   "USD/TRY",  "₺",   2),  # Dolar/Türk Lirası
-    ("GC=F",    "ALTIN",    "$",   0),  # Spot altın ($/ons)
+    ("GC=F",    "ALTIN",    "$",   0),  # COMEX altın vadeli ($/ons) — spot değil
     ("^VIX",    "VIX",      "",    1),  # Volatilite endeksi
     ("BZ=F",    "BRENT",    "$",   1),  # Brent ham petrol
 ]
+_DECIMALS = {label: dec for _, label, _, dec in MACRO_TICKERS}
 
 
 @dataclass
 class MacroTicker:
-    """Tek bir makro enstrümanın anlık durumu."""
+    """Tek bir makro enstrümanın son verisi.
+
+    price      — son fiyat (``regularMarketPrice``; piyasa kapalıysa son seansın kapanışı)
+    change_pct — ``price``'ın önceki kapanışa göre yüzde değişimi
+    prev       — karşılaştırılan önceki kapanış (biliniyorsa)
+    as_of      — son fiyatın zamanı (``regularMarketTime``, Türkiye saati); bilinmiyorsa None
+    """
     label: str
     price: float
     change_pct: float
     suffix: str = ""
+    prev: float | None = None
+    as_of: datetime | None = None
 
     @property
     def arrow(self) -> str:
         return "↑" if self.change_pct >= 0 else "↓"
 
     @property
+    def is_rate(self) -> bool:
+        """Değeri zaten yüzde olan büyüklük (tahvil faizi)."""
+        return self.suffix == "%"
+
+    @property
     def value_str(self) -> str:
         """Kart ticker board'da gösterilecek değer string'i."""
-        decimals = 0 if self.suffix == "$" and self.price > 100 else 2
+        if self.is_rate:
+            return tr_pct(self.price, 2, signed=False)
+        decimals = 0 if self.suffix == "$" and self.price > 100 else max(2, _DECIMALS.get(self.label, 2))
         num = _tr_number(self.price, decimals)
-        return f"{self.suffix}{num}" if self.suffix and self.suffix != "%" else f"{num}{self.suffix}"
+        return f"{self.suffix}{num}" if self.suffix else num
 
     @property
     def change_str(self) -> str:
-        sign = "+" if self.change_pct >= 0 else ""
-        return f"{sign}{_tr_number(self.change_pct, 2)}%"
+        """Önceki kapanışa göre yüzde değişim (``+%1,16``)."""
+        return tr_pct(self.change_pct)
+
+    @property
+    def change_points(self) -> float | None:
+        """Faizde önceki kapanışa göre yüzde PUAN farkı (yalnız ``is_rate`` ve ``prev`` biliniyorsa)."""
+        if self.is_rate and self.prev is not None:
+            return self.price - self.prev
+        return None
+
+    @property
+    def change_report(self) -> str:
+        """Rapor metni için değişim: faizde baz puan (``+6 baz puan``), diğerlerinde yüzde."""
+        pts = self.change_points
+        if self.is_rate:
+            return tr_bp(pts) if pts is not None else "—"
+        return self.change_str
+
+    @property
+    def as_of_str(self) -> str:
+        return tr_datetime(self.as_of) if self.as_of else "bilinmiyor"
 
     def to_board_row(self) -> tuple[str, str, str]:
         """(label, arrow, value) — CardSpec.ticker_board formatı."""
@@ -77,19 +115,22 @@ class GlobalMacroSnapshot:
         return [t.to_board_row() for t in self.tickers]
 
     def summary_line(self) -> str:
-        """Tweet/rapor için tek satır özet."""
+        """Tweet/rapor için tek satır özet (değişimler önceki kapanışa göredir)."""
         if not self.tickers:
             return "Küresel makro veri alınamadı."
-        parts = [f"{t.label} {t.arrow}{t.change_str}" for t in self.tickers[:3]]
-        return " | ".join(parts)
+        parts = [f"{t.label} {t.change_report}" for t in self.tickers[:3]]
+        return "Önceki kapanışa göre: " + " | ".join(parts)
 
     def to_markdown_table(self) -> str:
-        """Web raporu için markdown tablosu."""
+        """Web raporu için markdown tablosu (her satır kendi veri zamanını taşır)."""
         rows = "\n".join(
-            f"| {t.label} | {t.value_str} | {t.change_str} |"
+            f"| {t.label} | {t.value_str} | {t.change_report} | {t.as_of_str} |"
             for t in self.tickers
         )
-        return f"| Enstrüman | Değer | Değişim |\n| --- | --- | --- |\n{rows}"
+        return (
+            "| Enstrüman | Son değer | Önceki kapanışa göre | Veri zamanı |\n"
+            f"| --- | --- | --- | --- |\n{rows}"
+        )
 
 
 class GlobalMacroSource:
@@ -143,12 +184,18 @@ class GlobalMacroSource:
             if price is None:
                 log.debug("Sembol %s için fiyat yok.", symbol)
                 return None
-            change_pct = ((price - prev) / prev * 100) if prev else 0.0
+            if not prev:
+                # Önceki kapanış yoksa değişim BİLİNMİYOR: 0,00 diye yazılmaz, sembol atlanır.
+                log.debug("Sembol %s için önceki kapanış yok; atlanıyor.", symbol)
+                return None
+            change_pct = (price - prev) / prev * 100
             return MacroTicker(
                 label=label,
                 price=float(price),
                 change_pct=float(change_pct),
                 suffix=suffix,
+                prev=float(prev),
+                as_of=from_epoch(meta.get("regularMarketTime")),
             )
         except (requests.RequestException, ValueError, KeyError, IndexError, TypeError) as exc:
             log.warning("Makro sembol alınamadı (%s): %s", symbol, exc)

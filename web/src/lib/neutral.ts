@@ -58,7 +58,32 @@ export function hasBanned(text: string): boolean {
 }
 
 const HEADING_RE = /^(#{1,6}) /;
-const SENTENCE_SPLIT_RE = /(?<=[.!?…]) +/;
+const SENTENCE_SPLIT_RE = /(?:(?<=[.!?…])|(?<=[.!?…][)"”’»])) +/;
+const ABBREVIATIONS = new Set<string>(rules.sentences.abbreviations);
+// Çalışma anında kurulur (tsconfig hedefi ES2017; \p{..} literal'i tip denetiminde hedef uyarısı verebilir).
+const INITIALS_RE = new RegExp("^(?:\\p{Lu}\\.)+$", "u");
+const LOWER_START_RE = new RegExp("^\\p{Ll}", "u");
+
+/** bot/esham/sentences.py `split_sentences` ile aynı kural (bkz. neutral-rules.json → sentences._doc). */
+export function splitSentences(text: string): string[] {
+  const out: string[] = [];
+  for (const piece of (text || "").split(SENTENCE_SPLIT_RE)) {
+    if (!piece) continue;
+    const prev = out[out.length - 1];
+    if (prev !== undefined) {
+      const words = prev.trimEnd().split(/\s+/);
+      const tok = (words[words.length - 1] || "").replace(/^[("'“‘«[]+/, "");
+      const initials = tok.length >= 2 && tok.length % 2 === 0 && INITIALS_RE.test(tok);
+      const openParen = (prev.match(/\(/g) || []).length > (prev.match(/\)/g) || []).length;
+      if (LOWER_START_RE.test(piece) || ABBREVIATIONS.has(tok) || initials || openParen) {
+        out[out.length - 1] = `${prev} ${piece}`;
+        continue;
+      }
+    }
+    out.push(piece);
+  }
+  return out;
+}
 const TABLE_SEP_RE = /^\|? *:?-{2,}/;
 const STRUCTURAL_RE = /^(?:[|\-*+>]|\d+[.)] )/;
 
@@ -101,7 +126,7 @@ export function stripBanned(markdown: string): string {
       continue;
     }
     if (m || STRUCTURAL_RE.test(line.trimStart())) continue;
-    const rest = line.split(SENTENCE_SPLIT_RE).filter((s) => !hasBanned(s)).join(" ").trim();
+    const rest = splitSentences(line).filter((s) => !hasBanned(s)).join(" ").trim();
     if (rest) out.push(rest);
   }
   return dropOrphanTables(out).join("\n").replace(/\n{3,}/g, "\n\n").trim();

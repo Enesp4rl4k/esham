@@ -7,7 +7,13 @@ Tasarım ilkeleri:
 """
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
+
+from .. import market_text
 from ..config import get_logger, settings
+from ..formatting import tr_number, tr_pct
+from ..sentences import first_sentence, safe_truncate
+from ..sources.sector import movers_lines
 from ..neutral import NOTE_AMOUNT_MISSING, strip_banned
 from ..translation import ensure_turkish, translate_to_turkish, is_mostly_english
 from ..sources import MarketSnapshot
@@ -146,8 +152,8 @@ Yalnızca kaynakta açıklanan tarihler ve süreç adımları. Kaynakta yoksa bu
 
         summary = _extract("ÖZET")
         if not summary or summary.strip().lower() == event.headline.strip().lower():
-            first_clause = event.headline.split('.')[0]
-            summary = first_clause
+            # Sayı/kısaltma farkında: eski split('.') "7.266,17" içindeki noktada kesiyordu.
+            summary = first_sentence(event.headline)
 
         analiz = _extract("ANALİZ") or _extract("ANALIZ") or raw.strip()
 
@@ -158,10 +164,10 @@ Yalnızca kaynakta açıklanan tarihler ve süreç adımları. Kaynakta yoksa bu
 
         # Deterministik son süzgeç: model kurala uymadıysa yasaklı içerik yayına gitmez.
         cleaned_body = strip_banned(cleaned_body)
-        summary = strip_banned(summary) or event.headline.split('.')[0]
+        summary = strip_banned(summary) or first_sentence(event.headline)
         tweet_raw = strip_banned(_extract("TWEET"))
         if not tweet_raw or len(tweet_raw.strip()) < 30:
-            tweet_raw = f"{event.headline[:200]} — gelişmenin özeti raporda:"
+            tweet_raw = f"{safe_truncate(event.headline, 200)} — gelişmenin özeti raporda:"
 
         return cleaned_body, summary, tweet_raw
 
@@ -172,15 +178,15 @@ Yalnızca kaynakta açıklanan tarihler ve süreç adımları. Kaynakta yoksa bu
         if details_clean and is_mostly_english(details_clean):
             details_clean = translate_to_turkish(details_clean)
 
-        first_clause = event.headline.split('.')[0].rstrip(" ,;:")
+        # Sayı/kısaltma farkında ilk cümle (eski split('.') "S&P 500 +1,16% yükseldi (7" üretti).
+        first_clause = first_sentence(event.headline)
         if is_mostly_english(first_clause):
             first_clause = ensure_turkish(first_clause) or first_clause
 
         parts = [f"### Gelişme\n{details_clean or event.headline}"]
-        if getattr(event, "value_str", "") and getattr(event, "change_pct", 0.0):
-            sign = "+" if event.change_pct >= 0 else ""
+        if getattr(event, "value_str", "") and getattr(event, "change_str", ""):
             parts.append(
-                f"### Veri\n- **{event.label}:** {event.value_str} (%{sign}{event.change_pct:.2f})"
+                f"### Veri\n- **{event.label}:** {event.value_str} (önceki kapanışa göre {event.change_str})"
             )
         body = "\n\n".join(parts)
         summary = first_clause
@@ -317,7 +323,7 @@ Tek cümle (max 140 karakter): kim, neyi açıkladı. Tutar/rakam YAZMA (okur bi
         if not tweet or len(tweet.strip()) < 30 or tweet.strip().lower() == title.strip().lower():
             tweet = summary
         if len(tweet) > 230 and tweet != title:
-            tweet = tweet[:230].rsplit(" ", 1)[0].rstrip(" ,.;:") + "…"
+            tweet = safe_truncate(tweet, 230)
 
         detail = strip_banned(
             _extract("BİLDİRİM") or _extract("BILDIRIM") or _extract("ANALİZ") or _extract("ANALIZ")
@@ -347,19 +353,19 @@ Tek cümle (max 140 karakter): kim, neyi açıkladı. Tutar/rakam YAZMA (okur bi
         sector_name: str, change_pct: float, headline: str, macro_context: str = ""
     ) -> tuple[str, str, str]:
         """BIST sektör endeksi hareketi için yalnızca veriyi aktaran kısa metin (yorum yok)."""
-        pct = f"%{change_pct:+.2f}".replace(".", ",")
-        summary = f"BIST {sector_name} endeksi son verilere göre {pct} değişti."
+        pct = tr_pct(change_pct)
+        summary = f"BIST {sector_name} endeksinin önceki kapanışa göre değişimi {pct}."
         body = (
             f"### Endeks Verisi\n"
             f"- **Endeks:** BIST {sector_name}\n"
-            f"- **Değişim:** {pct}\n"
+            f"- **Önceki kapanışa göre değişim:** {pct}\n"
             f"- **Kaynak:** Borsa İstanbul endeks verisi (gecikmeli olabilir)"
         )
-        tweet = f"BIST {sector_name} endeksi son verilere göre {pct} değişti. Endeks verisi raporda:"
+        tweet = f"BIST {sector_name} endeksinin önceki kapanışa göre değişimi {pct}. Endeks verisi raporda:"
         return body, summary, tweet
 
     def generate_morning_report_and_thread(
-        self, snapshot: MarketSnapshot
+        self, snapshot: MarketSnapshot, now: datetime | None = None
     ) -> tuple[str, bool, list[str]]:
         """Sabah bültenini VE tweet thread'ini tek AI çağrısında üretir.
 
@@ -368,12 +374,12 @@ Tek cümle (max 140 karakter): kim, neyi açıkladı. Tutar/rakam YAZMA (okur bi
 
         Döndürür: (body_markdown, ai_used, tweets)
         """
-        from datetime import datetime, timedelta, timezone
         import re
 
-        today = datetime.now(timezone(timedelta(hours=3)))
+        today = now or datetime.now(timezone(timedelta(hours=3)))
+        now = today
         date_str = today.strftime("%d.%m.%Y")
-        context = self._snapshot_context(snapshot)
+        context = self._snapshot_context(snapshot, now)
 
         has_macro = snapshot.macro is not None and bool(snapshot.macro.tickers)
         has_viop = snapshot.viop_quote is not None
@@ -387,7 +393,7 @@ Tek cümle (max 140 karakter): kim, neyi açıkladı. Tutar/rakam YAZMA (okur bi
         if has_viop:
             sections.append("VİOP & Türev Piyasa (endeks/vadeli fiyat, teminat stresi)")
         if has_sector:
-            sections.append("Sektör Endeksleri (en çok yükselen ve düşen sektörler, rakamlarıyla)")
+            sections.append("Sektör Endeksleri (yükselen ve düşen sektörler, verilerdeki listelerle ve rakamlarıyla)")
         if has_kap:
             sections.append("KAP Bildirimleri (bildirimlerde ne açıklandığı)")
         if has_calendar:
@@ -411,8 +417,8 @@ Bölümler (sırayla, her birini tam doldur):
 
 Yazım kuralları:
 - Her bölüm kendi içinde eksiksiz olmalı; okuyucu bölümü atlayabilmeli
-- Rakamları bağlam içinde ver (örn: "XU100 %1,2 geriledi — Mart'tan bu yana en büyük günlük düşüş")
-- Sektör verisi varsa en çok yükselen ve düşen sektörleri rakamlarıyla listele
+- Her rakamı verilerde yazan anlamıyla ve zamanıyla ver ("son işlem", "önceki kapanışa göre", tarih/saat). Seans açılmadıysa "güne başladı", "bugün açıldı" gibi ifadeler KULLANMA.
+- Sektör verisi varsa yükselen (yalnız pozitif değişimli) ve düşen (yalnız negatif değişimli) sektörleri verilerdeki gibi ayrı listele; liste boşsa "yükselen/düşen sektör yok" yaz
 - KAP bildirimi varsa bildirimde ne açıklandığını bir cümleyle aktar
 - Ekonomik takvim varsa açıklanacak veriyi ve (varsa) beklenti değerini belirt
 
@@ -450,15 +456,15 @@ TWEET 6: [metin]
         raw = self.client.generate(prompt, disable_thinking=True, task_type="analysis")
         if not raw:
             log.info("AI kapalı/başarısız; şablon sabah raporu üretiliyor.")
-            body = self._template_morning_report(snapshot)
-            tweets = self._fallback_tweets(snapshot)
+            body = self._template_morning_report(snapshot, now)
+            tweets = self._fallback_tweets(snapshot, now)
             return body, False, tweets
 
         # --- Rapor bölümünü parse et ---
         report_match = re.search(r"---RAPOR---\s*(.*?)(?=---THREAD---|$)", raw, re.DOTALL)
         body = strip_banned(report_match.group(1).strip() if report_match else raw.strip())
         if not body:
-            body = self._template_morning_report(snapshot)
+            body = self._template_morning_report(snapshot, now)
 
         # --- Thread bölümünü parse et ---
         thread_match = re.search(r"---THREAD---\s*(.*?)$", raw, re.DOTALL)
@@ -470,7 +476,7 @@ TWEET 6: [metin]
         tweets = [t for t in tweets if t]
 
         if len(tweets) < 3:
-            tweets = self._fallback_tweets(snapshot)
+            tweets = self._fallback_tweets(snapshot, now)
 
         return body, True, tweets[:7]
 
@@ -484,32 +490,28 @@ TWEET 6: [metin]
         _, _, tweets = self.generate_morning_report_and_thread(snapshot)
         return tweets
 
-    def _fallback_tweets(self, snapshot: MarketSnapshot) -> list[str]:
-        """AI başarısız olduğunda snapshot verisiyle deterministik tweet listesi üretir."""
-        b = snapshot.bist
-        index = b.index if b else "XU100"
-        price = b.price if b else "—"
-        change = b.change if b else "—"
+    def _fallback_tweets(self, snapshot: MarketSnapshot, now: datetime | None = None) -> list[str]:
+        """AI başarısız olduğunda snapshot verisiyle deterministik tweet listesi üretir.
 
-        tweets = [
-            f"BIST {index} bugün {price} seviyesinde, {change} değişimle açıldı. Sabah bülteni hazır.",
-        ]
+        Eskiden ilk tweet "bugün {fiyat} seviyesinde, {değişim} değişimle açıldı" diyordu; fiyat son işlem
+        (çoğu zaman önceki seansın kapanışı), değişim önceki kapanışa göreydi → yanlış olgu. Artık
+        ``market_text`` cümlesi kullanılır; zamanı bilinmeyen endeks rakamı yazılmaz.
+        """
+        now = now or datetime.now(timezone(timedelta(hours=3)))
+        tweets: list[str] = []
+        bist_line = market_text.bist_last_short(snapshot.bist, now)
+        tweets.append(f"BIST {bist_line} Sabah bülteni hazır." if bist_line else "Sabah bülteni hazır.")
         if snapshot.macro and snapshot.macro.tickers:
-            macro_bits = []
-            for t in snapshot.macro.tickers[:3]:
-                macro_bits.append(f"{t.label}: {t.value_str}")
-            tweets.append("Küresel piyasalar: " + " | ".join(macro_bits))
+            macro_bits = [f"{t.label} {t.value_str} ({t.change_report})" for t in snapshot.macro.tickers[:3]]
+            tweets.append("Küresel piyasalar, önceki kapanışa göre: " + " | ".join(macro_bits))
         if snapshot.turib and snapshot.turib.hububat_index:
             h = snapshot.turib.hububat_index
-            sign = "+" if h.change_pct >= 0 else ""
-            tweets.append(f"TÜRİB Hububat: {h.price} ({sign}{h.change_pct}%). Tarımsal emtia özeti bültende.")
+            tweets.append(f"TÜRİB Hububat endeksi: {h.price} ({tr_pct(h.change_pct)}). Tarımsal emtia özeti bültende.")
 
         if snapshot.sector:
-            top = sorted(snapshot.sector, key=lambda s: abs(float(s.change_pct or 0)), reverse=True)[:2]
-            sector_bits = [f"{s.name} {s.change_pct:+.1f}%" for s in top if hasattr(s, "change_pct")]
-            if sector_bits:
-                tweets.append("Öne çıkan sektörler: " + ", ".join(sector_bits))
-        tweets.append(f"Detaylı sabah raporu web sitesinde. Bugün piyasayı ne yönlendirir sizce?")
+            ups, downs = movers_lines(snapshot.sector, 2)
+            tweets.append(f"Sektör endeksleri, önceki kapanışa göre — yükselenler: {ups}; düşenler: {downs}.")
+        tweets.append("Detaylı sabah bülteni web sitesinde.")
         return tweets
 
     def generate_global_report(self, macro_snapshot: str) -> tuple[str, str]:
@@ -578,65 +580,61 @@ Veri: {financial_data_text}
     # ---- yardımcılar -----------------------------------------------------------
 
     @staticmethod
-    def _snapshot_context(snapshot: MarketSnapshot) -> str:
+    def _snapshot_context(snapshot: MarketSnapshot, now: datetime | None = None) -> str:
+        """LLM'e giden veri bağlamı: her rakam ANLAMI ve ZAMANIYLA verilir (model "güne başladı" uydurmasın)."""
+        now = now or datetime.now(timezone(timedelta(hours=3)))
         lines: list[str] = []
 
-        # BIST
-        if snapshot.bist:
-            b = snapshot.bist
-            lines.append(f"- BIST {b.index}: {b.price} ({b.change}), hacim {b.volume}")
+        # BIST — zamanı bilinmeyen/eski endeks rakamı bağlama hiç girmez
+        bist_line = market_text.bist_last(snapshot.bist, now)
+        if bist_line and snapshot.bist is not None:
+            lines.append(f"- {bist_line}{market_text.session_note(snapshot.bist)}")
 
         # Küresel makro
         if snapshot.macro and snapshot.macro.tickers:
-            lines.append("\n### Küresel Makro")
+            lines.append("\n### Küresel Makro (değişimler önceki kapanışa göre)")
             for t in snapshot.macro.tickers:
-                lines.append(f"- {t.label}: {t.value_str} ({t.change_str})")
+                lines.append(f"- {t.label}: {t.value_str} ({t.change_report}; veri zamanı {t.as_of_str})")
 
         # VİOP kotasyonu
         if snapshot.viop_quote:
-            q = snapshot.viop_quote
             lines.append("\n### VİOP")
-            lines.append(f"- {q.index_symbol}: {q.index_price} ({q.index_change})")
-            if q.has_futures:
-                lines.append(
-                    f"- {q.futures_symbol} Vadeli: {q.futures_price} ({q.futures_change or '—'})"
-                    + (f", hacim {q.futures_volume}" if q.futures_volume else "")
-                )
+            lines.append(f"- {market_text.viop_index_line(snapshot.viop_quote)}")
 
         # VİOP teminat stresi
         if snapshot.viop_margin:
             m = snapshot.viop_margin
             lines.append(
-                f"- Teminat stresi: margin-call/gereken = %{m.margin_call_to_required_pct:.3f}"
-                f" (margin-call toplam: {m.margin_call_pretty()})"
+                f"- Takasbank teminat verisi ({m.as_of}): margin-call/gereken = "
+                f"{tr_pct(m.margin_call_to_required_pct, 3, signed=False)} (margin-call toplam: {m.margin_call_pretty()})"
             )
 
-        # Sektör rotasyonu (en güçlü 3 + en zayıf 3)
+        # Sektörler: yükselen listesi yalnız pozitif, düşen listesi yalnız negatif değişimler
         if snapshot.sector:
-            leaders = [s for s in snapshot.sector[:3]]
-            laggards = [s for s in snapshot.sector[-3:]]
-            lines.append("\n### Sektör Endeksleri")
-            lines.append("En çok yükselen: " + ", ".join(f"{s.name} ({s.change_str})" for s in leaders))
-            lines.append("En çok düşen: " + ", ".join(f"{s.name} ({s.change_str})" for s in laggards))
+            ups, downs = movers_lines(snapshot.sector, 3)
+            lines.append(f"\n### Sektör Endeksleri — {market_text.sector_heading_note(snapshot.sector)}")
+            lines.append(f"Yükselen sektörler: {ups}")
+            lines.append(f"Düşen sektörler: {downs}")
 
         # TÜRİB ELÜS (Tarımsal Emtia & Hububat)
         if snapshot.turib:
             t = snapshot.turib
             lines.append("\n### TÜRİB ELÜS (Tarımsal Emtia)")
             if t.hububat_index:
-                sign = "+" if t.hububat_index.change_pct >= 0 else ""
-                lines.append(f"- TÜRİB Hububat Endeksi (TRBHUB): {t.hububat_index.price} ({sign}{t.hububat_index.change_pct}%)")
+                lines.append(f"- TÜRİB Hububat Endeksi (TRBHUB): {t.hububat_index.price} ({tr_pct(t.hububat_index.change_pct)})")
             for p in t.products:
-                sign = "+" if p.change_pct >= 0 else ""
-                lines.append(f"- {p.product}: {p.avg_price_tl_kg} TL/kg ({sign}{p.change_pct}%), hacim: {p.volume_kg/1000.0:.1f} Ton")
+                lines.append(
+                    f"- {p.product}: {p.avg_price_tl_kg} TL/kg ({tr_pct(p.change_pct)}), "
+                    f"hacim: {tr_number(p.volume_kg / 1000.0, 1)} ton"
+                )
 
         # Ekonomik takvim (en fazla 5 kritik olay)
         if snapshot.calendar:
-            lines.append("\n### Ekonomik Takvim")
+            lines.append("\n### Ekonomik Takvim (saatler TSİ)")
             for ev in snapshot.calendar[:5]:
                 lines.append(
                     f"- {ev.time} {ev.country}: {ev.event}"
-                    f" (önem: {ev.importance}, beklenti: {ev.forecast})"
+                    f" (önem: {ev.importance}, beklenti: {ev.forecast or 'belirtilmemiş'})"
                 )
 
         # KAP bildirimleri (en fazla 10 — prompt boyutunu kontrol altında tut)
@@ -644,32 +642,32 @@ Veri: {financial_data_text}
             lines.append("\n### KAP Bildirimleri (öne çıkanlar)")
             for d in snapshot.disclosures[:10]:
                 insider_flag = " [İÇSEL]" if d.is_insider else ""
-                lines.append(f"- {d.title[:80]} [{d.disclosure_type}]{insider_flag}")
+                lines.append(f"- {safe_truncate(d.title, 80)} [{d.disclosure_type}]{insider_flag}")
 
         return "\n".join(lines) or "- Veri bulunamadı."
 
     @staticmethod
-    def _template_morning_report(snapshot: MarketSnapshot) -> str:
+    def _template_morning_report(snapshot: MarketSnapshot, now: datetime | None = None) -> str:
+        now = now or datetime.now(timezone(timedelta(hours=3)))
         b = snapshot.bist
         header = "## Genel Görünüm\n\n"
-        if b:
-            header += (
-                f"BIST {b.index} son işlemde **{b.price}** seviyesinde ({b.change}), "
-                f"hacim {b.volume}.\n\n"
-            )
+        bist_line = market_text.bist_last(b, now)
+        if bist_line and b is not None:
+            header += f"{bist_line}{market_text.session_note(b)}\n\n"
         else:
-            header += "Endeks verisi şu an alınamadı.\n\n"
+            # Zamanı bilinmeyen ya da eski endeks verisi güncelmiş gibi yazılmaz: eksik veri eksik görünür.
+            header += "Endeks verisi alınamadı ya da veri zamanı doğrulanamadı.\n\n"
 
-        # Küresel makro tablosu
+        # Küresel makro tablosu (her satır kendi veri zamanıyla)
         macro_sec = ""
         if snapshot.macro and snapshot.macro.tickers:
             macro_sec = "## Küresel Makro\n\n" + snapshot.macro.to_markdown_table() + "\n\n"
 
         cal = "## Ekonomik Takvim\n\n"
         if snapshot.calendar:
-            cal += "| Saat | Ülke | Olay | Beklenti |\n| --- | --- | --- | --- |\n"
+            cal += "| Saat (TSİ) | Ülke | Olay | Beklenti |\n| --- | --- | --- | --- |\n"
             for ev in snapshot.calendar:
-                cal += f"| {ev.time} | {ev.country} | {ev.event} | {ev.forecast} |\n"
+                cal += f"| {ev.time} | {ev.country} | {ev.event} | {ev.forecast or '—'} |\n"
             cal += "\n"
         else:
             cal += "Bugün için öne çıkan veri bulunmuyor.\n\n"
@@ -679,31 +677,18 @@ Veri: {financial_data_text}
         if snapshot.turib and snapshot.turib.summary_text:
             turib_sec = f"## TÜRİB ELÜS Tarımsal Emtia\n\n{snapshot.turib.summary_text}\n\n"
 
-        # VİOP bölümü
+        # VİOP bölümü: XU030 spot endekstir (vadeli kontratların dayanağı); vadeli satır ayrı ve yalnız varsa
         viop_sec = ""
         if snapshot.viop_quote:
-            q = snapshot.viop_quote
-            viop_sec = (
-                f"## VİOP\n\n"
-                f"{q.index_symbol}: **{q.index_price}** ({q.index_change})"
-            )
-            if q.has_futures:
-                viop_sec += f" | Vadeli {q.futures_symbol}: {q.futures_price} ({q.futures_change or '—'})"
-            viop_sec += "\n\n"
+            viop_sec = f"## VİOP\n\n{market_text.viop_index_line(snapshot.viop_quote)}\n\n"
 
-        # Sektör bölümü
+        # Sektör bölümü: listeler işarete göre süzülür ("En çok düşen" altında pozitif değişim yazılmaz)
         sector_sec = ""
         if snapshot.sector:
-            leaders = ", ".join(
-                f"{s.name} ({s.change_str})" for s in snapshot.sector[:3]
-            )
-            laggards = ", ".join(
-                f"{s.name} ({s.change_str})" for s in snapshot.sector[-3:]
-            )
             sector_sec = (
                 f"## Sektör Endeksleri\n\n"
-                f"- **En çok yükselen:** {leaders}\n"
-                f"- **En çok düşen:** {laggards}\n\n"
+                f"Sektör endeksleri — {market_text.sector_heading_note(snapshot.sector)}.\n\n"
+                f"{market_text.sector_movers_md(snapshot.sector)}\n\n"
             )
 
         kap = ""

@@ -10,6 +10,7 @@ LLM çağrısı yapılmaz (şablon yolu: canlıda çalışan yol budur).
 from __future__ import annotations
 
 import re
+from datetime import date, datetime
 from pathlib import Path
 
 import pytest
@@ -21,6 +22,10 @@ from esham.publishing.content_store import ReportDraft
 from esham.sources import Disclosure, MarketSnapshot, MarketSummary
 from esham.sources.global_macro import GlobalMacroSnapshot, MacroTicker
 from esham.sources.peer import PeerMetric, PeerSnapshot
+from esham.formatting import TR_TZ
+from esham.sources.bars import PeriodChange
+from esham.formatting import TR_TZ
+from esham.sources.bars import PeriodChange
 from esham.sources.sector import SectorMove
 from esham.sources.viop import ViopMarginSnapshot, ViopQuote
 
@@ -57,8 +62,12 @@ class _Social:
         _Social.posts.extend(tweets)
 
 
-SUMMARY = MarketSummary(index="XU100", price="10.000,00", change="+%1,20", volume="100 milyar TL",
-                        open_price="9.950,00", open_change="+%0,50")
+NOW = datetime(2026, 11, 27, 18, 30, tzinfo=TR_TZ)
+SUMMARY = MarketSummary(index="XU100", price="10.000,00", change="+%1,20", volume="100 milyar",
+                        open_price="9.950,00", open_change="+%0,50", price_value=10000.0, change_pct=1.2,
+                        open_value=9950.0, open_change_pct=0.5,
+                        as_of=datetime(2026, 11, 27, 18, 10, tzinfo=TR_TZ), market_open=False)
+WEEK = PeriodChange(pct=-1.39, base_date=date(2026, 11, 20), last_date=date(2026, 11, 27), last_close=10000.0)
 SECTORS = [SectorMove("XBANK", "Bankacılık", 2.5), SectorMove("XUSIN", "Sınai", 1.0), SectorMove("XGIDA", "Gıda", 0.2),
            SectorMove("XHOLD", "Holding", -0.4), SectorMove("XILTM", "İletişim", -1.1), SectorMove("XTRZM", "Turizm", -2.0)]
 MACRO = GlobalMacroSnapshot(tickers=[MacroTicker("VIX", 16.1, 1.83), MacroTicker("ALTIN", 4145.0, 0.4),
@@ -81,6 +90,9 @@ class _Bist:
     def fetch_closes(self, *a, **k):
         return [1.0, 2.0, 3.0]
 
+    def weekly_change(self):
+        return WEEK
+
 
 class _Viop:
     def market_quote(self):
@@ -91,8 +103,8 @@ class _Viop:
 
 
 class _Sector:
-    def snapshot(self):
-        return list(SECTORS)
+    def snapshot(self, period="1d"):
+        return [SectorMove(m.code, m.name, m.change_pct, as_of=date(2026, 11, 27), period=period) for m in SECTORS]
 
 
 class _Macro:
@@ -113,7 +125,7 @@ class _Peer:
 
 
 class _Kap:
-    def latest_disclosures(self):
+    def latest_disclosures(self, days=1):
         return list(DISCLOSURES)
 
     def get_detail_text(self, index):
@@ -145,6 +157,7 @@ def fakes(monkeypatch):
     monkeypatch.setattr(pipeline, "GlobalMacroSource", _Macro)
     monkeypatch.setattr(pipeline, "PeerSource", _Peer)
     monkeypatch.setattr(pipeline, "KapSource", _Kap)
+    monkeypatch.setattr(pipeline, "_now", lambda: NOW)
     monkeypatch.setattr(pipeline, "update_ticker_data", lambda: None)
     monkeypatch.setattr(pipeline, "update_turib_market_data", lambda: None)
     monkeypatch.setattr(pipeline, "generate_pdf", lambda **k: None)

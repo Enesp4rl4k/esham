@@ -27,7 +27,7 @@ def test_viop_margin_is_official_takasbank():
 def test_viop_stress_assessment():
     stress_up = assess_margin_stress(today_pct=1.33, prior_pct=0.45)
     assert stress_up.level == "Yükseliyor"
-    assert "önceki güne göre yükseldi" in stress_up.note and "olası" not in stress_up.note
+    # Önceki değer bir önceki koşunun kaydıdır (tarihi saklanmaz): "önceki güne göre" denmez.`r`n    assert "önceki kayıtlı ölçüme göre yükseldi" in stress_up.note and "olası" not in stress_up.note`r`n    assert "önceki güne" not in stress_up.note and "%0,450 → %1,330" in stress_up.note`r`n    assert assess_margin_stress(today_pct=0.5).level == "Bilinmiyor"
 
     stress_flat = assess_margin_stress(today_pct=0.83, prior_pct=0.82)
     assert stress_flat.level == "Sabit"

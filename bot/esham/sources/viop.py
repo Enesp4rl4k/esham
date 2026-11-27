@@ -3,7 +3,7 @@
 İki tür veri:
 1. Piyasa kotasyonu — BIST30 endeksi (XU030) ve vadeli (XU030D) TradingView
    scanner API'sinden (canlı, sağlam).
-2. Marketwide teminat agregatı — Takasbank resmi kamu bülteninden (teminatlı hesap sayısı,
+2. Piyasa geneli teminat agregatı — Takasbank resmi kamu bülteninden (teminatlı hesap sayısı,
    margin-call toplamı, gereken teminat).
 """
 from __future__ import annotations
@@ -17,7 +17,7 @@ import requests
 
 from ..config import default_headers, get_logger, sample_data_allowed, settings
 from ..http import retry_get, retry_post
-from ..formatting import tr_money, tr_number
+from ..formatting import tr_money, tr_number, tr_pct
 
 log = get_logger(__name__)
 
@@ -38,6 +38,8 @@ class ViopQuote:
     # Ham sayısal değerler (basis hesabı için); yalnızca gerçek yanıttan doldurulur.
     index_value: float | None = None
     futures_value: float | None = None
+    # TradingView tarama yanıtı işlem zamanı vermez; yalnız verinin ÇEKİLDİĞİ an bilinir (öyle etiketlenir).
+    fetched_at: datetime | None = None
 
     @property
     def has_futures(self) -> bool:
@@ -72,7 +74,7 @@ class MarginStress:
 
 
 def _change_str(pct: float) -> str:
-    return f"{'+' if pct >= 0 else ''}{tr_number(pct, 2)}%"
+    return tr_pct(pct)
 
 
 class ViopSource:
@@ -117,13 +119,16 @@ class ViopSource:
             index_price=tr_number(float(idx[1])) if idx[1] is not None else "",
             index_change=_change_str(float(idx[2])) if idx[2] is not None else "",
             index_value=float(idx[1]) if idx[1] is not None else None,
+            fetched_at=datetime.now(timezone.utc),
         )
         if fut and len(fut) > 1 and fut[1] is not None:
             q.futures_symbol = "XU030D"
             q.futures_price = tr_number(float(fut[1]))
             q.futures_value = float(fut[1])
             q.futures_change = _change_str(float(fut[2])) if len(fut) > 2 and fut[2] is not None else None
-            q.futures_volume = tr_money(float(fut[3])) if len(fut) > 3 and fut[3] else None
+            # TradingView "volume" vadelide kontrat ADEDİDİR; eskiden tr_money ile "Milyar TL" diye yazılıyordu
+            # (yanlış birim). Birim doğrulanamadığı için yayınlanmaz.
+            q.futures_volume = None
         else:
             log.warning("VİOP vadeli (XU030D) satırı yok; vadeli kotasyon yayınlanmayacak (sentetik fiyat üretilmez).")
         return q
@@ -277,22 +282,28 @@ class ViopSource:
 def assess_margin_stress(
     today_pct: float, prior_pct: float | None = None, *, jump_threshold: float = 0.05
 ) -> MarginStress:
-    """margin_call/required oranını önceki günle kıyaslayarak stres yönünü çıkarır.
+    """margin_call/required oranını ÖNCEKİ KAYITLI ÖLÇÜMLE kıyaslayarak yönünü çıkarır.
 
+    Önceki değer, bir önceki VİOP raporu koşusunda kaydedilen orandır; tarihi saklanmadığı için metin
+    "önceki güne göre" DEMEZ ("önceki kayıtlı ölçüme göre"). Oranlar tablodaki gibi 3 ondalıkla yazılır.
     `jump_threshold`: oranın yüzde-puan bazında anlamlı değişim eşiği.
     """
     if prior_pct is None:
-        return MarginStress("Bilinmiyor", "Karşılaştırma için önceki gün verisi yok.")
+        return MarginStress("Bilinmiyor", "Karşılaştırma için önceki kayıtlı ölçüm yok.")
+    before, now = tr_pct(prior_pct, 3, signed=False), tr_pct(today_pct, 3, signed=False)
     delta = today_pct - prior_pct
     if delta >= jump_threshold:
         return MarginStress(
             "Yükseliyor",
-            f"Margin-call/gereken teminat oranı {tr_number(prior_pct, 2)}% → "
-            f"{tr_number(today_pct, 2)}% (önceki güne göre yükseldi).",
+            f"Margin-call/gereken teminat oranı {before} → {now} (önceki kayıtlı ölçüme göre yükseldi).",
         )
     if delta <= -jump_threshold:
         return MarginStress(
             "Geriliyor",
-            f"Oran {tr_number(prior_pct, 2)}% → {tr_number(today_pct, 2)}% (önceki güne göre geriledi).",
+            f"Margin-call/gereken teminat oranı {before} → {now} (önceki kayıtlı ölçüme göre geriledi).",
         )
-    return MarginStress("Sabit", f"Oran ~{tr_number(today_pct, 2)}% seviyesinde yatay.")
+    return MarginStress(
+        "Sabit",
+        f"Margin-call/gereken teminat oranı {before} → {now} (önceki kayıtlı ölçüme göre fark "
+        f"{tr_number(jump_threshold, 2)} puanın altında).",
+    )

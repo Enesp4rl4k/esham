@@ -6,12 +6,14 @@ TradingView'in açık ekonomik takvim API'sini kullanır:
 """
 from __future__ import annotations
 
+import re
 from datetime import datetime, timedelta, timezone
 
 import requests
 from ..http import retry_get
 
 from ..config import default_headers, get_logger, settings
+from ..formatting import tr_number
 from . import CalendarEvent
 
 log = get_logger(__name__)
@@ -42,8 +44,9 @@ class EconomicCalendarSource:
 
     def daily_events(self, min_importance: int = 0) -> list[CalendarEvent]:
         """Bugünün olaylarını döner. `min_importance`: -1 hepsi, 0 orta+, 1 sadece yüksek."""
-        now = datetime.now(timezone.utc)
-        frm = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        # "Bugün" Türkiye günüdür (00:00-24:00 TSİ); eskiden UTC günü (03:00-03:00 TSİ) isteniyordu.
+        now_tr = datetime.now(_TR_TZ)
+        frm = now_tr.replace(hour=0, minute=0, second=0, microsecond=0).astimezone(timezone.utc)
         to = frm + timedelta(days=1)
         try:
             resp = retry_get(
@@ -100,9 +103,15 @@ class EconomicCalendarSource:
 
     @staticmethod
     def _format_value(value: object) -> str:
+        """Beklenti değeri Türkçe sayı biçiminde (97.2 -> '97,2'); sayı değilse aynen."""
         if value is None:
             return ""
-        return str(value)
+        s = str(value).strip()
+        m = re.fullmatch(r"(-?)(\d+)(?:\.(\d+))?", s)
+        if not m:
+            return s
+        sign, whole, frac = m.groups()
+        return sign + tr_number(float(whole), 0) + (f",{frac}" if frac else "")
 
     def _sample(self) -> list[CalendarEvent]:
         # Sahte / yapay ekonomik takvim yayını yapmamak için boş liste dön

@@ -7,14 +7,16 @@ zarifçe geri dönülür.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
 
 import requests
 
 from ..config import default_headers, get_logger, settings
-from ..formatting import tr_money as _tr_volume
 from ..formatting import tr_number as _tr_number
+from ..formatting import tr_pct
 from ..http import retry_get, retry_post
 from . import MarketSummary
+from .bars import PeriodChange, daily_bars, period_change, session_info
 
 log = get_logger(__name__)
 
@@ -84,8 +86,12 @@ class BistSource:
             return f"BIST:{clean}"
         return clean
 
-    def market_summary(self) -> MarketSummary:
-        # 1. Öncelikli Kaynak: TradingView Turkey Scanner (Anlık, gerçek açılış ve doğru günlük değişim)
+    def market_summary(self) -> MarketSummary | None:
+        """Endeks özeti: değerler TradingView'dan (yoksa Yahoo), son işlem ZAMANI ve seans durumu Yahoo
+        meta'sından. Zaman damgası alınamazsa ``as_of=None`` kalır; şablonlar o durumda tarih gerektiren
+        cümleyi YAZMAZ (tahminle "bugün" denmez)."""
+        yahoo_payload = self._yahoo_chart("5d", "1d")
+        # 1. Öncelikli Kaynak: TradingView Turkey Scanner (gerçek açılış ve doğru günlük değişim)
         try:
             tv_sym = self._tv_ticker(self.symbol)
             resp = retry_post(
@@ -100,26 +106,53 @@ class BistSource:
             resp.raise_for_status()
             summary = self._parse_tv(resp.json(), tv_sym)
             if summary:
-                return summary
+                return self._with_session(summary, yahoo_payload)
             log.warning("TradingView BIST verisi ayrıştırılamadı; Yahoo deneniyor.")
         except Exception as exc:
             log.warning("TradingView BIST verisi alınamadı (%s); Yahoo deneniyor.", exc)
 
         # 2. İkincil Kaynak: Yahoo Finance chart API (5 günlük mum serisiyle güvenli prevClose hesabı)
+        if yahoo_payload is not None:
+            summary = self._parse_yahoo(yahoo_payload)
+            if summary:
+                return self._with_session(summary, yahoo_payload)
+            log.warning("BIST Yahoo verisi ayrıştırılamadı; yapay veri üretilmiyor.")
+        else:
+            log.error("BIST verisi hiçbir resmi kaynaktan alınamadı; yapay veri üretilmiyor.")
+        return None
+
+    def _yahoo_chart(self, range_str: str, interval: str) -> dict | None:
         try:
             resp = retry_get(
-                f"{CHART_URL.format(symbol=self.symbol)}?range=5d&interval=1d",
+                f"{CHART_URL.format(symbol=self.symbol)}?range={range_str}&interval={interval}",
                 headers=self.headers,
                 timeout=settings.http_timeout,
             )
             resp.raise_for_status()
-            summary = self._parse_yahoo(resp.json())
-            if summary:
-                return summary
-            log.warning("BIST Yahoo verisi ayrıştırılamadı; yapay veri üretilmiyor.")
+            return resp.json()
         except (requests.RequestException, ValueError) as exc:
-            log.error("BIST verisi hiçbir resmi kaynaktan alınamadı (%s); yapay veri üretilmiyor.", exc)
-        return None
+            log.warning("Yahoo chart verisi alınamadı (%s, %s): %s", self.symbol, range_str, exc)
+            return None
+
+    @staticmethod
+    def _with_session(summary: MarketSummary, payload: dict | None, now: datetime | None = None) -> MarketSummary:
+        """Son işlem zamanını ve seans durumunu Yahoo meta'sından ekler (yoksa None bırakır)."""
+        try:
+            meta = payload["chart"]["result"][0]["meta"] if payload else None
+        except (KeyError, IndexError, TypeError):
+            meta = None
+        if isinstance(meta, dict):
+            summary.as_of, summary.market_open = session_info(meta, now)
+        return summary
+
+    def weekly_change(self) -> PeriodChange | None:
+        """Son kapanışın, son barın haftasından önceki son işlem günü kapanışına göre değişimi."""
+        payload = self._yahoo_chart("1mo", "1d")
+        try:
+            result = payload["chart"]["result"][0] if payload else None
+        except (KeyError, IndexError, TypeError):
+            result = None
+        return period_change(daily_bars(result), "1w") if result else None
 
     def _parse_tv(self, payload: dict, tv_sym: str) -> MarketSummary | None:
         rows = {r["s"]: r["d"] for r in payload.get("data", []) if "s" in r and "d" in r}
@@ -135,28 +168,29 @@ class BistSource:
         if close is None:
             return None
 
-        change_str = f"{'+' if float(change_pct) >= 0 else ''}{_tr_number(float(change_pct), 2)}%" if change_pct is not None else ""
-
-        open_price_str = _tr_number(float(open_val)) if open_val is not None else ""
-        open_change_str = ""
-        if open_val is not None and change_pct is not None:
+        chg = float(change_pct) if change_pct is not None else None
+        open_pct: float | None = None
+        if open_val is not None and chg is not None:
             try:
-                prev_close = float(close) / (1.0 + (float(change_pct) / 100.0))
+                prev_close = float(close) / (1.0 + (chg / 100.0))
                 if prev_close > 0:
                     open_pct = (float(open_val) - prev_close) / prev_close * 100.0
-                    open_change_str = f"{'+' if open_pct >= 0 else ''}{_tr_number(open_pct, 2)}%"
             except ZeroDivisionError:
                 pass
 
         return MarketSummary(
             index=name or self.symbol.replace(".IS", ""),
             price=_tr_number(float(close)),
-            change=change_str,
-            volume=_tr_volume(float(volume)) if volume else "—",
-            open_price=open_price_str,
-            open_change=open_change_str,
+            change=tr_pct(chg) if chg is not None else "",
+            volume=_tr_number(float(volume) / 1e9, 1) + " milyar" if volume else "",
+            open_price=_tr_number(float(open_val)) if open_val is not None else "",
+            open_change=tr_pct(open_pct) if open_pct is not None else "",
             high=_tr_number(float(high_val)) if high_val is not None else "",
             low=_tr_number(float(low_val)) if low_val is not None else "",
+            price_value=float(close),
+            change_pct=chg,
+            open_value=float(open_val) if open_val is not None else None,
+            open_change_pct=open_pct,
         )
 
     def _parse_yahoo(self, payload: dict) -> MarketSummary | None:
@@ -180,33 +214,30 @@ class BistSource:
         if prev is None or prev <= 0:
             prev = meta.get("chartPreviousClose") or meta.get("previousClose")
 
-        change = ""
+        pct: float | None = None
         if prev and prev > 0:
             pct = (float(price) - float(prev)) / float(prev) * 100
-            change = f"{'+' if pct >= 0 else ''}{_tr_number(pct, 2)}%"
 
         raw_opens = quotes.get("open", [])
         valid_opens = [float(o) for o in raw_opens if o is not None]
         open_val = valid_opens[-1] if valid_opens else meta.get("regularMarketOpen")
-        open_price_str = _tr_number(float(open_val)) if open_val is not None else ""
-        open_change_str = ""
+        open_pct: float | None = None
         if open_val is not None and prev and prev > 0:
             open_pct = (float(open_val) - float(prev)) / float(prev) * 100
-            open_change_str = f"{'+' if open_pct >= 0 else ''}{_tr_number(open_pct, 2)}%"
 
-        volume = (
-            meta.get("regularMarketVolume")
-            or meta.get("regularMarketDayVolume")
-            or meta.get("averageDailyVolume10Day")
-        )
+        volume = meta.get("regularMarketVolume") or meta.get("regularMarketDayVolume")
         index = meta.get("symbol", self.symbol).replace(".IS", "")
         return MarketSummary(
             index=index,
             price=_tr_number(float(price)),
-            change=change,
-            volume=_tr_volume(float(volume)) if volume else "—",
-            open_price=open_price_str,
-            open_change=open_change_str,
+            change=tr_pct(pct) if pct is not None else "",
+            volume=_tr_number(float(volume) / 1e9, 1) + " milyar" if volume else "",
+            open_price=_tr_number(float(open_val)) if open_val is not None else "",
+            open_change=tr_pct(open_pct) if open_pct is not None else "",
+            price_value=float(price),
+            change_pct=pct,
+            open_value=float(open_val) if open_val is not None else None,
+            open_change_pct=open_pct,
         )
 
     def fetch_closes(self, range_str: str = "1d", interval: str = "15m") -> list[float] | None:

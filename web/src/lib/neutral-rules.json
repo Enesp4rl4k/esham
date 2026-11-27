@@ -246,5 +246,13 @@
       "Kasım",
       "Aralık"
     ]
+  },
+  "sentences": {
+    "_doc": "Cümle bölme (bot/esham/sentences.py ve neutral.ts splitSentences aynı kural): aday sınır '.!?…' ARDINDAN boşluk; sonraki parça küçük harfle başlıyorsa, önceki parçanın son kelimesi bu listede ya da büyük harf+nokta dizisiyse (A.Ş., T.C.) veya önceki parçada açık parantez varsa birleştirilir.",
+    "abbreviations": [
+      "Ltd.", "Şti.", "Tic.", "San.", "Sti.", "Koop.", "Ort.", "Yay.", "Inc.", "Corp.", "Co.", "Plc.", "Ltd.Şti.",
+      "vb.", "vs.", "bkz.", "Bkz.", "örn.", "Örn.", "yy.", "Dr.", "Prof.", "Doç.", "Av.", "Sn.", "Md.", "No.", "Nr.",
+      "Tel.", "St.", "Mr.", "Ms.", "Jr.", "Cad.", "Sok.", "Mah.", "Bşk."
+    ]
   }
 }
