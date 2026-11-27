@@ -154,7 +154,20 @@ class Scheduler:
                 job._last_mono = mono
                 self._safe_run(job.name, job.func)
                 fired.append(job.name)
+        if fired:
+            self._flush_outbox()
         return fired
+
+    @staticmethod
+    def _flush_outbox() -> None:
+        """Uzun ömürlü orkestratör (Render/VPS) modu: giden kutusu iş bitince gönderilir. Bu modda yayın
+        kapısı yoktur (ContentStore GIT_AUTO_PUSH ile raporu kendisi push eder). GitHub Actions bu yolu kullanmaz."""
+        try:
+            from .publishing.outbox import send_outbox
+
+            send_outbox()
+        except Exception as exc:  # noqa: BLE001 — gönderim hatası döngüyü durdurmaz
+            log.error("Giden kutusu gönderilemedi: %s", exc)
 
     def _safe_run(self, name: str, func: Callable[[], object]) -> None:
         try:

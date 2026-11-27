@@ -117,13 +117,14 @@ jobs:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          # dry_run=true ise Twitter/Telegram keys boş geçilir → social.py dry-run moda girer
+          # dry_run=true ise Twitter keys boş geçilir
           TWITTER_API_KEY: ${{ github.event.inputs.dry_run == 'true' && '' || secrets.TWITTER_API_KEY }}
           TWITTER_API_SECRET: ${{ github.event.inputs.dry_run == 'true' && '' || secrets.TWITTER_API_SECRET }}
           TWITTER_ACCESS_TOKEN: ${{ github.event.inputs.dry_run == 'true' && '' || secrets.TWITTER_ACCESS_TOKEN }}
           TWITTER_ACCESS_SECRET: ${{ github.event.inputs.dry_run == 'true' && '' || secrets.TWITTER_ACCESS_SECRET }}
-          TELEGRAM_BOT_TOKEN: ${{ github.event.inputs.dry_run == 'true' && '' || secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ github.event.inputs.dry_run == 'true' && '' || secrets.TELEGRAM_CHAT_ID }}
+          # TELEGRAM_* bu adıma BİLEREK verilmez: bot koşusu Telegram'a gönderemez, gönderileri giden kutusuna
+          # (bot/state/telegram_outbox.json) yazar. Gönderim, yayın kapısı + push başarılı olduktan sonra
+          # "Telegram giden kutusu" adımındadır.
           ESHAM_TAKASBANK_VIOP_URL: ${{ secrets.ESHAM_TAKASBANK_VIOP_URL }}
           ESHAM_SITE_URL: https://esham.pages.dev
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
@@ -192,11 +193,11 @@ jobs:
         working-directory: bot
         run: python -m esham.main data-status
 
+      # Sıra: bot koşusu (gönderim YOK) → yayın kapısı → commit + push → derleme/dağıtım → Telegram gönderimi.
       # Yayın kapısı: web testleri (tarafsız dil, rapor biçimi, dizin kuralları) bu koşunun ürettiği yeni raporlarla
-      # birlikte koşar. Geçmezse içerik commit'lenmez, iş KIRMIZI olur: master'a, web testlerini ve dağıtım iş akışını
-      # kıracak bir rapor hiç girmez (2026-11-27: ilk güncel şemalı rapor testleri kırmıştı). Testler `node --test`
-      # ile çalışır, bağımlılık kurulumu gerekmez. Üretilen dosyalar commit'lenmediği için bot durumu da ilerlemez;
-      # aynı bildirim sonraki koşuda yeniden denenir.
+      # birlikte koşar. Geçmezse raporlar commit'lenmez, Telegram'a hiçbir şey gitmez, iş KIRMIZI olur; yalnız döngüyü
+      # durduran durum commit'lenir (bkz. "Yayın kapısı kırıldı" adımı ve bot/esham/publish_gate.py). Testler
+      # `node --test` ile çalışır, bağımlılık kurulumu gerekmez.
       - name: Node.js Kurulumu (yayın kapısı + web derlemesi)
         uses: actions/setup-node@v4
         with:
@@ -205,6 +206,7 @@ jobs:
           cache-dependency-path: web/package-lock.json
 
       - name: Yayın kapısı (yeni raporlar web testlerinden geçmeli)
+        id: gate
         run: |
           if [ -z "$(git status --porcelain -- web/content/reports)" ]; then
             echo "Yeni/değişen rapor yok; kapı atlandı."
@@ -212,35 +214,48 @@ jobs:
             cd web && npm test
           fi
 
+      # Kapı kırıldı: raporlar ve veri dosyaları COMMIT'LENMEZ, Telegram'a hiçbir şey gitmez. Döngüyü durdurmak için
+      # yalnız durum + giden kutusu commit'lenir: bu koşunun gönderileri silinir, yayınlanan her KAP bildirimi
+      # `gate_failures` sayacına yazılır; 3. kırılışta `failed_disclosures`'a (neden + deneme sayısı) düşer ve bir
+      # daha denenmez. Böylece kırık bir rapor her 15 dakikada yeniden üretilip gönderilmez.
+      - name: Yayın kapısı kırıldı (yalnız döngüyü durduran durumu commit'le)
+        if: failure() && steps.gate.outcome == 'failure'
+        working-directory: bot
+        run: |
+          python -m esham.main outbox-gate-failed --reason "Yayın kapısı: web testleri kırıldı (koşu ${{ github.run_id }})"
+          cd ..
+          if [ "$GITHUB_REF_NAME" = "master" ]; then
+            if ! bash .github/scripts/commit-push.sh "state: yayın kapısı kırıldı, raporlar yayınlanmadı (${{ github.event.schedule || github.event.inputs.command }}) [skip ci]" \
+                bot/state/esham_state.json bot/state/telegram_outbox.json; then
+              echo "::error title=Durum push edilemedi::Kapı kırıldı ve durum da push edilemedi; sonraki koşu bildirimi yeniden dener (Telegram'a yine bir şey gitmez)."
+            fi
+          fi
+          echo "::error title=Yayın kapısı kırıldı::Yeni raporlar web testlerinden geçmedi. Raporlar commit'lenmedi, Telegram'a hiçbir şey gönderilmedi. Ayrıntı: 'Yayın kapısı' adımının çıktısı ve bot/state/esham_state.json → last_gate_failure."
+          exit 1
+
       - name: Yeni raporları ve durumu commit'le
         id: commit_step
         run: |
-          git config user.name "esham-bot"
-          git config user.email "bot@esham.local"
-          git add web/content/reports web/public/cards web/public/data
-          [ -d web/public/reports ] && git add web/public/reports || true
-          [ -f bot/state/esham_state.json ] && git add bot/state/esham_state.json || true
-          if git diff --staged --quiet; then
+          if [ "$GITHUB_REF_NAME" != "master" ]; then
+            echo "::notice title=Push atlandı::Çalışma dalı $GITHUB_REF_NAME (master değil); içerik commit'i ve Telegram gönderimi yalnızca master'da yapılır."
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "can_send=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          paths="web/content/reports web/public/cards web/public/data web/public/reports bot/state/esham_state.json bot/state/telegram_outbox.json"
+          # Eşzamanlı push yarışı için 3 deneme; sonunda başarısızsa iş KIRMIZI olur ve Telegram adımı ÇALIŞMAZ.
+          # Hiçbir şey push edilmediği için sonraki koşu aynı bildirimi baştan işler: kayıp da tekrar gönderi de yok.
+          if ! result=$(bash .github/scripts/commit-push.sh "content: otomatik yayın (${{ github.event.schedule || github.event.inputs.command }}) [skip ci]" $paths); then
+            echo "::error title=Push başarısız::İçerik commit'i master'a gönderilemedi (3 deneme). Telegram'a hiçbir şey gönderilmedi."
+            exit 1
+          fi
+          if [ "$result" = "pushed" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
             echo "Herhangi bir yeni içerik veya durum değişikliği yok."
             echo "has_changes=false" >> $GITHUB_OUTPUT
-          elif [ "$GITHUB_REF_NAME" != "master" ]; then
-            echo "::notice title=Push atlandı::Çalışma dalı $GITHUB_REF_NAME (master değil); içerik commit'i yalnızca master'da yapılır."
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-          else
-            git commit -m "content: otomatik yayın (${{ github.event.schedule || github.event.inputs.command }}) [skip ci]"
-            # Eşzamanlı push yarışı için 3 deneme; sonunda başarısızsa iş KIRMIZI olur (eskiden `|| true` ile yutuluyordu)
-            ok=0
-            for i in 1 2 3; do
-              if git pull --rebase -X theirs origin master && git push origin master; then ok=1; break; fi
-              git rebase --abort 2>/dev/null || true
-              sleep $((i * 5))
-            done
-            if [ "$ok" != "1" ]; then
-              echo "::error title=Push başarısız::İçerik commit'i master'a gönderilemedi (3 deneme)"
-              exit 1
-            fi
-            echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
+          echo "can_send=true" >> $GITHUB_OUTPUT
 
       - name: Web sitesini derle (+ dosya bütçesi)
         if: steps.commit_step.outputs.has_changes == 'true' || github.event.inputs.force_build == 'true'
@@ -267,3 +282,34 @@ jobs:
             exit 0
           fi
           npx wrangler pages deploy out --project-name esham --commit-dirty=true
+
+      # Telegram: yalnız raporlar master'a push edildikten (ve derleme/dağıtım başarılı ya da gereksizken) SONRA.
+      # En fazla bir kez (at-most-once) teslim:
+      #   1) claim: bekleyen kayıtlar bu koşu adına `in_flight` yapılır ve bu işaret PUSH edilir (gönderimden önce);
+      #      push edilemezse hiçbir şey gönderilmez, kayıtlar origin'de `pending` kalır, sonraki koşu gönderir.
+      #   2) deliver: gönder, her kaydı sent / pending (kesin ret, en çok 3 deneme) / unknown (belirsiz) işaretle.
+      #   3) sonuç push edilir. Push edilemez ya da iş çökerse origin'de `in_flight` kalır; sonraki koşu bunu
+      #      `unknown` yapar ve YENİDEN GÖNDERMEZ (tekrar eden gönderi yerine kaçan gönderi).
+      # Derleme/dağıtım kırılırsa bu adım çalışmaz; kayıtlar bekler, sonraki koşu gönderir (6 saatten eskiyse göndermez).
+      - name: Telegram giden kutusu (push sonrası gönderim)
+        if: success() && steps.commit_step.outputs.can_send == 'true'
+        working-directory: bot
+        env:
+          # dry_run=true ise boş: kayıtlar gönderilmeden `skipped` işaretlenir (sonra da gönderilmez).
+          TELEGRAM_BOT_TOKEN: ${{ github.event.inputs.dry_run == 'true' && '' || secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ github.event.inputs.dry_run == 'true' && '' || secrets.TELEGRAM_CHAT_ID }}
+          ESHAM_SITE_URL: https://esham.pages.dev
+        run: |
+          claimed=$(python -m esham.main send-outbox --phase claim | sed -n 's/.*claimed=\([0-9]*\).*/\1/p')
+          echo "Gönderilecek kayıt: ${claimed:-0}"
+          cd ..
+          if ! bash .github/scripts/commit-push.sh "state: Telegram giden kutusu, gönderim öncesi işaret [skip ci]" bot/state/telegram_outbox.json > /dev/null; then
+            echo "::warning title=Telegram gönderilmedi::Gönderim öncesi işaret push edilemedi; hiçbir şey gönderilmedi, sonraki koşu deneyecek."
+            exit 0
+          fi
+          if [ "${claimed:-0}" = "0" ]; then exit 0; fi
+          (cd bot && python -m esham.main send-outbox --phase deliver)
+          if ! bash .github/scripts/commit-push.sh "state: Telegram gönderim sonucu [skip ci]" bot/state/telegram_outbox.json > /dev/null; then
+            echo "::error title=Gönderim sonucu push edilemedi::Gönderildi ama kayıt master'a yazılamadı. Tekrar gönderi OLMAZ: sonraki koşu bu kayıtları 'unknown' sayar."
+            exit 1
+          fi

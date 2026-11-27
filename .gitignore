@@ -35,3 +35,5 @@ graph.html
 # KAP finansal rapor önbelleği ve henüz siteye bağlanmamış ham KAP çıktısı
 bot/cache/kap/
 web/public/data/kap/
+# Telegram giden kutusu durumla birlikte commit'lenir (idempotans defteri); görsel kopyaları commit'lenmez
+!bot/state/telegram_outbox.json

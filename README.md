@@ -62,7 +62,8 @@ Rapor JSON'unda opsiyonel alanlar da vardır: `image` (marka kartı) ve `ipo`
 | `analysis` | Belge → analiz → web raporu + IPO PDF orkestrasyonu |
 | `publishing/content_store` | **Web köprüsü** — JSON rapor yazar |
 | `publishing/ipo_pdf` | Halka arz analiz PDF/HTML raporu |
-| `publishing/social` | Twitter/X ve Telegram paylaşımı |
+| `publishing/social` | Telegram gönderisini hazırlar (süzgeç + uyarı satırı), **giden kutusuna** yazar |
+| `publishing/outbox` | Telegram giden kutusu: push sonrası en fazla bir kez gönderim (`bot/state/telegram_outbox.json`) |
 | `newsletter` | **Abone deposu + SMTP bülteni** (doğrulama, imzalı çıkış, dry-run) |
 | `pipeline` | Sabah raporu orkestrasyonu |
 | `news_stream` | Anlık KAP/insider haber akışı (öncelikli kuyruk + drip) |
@@ -78,6 +79,12 @@ py -m esham.main morning-report          # sabah bültenini üret + yayınla
 py -m esham.main morning-report --no-social
 py -m esham.main news-stream --once      # tek tur KAP taraması
 py -m esham.main ipo-pdf                 # örnek halka arz raporu
+
+# Telegram: komutlar DOĞRUDAN göndermez, giden kutusuna yazar (bot/state/telegram_outbox.json).
+py -m esham.main --send-now morning-report   # yerel: komut bitince giden kutusunu hemen gönder
+py -m esham.main send-outbox                 # bekleyen gönderileri gönder (git işlemi yapmaz)
+# İş akışında sıra: bot koşusu → yayın kapısı (web testleri) → commit + push → dağıtım → send-outbox.
+# Uzun ömürlü 'run' / 'news-stream' (sürekli) modları giden kutusunu her işten sonra kendisi gönderir.
 
 # Belge analizi (PDF yolu/URL, KAP linki veya ham metin kabul eder)
 py -m esham.main analyze-ipo <kaynak> --company "TechYazılım A.Ş." --ticker TCHYZ
