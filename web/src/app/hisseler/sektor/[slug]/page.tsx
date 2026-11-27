@@ -142,7 +142,7 @@ export default async function SectorPage({ params }: { params: Promise<Params> }
         <h2 className="text-xl font-display font-semibold mt-8 mb-3">Nasıl okunur?</h2>
         <p className="text-base text-zinc-300 leading-relaxed">
           Aynı sektördeki şirketler benzer maliyet yapısına ve döngüye sahip olduğu için oranları sektör medyanıyla karşılaştırmak, tek başına bir sayıya bakmaktan daha anlamlıdır.
-          Düşük F/K veya PD/DD ucuzluğa, yüksek ROE verimliliğe işaret edebilir; ancak geçici kâr artışları, enflasyon muhasebesi (TMS 29) ve döviz cinsinden tablolar karşılaştırmayı bozabilir.
+          F/K, PD/DD ve ROE tek başına bir sonuç vermez; geçici kâr artışları, enflasyon muhasebesi (TMS 29) ve döviz cinsinden tablolar karşılaştırmayı bozabilir.
           Veri tutarsızlığı bayrağı taşıyan hisseler medyan hesabına katılmaz. Bu sayfa yatırım tavsiyesi değildir.{" "}
           <Link href="/hisseler" className="underline">Tüm hisseleri filtreleyin</Link>.
         </p>

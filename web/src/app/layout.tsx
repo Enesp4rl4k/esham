@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     template: "%s | Esham",
   },
   description:
-    "Borsa İstanbul (BIST), VİOP, KAP bildirimleri, TÜRİB tarımsal emtia, temettü takvimi ve kur şoku radarı yapay zeka destekli kantitatif modellerle analiz edilir.",
+    "Borsa İstanbul (BIST), VİOP, KAP bildirimleri, TÜRİB tarımsal emtia, temettü takvimi ve kur şoku radarı için kamuya açık bildirim ve veri özetleri.",
   keywords: [
     "BIST 100",
     "Borsa İstanbul",
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Esham — BIST & Piyasa İstihbarat Platformu",
     description:
-      "Borsa İstanbul, VİOP, KAP ve TÜRİB piyasalarında yapay zeka destekli finansal istihbarat.",
+      "Borsa İstanbul, VİOP, KAP ve TÜRİB için kamuya açık bildirim ve veri özetleri.",
     images: ["/cards/default-bist.png"],
     creator: "@eshamcomtr",
   },
@@ -148,7 +148,7 @@ export default function RootLayout({
                     "width": 1200,
                     "height": 630
                   },
-                  "description": "Borsa İstanbul, VİOP, KAP bildirimleri, TÜRİB tarımsal emtia ve makroekonomik veriler için yapay zeka destekli finansal istihbarat platformu."
+                  "description": "Borsa İstanbul, VİOP, KAP bildirimleri, TÜRİB tarımsal emtia ve makroekonomik veriler için kamuya açık bildirim ve veri özetleri."
                 },
                 {
                   "@type": "WebSite",

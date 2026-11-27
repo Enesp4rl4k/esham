@@ -159,13 +159,34 @@ function trDate(iso: string): string {
   return `${ist.getUTCDate()} ${LEGACY.months[ist.getUTCMonth()]} ${ist.getUTCFullYear()}`;
 }
 
-/** Sürümsüz kaydın görünen başlığı: resmî KAP başlığı aynen; diğerleri "<tür> — <tarih>" (Python `legacy_title`). */
-export function legacyTitle(r: Pick<ViewableReport, "title" | "sources" | "category" | "publishedAt">): string {
+const TICKER_RE = new RegExp(LEGACY.ticker_pattern);
+const TICKER_EXCLUDE: readonly string[] = LEGACY.ticker_exclude;
+const COMPANY_TYPES: readonly string[] = LEGACY.company_types;
+
+/**
+ * Kaydın YAPILANDIRILMIŞ alanlarından hisse kodu (Python `structured_ticker`): önce `ipo.ticker`, sonra
+ * etiketlerin ilki (botun yazdığı sözleşme: `[kod, ...]`). Başlık/yorum metninden kod ayrıştırılmaz;
+ * kalıba uymuyorsa boş döner (tahmin yok).
+ */
+export function structuredTicker(r: { tags?: string[]; ipo?: { ticker?: unknown } }): string {
+  const ok = (v: unknown): v is string => typeof v === "string" && TICKER_RE.test(v) && !TICKER_EXCLUDE.includes(v);
+  if (ok(r.ipo?.ticker)) return r.ipo.ticker;
+  const first = (r.tags ?? [])[0];
+  return ok(first) ? first : "";
+}
+
+/** Sürümsüz kaydın görünen başlığı: resmî KAP başlığı aynen; diğerleri "<tür> — <tarih>"; şirket başına üretilen türlerde "<KOD> — <tür> — <tarih>" (Python `legacy_title`). */
+export function legacyTitle(
+  r: Pick<ViewableReport, "title" | "sources" | "category" | "publishedAt"> & { tags?: string[]; ipo?: { ticker?: unknown } },
+): string {
   if (isOfficialKapTitle(r)) return r.title;
   const categoryTypes = LEGACY.category_types as Record<string, string>;
-  const typ = ownTemplateType(r.title) ?? categoryTypes[r.category] ?? "Piyasa notu";
+  const own = ownTemplateType(r.title);
+  const typ = own ?? categoryTypes[r.category] ?? "Piyasa notu";
+  const code = own !== null && COMPANY_TYPES.includes(own) ? structuredTicker(r) : "";
+  const label = code ? `${code} — ${typ}` : typ;
   const date = trDate(r.publishedAt);
-  return date ? `${typ} — ${date}` : typ;
+  return date ? `${label} — ${date}` : label;
 }
 
 export function legacySummary(r: Pick<ViewableReport, "title" | "sources">): string {
@@ -187,12 +208,15 @@ export function legacyView<T extends ViewableReport & { ipo?: object }>(
   if (!isLegacy(report)) return { report, minimal: false };
   const official = isOfficialKapTitle(report);
   const title = legacyTitle(report);
-  const company = official ? companyFromTitle(report.title) : "";
+  // Şirket: başlıktaki ön ek, yoksa raporun yapılandırılmış `kap.company` alanı; ikisi de yoksa şirket adı
+  // gösterilmez (tahmin yok) ve yapılandırılmış hisse kodu (varsa) ayrı satırda verilir.
+  const company = official ? companyFromTitle(report.title) || (report.kap?.company ?? "").trim() : "";
+  const code = official && !company && report.tags.includes("KAP") ? structuredTicker(report) : "";
   const lines = official
     ? [
         "### Bildirim Bilgileri",
         `- **Başlık (KAP):** ${report.title}`,
-        ...(company ? [`- **Şirket:** ${company}`] : []),
+        ...(company ? [`- **Şirket:** ${company}`] : code ? [`- **Hisse kodu:** ${code}`] : []),
         `- **Yayın tarihi:** ${trDate(report.publishedAt)}`,
         "- **Bildirim türü:** Bu eski kayıtta saklanmamış.",
         `- **Kaynak:** [KAP bildirim sorgulama](${KAP_QUERY_URL})`,

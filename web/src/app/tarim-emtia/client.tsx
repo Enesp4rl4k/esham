@@ -943,8 +943,8 @@ export function TuribMarketClient({
                 <thead>
                   <tr className="border-b text-xs uppercase tracking-wider" style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}>
                     <th className="py-3 px-4 md:px-6">Emtia</th>
-                    <th className="py-3 px-4">Kaynak (Ucuz) İl & Depo</th>
-                    <th className="py-3 px-4">Hedef (Pahalı) İl & Depo</th>
+                    <th className="py-3 px-4">Kaynak (Düşük Fiyatlı) İl & Depo</th>
+                    <th className="py-3 px-4">Hedef (Yüksek Fiyatlı) İl & Depo</th>
                     <th className="py-3 px-4">Brüt Makas</th>
                     <th className="py-3 px-4">Tahmini Nakliye</th>
                     <th className="py-3 px-4">Net Arbitraj</th>

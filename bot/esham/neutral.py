@@ -231,14 +231,39 @@ def _tr_date(iso: str) -> str:
     return f"{dt.day} {_LEGACY['months'][dt.month - 1]} {dt.year}"
 
 
+_TICKER_RE = re.compile(_LEGACY["ticker_pattern"])
+_TICKER_EXCLUDE = frozenset(_LEGACY["ticker_exclude"])
+_COMPANY_TYPES = frozenset(_LEGACY["company_types"])
+
+
+def structured_ticker(doc: dict) -> str:
+    """Kaydın YAPILANDIRILMIŞ alanlarından hisse kodu (web `structuredTicker` ile aynı): önce `ipo.ticker`,
+    sonra etiketlerin ilki. Başlık/yorumdan kod ayrıştırılmaz; kalıba uymuyorsa boş döner."""
+
+    def ok(v: object) -> bool:
+        return isinstance(v, str) and bool(_TICKER_RE.search(v)) and v not in _TICKER_EXCLUDE
+
+    ipo = doc.get("ipo")
+    t = ipo.get("ticker") if isinstance(ipo, dict) else None
+    if ok(t):
+        return t  # type: ignore[return-value]
+    tags = doc.get("tags") or []
+    first = tags[0] if tags else None
+    return first if ok(first) else ""  # type: ignore[return-value]
+
+
 def legacy_title(doc: dict) -> str:
-    """Sürümsüz kaydın görünen başlığı: resmî KAP başlığı aynen; diğerleri '<tür> — <tarih>'."""
+    """Sürümsüz kaydın görünen başlığı: resmî KAP başlığı aynen; diğerleri '<tür> — <tarih>'; şirket başına
+    üretilen türlerde '<KOD> — <tür> — <tarih>'."""
     title = str(doc.get("title", ""))
     if is_official_kap_title(doc):
         return title
-    typ = _own_template_type(title) or _LEGACY["category_types"].get(str(doc.get("category", "")), "Piyasa notu")
+    own = _own_template_type(title)
+    typ = own or _LEGACY["category_types"].get(str(doc.get("category", "")), "Piyasa notu")
+    code = structured_ticker(doc) if own in _COMPANY_TYPES else ""
+    label = f"{code} — {typ}" if code else typ
     date = _tr_date(str(doc.get("publishedAt", "")))
-    return f"{typ} — {date}" if date else typ
+    return f"{label} — {date}" if date else label
 
 
 def legacy_summary(doc: dict) -> str:

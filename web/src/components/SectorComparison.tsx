@@ -45,12 +45,8 @@ export function SectorComparison({ stock, universe }: { stock: UniverseStock; un
 
 function Row({ m }: { m: MetricPosition }) {
   const { def } = m;
-  const better =
-    m.value !== null && m.median !== null && Math.abs(m.value - m.median) > 1e-9
-      ? def.better === "low" ? m.value < m.median : m.value > m.median
-      : null; // medyana eşit → nötr renk
   const tone = "text-zinc-100"; // renk yerine metin: yeşil/kırmızı sitede fiyat yönü demek
-  const verdict = better === null ? "" : better ? " · medyandan iyi" : " · medyandan zayıf";
+  const verdict = m.value === null || m.median === null || m.value === m.median ? "" : m.value < m.median ? " · medyanın altında" : " · medyanın üstünde";
   const rankText = m.rank !== null ? `${m.of} hissede ${m.rank}.${verdict}` : m.value === null ? "Hesaplanamadı" : "Yetersiz veri";
 
   return (

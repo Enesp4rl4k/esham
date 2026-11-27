@@ -59,7 +59,7 @@ export async function GET() {
     <title>Esham — Kamuya Açık Bildirim ve Veri Özetleri</title>
     <link>${SITE_URL}</link>
     <atom:link href="${SITE_URL}/feed.xml" rel="self" type="application/rss+xml" />
-    <description>BIST, küresel makro ve halka arz raporları her gün yapay zeka ile analiz edilir.</description>
+    <description>Kamuya açık KAP bildirimleri ve piyasa verilerinin otomatik özetleri: BIST, küresel makro ve halka arz.</description>
     <language>tr</language>
     <lastBuildDate>${lastBuildDate}</lastBuildDate>
     <ttl>60</ttl>

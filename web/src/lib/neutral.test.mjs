@@ -116,3 +116,32 @@ test("dizin kararı tek fonksiyon: yalın görünüm ⇒ noindex (ipo meta veriy
   assert.equal(report.ipo?.verdict, undefined);
   assert.equal(isIndexable({ body: "x", ipo: { company: "X", ticker: "Y" } }), true); // sürüm 2 halka arz
 });
+test("eski başlıklar şirket başına üretilen türlerde yapılandırılmış hisse kodunu taşır (aynı gün çakışmaz)", () => {
+  const base = { sources: ["KAP", "İzahname"], category: "ipo", publishedAt: "2026-07-07T10:00:00Z" };
+  const a = legacyTitle({ ...base, title: "A A.Ş. Halka Arz Analizi", tags: ["EKIM", "Halka Arz"] });
+  const b = legacyTitle({ ...base, title: "B A.Ş. Halka Arz Analizi", tags: ["MEYSU", "Halka Arz"] });
+  assert.equal(a, "EKIM — Halka arz belgesi özeti — 7 Temmuz 2026");
+  assert.notEqual(a, b);
+  // Başlıktan kod ayrıştırılmaz; etiket yoksa türe dönülür.
+  assert.equal(legacyTitle({ ...base, title: "HUNER A.Ş. Halka Arz Analizi", tags: [] }), "Halka arz belgesi özeti — 7 Temmuz 2026");
+  // Piyasa düzeyindeki türlere kod eklenmez.
+  assert.equal(
+    legacyTitle({ ...base, category: "bist", sources: ["BIST"], title: "BIST & Küresel Piyasalar Sabah Raporu", tags: ["AKBNK"] }),
+    "Sabah bülteni — 7 Temmuz 2026",
+  );
+});
+
+test("resmî KAP başlığında şirket ön eki yoksa yapılandırılmış alan gösterilir: kap.company, yoksa hisse kodu; başlıktan tahmin yok", () => {
+  const rep = (over) => ({ slug: "s", category: "bist", summary: "S", body: "x", publishedAt: "2026-07-07T10:00:00Z", aiGenerated: true, sources: ["KAP"], image: undefined, ...over });
+  const noPrefix = "Kredi Derecelendirme Notu Bildirimi";
+  const withCompany = legacyView(rep({ title: noPrefix, tags: ["PBT", "KAP", "BIST"], kap: { company: "PASİFİK TEKNOLOJİ A.Ş." } }));
+  assert.ok(withCompany.report.body.includes("- **Şirket:** PASİFİK TEKNOLOJİ A.Ş."));
+  assert.equal(withCompany.report.title, noPrefix);
+  const onlyTicker = legacyView(rep({ title: noPrefix, tags: ["PBT", "KAP", "BIST"] }));
+  assert.ok(onlyTicker.report.body.includes("- **Hisse kodu:** PBT"));
+  assert.ok(!onlyTicker.report.body.includes("Şirket:"));
+  const none = legacyView(rep({ title: noPrefix, tags: ["Gündem"] }));
+  assert.ok(!none.report.body.includes("Şirket:") && !none.report.body.includes("Hisse kodu"));
+  const prefixed = legacyView(rep({ title: "X A.Ş.: Duyuru", tags: ["XXX", "KAP"], kap: { company: "BAŞKA A.Ş." } }));
+  assert.ok(prefixed.report.body.includes("- **Şirket:** X A.Ş."));
+});
