@@ -133,9 +133,10 @@ export const isLegacy = (r: Pick<ViewableReport, "schemaVersion">) => !(typeof r
  * tekrarlayan satır gösterilmez: boş döner.
  */
 export function distinctSummary(r: { title: string; summary?: string | null }): string {
-  const squash = (t: string) => t.trim().replace(/\s+/g, " ").toLowerCase();
+  // normalize(): Türkçe katlama (İ/I/ı → i), boşluk; sondaki noktalama yok sayılır. Python: neutral.distinct_summary.
+  const key = (t: string) => normalize(t).replace(/[\s.…!?;:,]+$/u, "");
   const summary = (r.summary ?? "").trim();
-  return summary && squash(summary) !== squash(r.title) ? summary : "";
+  return summary && key(summary) !== key(r.title) ? summary : "";
 }
 
 /** KAP başlığı "ŞİRKET: konu" biçimindedir; şirket kısmı (başlık AYNEN korunur, yalnız ayrıştırılır). */

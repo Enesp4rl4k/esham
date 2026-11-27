@@ -107,9 +107,10 @@ function checkSummaryAndTitle(f, doc) {
   // Güncel kayıt: özet boş olamaz (feed/meta/arama ister); yalın KAP raporunda özet resmî başlığa DÜŞER,
   // yani özet == başlık meşrudur. Önemli olan başlığın ekranda iki kez görünmemesidir.
   assert.ok(report.summary.trim().length > 0, f);
-  const shown = distinctSummary(report);
-  if (report.summary.trim().toLowerCase() === report.title.trim().toLowerCase()) assert.equal(shown, "", f);
-  else assert.equal(shown, report.summary.trim(), f);
+  // KAP dışı güncel kaydın başlığı bizim ürettiğimiz metindir (KAP başlığı alıntıdır, süzülmez).
+  if (!doc.kap) assert.deepEqual(findBanned(report.title), [], f);
+  const shown = distinctSummary(report); // kural ve ortak vektörler: report-gate.test.mjs
+  assert.ok(shown === "" || shown === report.summary.trim(), f);
 }
 
 const reportFiles = () => readdirSync(reportsDir).filter((x) => x.endsWith(".json"));
@@ -161,6 +162,7 @@ test("denetim gevşetilmedi: güncel raporda yasaklı kalıp, boş özet ya da y
   const bad = { ...FRESH_KAP, body: FRESH_KAP.body + "\n\nHedef fiyat 150 TL, güçlü al." };
   assert.throws(() => checkReportView("bad", bad));
   assert.throws(() => checkSummaryAndTitle("bad", { ...FRESH_KAP, summary: " " }));
+  assert.throws(() => checkSummaryAndTitle("bad", { ...FRESH_KAP, kap: undefined, sources: ["Yahoo Finance"], title: "BIST için güçlü al sinyali" }));
   // eski kayıt için yalın görünüm kuralları aynen sürer
   const old = { ...FRESH_KAP, schemaVersion: undefined };
   assert.equal(viewOf(old).minimal, true);
