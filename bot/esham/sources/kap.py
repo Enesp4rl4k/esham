@@ -51,6 +51,29 @@ _DISCLOSURE_SUFFIX_RE = re.compile(
 )
 
 
+def pick_ticker(codes: str) -> str:
+    """KAP ``stockCodes`` listesinden işlem gören kodu seçer.
+
+    KAP, çok pay gruplu şirketlerde tüm kodları verir (İş Bankası: "ISATR, ISBTR, ISCTR, ...").
+    Eskiden ilki alınıyordu → ISATR (kurucu pay, fiyatı ~4,95 milyon TL) rapor/kartlara yansıyordu.
+    Tek kod varsa o kod; birden çok kod varsa evrende (universe) olan kod. Evren dışı çok pay gruplu
+    şirkette hangi kodun işlem gördüğü bilinemediği için TAHMİN EDİLMEZ: "" döner ve kod gösterilmez.
+    """
+    items = [c.strip().upper() for c in (codes or "").split(",") if c.strip()]
+    if not items:
+        return ""
+    if len(items) == 1:
+        return items[0]
+    try:
+        from ..universe import load_universe
+
+        known = {str(u["ticker"]) for u in load_universe()}
+    except Exception:  # noqa: BLE001
+        known = set()
+    matches = [c for c in items if c in known]
+    return matches[0] if len(matches) == 1 else ""
+
+
 def _strip_disclosure_suffix(text: str) -> str:
     return _DISCLOSURE_SUFFIX_RE.sub("", text).strip()
 
@@ -196,10 +219,10 @@ class KapSource:
         # gerçek ihraççı DEĞİLDİR — ticker'ı relatedStocks'tan, şirket adını da
         # içerikten (aracı kurum adı değil) almalıyız.
         if related_stocks:
-            ticker = related_stocks.split(",")[0].strip()
+            ticker = pick_ticker(related_stocks)
             company = _strip_disclosure_suffix(content) or kap_title
         else:
-            ticker = stock_codes.split(",")[0].strip() if stock_codes else ""
+            ticker = pick_ticker(stock_codes)
             company = kap_title
 
         title = f"{company}: {content}" if company and company not in content else content

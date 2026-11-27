@@ -143,36 +143,11 @@ def _dedup_key(prefix: str, label: str, pct: float = 0.0) -> str:
 
 def _macro_event(ticker: MacroTicker) -> MarketEvent:
     direction = _direction(ticker.change_pct)
-    headline = (
-        f"{ticker.label} {ticker.change_str} {direction}; "
-        f"küresel risk iştahına yansıması izleniyor."
-    )
-    # Enstrümana özgü daha açıklayıcı başlık
-    if ticker.label == "VIX":
-        headline = (
-            f"VIX {ticker.change_str} {direction} — korku endeksi "
-            f"{'yükseliyor, risk iştahı baskı altında' if ticker.change_pct > 0 else 'geriliyor, piyasalar rahatladı'}."
-        )
-    elif ticker.label == "ABD 10Y":
-        headline = (
-            f"ABD 10 yıllık tahvil faizi {ticker.change_str} {direction} ({ticker.value_str}). "
-            f"Gelişmekte olan piyasalar üzerindeki baskı izleniyor."
-        )
-    elif ticker.label == "ALTIN":
-        headline = (
-            f"Altın {ticker.change_str} {direction} ({ticker.value_str}). "
-            f"{'Güvenli liman talebi artıyor.' if ticker.change_pct > 0 else 'Risk iştahı altından uzaklaştırıyor.'}"
-        )
-    elif ticker.label == "BRENT":
-        headline = (
-            f"Brent petrol {ticker.change_str} {direction} ({ticker.value_str}). "
-            f"Enerji fiyatlarındaki hareket enflasyon beklentilerini etkiliyor."
-        )
-    elif "USD" in ticker.label or "EUR" in ticker.label:
-        headline = (
-            f"{ticker.label} {ticker.change_str} {direction} ({ticker.value_str}). "
-            f"Döviz hareketleri TL varlıkları üzerindeki etkisiyle takip ediliyor."
-        )
+    # Başlık yalnız veriyi aktarır; "risk iştahı", "güvenli liman talebi" gibi yorum/neden atfı yok.
+    names = {"VIX": "VIX endeksi", "ABD 10Y": "ABD 10 yıllık tahvil faizi", "ALTIN": "Altın", "BRENT": "Brent petrol"}
+    name = names.get(ticker.label, ticker.label)
+    value = f" ({ticker.value_str})" if ticker.value_str else ""
+    headline = f"{name} {ticker.change_str} {direction}{value}."
 
     tags = ["Makro", ticker.label.replace("/", ""), "Küresel"]
     return MarketEvent(
@@ -191,8 +166,7 @@ def _sector_event(move: SectorMove) -> MarketEvent:
     direction = _direction(move.change_pct)
     strength = "güçlü" if move.change_pct >= 0 else "sert"
     headline = (
-        f"BIST {move.name} sektörü {move.change_str} ile {strength} {direction}; "
-        f"sektör rotasyonu ve para akışı takip ediliyor."
+        f"BIST {move.name} sektör endeksi {move.change_str} ile {strength} {direction}."
     )
     tags = ["Sektör", move.name, "BIST"]
     return MarketEvent(
@@ -587,8 +561,7 @@ class NewsDetector:
             )
             details = (
                 f"{ticker.label} ({ticker.symbol}) son 24 saatlik seansta {_fmt_pct(ticker.change_pct)} "
-                f"oranında hareket ederek ${ticker.price:,.2f} seviyesinde dengelendi. "
-                f"Piyasada yön arayışı sürerken türev piyasalardaki likidite ve fonlama oranları yakından takip ediliyor."
+                f"oranında değişerek ${ticker.price:,.2f} seviyesine geldi."
             )
             key = _dedup_key("crypto", ticker.symbol, ticker.change_pct)
             if key in self._seen_keys:

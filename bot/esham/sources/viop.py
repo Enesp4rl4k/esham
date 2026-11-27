@@ -288,11 +288,11 @@ def assess_margin_stress(
         return MarginStress(
             "Yükseliyor",
             f"Margin-call/gereken teminat oranı {tr_number(prior_pct, 2)}% → "
-            f"{tr_number(today_pct, 2)}%. CCP teminatı sıkılaştırıyor; margin-call dalgası olası.",
+            f"{tr_number(today_pct, 2)}% (önceki güne göre yükseldi).",
         )
     if delta <= -jump_threshold:
         return MarginStress(
             "Geriliyor",
-            f"Oran {tr_number(prior_pct, 2)}% → {tr_number(today_pct, 2)}%. Teminat baskısı azalıyor.",
+            f"Oran {tr_number(prior_pct, 2)}% → {tr_number(today_pct, 2)}% (önceki güne göre geriledi).",
         )
     return MarginStress("Sabit", f"Oran ~{tr_number(today_pct, 2)}% seviyesinde yatay.")

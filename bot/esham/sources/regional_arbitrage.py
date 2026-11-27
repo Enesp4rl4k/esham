@@ -43,7 +43,7 @@ class ArbitrageSpread:
     tahmini_nakliye_tl_kg: float
     net_arbitraj_tl_kg: float
     net_arbitraj_pct: float
-    firsat_seviyesi: str  # YUKSEK_FIRSAT, SINIRLI_FIRSAT, ARBITRAJ_YOK
+    firsat_seviyesi: str  # yalnız veri sınıfı: NET_FARK_0_50_USTU, NET_FARK_POZITIF, NET_FARK_YOK
     aciklama: str
 
 
@@ -171,13 +171,13 @@ class RegionalArbitrageScanner:
                     net_pct = round((net / u.agirlikli_ortalama_fiyat) * 100, 2) if u.agirlikli_ortalama_fiyat > 0 else 0.0
 
                     if net > 0.50:
-                        seviye = "YUKSEK_FIRSAT"
-                        aciklama = f"{u.il} ({u.lidas_adi}) deposundan {u.agirlikli_ortalama_fiyat:.2f} TL'ye alınıp, {p.il} ({p.lidas_adi}) deposunda {p.agirlikli_ortalama_fiyat:.2f} TL'ye satıldığında nakliye sonrası net {net:.2f} TL/kg kâr kalır."
+                        seviye = "NET_FARK_0_50_USTU"
+                        aciklama = f"{u.il} ({u.lidas_adi}) ortalaması {u.agirlikli_ortalama_fiyat:.2f} TL, {p.il} ({p.lidas_adi}) ortalaması {p.agirlikli_ortalama_fiyat:.2f} TL; tahmini nakliye sonrası fark {net:.2f} TL/kg."
                     elif net > 0.0:
-                        seviye = "SINIRLI_FIRSAT"
-                        aciklama = f"Bölgeler arası {brut:.2f} TL brüt makas var; nakliye sonrası net marj {net:.2f} TL/kg seviyesinde kısıtlıdır."
+                        seviye = "NET_FARK_POZITIF"
+                        aciklama = f"Bölgeler arası brüt fark {brut:.2f} TL; tahmini nakliye sonrası fark {net:.2f} TL/kg."
                     else:
-                        seviye = "ARBITRAJ_YOK"
+                        seviye = "NET_FARK_YOK"
                         aciklama = f"Brüt makas ({brut:.2f} TL), nakliye maliyetini ({nakliye_maliyeti_tl_kg:.2f} TL) karşılamamaktadır."
 
                     firsatlar.append(
@@ -206,12 +206,12 @@ class RegionalArbitrageScanner:
             genel_degerlendirme = (
                 f"TÜRİB bülteninde {top.ucuz_il} ile {top.pahali_il} lisanslı depoları arasında "
                 f"{top.brut_makas_tl_kg:.2f} TL/kg brüt fiyat farkı tespit edildi. "
-                f"Tahmini {nakliye_maliyeti_tl_kg:.2f} TL nakliye düşüldükten sonra net %{top.net_arbitraj_pct:.1f} ({top.net_arbitraj_tl_kg:.2f} TL/kg) arbitraj marjı bulunmaktadır."
+                f"Tahmini {nakliye_maliyeti_tl_kg:.2f} TL nakliye düşüldükten sonra net %{top.net_arbitraj_pct:.1f} ({top.net_arbitraj_tl_kg:.2f} TL/kg) net fiyat farkı hesaplanmaktadır."
             )
         else:
             genel_degerlendirme = (
                 f"Taranan {len(bolgesel_list)} farklı lisanslı depoda fiyatlar bölgesel lojistik dengede seyretmektedir; "
-                f"nakliye maliyetini aşan belirgin bir net arbitraj boşluğu bulunmamaktadır."
+                f"nakliye maliyetini aşan net fiyat farkı hesaplanmamaktadır."
             )
 
         return RegionalArbitrageReport(

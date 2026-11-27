@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, TrendingUp, AlertCircle, Clock } from "lucide-react";
 import { getAllReports, formatDate, type Report } from "@/lib/content";
+import { NOTE_GENERIC } from "@/lib/neutral";
 
 export const metadata: Metadata = {
   title: "Halka Arz Takvimi",
@@ -216,7 +217,7 @@ export default function HalkaArzTakvimiPage() {
               <p className="text-xs text-zinc-400">Not</p>
             </div>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Tüm analizler AI tarafından üretilir ve yatırım tavsiyesi niteliği taşımaz.
+              {NOTE_GENERIC}
             </p>
           </div>
         </div>
@@ -228,7 +229,7 @@ export default function HalkaArzTakvimiPage() {
           <span className="text-xs text-zinc-400">İskonto rengi:</span>
           <span className="flex items-center gap-1.5 text-xs">
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span className="text-zinc-400">&gt;%25 — cazip</span>
+            <span className="text-zinc-400">&gt;%25 — yüksek</span>
           </span>
           <span className="flex items-center gap-1.5 text-xs">
             <span className="w-2 h-2 rounded-full bg-amber-400" />

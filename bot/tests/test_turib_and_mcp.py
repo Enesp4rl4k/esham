@@ -52,7 +52,8 @@ def test_agri_bist_margin_sensitivity():
     uluun = next((c for c in rep.company_impacts if c.ticker == "ULUUN"), None)
     assert uluun is not None
     assert uluun.commodity == "BUĞDAY EKMEKLİK"
-    assert "Maliyet" in uluun.margin_pressure
+    # Etiket yalnız fiyat yönünü tanımlar (marj/kâr yorumu yok; bkz. esham/neutral.py)
+    assert uluun.margin_pressure == "Girdi fiyatı yükseldi"
 
 
 def test_tmo_comparison():

@@ -30,7 +30,8 @@ export {
 import { getUniverseTickers } from "./stocks";
 import type { CategorySlug, IpoMeta, Report } from "./content-utils";
 import { CATEGORIES } from "./content-utils";
-import { isThinReport } from "./thin-content";
+import { isIndexable } from "./thin-content";
+import { legacyView } from "./neutral";
 
 const REPORTS_DIR = path.join(process.cwd(), "content", "reports");
 
@@ -97,7 +98,7 @@ function parseReport(raw: unknown, file: string): Report | null {
     console.warn(`[content] Bilinmeyen kategori "${String(r.category)}": ${file}`);
     return null;
   }
-  return {
+  const report: Report = {
     slug: r.slug,
     title: r.title,
     category: r.category,
@@ -111,6 +112,25 @@ function parseReport(raw: unknown, file: string): Report | null {
     tags: Array.isArray(r.tags) ? r.tags.map(String) : [],
     image: typeof r.image === "string" ? r.image : undefined,
     ipo: parseIpoMeta(r.ipo),
+    schemaVersion: typeof r.schemaVersion === "number" ? r.schemaVersion : undefined,
+    kap: parseKapMeta(r.kap),
+  };
+  // Eski (şema sürümü taşımayan) KAP raporlarında ve yorum içeren eski raporlarda yorum gövdesi hiç
+  // gösterilmez; yalın görünüm kullanılır. Dosyalar değiştirilmez. Bkz. neutral.ts `legacyView`.
+  const { report: viewed, minimal } = legacyView(report);
+  return minimal ? { ...viewed, legacyMinimal: true } : viewed;
+}
+
+function parseKapMeta(raw: unknown): Report["kap"] {
+  if (!raw || typeof raw !== "object") return undefined;
+  const m = raw as Record<string, unknown>;
+  const str = (v: unknown) => (typeof v === "string" && v.trim() ? v : undefined);
+  const url = str(m.url);
+  return {
+    url: url && url.startsWith("https://www.kap.org.tr/") ? url : undefined,
+    company: str(m.company),
+    type: str(m.type),
+    index: str(m.index),
   };
 }
 
@@ -144,9 +164,13 @@ export function getAllReports(): Report[] {
   return reports;
 }
 
-/** İnce içerik kapısını geçen (indekslenebilir) raporlar; bkz. thin-content.ts. */
-export function isIndexableReport(r: Report): boolean {
-  return !isThinReport(r);
+/**
+ * Dizin kararı TEK yerden (rapor sayfası robots, sitemap ve RSS bunu kullanır):
+ * yalın görünümdeki eski kayıt ⇒ noindex ⇒ sitemap/RSS dışı; aksi halde ince içerik kapısı (thin-content.ts).
+ * Eski halka arz kayıtlarının `ipo` meta verisi ince içerik kuralını atlatıyordu; yalın görünüm önce gelir.
+ */
+export function isIndexableReport(r: Pick<Report, "legacyMinimal" | "body" | "ipo">): boolean {
+  return isIndexable(r);
 }
 
 export function getIndexableReports(): Report[] {

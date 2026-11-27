@@ -36,3 +36,13 @@ export function isThinReport(r: ThinCheckInput): boolean {
   if (hasDataTable(r.body)) return false;
   return true;
 }
+
+/**
+ * Dizin kararı TEK fonksiyon (rapor sayfası robots, sitemap ve RSS bunu kullanır; bkz. content.ts):
+ * yalın görünümdeki eski kayıt (`legacyMinimal`) ⇒ noindex ⇒ sitemap/RSS dışı. Eski halka arz kayıtlarının
+ * `ipo` meta verisi ince içerik kuralını atlatıyordu; yalın görünüm kararı önce gelir.
+ */
+export function isIndexable(r: ThinCheckInput & { legacyMinimal?: boolean }): boolean {
+  if (r.legacyMinimal) return false;
+  return !isThinReport(r);
+}

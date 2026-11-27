@@ -5,6 +5,10 @@ Bu modül:
    kısa/orta vadeli kritik destek-direnç eşiklerini (Key Levels) hesaplar.
 2. Şirketin temel analiz çarpanlarını (Piyasa Değeri, F/K, PD/DD, FD/FAVÖK, Ciro, Kâr Marjı)
    ve KAP sözleşme tutarlarının yıllık ciroya göreli oranını hesaplar.
+
+YAYIN HATTINDA KULLANILMAZ: Key level / pivot / destek-direnç tabloları, "TIER-1 (MEGA İŞ ANLAŞMASI)"
+sınıfı ve DCF "değerleme notu" yatırım tavsiyesi gibi okunduğu için KAP raporlarından, kartlardan ve
+web sayfalarından çıkarıldı (bkz. esham/neutral.py). Modül yalnızca MCP aracı ve testler için duruyor.
 """
 from __future__ import annotations
 

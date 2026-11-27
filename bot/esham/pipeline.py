@@ -16,8 +16,12 @@ from pathlib import Path
 import requests
 
 from .ai import MarketAIAnalyzer
+from .ai.analyzer import NEUTRAL_RULES
 from .config import get_logger, settings
+from .formatting import tr_number
+from .neutral import strip_banned
 from .publishing import ContentStore, ReportDraft
+from .publishing.content_store import slugify
 from .publishing.cards import CardGenerator, CardSpec
 from .publishing.social import SocialPublisher
 from .publishing.pdf_report import generate_pdf
@@ -192,7 +196,7 @@ def run_morning_report(publish_social: bool = True) -> str | None:
     pdf_path: Path | None = None
     try:
         pdf_path = generate_pdf(
-            body_md=body,
+            body_md=draft.body,  # ContentStore'da süzülmüş gövde
             snapshot=snapshot,
             slug=slug,
             title="BIST & Küresel Piyasalar Sabah Raporu",
@@ -287,18 +291,17 @@ def run_viop_report(
 
 | Gösterge | Değer |
 | --- | --- |
-| Teminatlı hesap | {snap.margined_account_count:,} |
+| Teminatlı hesap | {tr_number(snap.margined_account_count, 0)} |
 | Margin-call toplam | {snap.margin_call_pretty()} |
 | Gereken teminat | {snap.required_pretty()} |
-| Margin-call / Gereken | %{snap.margin_call_to_required_pct:.3f} |
+| Margin-call / Gereken | %{tr_number(snap.margin_call_to_required_pct, 3)} |
 
 ## Teminat Stresi: {stress.level}
 
 {stress.note}
 
-> **Margin-call/gereken teminat** oranı marketwide stres sinyalidir. Yükselmesi,
-> takas kurumunun teminatı sıkılaştırdığını ve brokerların margin-call çıkaracağını
-> gösterir."""
+> **Margin-call/gereken teminat** oranı, teminat tamamlama çağrısı yapılan tutarın
+> gereken toplam teminata oranıdır (Takasbank verisi)."""
 
     summary = (
         f"VİOP teminat stresi: {stress.level}. Margin-call toplam "
@@ -395,9 +398,9 @@ def run_opening_report(publish_social: bool = False) -> str | None:
         top_losers = [m for m in moves if m.change_pct < 0][:3]
         sec_lines = []
         if top_gainers:
-            sec_lines.append("**Pozitif Ayrışan Sektörler:** " + ", ".join(f"{m.name} (%{m.change_pct:+.2f})" for m in top_gainers))
+            sec_lines.append("**Yükselen Sektörler:** " + ", ".join(f"{m.name} (%{m.change_pct:+.2f})" for m in top_gainers))
         if top_losers:
-            sec_lines.append("**Baskı Altındaki Sektörler:** " + ", ".join(f"{m.name} (%{m.change_pct:+.2f})" for m in top_losers))
+            sec_lines.append("**Düşen Sektörler:** " + ", ".join(f"{m.name} (%{m.change_pct:+.2f})" for m in top_losers))
         if sec_lines:
             sector_summary = "\n\n" + "\n\n".join(sec_lines)
     except Exception as exc:
@@ -414,12 +417,7 @@ def run_opening_report(publish_social: bool = False) -> str | None:
 
     body = f"""## BIST Seans Açılışı
 
-Borsa İstanbul {bist.index} endeksi seansa **{open_val}** puan seviyesinde, **{open_chg}** açılış değişimi ile başladı.{current_note}{viop_line}{sector_summary}
-
-### Seans İçi Takip Edilecekler
-- **Likidite ve Para Girişi:** Bankacılık ve Sınai sektörlerindeki kurumsal hacimler.
-- **Teknik Seviyeler:** Endeksin destek ve direnç bölgelerindeki tutunma gücü.
-- **Küresel Piyasalar:** ABD vadeli endeksleri ve Avrupa açılışlarındaki risk algısı."""
+Borsa İstanbul {bist.index} endeksi seansa **{open_val}** puan seviyesinde, **{open_chg}** açılış değişimi ile başladı.{current_note}{viop_line}{sector_summary}"""
 
     draft = ReportDraft(
         title=f"BIST Seans Açılışı: {bist.index} {open_chg}",
@@ -476,8 +474,7 @@ def run_closing_report(publish_social: bool = True) -> str | None:
 | BIST {bist.index} | {bist.price} | {bist.change} |
 | VİOP {quote.index_symbol} | {quote.index_price} | {quote.index_change} |
 
-Hacim: {bist.volume or '—'}. Gün içi öne çıkan hisse ve sektör hareketleri
-yarınki açılış beklentilerini şekillendirecek."""
+Hacim: {bist.volume or '—'}."""
     draft = ReportDraft(
         title=f"Kapanış Bülteni: BIST {bist.change}",
         category="bist",
@@ -593,39 +590,34 @@ def run_gundem_report(
 
 
 def run_sector_report(publish_social: bool = True) -> str | None:
-    """Haftalık sektör rotasyonu raporu."""
+    """Haftalık sektör endeksi değişimleri — yalnız veri tablosu (yorum/yönlendirme yok)."""
     moves = SectorSource().snapshot()
     rows = "\n".join(f"| {m.name} | {m.change_str} |" for m in moves)
     leaders = ", ".join(m.name for m in moves[:3])
     laggards = ", ".join(m.name for m in moves[-3:])
-    body = f"""## Sektör Rotasyonu
+    body = f"""## Haftalık Sektör Endeksi Değişimleri
 
 | Sektör | Değişim |
 | --- | --- |
 {rows}
 
-## Öne Çıkanlar
-
-- **Güçlü:** {leaders}
-- **Zayıf:** {laggards}
-
-Sektör rotasyonu, paranın hangi temalara aktığını gösterir; güçlü sektörlerdeki
-liderler orta vadeli momentum açısından izlenmeye değer."""
+- **En çok yükselen üç sektör:** {leaders}
+- **En çok düşen üç sektör:** {laggards}"""
     draft = ReportDraft(
-        title="Haftalık Sektör Rotasyonu",
+        title="Haftalık Sektör Endeksi Değişimleri",
         category="bist",
-        summary=f"Bu hafta öne çıkan sektörler: {leaders}.",
+        summary=f"Bu hafta en çok yükselen sektör endeksleri: {leaders}.",
         body=body,
         sources=["TradingView"],
-        tags=["Sektör", "Rotasyon", "BIST"],
+        tags=["Sektör", "BIST"],
         ai_generated=False,
     )
 
     card_path = _render_card(
         CardSpec(
             category="bist",
-            kicker="Haftalık Sektör Rotasyonu",
-            headline=f"Güçlü: {leaders}. Zayıf: {laggards}.",
+            kicker="Haftalık Sektör Değişimleri",
+            headline=f"En çok yükselen: {leaders}. En çok düşen: {laggards}.",
             bars=[(m.name, m.change_pct) for m in moves[:6]],
             template="bist",
         )
@@ -639,7 +631,7 @@ liderler orta vadeli momentum açısından izlenmeye değer."""
     slug = draft.resolved_slug()
     if publish_social:
         SocialPublisher().broadcast(
-            f"Haftalık sektör rotasyonu yayında. Güçlü: {leaders}.\n"
+            f"Haftalık sektör endeksi değişimleri yayında. En çok yükselen: {leaders}.\n"
             f"{settings.site_url}/rapor/{slug} #BIST #Sektör",
             image_path=card_path,
         )
@@ -671,62 +663,27 @@ def run_peer_report(sector_key: str = "bankacilik", publish_social: bool = True)
         f"**{_fmt_mult(snap.median_dividend_yield, pct=True)}** | — |"
     )
 
-    # F/K medyanına göre en ucuz / en pahalı iki hisse (varsa)
-    ranked = sorted(
-        (p for p in snap.peers if p.pe is not None), key=lambda p: p.pe
-    )
-    cheapest = ranked[0] if ranked else None
-    priciest = ranked[-1] if ranked and len(ranked) > 1 else None
-
-    cheap_line = (
-        f"- **En düşük F/K:** {cheapest.ticker} ({cheapest.name}) — "
-        f"{_fmt_mult(cheapest.pe)} · {snap.stance('pe', cheapest.pe)}"
-        if cheapest else "- F/K verisi alınamadı; kıyas fiyat performansına dayanıyor."
-    )
-    pricy_line = (
-        f"- **En yüksek F/K:** {priciest.ticker} ({priciest.name}) — "
-        f"{_fmt_mult(priciest.pe)} · {snap.stance('pe', priciest.pe)}"
-        if priciest else ""
-    )
-    notes = "\n".join(f"- {n}" for n in snap.notes)
-    caveat = (
-        "\n> **Not:** Veriler örnek amaçlıdır; gerçek kaynaklara erişilemedi."
-        if snap.sample
-        else ""
-    )
-
-    body = f"""## {snap.sector_name} — Eş Kıyası
+    # Yalnız tarafsız tablo: "en ucuz/pahalı", medyana göre "iskonto/prim" yorumu ve sıralama YOK.
+    body = f"""## {snap.sector_name} — Çarpan Tablosu
 
 | Hisse | Fiyat | Günlük | F/K | PD/DD | FD/FAVÖK | Temettü % | FÖK % |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 {rows}
 {median_line}
 
-## Medyana Göre Konumlanma
+- Medyan, bu tablodaki hisselerden hesaplanır ve gün içi fiyatlarla değişir.
 
-{cheap_line}
-{pricy_line}
+*Çarpanlar Yahoo Finance özet verisinden alınır.*"""
 
-## Değerlendirme
-
-- Sektör medyanı, bu örneklemden hesaplanır ve gün içi fiyatlarla değişir.
-- F/K medyanına **yakın** hisseler iskonto primi olmadan işlem görür; medyanın
-  belirgin **altında** kalanlar için temel/neden, **üstünde** kalanlar için prim
-  gerekçesi aranır (bilanço kalitesi, büyüme, temettü politikası).
-{notes}{caveat}
-
-*Çarpanlar Yahoo Finance özet verisinden alınır; yatırıma yönlendirici değildir.*"""
-
-    cheapest_p = cheapest.ticker if cheapest else "—"
     summary = (
-        f"{snap.sector_name} eş kıyası: medyan F/K {_fmt_mult(snap.median_pe)}, "
-        f"medyan PD/DD {_fmt_mult(snap.median_pb)}. En ucuz: {cheapest_p}."
+        f"{snap.sector_name} çarpan tablosu: medyan F/K {_fmt_mult(snap.median_pe)}, "
+        f"medyan PD/DD {_fmt_mult(snap.median_pb)}."
     )
 
     card_path = _render_card(
         CardSpec(
             category="bist",
-            kicker=f"{snap.sector_name} — Eş Kıyası",
+            kicker=f"{snap.sector_name} — Çarpan Tablosu",
             headline=f"Medyan F/K {_fmt_mult(snap.median_pe)} · PD/DD {_fmt_mult(snap.median_pb)}",
             metrics=[
                 ("Medyan F/K", _fmt_mult(snap.median_pe)),
@@ -740,7 +697,7 @@ def run_peer_report(sector_key: str = "bankacilik", publish_social: bool = True)
     )
 
     draft = ReportDraft(
-        title=f"{snap.sector_name} Sektöründe Eş Kıyası (Peer)",
+        title=f"{snap.sector_name} Sektörü Çarpan Tablosu",
         category="bist",
         summary=summary[:200],
         body=body,
@@ -756,7 +713,7 @@ def run_peer_report(sector_key: str = "bankacilik", publish_social: bool = True)
     slug = draft.resolved_slug()
     if publish_social:
         SocialPublisher().broadcast(
-            f"{snap.sector_name} eş kıyası yayında: medyan F/K "
+            f"{snap.sector_name} çarpan tablosu yayında: medyan F/K "
             f"{_fmt_mult(snap.median_pe)}.\n{settings.site_url}/rapor/{slug} #BIST #Çarpan",
             image_path=card_path,
         )
@@ -787,16 +744,13 @@ def run_global_report(publish_social: bool = True) -> str | None:
         return None
     board = snap.ticker_board()
 
-    # Başlık: en güçlü değişim sinyali
+    # Başlık: en büyük mutlak değişim (yalnız veri; "risk iştahı" yorumu yok)
     headline_tickers = [t for t in snap.tickers if abs(t.change_pct) > 0.3]
     if headline_tickers:
         top = max(headline_tickers, key=lambda t: abs(t.change_pct))
-        headline = (
-            f"{top.label} {top.arrow} {top.change_str} öne çıktı; "
-            f"küresel risk iştahı {('artıyor' if top.change_pct > 0 else 'azalıyor')}."
-        )
+        headline = f"En büyük değişim: {top.label} {top.change_str}."
     else:
-        headline = "Küresel piyasalarda sınırlı hareketlilik; risk iştahı nötr."
+        headline = "İzlenen küresel göstergelerde %0,3'ü aşan değişim yok."
 
     summary = snap.summary_line()
 
@@ -848,59 +802,69 @@ def run_global_report(publish_social: bool = True) -> str | None:
     return slug
 
 
+_LAST_NEWS_STATUS = "none"
+
+
+def last_news_status() -> str:
+    """Son ``run_news_report`` çağrısının sonucu: published | duplicate | paused | blocked | error | none.
+
+    news_stream bunu bildirimi "görüldü" işaretlemek için kullanır: yalnız kalıcı bir karardan sonra
+    (published/duplicate) işaretlenir; diğer durumlarda bildirim sonraki taramada yeniden denenir.
+    """
+    return _LAST_NEWS_STATUS
+
+
+def _set_status(status: str) -> None:
+    global _LAST_NEWS_STATUS
+    _LAST_NEWS_STATUS = status
+
+
 def run_news_report(
     event: MarketEvent | None = None,
     disclosure: Disclosure | None = None,
     publish_social: bool = True,
 ) -> str | None:
-    """KAP bildirimi veya makro/sektör olayı için AI destekli kısa haber raporu.
+    """KAP bildirimi veya makro/sektör olayı için kısa haber raporu.
 
-    İki kullanım modu:
-    - `disclosure` verilirse: KAP bildirimi analizi (şirket haberi)
-    - `event` verilirse: makro/sektör fiyat hareketi analizi
+    KAP modu: çıktı, bildirimde NE açıklandığının tarafsız özetidir. Rapor iki parçadan oluşur:
+    (1) ÜRETİLMİŞ kısım (LLM/şablon özeti) — tarafsız dil süzgecinden geçer; (2) BİREBİR kısım —
+    KAP başlığı AYNEN, şirket, tarih, KAP bildirim türü, bildirimde geçen tutarlar, KAP bağlantısı;
+    süzülmez. Süzgeç/guardrail üretilmiş kısmı reddederse yalın rapor (yalnız birebir kısım) yayınlanır:
+    bir bildirim hiçbir koşulda sessizce kaybolmaz.
 
-    Her iki durumda da:
-    1. AI ile kısa analiz + tweet metni üretilir
-    2. Web'e rapor yayınlanır (ContentStore)
-    3. Sosyal medyada paylaşılır (kart görseli ile)
+    Eskiden burada eklenen "Mega İş Anlaşması" etiketi, teknik seviyeler (bist_quant.get_key_levels),
+    Yahoo temel çarpanları ve karttaki hisse fiyatı/RSI/destek çipleri KALDIRILDI.
     """
+    _set_status("none")
     if event is None and disclosure is None:
         log.error("run_news_report: event veya disclosure gerekli.")
+        _set_status("error")
         return None
 
-    analyzer = MarketAIAnalyzer()
+    from .neutral import NOTE_GENERIC, NOTE_KAP, REPORT_SCHEMA_VERSION, classify_filing, strip_banned
+    from .turkish import tr_upper
 
-    # Bağlam için anlık makro ve sektör verisi (hafif — sadece gerekirse)
-    macro_context = ""
-    sector_context = ""
-    try:
-        snap = GlobalMacroSource().snapshot()
-        macro_context = snap.summary_line()
-    except Exception as exc:
-        log.debug("Makro bağlam alınamadı: %s", exc)
+    analyzer = MarketAIAnalyzer()
+    facts = ""
+    kap_meta: dict | None = None
+    verbatim_summary = False
+    fallback_summary = ""
+    verbatim_parts: list[str] = []
+    ticker = ""
 
     # ---- KAP bildirimi modu -------------------------------------------------------
     if disclosure is not None:
-        title = disclosure.title
+        from .ai.analyzer import filing_facts_markdown
+
+        title = disclosure.title  # KAP başlığı AYNEN — süzülmez
         company = disclosure.company
-        ticker = disclosure.ticker or disclosure.company
+        ticker = disclosure.ticker  # evren dışı çok pay gruplu şirkette "" olabilir (tahmin edilmez)
         disc_type = disclosure.disclosure_type
         raw = disclosure.raw_text or title
-        
-        # Sadece başlık yerine bildirimin tam metnini (detayını) çek ki AI analiz edebilsin.
         if disclosure.disclosure_index:
             detail = KapSource().get_detail_text(disclosure.disclosure_index)
             if detail:
-                # Başlık/özet ve detayı birleştir
                 raw = f"{raw}\n\nDetay:\n{detail}"
-        is_insider = disclosure.is_insider
-
-        # Tier-1 / Mega İş Anlaşması tespiti
-        from .turkish import tr_fold
-        norm_disc = tr_fold(f"{title} {raw}")
-        is_order = any(k in norm_disc for k in ("yeni is iliskisi", "siparis", "sozlesme", "ihale", "proje"))
-        has_mega_amount = any(k in norm_disc for k in ("milyar", "500 milyon", "600 milyon", "700 milyon", "800 milyon", "900 milyon"))
-        is_mega_deal = is_order and has_mega_amount
 
         body, summary, tweet_text = analyzer.generate_news_analysis(
             title=title,
@@ -908,152 +872,123 @@ def run_news_report(
             company=company,
             ticker=ticker,
             raw_text=raw,
-            is_insider=is_insider,
-            macro_context=macro_context,
+            is_insider=disclosure.is_insider,
         )
+        facts = filing_facts_markdown(
+            company, ticker, title, disc_type, raw, disclosure.disclosure_index or "", date=disclosure.date,
+        )
+        fallback_summary = title
+        verbatim_summary = summary.strip() == title.strip()
         category = "bist"
-        emoji = "🔥" if is_mega_deal else ("🚨" if is_insider else "📰")
-        
-        if is_mega_deal:
-            kicker = "Mega İş Anlaşması"
-            card_kicker = "MEGA İŞ ANLAŞMASI"
-        elif is_insider:
-            kicker = "İçsel İşlem"
-            card_kicker = "İÇSEL İŞLEM"
-        else:
-            kicker = disc_type or "KAP Bildirimi"
-            card_kicker = kicker
-
-        tags = [ticker, "KAP", "BIST"]
-        if is_mega_deal:
-            tags.insert(0, "Mega Sözleşme")
-        if is_insider:
-            tags.insert(0, "İçsel İşlem")
-
+        label = classify_filing(title, disc_type)
+        card_kicker = tr_upper(label)
+        tags = [t for t in (ticker, "KAP", "BIST") if t]
         card_headline = title[:120]
         card_ticker_val = ticker
-
-        # Teknik analiz snapshot'ı (Fiyat, RSI, 20G HO, Destek/Direnç)
-        from .sources.bist import BistSource
-        tech_snapshot = BistSource.fetch_technical_snapshot(ticker)
-
-        # BIST Quant & Temel Analiz & Key Levels motoru
-        try:
-            from .sources.bist_quant import BistQuantAnalyzer, extract_contract_amount
-            quant = BistQuantAnalyzer()
-            contract_val = extract_contract_amount(f"{title} {raw}")
-            fund_data = quant.get_fundamental_metrics(ticker, contract_amount_try=contract_val)
-            if fund_data:
-                body = f"{body}\n\n{fund_data.format_table()}"
-                if fund_data.contract_analysis and fund_data.contract_analysis.get("is_mega"):
-                    is_mega_deal = True
-
-            key_data = quant.get_key_levels(ticker)
-            if key_data:
-                body = f"{body}\n\n{key_data.format_table()}"
-            elif tech_snapshot:
-                body = f"{body}\n\n{tech_snapshot.format_table()}"
-        except Exception as exc:
-            log.warning("Kantitatif analiz eklenemedi (%s): %s", ticker, exc)
-            if tech_snapshot:
-                body = f"{body}\n\n{tech_snapshot.format_table()}"
-
-        if is_mega_deal and not summary.startswith("MEGA SÖZLEŞME"):
-            summary = f"MEGA SÖZLEŞME | {summary}"
+        post_disclaimer = NOTE_KAP
+        verbatim_parts = [title]
+        kap_meta = {
+            "company": company,
+            "type": disc_type or "",
+            "index": disclosure.disclosure_index or "",
+            "url": (f"https://www.kap.org.tr/tr/Bildirim/{disclosure.disclosure_index}"
+                    if disclosure.disclosure_index else ""),
+        }
+        sources = ["KAP", ticker] if ticker else ["KAP"]
 
     # ---- Makro/sektör olay modu --------------------------------------------------
     else:
         assert event is not None  # mypy
         from .translation import ensure_turkish, is_mostly_english
+
+        macro_context = ""
+        try:
+            macro_context = GlobalMacroSource().snapshot().summary_line()
+        except Exception as exc:
+            log.debug("Makro bağlam alınamadı: %s", exc)
+
+        post_disclaimer = NOTE_GENERIC
         title_line = event.headline.split('\n')[0]
         if is_mostly_english(title_line):
             title_line = ensure_turkish(title_line)
             if not title_line:
                 log.error("Haber başlığı İngilizce ve Türkçeleştirilemedi; iptal: %s", event.headline[:60])
+                _set_status("error")
                 return None
         title = title_line
         summary = title_line
+        fallback_summary = title_line
         category = event.category
-        emoji = event.emoji
         _KICKER_MAP = {
             "SON_DAKIKA": "Küresel Piyasalar",
-            "HISSE_HAREKET": "Hisse Alarmı",
+            "HISSE_HAREKET": "Hisse Hareketi",
             "BIST_HAREKET": "BIST Endeksi",
             "SEKTÖR_HAREKET": "Sektör Hareketi",
             "MAKRO_HAREKET": "Makro Piyasalar",
             "KRIPTO_HAREKET": "Kripto Piyasası",
             "TEKNOLOJI_HAREKET": "Teknoloji & AI",
         }
-        kicker = _KICKER_MAP.get(event.kind, event.kind.replace("_", " ").title())
         tags = event.tags or ["Makro", "Piyasa"]
         card_kicker = "SON DAKİKA" if event.kind == "SON_DAKIKA" else event.label
         card_headline = title_line[:120] if event.kind == "SON_DAKIKA" else event.headline[:120]
         card_ticker_val = "" if event.kind == "SON_DAKIKA" else event.label
 
         if event.kind in ("SON_DAKIKA", "HISSE_HAREKET", "TEKNOLOJI_HAREKET", "KRIPTO_HAREKET", "MAKRO_HAREKET"):
-            ai_body, ai_summary, tweet_text = analyzer.generate_event_analysis(
-                event=event,
-                macro_context=macro_context,
-            )
+            ai_body, ai_summary, tweet_text = analyzer.generate_event_analysis(event=event, macro_context=macro_context)
             if ai_summary and ai_summary.strip().lower() != title.strip().lower():
                 summary = ai_summary.strip()
-
-            src_label = getattr(event, "source_name", "")
-            if not src_label:
-                if event.kind == "TEKNOLOJI_HAREKET":
-                    src_label = "TechCrunch / The Verge / Ars Technica"
-                elif event.kind == "KRIPTO_HAREKET":
-                    src_label = "CoinDesk / CoinTelegraph / Yahoo Finance"
-                elif event.kind == "HISSE_HAREKET":
-                    src_label = "Yahoo Finance / BIST"
-                else:
-                    src_label = "Küresel Haber Ajansları"
-
+            src_label = getattr(event, "source_name", "") or {
+                "TEKNOLOJI_HAREKET": "TechCrunch / The Verge / Ars Technica",
+                "KRIPTO_HAREKET": "CoinDesk / CoinTelegraph / Yahoo Finance",
+                "HISSE_HAREKET": "Yahoo Finance / BIST",
+            }.get(event.kind, "Küresel Haber Ajansları")
             src_url = getattr(event, "source_url", "")
-            if src_url:
-                source_block = f"\n\n> **Kaynak:** [{src_label}]({src_url})"
-            else:
-                source_block = f"\n\n> **Kaynak:** {src_label}"
-
-            body = f"{ai_body}{source_block}"
+            facts = f"> **Kaynak:** [{src_label}]({src_url})" if src_url else f"> **Kaynak:** {src_label}"
+            body = ai_body
         elif event.kind == "SEKTÖR_HAREKET":
             body, summary, tweet_text = analyzer.generate_sector_movement_analysis(
-                sector_name=event.label,
-                change_pct=event.change_pct,
-                headline=event.headline,
-                macro_context=macro_context,
+                sector_name=event.label, change_pct=event.change_pct, headline=event.headline,
             )
         else:
-            body, summary, tweet_text = analyzer.generate_news_analysis(
-                title=event.headline,
-                disclosure_type=event.kind,
-                company=event.label,
-                ticker=event.label,
-                raw_text=event.headline,
-                macro_context=macro_context,
-                sector_context=sector_context,
-            )
+            body, summary, tweet_text = analyzer.generate_event_analysis(event=event, macro_context=macro_context)
+        sources = ([event.source_name] if getattr(event, "source_name", "") else (
+            ["TechCrunch"] if event.kind == "TEKNOLOJI_HAREKET"
+            else ["CoinDesk"] if event.kind == "KRIPTO_HAREKET"
+            else ["Yahoo Finance"]
+        ))
+        _ = _KICKER_MAP
 
-    # ---- kart ve rapor -----------------------------------------------------------
+    draft = ReportDraft(
+        title=title,
+        category=category,
+        summary=summary,
+        body=body,
+        facts=facts,
+        summary_verbatim=verbatim_summary,
+        fallback_summary=fallback_summary,
+        sources=sources,
+        tags=tags,
+        ai_generated=settings.ai_enabled,
+        schema_version=REPORT_SCHEMA_VERSION,
+        kap=kap_meta,
+        # KAP: aynı gün aynı başlıklı iki ayrı bildirim çakışmasın diye slug bildirim numarasını taşır.
+        slug=(f"{slugify(title)}-{kap_meta['index']}" if kap_meta and kap_meta.get("index") else None),
+    )
+    store = ContentStore()
+    # Yayın kararı karttan ÖNCE verilir: engellenen/mükerrer bildirim için kart boşuna çizilmez.
+    decision = store.prepare(draft)
+    if decision != "ok":
+        _set_status(decision)
+        log.warning("Haber raporu yayınlanmadı (durum=%s): %s", decision, title[:80])
+        return None
+
+    # ---- kart --------------------------------------------------------------------
+    # KAP kartlarında manşet rakamı YOK: bildirimden anlamı ve birimiyle güvenle çıkarılamayan sayı
+    # gösterilmez — eksik bilgi eksik kalır, uydurulmaz.
     sparkline = None
-    card_metrics = []
-    card_stat_value = ""
-    card_stat_change = ""
-
-    if disclosure is not None and tech_snapshot:
-        sparkline = tech_snapshot.closes
-        card_stat_value = f"{tech_snapshot.last_price:.2f} TL"
-        sign = "+" if tech_snapshot.change_pct >= 0 else ""
-        card_stat_change = f"{sign}{tech_snapshot.change_pct:.2f}%"
-        card_metrics = [
-            ("RSI", f"{tech_snapshot.rsi_14:.0f}"),
-            ("20G HO", f"{tech_snapshot.sma_20:.1f}"),
-            ("Destek", f"{tech_snapshot.support:.1f}"),
-        ]
-
     if event is not None:
         if event.kind == "MAKRO_HAREKET":
-            from .sources.global_macro import GlobalMacroSource, MACRO_TICKERS
+            from .sources.global_macro import MACRO_TICKERS
             symbol = next((s for s, l, _, _ in MACRO_TICKERS if l == event.label), None)
             if symbol:
                 sparkline = GlobalMacroSource().fetch_closes(symbol)
@@ -1062,21 +997,15 @@ def run_news_report(
             symbol = next((s for s, l in CRYPTO_TICKERS if l.lower() in event.label.lower() or l.lower() in event.headline.lower()), "BTC-USD")
             sparkline = CryptoSource().fetch_closes(symbol)
         elif event.kind in ("BIST_HAREKET", "SEKTÖR_HAREKET"):
-            from .sources.bist import BistSource
             symbol = "XU100.IS" if event.kind == "BIST_HAREKET" else f"{event.label}.IS"
             sparkline = BistSource(symbol).fetch_closes()
         elif event.kind == "HISSE_HAREKET":
-            from .sources.bist import BistSource
             from .sources.watchlist import WATCHLIST
             yf_symbol = next((s for s, t in WATCHLIST if t == event.label), f"{event.label}.IS")
             sparkline = BistSource(yf_symbol).fetch_closes()
 
-    # Genel haber/gündem/kripto/teknoloji kartları için Pexels fotoğrafı çek.
-    # KAP bildirimleri için fotoğraf kullanılmaz (veri kartı kalır).
-    # BIST/VİOP fiyat hareketleri için de fotoğraf gerekmez (sparkline var).
-    _USE_PHOTO_CATEGORIES = {"gundem", "global", "kripto", "teknoloji"}
     photo_path = None
-    if category in _USE_PHOTO_CATEGORIES and not sparkline:
+    if category in {"gundem", "global", "kripto", "teknoloji"} and not sparkline:
         try:
             photo_path = _PhotoSource().fetch_photo(title, category)
         except Exception as exc:
@@ -1087,67 +1016,37 @@ def run_news_report(
             category=category,
             kicker=card_kicker,
             headline=card_headline,
-            stat_value=card_stat_value,
-            stat_change=card_stat_change,
-            metrics=card_metrics,
             ticker=card_ticker_val,
-            template="bist" if (disclosure and tech_snapshot) else category,
+            template=category,
             sparkline=sparkline,
             photo_path=photo_path,
         )
     )
+    draft.image_path = card_path
 
-    draft = ReportDraft(
-        title=title,
-        category=category,
-        summary=summary,
-        body=body,
-        sources=(
-            (["KAP", ticker] if ticker else ["KAP"])
-            if disclosure
-            else ([event.source_name] if getattr(event, "source_name", "") else (
-                ["TechCrunch"] if event.kind == "TEKNOLOJI_HAREKET"
-                else ["CoinDesk"] if event.kind == "KRIPTO_HAREKET"
-                else ["Yahoo Finance"]
-            ))
-        ),
-        tags=tags,
-        ai_generated=settings.ai_enabled,
-        image_path=card_path,
-    )
-
-    if ContentStore().publish(draft) is None:
-        log.error("Haber raporu guardrail'a takıldı; iptal: %s", title[:80])
+    if store.publish(draft, prepared=True) is None:
+        _set_status(store.last_status)
+        log.error("Haber raporu yayınlanamadı (durum=%s): %s", store.last_status, title[:80])
         _cleanup(card_path)
         return None
     slug = draft.resolved_slug()
+    _set_status("published")
 
     if publish_social:
         link = f"{settings.site_url}/rapor/{slug}"
         hashtags = " ".join(f"#{t.replace(' ', '')}" for t in tags[:3])
-
-        # Tweet kalite kontrolü: sadece gerçekten boş veya çok kısa olanları yakala.
-        # Önceki "emoji + başlık" kontrolü AI'nın ürettiği iyi tweetleri de yanlışlıkla
-        # "zayıf" sayıp TweetComposer'a gönderiyordu — bu kaldırıldı.
-        def _is_weak_tweet(t: str) -> bool:
-            return not t or len(t.strip()) < 30
-
-        if _is_weak_tweet(tweet_text):
-            # AI tweet üretemedi — summary'den direkt oluştur, yorum cümlesi ekle.
-            base = summary or title
-            tweet_text = base if len(base) <= 240 else base[:240].rsplit(" ", 1)[0].rstrip(" ,.;:") + "…"
-            log.info("Boş/kısa tweet; summary'den oluşturuldu.")
-
-        # Link suffix için yer ayır: ~45 karakter link + ~30 karakter hashtag
+        tweet_text = strip_banned(tweet_text or "")
+        if not tweet_text or len(tweet_text.strip()) < 30 or draft.summary_verbatim:
+            # Üretilmiş tweet yok/zayıf/süzgece takıldı → KAP başlığı (birebir) kullanılır.
+            tweet_text = draft.summary if not draft.summary_verbatim else fallback_summary
         link_suffix = f"\n\n{link}\n{hashtags}"
         max_body = 280 - len(link_suffix)
         tweet_body = tweet_text.strip()
         if len(tweet_body) > max_body:
             tweet_body = tweet_body[:max_body].rsplit(" ", 1)[0].rstrip(" ,.;:") + "…"
-
+        verbatim = [p for p in verbatim_parts if p] + ([tweet_body] if tweet_text == fallback_summary else [])
         SocialPublisher().broadcast(
-            f"{tweet_body}{link_suffix}",
-            image_path=card_path,
+            f"{tweet_body}{link_suffix}", image_path=card_path, disclaimer=post_disclaimer, verbatim=verbatim,
         )
 
     _cleanup(card_path)
@@ -1167,7 +1066,9 @@ def run_weekly_summary(publish_social: bool = True) -> str | None:
     log.info("=== Haftalık Özet Raporu başlatılıyor ===")
     TR_TZ = timezone(timedelta(hours=3))
     today = datetime.now(TR_TZ)
-    week_str = today.strftime("%-d %B %Y haftası")
+    # "%-d %B" Windows'ta geçersiz ve Linux'ta İngilizce ay adı veriyordu → Türkçe ay adları.
+    _AYLAR = ("Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık")
+    week_str = f"{today.day} {_AYLAR[today.month - 1]} {today.year} haftası"
 
     # Anlık veri kaynakları
     bist = BistSource().market_summary()
@@ -1191,9 +1092,9 @@ def run_weekly_summary(publish_social: bool = True) -> str | None:
 
     kap_section = ""
     if insider_disclosures:
-        kap_section += "### İçsel İşlemler\n\n"
+        kap_section += "### Pay Alım Satım ve Geri Alım Bildirimleri\n\n"
         for d in insider_disclosures[:3]:
-            kap_section += f"- **{d.company}** ({d.ticker}): {d.title}\n"
+            kap_section += f"- {d.title}\n"
         kap_section += "\n"
     if notable_disclosures:
         kap_section += "### Öne Çıkan Bildirimler\n\n"
@@ -1207,47 +1108,48 @@ def run_weekly_summary(publish_social: bool = True) -> str | None:
     ai_prompt_context = (
         f"BIST {bist.index}: {bist.price} ({bist.change}), hacim: {bist.volume}\n"
         f"Makro: {macro_ctx}\n"
-        f"Güçlü sektörler: {leaders}\n"
-        f"Zayıf sektörler: {laggards}\n"
-        f"İçsel bildirim sayısı: {len(insider_disclosures)}\n"
+        f"En çok yükselen sektörler: {leaders}\n"
+        f"En çok düşen sektörler: {laggards}\n"
+        f"Pay alım satım/geri alım bildirimi sayısı: {len(insider_disclosures)}\n"
         f"Toplam KAP bildirimi: {len(disclosures)}"
     )
     prompt = f"""
-Aracı kurum kalitesinde, Türkçe bir "haftalık piyasa özeti" yaz. Hafta: {week_str}.
-Markdown kullan. Yatırım tavsiyesi verme. ASLA yer tutucu yazma.
-
+Tarafsız, Türkçe bir "haftalık piyasa veri özeti" yaz. Hafta: {week_str}.
+Markdown kullan. ASLA yer tutucu yazma.
+{NEUTRAL_RULES}
 Veriler:
 {ai_prompt_context}
 
 Bülten şu bölümleri içersin:
-1. Haftanın Özeti (BIST performansı, genel atmosfer)
-2. Sektör Rotasyonu (güçlü/zayıf sektörler, para akışı yorumu)
-3. Küresel Makro (faiz, döviz, emtia hareketlerinin BIST'e etkisi)
-4. KAP & Şirket Haberleri (öne çıkan bildirimler, içsel işlemler)
-5. Gelecek Haftaya Bakış (izlenecek başlıklar ve riskler)
+1. Haftanın Özeti (BIST performansı rakamlarıyla)
+2. Sektörler (en çok yükselen/düşen sektörler, rakamlarıyla)
+3. Küresel Makro (faiz, döviz, emtia değişimleri, rakamlarıyla)
+4. KAP & Şirket Haberleri (öne çıkan bildirimlerde ne açıklandığı)
+5. Gelecek Hafta Takvimi (yalnızca açıklanmış veri/etkinlik tarihleri)
 """
     body = analyzer.client.generate(prompt, disable_thinking=True)
+    body = strip_banned(body) if body else body
 
     if not body:
         # Şablon fallback
         body = (
             f"## Haftanın Özeti\n\n"
             f"BIST {bist.index} haftayı **{bist.price}** ({bist.change}) seviyesinde kapattı.\n\n"
-            f"## Sektör Rotasyonu\n\n"
+            f"## Sektör Endeksleri\n\n"
             f"| Sektör | Değişim |\n| --- | --- |\n{sector_rows}\n\n"
-            f"- **Güçlü:** {leaders}\n- **Zayıf:** {laggards}\n\n"
+            f"- **En çok yükselen:** {leaders}\n- **En çok düşen:** {laggards}\n\n"
             f"## Küresel Makro\n\n{macro.to_markdown_table()}\n\n"
             + (f"## KAP & Şirket Haberleri\n\n{kap_section}" if kap_section else "")
-            + "## Gelecek Haftaya Bakış\n\nPiyasa koşulları ve veri akışı takip edilmeye devam edilecek."
+
         )
 
-    summary = f"BIST {bist.index} haftayı {bist.change} ile kapattı. Güçlü sektörler: {leaders}."
+    summary = f"BIST {bist.index} haftayı {bist.change} ile kapattı. En çok yükselen sektörler: {leaders}."
 
     card_path = _render_card(
         CardSpec(
             category="bist",
             kicker="Haftalık Özet",
-            headline=f"Haftanın kazananları: {leaders}. Zayıflar: {laggards}.",
+            headline=f"En çok yükselen: {leaders}. En çok düşen: {laggards}.",
             stat_value=bist.price,
             stat_change=bist.change,
             bars=[(m.name, m.change_pct) for m in sector_moves[:6]],
@@ -1275,7 +1177,7 @@ Bülten şu bölümleri içersin:
     if publish_social:
         SocialPublisher().broadcast(
             f"Haftalık piyasa özeti yayında. "
-            f"BIST {bist.change} | Güçlü: {leaders}\n"
+            f"BIST {bist.change} | En çok yükselen: {leaders}\n"
             f"{settings.site_url}/rapor/{slug}\n"
             f"#BIST100 #HaftalıkÖzet #Borsa",
             image_path=card_path,

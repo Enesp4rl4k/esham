@@ -10,9 +10,8 @@ const x = (v: number | null) => (typeof v === "number" ? `${nf.format(v)}x` : "�
 const pct = (v: number | null) => (typeof v === "number" ? `%${nf.format(v)}` : "—");
 
 function PreviewCard({ s, median }: { s: UniverseStock; median?: number }) {
+  // Yönsüz gösterim: F/K'nın sektör medyanına ORANI (ör. 0,85x). "ucuz/pahalı" etiketi veya konum çubuğu yok.
   const rel = typeof s.pe === "number" && typeof median === "number" && median > 0 ? s.pe / median : null;
-  // Konum çubuğu: F/K'nın sektör medyanına göre konumu (0.5x–1.5x aralığı)
-  const pos = rel === null ? null : Math.min(100, Math.max(0, ((rel - 0.5) / 1) * 100));
   return (
     <Link
       href={`/hisse/${s.ticker}`}
@@ -28,18 +27,9 @@ function PreviewCard({ s, median }: { s: UniverseStock; median?: number }) {
           <div className="font-bold text-xl">{typeof s.price === "number" ? `${nf.format(s.price)} ₺` : "—"}</div>
         </div>
       </div>
-      {pos !== null && (
-        <div className="mt-4">
-          <div className="flex justify-between text-xs" style={{ color: "var(--text-muted)" }}>
-            <span>Sektör medyanından ucuz</span>
-            <span>pahalı</span>
-          </div>
-          <div className="relative h-2 rounded-full mt-1.5 bg-zinc-800" role="img" aria-label={`F/K sektör medyanının ${nf.format(rel!)} katı`}>
-            <span className="absolute -top-1 w-1.5 h-4 rounded-sm -translate-x-1/2" style={{ left: `${pos}%`, background: "var(--accent)" }} />
-          </div>
-          <div className="text-xs mt-1.5 tabular-nums" style={{ color: "var(--text-secondary)" }}>
-            F/K {x(s.pe)} · sektör medyanı {x(median ?? null)}
-          </div>
+      {rel !== null && (
+        <div className="mt-4 text-xs tabular-nums" style={{ color: "var(--text-secondary)" }}>
+          F/K {x(s.pe)} · sektör medyanı {x(median ?? null)} · F/K ÷ medyan {x(rel)}
         </div>
       )}
       <dl className="mt-4 grid grid-cols-3 gap-3 tabular-nums">

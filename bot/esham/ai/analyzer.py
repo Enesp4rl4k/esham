@@ -8,11 +8,57 @@ Tasarım ilkeleri:
 from __future__ import annotations
 
 from ..config import get_logger, settings
+from ..neutral import NOTE_AMOUNT_MISSING, strip_banned
 from ..translation import ensure_turkish, translate_to_turkish, is_mostly_english
 from ..sources import MarketSnapshot
 from .client import LlmClient
 
 log = get_logger(__name__)
+
+# Tüm üretim prompt'larına eklenir. Model kurala uymasa bile çıktı `neutral.strip_banned` ile
+# deterministik olarak süzülür ve ContentStore/SocialPublisher'da tekrar denetlenir.
+NEUTRAL_RULES = """
+KESİN KURALLAR (SPK: yatırım danışmanlığı yalnızca yetkili kurumlarca yapılabilir):
+- Yalnızca kaynakta yazanları aktar; kendi yorumunu, tahminini veya değerlendirmeni ekleme.
+- Al/sat/tut önerisi, hedef fiyat, destek/direnç, pivot, kâr satışı veya alım bölgesi, RSI gibi teknik seviye YAZMA.
+- "Pozitif/negatif sinyal", "olumlu/olumsuz algı", boğa/ayı senaryosu gibi yargı etiketleri KULLANMA.
+- Fiyatın, hissenin, piyasanın veya haber akışının nasıl etkileneceğine dair tahmin YAPMA ("beklenir", "katalizör", "yükselebilir" vb.).
+- "Mega", "dev", "tarihi" gibi abartılı nitelemeler KULLANMA.
+- Kaynakta olmayan rakam UYDURMA. Tutarları kaynaktaki birimi ve anlamıyla yaz; bilgi yoksa "Belirtilmemiş" yaz.
+"""
+
+
+def filing_facts_markdown(
+    company: str,
+    ticker: str,
+    title: str,
+    disclosure_type: str,
+    text: str,
+    disclosure_index: str = "",
+    date: str = "",
+) -> str:
+    """KAP bildirimi için BİREBİR bilgi bloğu (süzülmez): başlık aynen, şirket, tarih, KAP bildirim türü,
+    "Tutar bilgisi için bildirime bakın." notu ve KAP bağlantısı. ``text`` bilinçli olarak kullanılmaz:
+    bildirim gövdesinden hiçbir rakam rapora taşınmaz.
+    """
+    who = f"{company} ({ticker})" if ticker and ticker != company else company
+    lines = [
+        "### Bildirim Bilgileri",
+        f"- **Başlık (KAP):** {title}",
+        f"- **Şirket:** {who}",
+    ]
+    if date:
+        lines.append(f"- **Tarih:** {date}")
+    lines.append(f"- **Bildirim türü (KAP):** {disclosure_type or 'Belirtilmemiş'}")
+    # Bildirim gövdesinden hiçbir tutar/rakam alınmaz (ne ayrıştırma ne alıntı); okur bildirime yönlendirilir.
+    lines.append(f"- **Tutar:** {NOTE_AMOUNT_MISSING}")
+    if disclosure_index:
+        lines.append(
+            f"- **Kaynak:** [KAP bildirimi #{disclosure_index}](https://www.kap.org.tr/tr/Bildirim/{disclosure_index})"
+        )
+    else:
+        lines.append("- **Kaynak:** KAP (Kamuyu Aydınlatma Platformu)")
+    return "\n".join(lines)
 
 
 class MarketAIAnalyzer:
@@ -25,14 +71,13 @@ class MarketAIAnalyzer:
 
     def analyze_macro_impact(self, news_text: str) -> str:
         prompt = f"""
-Sen profesyonel ve öngörülü bir portföy yöneticisisin. Aşağıdaki makroekonomik
-gelişmeyi oku ve bunun Borsa İstanbul (BIST), ons altın ve kripto paralar üzerindeki
-olası etkilerini çok kısa, net ve anlaşılır bir dille (yatırım tavsiyesi vermeden)
-özetle.
-
+Sen tarafsız bir ekonomi editörüsün. Aşağıdaki makroekonomik gelişmede NE açıklandığını
+(kim, ne, ne zaman, hangi rakamlar) çok kısa ve anlaşılır bir dille özetle.
+{NEUTRAL_RULES}
 Haber: {news_text}
 """
-        return self.client.generate(prompt, task_type="analysis") or "Yapay zeka yorumu şu an üretilemedi."
+        out = self.client.generate(prompt, task_type="analysis")
+        return strip_banned(out) if out else "Yapay zeka özeti şu an üretilemedi."
 
     def generate_event_analysis(
         self,
@@ -52,8 +97,9 @@ Haber: {news_text}
         source_name = getattr(event, "source_name", "")
         source_info = f"\nKaynak: {source_name}" if source_name else ""
 
-        prompt = f"""Sen küresel piyasalar, teknoloji ve finans alanında uzmanlaşmış kıdemli bir ekonomi analisti ve piyasa stratejistisin.
-Aşağıdaki gelişmeyi az, öz, derinlikli ve kurumsal kalitede analiz et. Boş laf, basmakalıp dolgu cümleler ve uzun girişler YAZMA. Doğrudan somut bilgiye, sektör etkisine ve piyasa verilerine odaklan. Türkçe yaz. Yatırım tavsiyesi verme.
+        prompt = f"""Sen küresel piyasalar, teknoloji ve finans haberlerini özetleyen tarafsız bir ekonomi editörüsün.
+Aşağıdaki gelişmeyi az, öz ve kurumsal kalitede özetle. Boş laf, basmakalıp dolgu cümleler ve uzun girişler YAZMA. Doğrudan kaynaktaki somut bilgiye odaklan. Türkçe yaz.
+{NEUTRAL_RULES}
 
 Gelişme Türü: {event.kind} (Kategori: {event.category})
 Konu / Başlık: {event.headline}
@@ -62,28 +108,25 @@ Konu / Başlık: {event.headline}
 Şu formatta eksiksiz yanıt ver:
 
 ## ÖZET
-Başlığı doğrudan KOPYALAMADAN, gelişmenin özünü ve piyasa/sektör açısından neden kritik olduğunu 1-2 net cümlede (maksimum 160 karakter) özetle.
+Başlığı doğrudan KOPYALAMADAN, gelişmenin özünü 1-2 net cümlede (maksimum 160 karakter) özetle.
 
 ## ANALİZ
-Aşağıdaki 4 bölümü yapılandırılmış markdown olarak hazırla (her bölüm en az 2-3 doyurucu ve somut cümle içermeli):
+Aşağıdaki 3 bölümü yapılandırılmış markdown olarak hazırla (yalnızca kaynakta geçen bilgilerle):
 
 ### Gelişmenin Detayları
-Olayın arka planı, teknik/finansal özellikleri, ilgili şirketlerin veya aktörlerin rolleri ve somut veriler.
+Olayın arka planı, ilgili şirketlerin veya aktörlerin rolleri ve kaynakta geçen somut veriler.
 
-### Sektörel & Stratejik Etki
-Gelişmenin ilgili ekosisteme etkisi (Yapay Zeka/Teknoloji için: bilgi işlem kapasitesi, çip talebi, veri merkezi yatırımları; Kripto için: likidite, regülasyon, ağ aktivitesi, faiz etkisi; Makro için: küresel faizler, sermaye akımları, risk iştahı).
+### Bağlam
+Kaynakta açıklanan arka plan bilgisi (önceki benzer gelişmeler, ilgili düzenlemeler). Tahmin yapma.
 
-### Piyasa & Varlık Yansıması
-İlgili varlık sınıfları (teknoloji hisseleri, BIST Teknoloji endeksi, Bitcoin/altcoinler, döviz/tahvil piyasaları) üzerindeki fiyatlama ve risk algısı yansıması.
-
-### Yakından İzlenecekler
-Önümüzdeki gün ve haftalarda takip edilecek somut katalizörler, direnç/destek seviyeleri veya beklenen yeni adımlar.
+### Açıklanan Sonraki Adımlar
+Yalnızca kaynakta açıklanan tarihler ve süreç adımları. Kaynakta yoksa bu bölümü "Belirtilmemiş" olarak bırak.
 
 ## TWEET
-260 karakter sınırını aşmayan, bilgi yoğun tek bir tweet.
-- Format: [Konu/Aktör] [ne yaptı/oldu] — bu [neden önemli/etkisi ne] demek.
+260 karakter sınırını aşmayan, bilgi yoğun tek bir tarafsız tweet.
+- Format: [Konu/Aktör] [ne yaptı/oldu].
 - Varsa rakam/oran ekle.
-- EMOJİ KULLANMA. Hashtag EKLEME.
+- EMOJİ KULLANMA. Hashtag EKLEME. Yorum ekleme.
 """
         raw = self.client.generate(prompt, disable_thinking=True, task_type="analysis")
         if raw:
@@ -104,7 +147,7 @@ Gelişmenin ilgili ekosisteme etkisi (Yapay Zeka/Teknoloji için: bilgi işlem k
         summary = _extract("ÖZET")
         if not summary or summary.strip().lower() == event.headline.strip().lower():
             first_clause = event.headline.split('.')[0]
-            summary = f"{first_clause}; sektör dinamikleri ve piyasa fiyatlamaları üzerindeki yansımaları takip ediliyor."
+            summary = first_clause
 
         analiz = _extract("ANALİZ") or _extract("ANALIZ") or raw.strip()
 
@@ -113,15 +156,18 @@ Gelişmenin ilgili ekosisteme etkisi (Yapay Zeka/Teknoloji için: bilgi işlem k
             rf"^#{{1,3}}\s+{re.escape(event.headline)}\s*\n+", "", analiz, flags=re.IGNORECASE
         ).strip()
 
-        tweet_raw = _extract("TWEET")
+        # Deterministik son süzgeç: model kurala uymadıysa yasaklı içerik yayına gitmez.
+        cleaned_body = strip_banned(cleaned_body)
+        summary = strip_banned(summary) or event.headline.split('.')[0]
+        tweet_raw = strip_banned(_extract("TWEET"))
         if not tweet_raw or len(tweet_raw.strip()) < 30:
-            tweet_raw = f"{event.headline[:200]} — piyasalar ve sektör üzerindeki etkileri analiz edildi:"
+            tweet_raw = f"{event.headline[:200]} — gelişmenin özeti raporda:"
 
         return cleaned_body, summary, tweet_raw
 
     @staticmethod
     def _template_event_analysis(event: "MarketEvent", macro_context: str = "") -> tuple[str, str, str]:
-        """AI devre dışıyken veya başarısız olduğunda zengin, yapılandırılmış finansal analiz üretir."""
+        """AI kapalıyken yalnız kaynaktaki bilgiyi ve veriyi aktarır; dolgu yorum paragrafı üretmez."""
         details_clean = getattr(event, "details", "").strip()
         if details_clean and is_mostly_english(details_clean):
             details_clean = translate_to_turkish(details_clean)
@@ -130,122 +176,16 @@ Gelişmenin ilgili ekosisteme etkisi (Yapay Zeka/Teknoloji için: bilgi işlem k
         if is_mostly_english(first_clause):
             first_clause = ensure_turkish(first_clause) or first_clause
 
-        if event.kind == "TEKNOLOJI_HAREKET":
-            summary = f"{first_clause}; yapay zeka altyapısı, donanım talebi ve teknoloji hisseleri üzerindeki etkileriyle takip ediliyor."
-            
-            detay_metni = details_clean if details_clean else (
-                f"{event.headline}. Yapay zeka ve yüksek teknoloji odaklı bu gelişme, küresel bilişim mimarisi "
-                "ve kurumsal yazılım çözümlerinde yeni bir dönüşüm dalgasını temsil ediyor."
+        parts = [f"### Gelişme\n{details_clean or event.headline}"]
+        if getattr(event, "value_str", "") and getattr(event, "change_pct", 0.0):
+            sign = "+" if event.change_pct >= 0 else ""
+            parts.append(
+                f"### Veri\n- **{event.label}:** {event.value_str} (%{sign}{event.change_pct:.2f})"
             )
-
-            body = (
-                f"### Gelişmenin Detayları\n"
-                f"{detay_metni}\n\n"
-                f"### Teknoloji & Yapay Zeka Ekosistemine Etkisi\n"
-                f"Yapay zeka modellerinin hesaplama maliyetleri ve veri işleme ihtiyaçları katlanarak artarken, "
-                f"yeni nesil çip tasarımları ve sunucu mimarileri teknoloji devlerinin sermaye harcamalarında (CapEx) "
-                f"birinci sıraya yerleşmiş durumda. Söz konusu gelişme, donanım tedarik zinciri ve bulut bilişim "
-                f"sağlayıcıları açısından kritik bir dönüm noktası olarak değerlendiriliyor.\n\n"
-                f"### Finansal Piyasalar & Hisse Yansıması\n"
-                f"Teknoloji şirketlerinin inovasyon hamleleri Nasdaq teknoloji endeksi başta olmak üzere yarı iletken üreticileri "
-                f"ve veri merkezi sağlayıcılarının çarpanlarını doğrudan destekliyor. Gelişmeler küresel risk iştahı kanalıyla "
-                f"Borsa İstanbul Teknoloji Endeksi (XUTEK) hisseleri üzerinde de pozitif sektörel çarpan algısını besliyor.\n\n"
-                f"### Yakından İzlenecekler\n"
-                f"- Yeni mimari ve teknolojinin ticari pazara sunulma takvimi ile hacimli üretim metrikleri.\n"
-                f"- Enerji verimliliği, soğutma sistemleri ve veri merkezi altyapı sınırlamalarına yönelik çözümler.\n"
-                f"- Küresel regülasyon kurumlarının büyük teknoloji platformlarına yönelik rekabet ve yapay zeka standartları."
-            )
-            tweet = f"{first_clause} — yapay zeka altyapısı ve küresel teknoloji piyasalarına etkileri analiz edildi:"
-
-        elif event.kind == "KRIPTO_HAREKET":
-            if event.change_pct != 0.0:
-                direction = "yükselişle" if event.change_pct >= 0 else "düşüşle"
-                sign = "+" if event.change_pct >= 0 else ""
-                summary = f"{event.label} son 24 saatte %{sign}{event.change_pct:.2f} {direction} {event.value_str} seviyesinde; kaldıraçlı piyasalarda volatilite öne çıkıyor."
-                
-                body = (
-                    f"### Piyasa Hareketi & Anlık Fiyatlama\n"
-                    f"{event.label} ({event.value_str}), son 24 saatlik seansta **%{sign}{event.change_pct:.2f}** "
-                    f"oranında hareket ederek kripto varlık piyasasında yön arayışına öncülük etti. Türev borsalarda açık pozisyon (OI) "
-                    f"ve fonlama oranlarındaki dalgalanma volatiliteyi artırıyor.\n\n"
-                    f"### Kripto Dinamikleri & Likidite Akışı\n"
-                    f"Spot kripto ETF'lerine yönelik kurumsal para giriş/çıkışları, büyük cüzdanların (balina) transfer hareketleri ve "
-                    f"stabilcoin rezervlerindeki değişimler piyasa derinliğini belirlemeyi sürdürüyor. Makro faiz patikası ve Dolar Endeksi (DXY) "
-                    f"kripto paralar üzerindeki genel risk iştahını şekillendiren temel faktör konumunda.\n\n"
-                    f"### Kritik Seviyeler & Destek / Direnç\n"
-                    f"- **Psikolojik Eşik:** {event.value_str} çevresinde yoğunlaşan alım ve satım kademeleri.\n"
-                    f"- **Türev Piyasalar:** Tasfiye (liquidation) haritalarında long/short pozisyon dengesizliği.\n"
-                    f"- **Momentum:** Günlük RSI ve hareketli ortalama (20/50 günlük) trend bantları.\n\n"
-                    f"### Yakından İzlenecekler\n"
-                    f"- ABD Merkez Bankası (Fed) faiz beklentileri ve küresel tahvil getirilerindeki yönelim.\n"
-                    f"- Kurumsal saklama çözümleri ve regülatif adımlara ilişkin resmi açıklamalar."
-                )
-            else:
-                summary = f"{first_clause}; dijital varlık ekosistemi ve kurumsal fon hareketleri üzerindeki etkileriyle izleniyor."
-                detay_metni = details_clean if details_clean else (
-                    f"{event.headline}. Dijital varlıklar ve blokzincir teknolojisi ekseninde yaşanan bu gelişme, "
-                    "sektördeki kurumsal benimseme ve güvenlik standartları açısından kritik önem taşıyor."
-                )
-                body = (
-                    f"### Haberin Detayları\n"
-                    f"{detay_metni}\n\n"
-                    f"### Dijital Varlıklar & Düzenleyici Etki\n"
-                    f"Kripto para piyasalarında kurumsal güven, kullanıcı varlıklarının saklama güvencesi ve yasal düzenlemelere uyum "
-                    f"ön planda kalmaya devam ediyor. Büyük platformların attığı stratejik adımlar piyasa likiditesini doğrudan belirliyor.\n\n"
-                    f"### Piyasa Algısı & Likidite Yansıması\n"
-                    f"Gelişmenin ardından majör kripto varlıklar ile altcoinlerdeki risk primi yeniden dengelenirken, "
-                    f"türev piyasalardaki volatilite beklentileri ve fonlama oranları takip ediliyor.\n\n"
-                    f"### Yakından İzlenecekler\n"
-                    f"- İlgili kurum ve platformlardan gelecek resmi açıklamalar ve yasal süreçler.\n"
-                    f"- Kripto varlık fon akımları ve borsa rezerv hareketleri."
-                )
-            tweet = f"{first_clause} — kripto para piyasalarındaki likidite ve fiyat yansıması analiz edildi:"
-
-        elif event.category == "gundem":
-            summary = f"{first_clause}; Türkiye ekonomisi, makro dengeler ve piyasa fiyatlamaları üzerindeki yansımalarıyla izleniyor."
-            detay_metni = details_clean if details_clean else (
-                f"{event.headline}. Türkiye ekonomisi ve finansal piyasaları yakından ilgilendiren bu gelişme, "
-                "makroekonomik istikrar ve piyasa beklentileri açısından önem taşıyor."
-            )
-            body = (
-                f"### Gelişmenin Detayları\n"
-                f"{detay_metni}\n\n"
-                f"### Makroekonomik Etki & Politika Görünümü\n"
-                f"Türkiye Cumhuriyet Merkez Bankası (TCMB) para politikası, dezenflasyon patikası ve mali disiplin hedefleri "
-                f"doğrultusunda atılan adımlar, yurtiçi piyasalarda güven ortamı ve risk priminin (CDS) seyrini belirlemeyi sürdürüyor. "
-                f"Söz konusu gelişme, makro dengelerin korunması açısından yakından değerlendiriliyor.\n\n"
-                f"### Piyasa & TL Varlıkları Yansıması\n"
-                f"Gelişmenin Türk Lirası varlıkları, Borsa İstanbul endeksleri ve tahvil faizleri üzerindeki seyri "
-                f"yurtiçi ve yurtdışı yatırımcı algısı üzerinden takip ediliyor.\n\n"
-                f"### Yakından İzlenecekler\n"
-                f"- İlgili kamu otoriteleri ve regülatör kurumların yönlendirmeleri.\n"
-                f"- Enflasyon, cari denge ve rezerv göstergelerindeki dönemsel gerçekleşmeler."
-            )
-            tweet = f"{first_clause} — Türkiye ekonomisi ve piyasa yansımaları değerlendirildi:"
-
-        else:
-            summary = f"{first_clause}; küresel piyasalardaki risk iştahı ve makro varlık fiyatlamaları üzerindeki yansımalarıyla değerlendiriliyor."
-            detay_metni = details_clean if details_clean else (
-                f"{event.headline}. Piyasaların yakından takip ettiği bu gelişme, varlık fiyatlamaları "
-                "ve makroekonomik beklentiler üzerinde doğrudan etkili olma potansiyeli taşıyor."
-            )
-            body = (
-                f"### Gelişmenin Detayları\n"
-                f"{detay_metni}\n\n"
-                f"### Makroekonomik Bağlam & Küresel Risk İştahı\n"
-                f"Küresel enflasyon dinamikleri, merkez bankalarının para politikası patikası ve tahvil faizlerindeki dalgalanma, "
-                f"uluslararası fon akımlarını yönlendiren temel unsurlar olmaya devam ediyor. Gelişmekte olan piyasalar "
-                f"ve riskli varlıklar bu dalgalanmalardan öncelikli olarak etkileniyor.\n\n"
-                f"### Piyasa & Varlık Yansıması\n"
-                f"Gelişmenin küresel tahvil faizleri, emtia (altın, petrol) ve döviz kurları üzerindeki seyri Borsa İstanbul "
-                f"ve Türk Lirası varlıkları açısından çarpan ve getiri arayışı üzerinden izleniyor.\n\n"
-                f"### Yakından İzlenecekler\n"
-                f"- Açıklanacak öncü makroekonomik göstergeler ve merkez bankası yönlendirmeleri.\n"
-                f"- Küresel hisse senedi piyasalarında volatilite endekslerinin (VIX) seyri."
-            )
-            tweet = f"{first_clause} — küresel piyasalar ve makroekonomik yansımaları analiz edildi:"
-
-        return body, summary, tweet
+        body = "\n\n".join(parts)
+        summary = first_clause
+        tweet = f"{first_clause} — ayrıntı raporda:"
+        return strip_banned(body), strip_banned(summary) or first_clause, strip_banned(tweet) or first_clause
 
     def generate_breaking_news_tweet(self, headline: str, macro_context: str = "") -> tuple[str, str]:
         """Geriye dönük uyumluluk wrapper'ı: (tweet, body) ikilisi döner."""
@@ -315,64 +255,45 @@ Haber Başlığı: {news_title}
         is_insider: bool = False,
         macro_context: str = "",
         sector_context: str = "",
+        disclosure_index: str = "",
     ) -> tuple[str, str, str]:
-        """KAP bildirimi veya anlık gelişme için kısa analiz raporu üretir.
+        """KAP bildirimi için tarafsız ÜRETİLMİŞ özet: bildirimde NE açıklandı.
 
-        Döndürür: (body_markdown, summary_line, tweet_text)
-        - body_markdown : web raporuna yazılacak markdown gövde
-        - summary_line  : tek cümlelik özet (liste/OG description için)
-        - tweet_text    : sosyal medya paylaşımı için kısa metin (280 karakter hedef)
+        Döndürür: (generated_body, summary_line, tweet_text). Hepsi tarafsız dil süzgecinden geçmiştir.
+        Birebir bilgi bloğu (başlık, şirket, tür, tutarlar, bağlantı) burada DEĞİL, çağıran tarafta
+        ``filing_facts_markdown`` ile ayrıca eklenir ve süzülmez.
 
-        Graceful degradation: AI kapalı/başarısızsa deterministik şablon döner.
+        AI kapalı/başarısızsa yorum üretilmez: gövde boş, özet ve tweet KAP başlığının kendisidir.
+        ``macro_context``/``sector_context``/``is_insider``/``disclosure_index`` geriye dönük uyumluluk içindir.
         """
-        insider_note = "Bu bir içsel bildirimdir (insider trading şüphesi olabilir).\n" if is_insider else ""
-        macro_block = f"\nGüncel makro bağlam:\n{macro_context}" if macro_context else ""
-        sector_block = f"\nSektör bağlamı:\n{sector_context}" if sector_context else ""
-
-        if is_insider:
-            insider_prompt_extra = """
-ÖNEMLİ — Bu bir İÇSEL İŞLEM bildirimidir:
-- Alım mı satım mı olduğunu net belirt (alım = yönetim güveni sinyali / satım = olası çıkış sinyali)
-- Kim yapıyor? (YK üyesi, CEO, büyük ortak) — pozisyon ne kadar önemli?
-- Tutar/lot büyüklüğüne dikkat — sembolik mi, yoksa agresif mi?
-- İçsel bilgiye sahip kişinin bu hareketi şirketin yakın dönem görünümü hakkında ne söylüyor?
-- BIST'teki emsal içsel işlemlerle karşılaştır (varsa bağlam ver)
-"""
-        else:
-            insider_prompt_extra = ""
-
-        prompt = f"""Sen deneyimli bir Türk sermaye piyasaları analistisin. Az, öz, doğrudan sonuca odaklı hap bilgi kalitesinde analiz yap. Boş laf, uzun giriş cümleleri ve dolgu paragraflar YAZMA. Türkçe yaz. Yatırım tavsiyesi verme.
-{insider_prompt_extra}
-Şirket: {company} ({ticker})
+        code = f" ({ticker})" if ticker else ""
+        prompt = f"""Sen bir KAP (Kamuyu Aydınlatma Platformu) bildirimi özetleyicisisin. Görevin bildirimde NE açıklandığını sade ve tarafsız Türkçe ile aktarmak.
+{NEUTRAL_RULES}
+Şirket: {company}{code}
 Bildirim türü: {disclosure_type}
 Başlık: {title}
 Bildirim içeriği:
 {raw_text or title}
-{macro_block}{sector_block}
 
-Şu formatta yanıt ver (uzun paragraflar yazma, doğrudan net ve somut maddeler ver):
+Şu formatta yanıt ver (kısa ve somut maddeler):
 
 ## ÖZET
-Tek cümle (max 140 karakter). Varsa sayısal veriyi (tutar, oran, lot, yüzde) dahil et.
+Tek cümle (max 140 karakter): kim, neyi açıkladı. Tutar/rakam YAZMA (okur bildirime yönlendirilir).
 
-## ANALİZ
-**Finansal Sinyal:** Pozitif / Nötr / Negatif (hangisi uygunsa birini seç)
-
-- **Gelişmenin Özü:** Haberin şirket için ne anlama geldiği (1 net cümle).
-- **Finansal & Bilanço Etkisi:** Gelir, ciro, kâr marjı veya nakit akışına somut etkisi (1 net cümle).
-- **Piyasa & Hisse Yansıması:** Hisse fiyatlaması veya yatırımcı açısından oluşturduğu katalizör (1 net cümle).
+## BİLDİRİM
+- **Ne açıklandı:** Bildirimdeki ifadelere sadık 1-2 cümle.
+- **Taraflar:** Bildirimde geçen şirket/kişi/kurumlar; yoksa "Belirtilmemiş".
+- **Tarihler:** Bildirimde geçen tarih ve süreler; yoksa "Belirtilmemiş".
+- **Açıklanan sonraki adım:** Yalnızca bildirimde yazan süreç adımı (ör. SPK onayı, genel kurul); yoksa "Belirtilmemiş".
 
 ## TWEET
-280 karakter sınırını aşmayan, bilgi yoğun tek bir tweet.
-- Format: [Şirket] [ne yaptı] — bu [önemi/etkisi] demek.
-- Varsa rakam/tutar ekle.
-- EMOJİ KULLANMA. Hashtag EKLEME.
+260 karakteri aşmayan tek, tarafsız cümle: [Şirket] [ne açıkladı]. Tutar/rakam yazma.
+- EMOJİ KULLANMA. Hashtag EKLEME. Yorum ekleme.
 """
         raw = self.client.generate(prompt, disable_thinking=True, task_type="analysis")
         if raw:
             return self._parse_news_analysis(raw, title, company, ticker, is_insider)
-
-        log.info("AI kapalı/başarısız; şablon haber analizi üretiliyor.")
+        log.info("AI kapalı/başarısız; yorum üretilmiyor, yalın KAP bilgisi yayınlanacak.")
         return self._template_news_analysis(title, disclosure_type, company, ticker, is_insider, raw_text=raw_text)
 
     # ---- yardımcılar (generate_news_analysis) ----------------------------------
@@ -381,7 +302,9 @@ Tek cümle (max 140 karakter). Varsa sayısal veriyi (tutar, oran, lot, yüzde) 
     def _parse_news_analysis(
         raw: str, title: str, company: str, ticker: str, is_insider: bool
     ) -> tuple[str, str, str]:
-        """AI çıktısını (body, summary, tweet) üçlüsüne dönüştürür."""
+        """AI çıktısını (generated_body, summary, tweet) üçlüsüne dönüştürür ve yasaklı içeriği süzer.
+
+        Özet süzgece takılır/boş kalırsa KAP başlığı (birebir) kullanılır."""
         import re
 
         def _extract(section: str) -> str:
@@ -389,141 +312,50 @@ Tek cümle (max 140 karakter). Varsa sayısal veriyi (tutar, oran, lot, yüzde) 
             m = re.search(pattern, raw, re.DOTALL | re.IGNORECASE)
             return m.group(1).strip() if m else ""
 
-        summary = _extract("ÖZET") or f"{company} ({ticker}): {title[:100]}"
-        tweet_raw = _extract("TWEET")
+        summary = strip_banned(_extract("ÖZET")) or title
+        tweet = strip_banned(_extract("TWEET"))
+        if not tweet or len(tweet.strip()) < 30 or tweet.strip().lower() == title.strip().lower():
+            tweet = summary
+        if len(tweet) > 230 and tweet != title:
+            tweet = tweet[:230].rsplit(" ", 1)[0].rstrip(" ,.;:") + "…"
 
-        # Tweet kalite kontrolü: boşsa veya çok kısaysa summary'den türet.
-        def _is_weak_tweet(t: str) -> bool:
-            if not t or len(t.strip()) < 30:
-                return True
-            # Tamamen başlıkla özdeşse (boşluk/büyük-küçük harf farkı hariç) zayıf say
-            if t.strip().lower() == title.strip().lower():
-                return True
-            return False
-
-        if _is_weak_tweet(tweet_raw):
-            # AI tweet üretemedi ya da çok zayıf — summary'i yoruma dönüştür.
-            # Summary genellikle "Şirket (TİCKER): Kısa açıklama" formatında gelir;
-            # bunu tek cümlelik çarpıcı tweet'e çevirmek için summary'i olduğu gibi
-            # kullan, başa şirket + ticker ekle, sonuna piyasa etkisi sorusu ekle.
-            default_summary = f"{company} ({ticker}): {title[:100]}"
-            # AI summary varsa ve başlıktan farklıysa tercih et (daha bilgi yoğun)
-            base = summary if (summary and len(summary) > 40
-                               and summary.strip().lower() != title.strip().lower()) else title
-            tweet = base
-            if len(tweet) > 230:
-                tweet = tweet[:230].rsplit(" ", 1)[0].rstrip(" ,.;:") + "…"
-        else:
-            tweet = tweet_raw
-
-        # Body: Az ve öz, doğrudan sonuca odaklı yapı
-        analiz = _extract("ANALİZ") or _extract("ANALIZ")
-        if analiz:
-            body = f"### Hızlı Bakış\n{summary}\n\n### Finansal Sinyal & Analiz\n{analiz}"
-        else:
-            body = f"### Hızlı Bakış\n{summary}\n\n{raw}"
-        return body, summary, tweet
+        detail = strip_banned(
+            _extract("BİLDİRİM") or _extract("BILDIRIM") or _extract("ANALİZ") or _extract("ANALIZ")
+        )
+        parts = []
+        if summary != title:
+            parts.append(f"### Özet\n{summary}")
+        if detail:
+            parts.append(f"### Bildirim Özeti\n{detail}")
+        return "\n\n".join(parts), summary, tweet
 
     @staticmethod
     def _template_news_analysis(
-        title: str, disclosure_type: str, company: str, ticker: str, is_insider: bool, raw_text: str = ""
+        title: str,
+        disclosure_type: str,
+        company: str,
+        ticker: str,
+        is_insider: bool,
+        raw_text: str = "",
+        disclosure_index: str = "",
     ) -> tuple[str, str, str]:
-        """AI yokken az ve öz, doğrudan sonuca odaklı hap finansal analiz üretir."""
-        import re
-        from ..turkish import tr_fold
-        
-        full_text = f"{title} {disclosure_type} {raw_text}"
-        norm_title = tr_fold(full_text)
-        
-        amounts = re.findall(r"(\d+(?:[.,]\d+)?\s*(?:milyon|milyar|bin|TL|USD|EUR|adet|lot|%))", full_text, re.IGNORECASE)
-        amounts_str = ", ".join(amounts[:2]) if amounts else None
-
-        is_default = any(k in norm_title for k in ("temerrut", "temerrüt"))
-        is_order = (not is_default) and any(k in norm_title for k in ("yeni is iliskisi", "siparis", "sozlesme", "ihale", "proje", "is iliskisi"))
-        is_buyback = any(k in norm_title for k in ("pay geri alim", "geri alim", "pay alim"))
-        is_capital = any(k in norm_title for k in ("sermaye artir", "bedelli", "bedelsiz", "tahsisli"))
-        is_dividend = any(k in norm_title for k in ("kar payi", "temettu"))
-        is_acquisition = any(k in norm_title for k in ("birles", "devral", "satin al", "istirak"))
-
-        if is_default:
-            signal = "Risk / Temerrüt Bildirimi"
-            bilanço = f"Takasbank veya Borsa İstanbul temerrüt takası çerçevesinde açılan işlem sırası bildirilmiştir{f' (`{amounts_str}`)' if amounts_str else ''}."
-            sektor = "İlgili pay sırasında yükümlülüklerin yerine getirilmesi amacıyla temerrüt satışı/alımı gerçekleştirilmektedir."
-            piyasa = "Kısa vadeli likidite ve teminat baskısı yaratabilir; işlem sırası yakından izlenmelidir."
-        elif is_order:
-            signal = "Pozitif (Yeni Sipariş / İş Anlaşması)"
-            bilanço = f"Alınan sipariş/ihale{f' (`{amounts_str}`)' if amounts_str else ''}, şirketin bakiye iş hacmini ve gelecek dönem cirosunu destekler."
-            sektor = "Sektördeki pazar payını ve operasyonel kapasite kullanımını güçlendirir."
-            piyasa = "Hisse üzerinde kısa vadede pozitif haber akışı etkisi yaratması beklenir."
-        elif is_buyback:
-            signal = "Pozitif (Pay Geri Alımı / Güven Sinyali)"
-            bilanço = f"Geri alım programı{f' (`{amounts_str}`)' if amounts_str else ''}, hisse başına kârı matematiksel olarak destekler."
-            sektor = "Şirket yönetiminin mevcut piyasa değerlemesini ucuz bulduğuna işaret eder."
-            piyasa = "Fiyat oynaklığını azaltıcı taban desteği oluşturur."
-        elif is_dividend:
-            signal = "Pozitif (Temettü / Nakit Dağıtımı)"
-            bilanço = f"Kâr payı dağıtımı{f' (`{amounts_str}`)' if amounts_str else ''}, şirketin güçlü nakit yaratma kabiliyetini teyit eder."
-            sektor = "BIST genelinde temettü verimi odaklı kurumsal ilgiyi canlı tutar."
-            piyasa = "Hissede temettü takvimine doğru pozitif fiyatlama eğilimini destekler."
-        elif is_acquisition:
-            signal = "Stratejik / Nötr-Pozitif (İnorganik Büyüme)"
-            bilanço = f"Satın alma/iştirak adımı{f' (`{amounts_str}`)' if amounts_str else ''}, konsolide hasılata doğrudan katkı sunar."
-            sektor = "Pazardaki rekabet gücünü ve operasyonel sinerjiyi artırır."
-            piyasa = "Entegrasyon süreci ve yatırım geri dönüş süresi piyasa tarafından takip edilir."
-        elif is_capital:
-            signal = "Nötr / Bilanço Güçlendirme (Sermaye Artırımı)"
-            bilanço = f"Sermaye artırımı{f' (`{amounts_str}`)' if amounts_str else ''}, özkaynakları güçlendirerek finansman maliyetini dengeler."
-            sektor = "Şirketin borçluluk rasyolarını iyileştirir."
-            piyasa = "Sermaye türüne (bedelli/bedelsiz) bağlı olarak likidite etkisi fiyatlanır."
-        elif is_insider:
-            signal = "İçsel İşlem / Kurumsal Takip"
-            bilanço = f"İlişkili taraf pay işlemi{f' (`{amounts_str}`)' if amounts_str else ''}, kurumsal şeffaflık kapsamında bildirilmiştir."
-            sektor = "Yönetim/ortaklık pay hareketleri kurumsal yatırımcılar tarafından yakından izlenir."
-            piyasa = "İşlemin alış veya satış yönlü oluşu kısa vadeli fiyat algısını etkileyebilir."
-        else:
-            signal = "Bilgilendirme / Nötr"
-            bilanço = f"Bildirilen kurumsal gelişme{f' (`{amounts_str}`)' if amounts_str else ''}, olağan faaliyet takvimi çerçevesindedir."
-            sektor = "Operasyonel süreçlerin planlandığı şekilde ilerlediğine işaret eder."
-            piyasa = "Doğrudan sert bir fiyatlama etkisi beklenmemektedir."
-
-        summary = f"{company} ({ticker}): {title[:110]}"
-
-        body = (
-            f"### Hızlı Bakış\n"
-            f"**{company}** ({ticker}), Kamuyu Aydınlatma Platformu'nda `{title}` başlıklı açıklamada bulundu.\n\n"
-            f"### Finansal Sinyal: {signal}\n"
-            f"- **Bilanço & Ciro:** {bilanço}\n"
-            f"- **Sektörel Konum:** {sektor}\n"
-            f"- **Piyasa Yansıması:** {piyasa}"
-        )
-
-        _prefix = f"${ticker} ({company}): "
-        _max_title = max(10, 270 - len(_prefix))
-        tweet = f"{_prefix}{title[:_max_title]}"
-        return body, summary, tweet
+        """AI yokken yorum üretilmez: gövde boş; özet ve tweet KAP başlığının kendisi (birebir)."""
+        return "", title, title
 
     @staticmethod
     def generate_sector_movement_analysis(
         sector_name: str, change_pct: float, headline: str, macro_context: str = ""
     ) -> tuple[str, str, str]:
-        """BIST sektör hareketleri için az, öz ve vurucu analiz üretir."""
-        direction = "yükseliş" if change_pct >= 0 else "kâr satışı"
-        sign = "+" if change_pct >= 0 else ""
-        signal = f"Pozitif (%{sign}{change_pct:.2f})" if change_pct >= 0 else f"Negatif (%{sign}{change_pct:.2f})"
-        flow = "güçlü para girişi" if change_pct >= 0 else "kâr realizasyonu ve para çıkışı"
-        
-        summary = f"BIST {sector_name}: %{sign}{change_pct:.2f} ile {direction} kaydetti."
-        
+        """BIST sektör endeksi hareketi için yalnızca veriyi aktaran kısa metin (yorum yok)."""
+        pct = f"%{change_pct:+.2f}".replace(".", ",")
+        summary = f"BIST {sector_name} endeksi son verilere göre {pct} değişti."
         body = (
-            f"### Piyasa Nabzı\n"
-            f"Borsa İstanbul'da **BIST {sector_name} Endeksi**, seans genelinde **%{sign}{change_pct:.2f}** değişerek piyasadan ayrıştı.\n\n"
-            f"### Sinyal & Rotasyon: {signal}\n"
-            f"- **Para Akışı:** Sektör bileşenlerinde gün içi {flow} izlendi; lokomotif hisseler harekete öncülük etti.\n"
-            f"- **Sektör Rotasyonu:** Yatırımcı ilgisinin getiri arayışıyla {sector_name} tarafında yoğunlaştığı gözleniyor.\n"
-            f"- **Kritik Eşik:** Kısa vadeli hareketli ortalamalar ve göreceli güç (RSI) seviyeleri takip edilmeli."
+            f"### Endeks Verisi\n"
+            f"- **Endeks:** BIST {sector_name}\n"
+            f"- **Değişim:** {pct}\n"
+            f"- **Kaynak:** Borsa İstanbul endeks verisi (gecikmeli olabilir)"
         )
-        
-        tweet = f"BIST {sector_name} sektörü %{sign}{change_pct:.2f} {direction} ile ayrışıyor. Para akışı ve sektör rotasyonu özeti raporda:"
+        tweet = f"BIST {sector_name} endeksi son verilere göre {pct} değişti. Endeks verisi raporda:"
         return body, summary, tweet
 
     def generate_morning_report_and_thread(
@@ -551,26 +383,27 @@ Tek cümle (max 140 karakter). Varsa sayısal veriyi (tutar, oran, lot, yüzde) 
 
         sections: list[str] = ["Genel Görünüm (BIST endeksi, genel tablo)"]
         if has_macro:
-            sections.append("Küresel Piyasalar (ABD 10Y faiz, EUR/USD, Altın, VIX, Brent — BIST etkisini yorumla)")
+            sections.append("Küresel Piyasalar (ABD 10Y faiz, EUR/USD, Altın, VIX, Brent — rakamlarıyla)")
         if has_viop:
             sections.append("VİOP & Türev Piyasa (endeks/vadeli fiyat, teminat stresi)")
         if has_sector:
-            sections.append("Sektör Rotasyonu (güçlü ve zayıf sektörler, para akışı)")
+            sections.append("Sektör Endeksleri (en çok yükselen ve düşen sektörler, rakamlarıyla)")
         if has_kap:
-            sections.append("KAP Öne Çıkanlar (önemli bildirimler; içsel işlem varsa vurgula)")
+            sections.append("KAP Bildirimleri (bildirimlerde ne açıklandığı)")
         if has_calendar:
             sections.append("Ekonomik Takvim (bugünün kritik veri açıklamaları)")
-        sections.append("Değerlendirme (özet görüş; yatırım tavsiyesi verme)")
+        sections.append("Özet (yalnızca yukarıdaki verilerin kısa özeti; tahmin ve görüş yok)")
         sections_text = "\n".join(f"  {i+1}. {s}" for i, s in enumerate(sections))
 
-        prompt = f"""Sen İstanbul merkezli bir aracı kurumun baş piyasa stratejistisin. \
+        prompt = f"""Sen tarafsız bir piyasa veri editörüsün. \
 {date_str} sabahı için kurumsal kalitede, veri odaklı bir piyasa bülteni ve Twitter thread'i yaz. \
-Türkçe yaz. Yatırım tavsiyesi verme. Yer tutucu (köşeli parantez içi metin) KULLANMA.
+Türkçe yaz. Yer tutucu (köşeli parantez içi metin) KULLANMA.
+{NEUTRAL_RULES}
 
 === BÖLÜM A: SABAH BÜLTENİ (RAPOR) ===
 Markdown formatında (## başlıklar, madde listeleri, kalın vurgular). \
 Her bölümü en az 4-5 cümleyle doyurucu biçimde doldur. \
-Verileri birbiriyle ilişkilendir — sadece rakam sıralama değil, yorumlama yap. \
+Verileri bağlamıyla ver (dünkü değer, haftalık değişim gibi) ama tahmin ve görüş ekleme. \
 En üste ## başlık KOYMA (dışarıdan eklenecek).
 
 Bölümler (sırayla, her birini tam doldur):
@@ -578,11 +411,10 @@ Bölümler (sırayla, her birini tam doldur):
 
 Yazım kuralları:
 - Her bölüm kendi içinde eksiksiz olmalı; okuyucu bölümü atlayabilmeli
-- Rakamları mutlaka bağlam içinde yorumla (örn: "XU100 1.2% geriledi — bu Mart'tan bu yana en sert günlük düşüş")
-- Küresel veri varsa BIST'e yansımasını açıkla
-- Sektör rotasyonu varsa para akışının nereden nereye gittiğini yorumla
-- KAP bildirimi varsa sadece başlık değil, bildirimin önemini açıkla
-- Ekonomik takvim varsa açıklanacak verinin piyasa beklentisini ve olası etkisini belirt
+- Rakamları bağlam içinde ver (örn: "XU100 %1,2 geriledi — Mart'tan bu yana en büyük günlük düşüş")
+- Sektör verisi varsa en çok yükselen ve düşen sektörleri rakamlarıyla listele
+- KAP bildirimi varsa bildirimde ne açıklandığını bir cümleyle aktar
+- Ekonomik takvim varsa açıklanacak veriyi ve (varsa) beklenti değerini belirt
 
 === BÖLÜM B: TWITTER THREAD ===
 6 tweet'lik thread. Her tweet tam bağımsız okunabilir ve değer katmalı.
@@ -624,7 +456,7 @@ TWEET 6: [metin]
 
         # --- Rapor bölümünü parse et ---
         report_match = re.search(r"---RAPOR---\s*(.*?)(?=---THREAD---|$)", raw, re.DOTALL)
-        body = report_match.group(1).strip() if report_match else raw.strip()
+        body = strip_banned(report_match.group(1).strip() if report_match else raw.strip())
         if not body:
             body = self._template_morning_report(snapshot)
 
@@ -634,7 +466,8 @@ TWEET 6: [metin]
 
         tweet_pattern = r"TWEET\s+\d+:\s*(.+?)(?=TWEET\s+\d+:|$)"
         matches = re.findall(tweet_pattern, thread_raw, re.DOTALL | re.IGNORECASE)
-        tweets = [m.strip()[:280] for m in matches if m.strip()]
+        tweets = [strip_banned(m.strip())[:280] for m in matches if m.strip()]
+        tweets = [t for t in tweets if t]
 
         if len(tweets) < 3:
             tweets = self._fallback_tweets(snapshot)
@@ -684,35 +517,29 @@ TWEET 6: [metin]
         Döndürür: (body_markdown, tweet_text)
         """
         prompt = f"""
-Sen üst düzey bir küresel piyasalar stratejistisin. Aşağıdaki güncel küresel makro
-verilerine bakarak detaylı, profesyonel ve öngörü dolu bir piyasa değerlendirmesi yaz.
-Sadece fiyatları tekrarlama; S&P 500, DAX gibi ana endekslerdeki, tahvil faizlerindeki
-ve kurlardaki değişimlerin birbiriyle bağlantısını, paranın nereye aktığını ve
-Borsa İstanbul (BIST) için ne gibi etkileri olabileceğini derinlemesine analiz et.
-
+Sen tarafsız bir küresel piyasalar veri editörüsün. Aşağıdaki güncel küresel makro
+verilerini özetleyen kısa ve profesyonel bir bülten yaz. S&P 500, DAX gibi ana
+endekslerdeki, tahvil faizlerindeki, kurlardaki ve emtialardaki değişimleri rakamlarıyla aktar.
+{NEUTRAL_RULES}
 Veriler:
 {macro_snapshot}
 
 Şu formatta yanıt ver:
 
 ## GÖRÜNÜM
-[Genel piyasa iştahı ve özet durumu anlatan 2-3 cümle]
+[Verilerin 2-3 cümlelik özeti]
 
-## ÖNE ÇIKAN GELİŞMELER VE ETKİLERİ
-- **ABD ve Avrupa Endeksleri:** [Yorum]
-- **Tahvil ve Döviz:** [Yorum]
-- **Emtia (Altın/Petrol) & VIX:** [Yorum]
-
-## BIST İÇİN BEKLENTİ
-[Bu küresel tablonun Türkiye piyasalarına olası yansımaları]
+## ÖNE ÇIKAN GELİŞMELER
+- **ABD ve Avrupa Endeksleri:** [Veri]
+- **Tahvil ve Döviz:** [Veri]
+- **Emtia (Altın/Petrol) & VIX:** [Veri]
 
 ## TWEET
-280 karakter hedefli, güçlü bir tweet. Kurallar:
-- İLK CÜMLE çarpıcı ve quote tweet'lenebilir bir "hook" olsun.
-- En kritik makro hareketi ve BIST için ne anlama geldiğini ver.
+280 karakter hedefli, tarafsız bir tweet. Kurallar:
+- En büyük makro hareketi rakamıyla ver.
 - Tarihsel bağlam ekle (örn: "Son 3 ayın en yüksek X değeri").
-- SORU ile bitir (etkileşimi artırır).
-- EMOJİ KULLANMA, hashtag EKLEMEde.
+- Tahmin ve yorum ekleme.
+- EMOJİ KULLANMA, hashtag EKLEME.
 """
         raw = self.client.generate(prompt, task_type="analysis")
         if raw:
@@ -722,13 +549,13 @@ Veriler:
                 m = re.search(pattern, raw, re.DOTALL | re.IGNORECASE)
                 return m.group(1).strip() if m else ""
                 
-            tweet = _extract("TWEET")
+            tweet = strip_banned(_extract("TWEET"))
             body_sections = []
-            for sec in ("GÖRÜNÜM", "ÖNE ÇIKAN GELİŞMELER VE ETKİLERİ", "BIST İÇİN BEKLENTİ"):
-                content = _extract(sec)
+            for sec in ("GÖRÜNÜM", "ÖNE ÇIKAN GELİŞMELER"):
+                content = strip_banned(_extract(sec))
                 if content:
                     body_sections.append(f"## {sec.title()}\n\n{content}")
-            body = "\n\n".join(body_sections) if body_sections else raw
+            body = "\n\n".join(body_sections) if body_sections else strip_banned(raw)
             return body, tweet
 
         log.info("AI kapalı/başarısız; şablon makro raporu üretilecek.")
@@ -788,9 +615,9 @@ Veri: {financial_data_text}
         if snapshot.sector:
             leaders = [s for s in snapshot.sector[:3]]
             laggards = [s for s in snapshot.sector[-3:]]
-            lines.append("\n### Sektör Rotasyonu")
-            lines.append("Güçlü: " + ", ".join(f"{s.name} ({s.change_str})" for s in leaders))
-            lines.append("Zayıf: " + ", ".join(f"{s.name} ({s.change_str})" for s in laggards))
+            lines.append("\n### Sektör Endeksleri")
+            lines.append("En çok yükselen: " + ", ".join(f"{s.name} ({s.change_str})" for s in leaders))
+            lines.append("En çok düşen: " + ", ".join(f"{s.name} ({s.change_str})" for s in laggards))
 
         # TÜRİB ELÜS (Tarımsal Emtia & Hububat)
         if snapshot.turib:
@@ -874,22 +701,21 @@ Veri: {financial_data_text}
                 f"{s.name} ({s.change_str})" for s in snapshot.sector[-3:]
             )
             sector_sec = (
-                f"## Sektör Rotasyonu\n\n"
-                f"- **Güçlü:** {leaders}\n"
-                f"- **Zayıf:** {laggards}\n\n"
+                f"## Sektör Endeksleri\n\n"
+                f"- **En çok yükselen:** {leaders}\n"
+                f"- **En çok düşen:** {laggards}\n\n"
             )
 
         kap = ""
         if snapshot.disclosures:
-            kap = "## KAP Öne Çıkanlar\n\n"
+            kap = "## KAP Bildirimleri\n\n"
             for d in snapshot.disclosures:
                 kap += f"- **{d.title}** — {d.disclosure_type}\n"
             kap += "\n"
 
         footer = (
-            "## Değerlendirme\n\n"
-            "Bu bülten otomatik olarak derlenmiştir. Küresel risk iştahı, sektör "
-            "rotasyonu ve yurt içi veri akışı gün içi yönü belirleyecek başlıklar "
-            "olmayı sürdürüyor."
+            "## Not\n\n"
+            "Bu bülten kamuya açık piyasa verilerinden otomatik olarak derlenmiştir; "
+            "yatırım tavsiyesi değildir."
         )
         return header + macro_sec + turib_sec + cal + viop_sec + sector_sec + kap + footer

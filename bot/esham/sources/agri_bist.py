@@ -61,7 +61,7 @@ class AgriCompanyImpact:
     commodity: str
     commodity_price: float
     commodity_change: float
-    margin_pressure: str  # "Pozitif (Stok Kârı)", "Negatif (Maliyet Baskısı)", "Nötr"
+    margin_pressure: str  # yalnız veri tanımı: "Girdi fiyatı yükseldi" | "Girdi fiyatı düştü" | "Girdi fiyatı yatay"
     commentary: str
 
 
@@ -113,21 +113,24 @@ class AgriBistAnalyzer:
             # Basit deterministik marj duyarlılığı:
             # Emtia fiyatı hızla artıyorsa (>+%3) ve hisse fiyatı ayak uyduramadıysa -> maliyet baskısı
             # Emtia fiyatı düşüyorsa (<-%2) -> kâr marjında rahatlama
-            pressure = "Nötr"
+            pressure = "Girdi fiyatı yatay"
             commentary = ""
 
             if comm_chg > 3.0:
                 if meta["impact_type"] == "feed_cost":
-                    pressure = "Yüksek Maliyet Baskısı"
-                    commentary = f"TÜRİB {comm_name} fiyatındaki %{_tr_number(comm_chg)} artış, {ticker} yem maliyetlerini yukarı yönlü zorluyor."
+                    pressure = "Girdi fiyatı yükseldi"
+                    commentary = f"TÜRİB {comm_name} fiyatı %{_tr_number(comm_chg)} arttı ({ticker} için girdi kalemi)."
                 else:
-                    pressure = "Maliyet & Stok Artışı"
-                    commentary = f"TÜRİB {comm_name} fiyatındaki %{_tr_number(comm_chg)} yükseliş, hammadde maliyetini artırırken mevcut silo stoklarına kâr yazabilir."
+                    pressure = "Girdi fiyatı yükseldi"
+                    commentary = f"TÜRİB {comm_name} fiyatı %{_tr_number(comm_chg)} arttı ({ticker} için hammadde kalemi)."
             elif comm_chg < -2.0:
-                pressure = "Maliyet Rahatlaması"
-                commentary = f"TÜRİB {comm_name} fiyatındaki %{_tr_number(comm_chg)} gerileme, {ticker} girdi marjlarını pozitif destekler."
+                pressure = "Girdi fiyatı düştü"
+                commentary = f"TÜRİB {comm_name} fiyatı %{_tr_number(comm_chg)} değişti ({ticker} için girdi kalemi)."
             else:
-                commentary = f"TÜRİB {comm_name} fiyatı yatay ({comm_price} TL/kg). Operasyonel marjlar olağan seyrinde."
+                commentary = f"TÜRİB {comm_name} fiyatı %{_tr_number(comm_chg)} değişti ({comm_price} TL/kg)."
+            # Etiket yalnız fiyat yönünü tanımlar (marj/kâr yorumu yok).
+            pressure = ("Girdi fiyatı yükseldi" if comm_chg > 0
+                        else "Girdi fiyatı düştü" if comm_chg < 0 else "Girdi fiyatı yatay")
 
             company_impacts.append(
                 AgriCompanyImpact(
@@ -146,8 +149,7 @@ class AgriBistAnalyzer:
         # Makro çıkarım
         macro_takeaway = (
             f"BIST Gıda Endeksi (XGIDA) {xgida.change} hareket ederken, "
-            f"TÜRİB Hububat Endeksi {hububat_chg} seviyesinde. "
-            f"Tarımsal emtia fiyatlarındaki yön, BIST gıda şirketlerinin 1-2 çeyrek sonraki FAVÖK marjlarına doğrudan yansıyacaktır."
+            f"TÜRİB Hububat Endeksi {hububat_chg} seviyesinde."
         )
 
         return AgriBistCorrelationReport(

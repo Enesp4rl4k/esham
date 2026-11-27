@@ -80,7 +80,7 @@ def calculate_fear_greed() -> FearGreedResult:
     else:
         label = "AŞIRI AÇGÖZLÜLÜK 🤑"
 
-    summary_text = "Piyasa Faktörleri: " + ", ".join(reasons) if reasons else "Piyasada belirgin bir yön sinyali yok."
+    summary_text = "Piyasa Faktörleri: " + ", ".join(reasons) if reasons else "Endeks bileşenlerinde belirgin bir değişim yok."
     return FearGreedResult(score=score, label=label, summary=summary_text)
 
 if __name__ == "__main__":

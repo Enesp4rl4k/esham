@@ -27,7 +27,7 @@ def test_viop_margin_is_official_takasbank():
 def test_viop_stress_assessment():
     stress_up = assess_margin_stress(today_pct=1.33, prior_pct=0.45)
     assert stress_up.level == "Yükseliyor"
-    assert "sıkılaştırıyor" in stress_up.note
+    assert "önceki güne göre yükseldi" in stress_up.note and "olası" not in stress_up.note
 
     stress_flat = assess_margin_stress(today_pct=0.83, prior_pct=0.82)
     assert stress_flat.level == "Sabit"
@@ -59,9 +59,11 @@ def test_temerrut_classification_and_no_emojis():
         is_insider=False,
     )
     
-    # Must be classified as Risk / Temerrüt Bildirimi, NOT Pozitif
-    assert "Risk / Temerrüt Bildirimi" in body
-    assert "Pozitif (Yeni Sipariş" not in body
+    # AI yokken yorum üretilmez: gövde boş, özet KAP başlığının kendisi; yargı etiketi yok.
+    assert body == ""
+    assert summary == "İşleme Açılan Temerrüt Sırası"
+    assert "Pozitif" not in body
+    assert "Sinyal" not in body
     assert "🟢" not in body
     assert "🚨" not in body
     assert "⚡" not in body

@@ -140,7 +140,7 @@ class Settings:
 
     brand_tagline: str = field(
         default_factory=lambda: os.getenv(
-            "ESHAM_BRAND_TAGLINE", "YAPAY ZEKA DESTEKLİ PİYASA ANALİZİ"
+            "ESHAM_BRAND_TAGLINE", "KAMUYA AÇIK BİLDİRİM VE VERİ ÖZETLERİ"
         )
     )
     # Takasbank VİOP agregat teminat verisi (opsiyonel; boşsa gerçekçi örnek kullanılır).

@@ -19,6 +19,7 @@ from pathlib import Path
 
 from ..config import get_logger, settings
 from ..guardrails import allow, validate_report
+from ..neutral import REPORT_SCHEMA_VERSION
 
 log = get_logger(__name__)
 
@@ -53,10 +54,24 @@ class ReportDraft:
     # `Report.ipo` ile senkron: takvim/istatistik sayfaları body markdown'ini regex ile
     # sömmek zorunda kalmasın. None ise JSON'a hiç yazılmaz (eski raporlar değişmez).
     ipo: dict | None = None
+    # BİREBİR/olgusal blok (KAP başlığı, şirket, tarih, bildirim türü, tutarlar, KAP bağlantısı):
+    # tarafsız dil süzgecinden GEÇMEZ ve gövdenin sonuna eklenir. `body` yalnız üretilmiş metindir.
+    facts: str = ""
+    # Özet birebir kaynaksa (ör. KAP başlığı) süzülmez.
+    summary_verbatim: bool = False
+    # Üretilmiş özet süzgece takılırsa kullanılacak birebir özet (KAP başlığı).
+    fallback_summary: str = ""
+    # Tüm üreticiler bu sürümü yazar. Web, eski kayıt kararını YALNIZ bu alana göre verir
+    # (alan yoksa = bu tarafsız dil sürümünden önce üretilmiş kayıt).
+    schema_version: int | None = REPORT_SCHEMA_VERSION
+    kap: dict | None = None
 
     def resolved_slug(self) -> str:
         base = self.slug or slugify(self.title)
         return f"{base}-{self.published_at.date().isoformat()}"
+
+    def filename(self) -> str:
+        return f"{self.published_at.date().isoformat()}-{self.slug or slugify(self.title)}.json"
 
     def to_document(self, image_rel_url: str | None = None) -> dict:
         if self.category not in VALID_CATEGORIES:
@@ -75,12 +90,16 @@ class ReportDraft:
             "aiGenerated": self.ai_generated,
             "sources": self.sources,
             "tags": self.tags,
-            "body": self.body,
+            "body": "\n\n".join(p for p in (self.body.strip(), self.facts.strip()) if p),
         }
         if image_rel_url:
             doc["image"] = image_rel_url
         if self.ipo:
             doc["ipo"] = self.ipo
+        if self.schema_version is not None:
+            doc["schemaVersion"] = self.schema_version
+        if self.kap:
+            doc["kap"] = self.kap
         return doc
 
 
@@ -89,16 +108,30 @@ class ContentStore:
         self.content_dir = content_dir or settings.content_dir
         self.content_dir.mkdir(parents=True, exist_ok=True)
         self.cards_dir = cards_dir or settings.cards_dir
-
+        #: Son publish/prepare kararı: published | duplicate | paused | blocked | ok
+        self.last_status = "none"
     def _is_daily_duplicate(self, draft: ReportDraft) -> bool:
         """Kullanıcı kuralı: Gün içi aynı varlık hakkında (yön değişse dahi) tek bir
         kaliteli paylaşım yeterlidir; gün içi 2 defa aynı paylaşımı yapmaya gerek yok.
         """
         today_prefix = draft.published_at.date().isoformat()
-        candidate_slug = slugify(draft.title)
-        candidate_filename = f"{today_prefix}-{candidate_slug}.json"
-        if (self.content_dir / candidate_filename).exists():
+        if (self.content_dir / draft.filename()).exists():
             return True
+        if draft.kap:
+            # KAP bildirimleri bildirim NUMARASIYLA tekilleşir — tarihten bağımsız: rapor yazıldıktan sonra
+            # bir hata olup ertesi gün yeniden denenirse çift rapor/çift gönderi oluşmaz. Varlık bazlı
+            # günlük tavan uygulanmaz (aynı gün aynı başlıklı iki ayrı bildirim kaybolmasın).
+            index = str(draft.kap.get("index") or "")
+            if index:
+                for path in self.content_dir.glob(f"*-{index}.json"):
+                    try:
+                        doc = json.loads(path.read_text(encoding="utf-8"))
+                    except (OSError, ValueError):
+                        continue
+                    if str((doc.get("kap") or {}).get("index") or "") == index:
+                        log.info("[MÜKERRER] KAP bildirimi #%s zaten yayınlanmış (%s)", index, path.name)
+                        return True
+            return False
 
         title_lower = draft.title.translate(_TR_MAP).lower()
         SINGLE_PER_DAY_ASSETS = [
@@ -127,34 +160,71 @@ class ContentStore:
 
         return False
 
-    def publish(self, draft: ReportDraft) -> Path | None:
-        """Raporu yayınlar. Acil durdurma veya guardrail'a takılırsa yazmaz, None döner."""
+    def prepare(self, draft: ReportDraft) -> str:
+        """Yayın kararını verir (dosya yazmadan): ok | paused | duplicate | blocked.
+
+        - Üretilmiş gövde/özet tarafsız dil süzgecinden geçer; birebir kısım (``facts``, KAP başlığı,
+          birebir özet) süzülmez.
+        - Süzgeçten sonra hâlâ ihlal varsa ve rapor bir birebir blok taşıyorsa (KAP), üretilmiş kısım
+          atılır ve YALIN rapor yayınlanır — bildirim sessizce kaybolmaz.
+        """
         if settings.paused:
             log.info("[PAUSED] Rapor yayını atlandı: %s", draft.title)
-            return None
+            self.last_status = "paused"
+            return "paused"
 
-        # Başlık İngilizce ise son emniyet kilidi olarak Türkçeleştir
         from ..translation import ensure_turkish, is_mostly_english
-        if is_mostly_english(draft.title):
+        if not draft.facts and is_mostly_english(draft.title):
             tr_title = ensure_turkish(draft.title)
             if tr_title:
                 draft.title = tr_title
 
-        violations = validate_report(draft.title, draft.summary, draft.body)
+        from ..neutral import find_banned, sanitize_summary, strip_banned
+        draft.body = strip_banned(draft.body)
+        if not draft.summary_verbatim:
+            draft.summary = sanitize_summary(draft.summary, draft.fallback_summary or draft.title)
+            if draft.fallback_summary and draft.summary == draft.fallback_summary:
+                draft.summary_verbatim = True
+        draft.tags = [t for t in draft.tags if t and not find_banned(t)]
+
+        violations = validate_report(
+            draft.title, "" if draft.summary_verbatim else draft.summary, draft.body
+        )
+        if violations and draft.facts:
+            log.warning(
+                "Üretilmiş metin guardrail'a takıldı (%s); yalın rapor yayınlanacak: %s",
+                "; ".join(violations), draft.title,
+            )
+            draft.body = ""
+            draft.summary = draft.fallback_summary or draft.title
+            draft.summary_verbatim = True
+            violations = validate_report(draft.title, "", "")
         if not allow(f"rapor '{draft.title}'", violations):
-            return None
+            self.last_status = "blocked"
+            return "blocked"
         if self._is_daily_duplicate(draft):
-            log.info("[MÜKERRER ATLANDI] Gün içi 2. kez aynı varlık paylaşımı yapılmaz: %s", draft.title)
-            return None
+            log.info("[MÜKERRER ATLANDI] Gün içi 2. kez aynı paylaşım yapılmaz: %s", draft.title)
+            self.last_status = "duplicate"
+            return "duplicate"
+        self.last_status = "ok"
+        return "ok"
+
+    def publish(self, draft: ReportDraft, *, prepared: bool = False) -> Path | None:
+        """Raporu yayınlar. Acil durdurma, mükerrer veya guardrail engelinde yazmaz, None döner
+        (neden: ``last_status``)."""
+        if not prepared:
+            decision = self.prepare(draft)
+            if decision != "ok":
+                return None
 
         slug = draft.resolved_slug()
         image_rel_url = self._store_image(draft.image_path, slug)
 
         doc = draft.to_document(image_rel_url)
-        filename = f"{draft.published_at.date().isoformat()}-{slugify(draft.title)}.json"
-        path = self.content_dir / filename
+        path = self.content_dir / draft.filename()
         path.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         log.info("Rapor yayınlandı: %s (%s)", doc["slug"], path)
+        self.last_status = "published"
 
         # Render/VPS modunda: üretilen raporu otomatik git push yap ki
         # Cloudflare Pages yeni içeriği görebilsin.

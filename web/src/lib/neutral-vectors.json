@@ -1,0 +1,475 @@
+{
+  "_doc": "Ortak davranış vektörleri: bot/tests/test_neutral_language.py ve web/src/lib/neutral.test.mjs aynı dosyayı koşar. block: find_banned boş olmamalı; keep: boş olmalı; normalize: [girdi, beklenen]; strip: [girdi, beklenen strip_banned çıktısı]. legacy: [eski kayıt, beklenen görünen başlık, beklenen özet].",
+  "block": [
+    "Hisse alınabilir.",
+    "Bu seviyelerden satılmalı.",
+    "Analistlerin hedef fiyatı 120 TL.",
+    "Hisse 50 TL direncini kırdı.",
+    "Hedef fiyatlarımız yükseltildi.",
+    "HEDEF FİYAT 120 TL",
+    "hedef  fiyat 120 TL",
+    "hedef-fiyat 120 TL",
+    "hedef fiyat 120 TL",
+    "hedef​fiyat 120 TL",
+    "di​renç 50 TL",
+    "s i n y a l",
+    "AlSinyali geldi",
+    "Güçlü AL",
+    "AL",
+    "Strong buy",
+    "Buy",
+    "sell signal",
+    "Target price 120",
+    "price target raised",
+    "support at 50, resistance at 60",
+    "take profit at 60",
+    "stop loss 45",
+    "stop-loss seviyesi 45",
+    "zarar kes 45",
+    "Bullish görünüm",
+    "bull run",
+    "🚀🚀 ASELS",
+    "📈 Yükseliş bekleniyor",
+    "🟢 AL",
+    "⬆️ yukarı yönlü",
+    "pozitif ayrışma bekleniyor",
+    "negatif ayrışma",
+    "prim potansiyeli yüksek",
+    "%30 yükseliş potansiyeli",
+    "%30 getiri bekleniyor",
+    "%40 yukarı potansiyel",
+    "değerlenme potansiyeli",
+    "hisse ucuz kaldı",
+    "hisse pahalı",
+    "fırsat kaçırmayın",
+    "Kaçırmayın!",
+    "tavan serisi devam edebilir",
+    "hisse tavana kitlendi, taban olmaz",
+    "fiyatın yükselmesi beklenir",
+    "fiyatın yükselmesi bekleniyor",
+    "hisse fiyatının artması beklenmektedir",
+    "yükseliş öngörülüyor",
+    "ralli başlayabilir",
+    "Hisse için olumlu.",
+    "Hisseyi portföyde tutmaya devam.",
+    "Tut",
+    "Endekste destek 9.500, direnç 10.000",
+    "destek 9.500 puan",
+    "ilk destek 9.500",
+    "Destekten tepki",
+    "aşırı alım bölgesinde",
+    "Aşırı alımda",
+    "RSI 75",
+    "RSI(14) 75",
+    "Hareketli ortalamanın üstünde",
+    "MACD al verdi",
+    "Fib %61,8",
+    "boğa piyasası",
+    "boğalar kontrolde",
+    "ayılar baskın",
+    "Ayı senaryosunda",
+    "iskontolu işlem görüyor",
+    "F/K bazında ucuz",
+    "adil değeri 80 TL",
+    "Bilanço beklentilerin üzerinde, hisseye talep artabilir",
+    "MEGA İŞ ANLAŞMASI",
+    "MEGA ANLAŞMA",
+    "Mega-Sözleşme",
+    "Dev sözleşme",
+    "Tarihi anlaşma",
+    "Rekor sözleşme",
+    "Tier-1 anlaşma",
+    "Kâr satışı gelebilir",
+    "Kar realizasyonu",
+    "Kâr al",
+    "Pozitif sinyal",
+    "Finansal Sinyal: Pozitif",
+    "Pozitif (Yeni Sipariş)",
+    "Nötr-Pozitif",
+    "pozitif etkisi olabilir",
+    "olumlu etkilemesi beklenir",
+    "olumlu etkileyecektir",
+    "yatırımcıların ilgisini çekebilir",
+    "Alım fırsatı",
+    "Alım için uygun seviye",
+    "Kademeli alım yapılabilir",
+    "Kademeli alım",
+    "hedeffiyat 150 TL",
+    "H3DEF F1YAT 150",
+    "TP: 150 TL",
+    "target-price 150",
+    "Hisse yükselebilir.",
+    "Fiyatın artması muhtemel.",
+    "Hisse değerlenebilir.",
+    "Hisse primlenebilir.",
+    "Hisse prim yapabilir.",
+    "Yükseliş beklentisi güçlü.",
+    "yukarı yönlü potansiyel taşıyor",
+    "Potansiyel getiri %40",
+    "Hisse %40 kazandırabilir",
+    "Yatırımcısına kazandırır",
+    "Portföye eklenebilir.",
+    "Pozisyon alınabilir.",
+    "Long pozisyon açılabilir",
+    "Short fırsatı",
+    "Dipten toplama fırsatı",
+    "Dip seviyeden alım",
+    "Tepki yükselişi gelebilir",
+    "Teknik görünüm olumlu",
+    "Trend dönüşü sinyali veriyor",
+    "Yatay bant kırılımı gerçekleşti",
+    "Kırılım sonrası 150 TL hedef",
+    "Hedef 150 TL",
+    "150 TL hedefli",
+    "Kısa vadede yükseliş bekliyoruz",
+    "Olumlu görünüm korunuyor",
+    "Endeks 11.000 puanı test edebilir",
+    "Satış baskısı sürebilir",
+    "Değerinin altında işlem görüyor",
+    "Fiyatı ucuz kaldı",
+    "Uçuşa geçebilir 🚀",
+    "💰💰 ASELS",
+    "↗️ ASELS",
+    "⬆ yükseliş",
+    "AL 🔥",
+    "сінyal",
+    "Hisse için alım zamanı",
+    "Güçlü al önerisi",
+    "Endeks için iyimseriz",
+    "Hisse aşırı değerli",
+    "Ralliye hazırlanıyor",
+    "Kâr al seviyesi 160",
+    "Zarar-kes 140",
+    "takeprofit 160",
+    "stoploss 140",
+    "accumulate",
+    "outperform",
+    "overweight",
+    "upside %30",
+    "Fiyat hedefimiz 150",
+    "Hisse üzerinde kısa vadede pozitif haber akışı etkisi yaratması beklenir.",
+    "Pivot Üstü: Boğa / Altı: Ayı",
+    "İlk Kar Satışı Bölgesi",
+    "Olası Tepki Alım Tabanı",
+    "Kritik Direnç (R1 / 20G)",
+    "Stratejik Sınıf: TIER-1 (MEGA İŞ ANLAŞMASI)",
+    "hedef fiyat 120 TL",
+    "HEDEF‑FİYAT",
+    "di­renç 50",
+    "Güçlü AL",
+    "piyasa yansıması güçlü olacak",
+    "Endeksin 11.000 puana yükselmesi öngörülüyor",
+    "kurumsal para girişi hızlandı",
+    "tavsiye ederim",
+    "🔥 Dev ihale"
+  ],
+  "keep": [
+    "Şirketimiz ile Boğaziçi Elektrik arasında sözleşme imzalanmıştır.",
+    "Hedef şirketin paylarının %60'ı devralınacaktır.",
+    "Hedef şirket ile birleşme işlemi SPK onayına sunulmuştur.",
+    "Yatırım teşvik belgesi kapsamında devlet desteği alınmıştır.",
+    "Ar-Ge destek programı kapsamında hibe sağlanmıştır.",
+    "Pay alım satım sözleşmesi imzalanmıştır.",
+    "Bağımsız denetçi olumlu görüş vermiştir.",
+    "Kayıtlı sermaye tavanı 5.000.000.000 TL'ye yükseltilmiştir.",
+    "Kayıtlı sermaye tavanının 2026-2030 yılları için geçerli olması",
+    "Tier 2 sermaye benzeri borçlanma aracı ihracı tamamlanmıştır.",
+    "İlave ana sermaye (AT1 / Tier 1) niteliğinde tahvil ihracı",
+    "Demiryolu sinyalizasyon sistemi ihalesini kazandık.",
+    "Sinyal işleme modülleri tedarik sözleşmesi imzalanmıştır.",
+    "Planlı bakım kapsamında katalizör değişimi yapılacaktır.",
+    "Garanti karşılığı teminat mektubu verilmiştir.",
+    "Garanti kâr payı dağıtım tarihi 15.05.2026",
+    "İklimle ilgili risk ve fırsatlar TSRS kapsamında raporlanmıştır.",
+    "Satış bölgesi müdürlüğü kurulmuştur.",
+    "Satıştan 100 milyon TL para girişi sağlanacaktır.",
+    "İşlemin 2027 yılında tamamlanması beklenir.",
+    "Bina deprem direnci raporu alınmıştır.",
+    "Yatırım amaçlı gayrimenkullerin adil değer ölçümü yapılmıştır.",
+    "TMO alım tabanı fiyatı açıklandı.",
+    "Pozitif Elektronik A.Ş. ile sözleşme",
+    "Gerekli izinlerin mutlaka alınması gerekmektedir.",
+    "Mega Polietilen paylarının devri",
+    "Kasım ayı bilançosu",
+    "Gelir tablosunda fiyat etkisi ve hacim etkisi ayrıştırılmıştır.",
+    "Halka arzda hisseye talep 3,2 kat olmuştur.",
+    "Pivot Gayrimenkul A.Ş. ile kira sözleşmesi",
+    "Şirketimiz Hedef Holding A.Ş. ile birleşme sözleşmesi imzalamıştır.",
+    "Ticaret sicil müdürlüğünde tescil edilmiştir.",
+    "Pay başına 1,25 TL kâr payı ödenecektir.",
+    "Kayıtlı sermaye tavanı 10 milyar TL'dir.",
+    "Bağımsız denetim raporunda olumlu görüş verilmiştir.",
+    "Ar-Ge destek programından hibe alınmıştır.",
+    "Tahvilin kupon oranı %45 olarak belirlenmiştir.",
+    "Fiyat istikrarı işlemleri 30 gün sürecektir.",
+    "Pay geri alım programı kapsamında 100.000 adet pay alınmıştır.",
+    "Teşvik belgesi kapsamında vergi indirimi desteği sağlanmıştır.",
+    "Şirketin 2026 yılı satış hedefi 10 milyar TL olarak açıklanmıştır.",
+    "Yönetim kurulu yükseliş trendindeki talebi karşılamak için kapasite artırımı kararı almıştır.",
+    "Tavan fiyat uygulaması kapsamında işlemler durdurulmuştur.",
+    "Long-term incentive plan kapsamında pay verilmiştir.",
+    "Fitch, bankanın görünümünü olumlu olarak teyit etmiştir.",
+    "JCR, uzun vadeli notu AA olarak, görünümü pozitif olarak belirlemiştir.",
+    "Pay alım teklifi fiyatı 45,20 TL olarak belirlenmiştir.",
+    "Sermaye artırımında rüçhan hakkı kullanım fiyatı 1 TL'dir.",
+    "Satış bedelinin 2027 yılında tahsil edilmesi beklenmektedir.",
+    "İşlemin Rekabet Kurumu onayı sonrası tamamlanması öngörülmektedir.",
+    "Şirket, TCDD sinyal sistemleri ihalesini kazanmıştır.",
+    "Destek hizmetleri sözleşmesi yenilenmiştir.",
+    "Direnç kaynaklı ısıtma sistemleri üretim tesisi açılmıştır.",
+    "Hedef pazarlar arasında Almanya ve İngiltere bulunmaktadır.",
+    "Fırsat eşitliği politikası güncellenmiştir.",
+    "Tavan kredi limiti 500 milyon TL'ye yükseltilmiştir.",
+    "Boğaziçi Yönetim A.Ş. ile kira sözleşmesi imzalanmıştır.",
+    "Ayı Gıda A.Ş. paylarının devri",
+    "Bull Run Enerji A.Ş. ile ortaklık",
+    "Overweight kargo ücretleri tarifesi",
+    "JCR, şirketin kredi notunu teyit etmiş, görünümünü negatif görünüm olarak belirlemiştir.",
+    "Not görünümü aşağı yönlü revize edilmiştir.",
+    "Hisse başına brüt 0,50 TL kâr payı dağıtılması öngörülüyor.",
+    "5,58 milyar TL sermaye artışı öngörülüyor.",
+    "İşlemlerin 30 gün sürebilir olduğu belirtilmiştir.",
+    "A, B ve C grubu paylar",
+    "XU100 endeksi 13.963,02 puandan kapandı.",
+    "Bu içerik, kamuya açık bir KAP bildiriminin otomatik özetidir; yatırım tavsiyesi değildir.",
+    "Bu içerik, kamuya açık verilerin otomatik özetidir; yatırım tavsiyesi değildir.",
+    "AKBANK T.A.Ş.: Tier 2 Sermaye Benzeri Borçlanma Aracı İhracı",
+    "KONTROLMATİK TEKNOLOJİ A.Ş.: Demiryolu Sinyalizasyon Projesi Sözleşmesi",
+    "BORUSAN BİRLEŞİK BORU FABRİKALARI A.Ş.: Yeni İş İlişkisi",
+    "Bakımın 45 gün sürmesi beklenir.",
+    "SPK tarafından değerlendirilmesi beklenmektedir.",
+    "Belgelerin getirilmesi beklenmektedir.",
+    "Fabrikanın kurulmasının 2027'de tamamlanması bekleniyor.",
+    "Satış bedeli şirketin nakit varlıklarını destekler.",
+    "Nominal değerin üzerinde primli satış yapılacaktır.",
+    "İskontolu finansman bonosu ihraç edilecektir.",
+    "Pay başına brüt 4,65 TL nakit kâr payı dağıtılacaktır.",
+    "Sıra, sektördeki 12 hisse üzerinden hesaplanır.",
+    "Sermaye artırımı A grubu paylar için yapılacaktır.",
+    "Garanti BBVA ile kredi sözleşmesi imzalanmıştır.",
+    "BULLS GİRİŞİM SERMAYESİ YATIRIM ORTAKLIĞI A.Ş.: Sermaye Artırımı"
+  ],
+  "normalize": [
+    [
+      "HEDEF FİYAT",
+      "hedef fiyat"
+    ],
+    [
+      "hedef  fiyat",
+      "hedef fiyat"
+    ],
+    [
+      "hedef-fiyat",
+      "hedef fiyat"
+    ],
+    [
+      "hedef–fiyat",
+      "hedef fiyat"
+    ],
+    [
+      "hedef fiyat",
+      "hedef fiyat"
+    ],
+    [
+      "hedef​fiyat",
+      "hedeffiyat"
+    ],
+    [
+      "di­renç",
+      "direnc"
+    ],
+    [
+      "KÂR SATIŞI",
+      "kar satisi"
+    ],
+    [
+      "Iğdır ŞİŞLİ",
+      "igdir sisli"
+    ],
+    [
+      "ⅠⅡ ﬁyat",
+      "iii fiyat"
+    ],
+    [
+      "⬆️ yukarı",
+      "⬆ yukari"
+    ],
+    [
+      "s i n y a l",
+      "harf aralikli yazim"
+    ],
+    [
+      "H3DEF F1YAT",
+      "hedef fiyat"
+    ],
+    [
+      "сінyal",
+      "karisik alfabe yazim"
+    ],
+    [
+      "СЕР",
+      "cep"
+    ],
+    [
+      "2026 yılı",
+      "2026 yili"
+    ],
+    [
+      "  boşluk  ",
+      "bosluk"
+    ]
+  ],
+  "strip": [
+    [
+      "### Hızlı Bakış\nŞirket bildirim yayımladı.\n\n### Finansal Sinyal: Pozitif\n- Hisse üzerinde etki.\n\n### Bildirim Bilgileri\n- Tutar: 5 TL",
+      "### Hızlı Bakış\nŞirket bildirim yayımladı.\n\n### Bildirim Bilgileri\n- Tutar: 5 TL"
+    ],
+    [
+      "Şirket sözleşme imzaladı. Hedef fiyat 150 TL. Teslimat 2027'de.",
+      "Şirket sözleşme imzaladı. Teslimat 2027'de."
+    ],
+    [
+      "| Metrik | Seviye |\n| :--- | :--- |\n| Kritik Destek | 125 TL |\n\nSon satır.",
+      "Son satır."
+    ],
+    [
+      "- **Ne açıklandı:** Bakım başladı.\r\n- **Piyasa:** RSI 75, aşırı alım.\r\nAL",
+      "- **Ne açıklandı:** Bakım başladı."
+    ],
+    [
+      "## A\n### Boğa senaryosu\nmetin\n#### alt\nalt metin\n### Temiz\nkalır",
+      "## A\n### Temiz\nkalır"
+    ]
+  ],
+  "legacy": [
+    [
+      {
+        "title": "TÜRKİYE İŞ BANKASI A.Ş.: Yurt İçinde Sermaye Benzeri Tahvil İhracına İlişkin SPK Başvurusu",
+        "sources": [
+          "KAP",
+          "ISATR"
+        ],
+        "category": "bist",
+        "publishedAt": "2026-11-04T16:41:09Z"
+      },
+      "TÜRKİYE İŞ BANKASI A.Ş.: Yurt İçinde Sermaye Benzeri Tahvil İhracına İlişkin SPK Başvurusu",
+      "KAP bildirimi — eski kayıt."
+    ],
+    [
+      {
+        "title": "Goldman Sachs International- 17/07/2026 Tarihinde ihraç edilecek Yatırım Kuruluşu Varantları",
+        "sources": [
+          "KAP"
+        ],
+        "category": "bist",
+        "publishedAt": "2026-07-16T09:00:00Z"
+      },
+      "Goldman Sachs International- 17/07/2026 Tarihinde ihraç edilecek Yatırım Kuruluşu Varantları",
+      "KAP bildirimi — eski kayıt."
+    ],
+    [
+      {
+        "title": "HUN YENİLENEBİLİR ENERJİ ÜRETİM A.Ş. Halka Arz Analizi",
+        "sources": [
+          "KAP",
+          "İzahname",
+          "Fiyat Tespit Raporu"
+        ],
+        "category": "ipo",
+        "publishedAt": "2026-11-10T10:00:00Z"
+      },
+      "Halka arz belgesi özeti — 10 Kasım 2026",
+      "Eski kayıt; içerik gösterilmiyor."
+    ],
+    [
+      {
+        "title": "BIST & Küresel Piyasalar Sabah Raporu",
+        "sources": [
+          "KAP",
+          "BIST",
+          "Ekonomik Takvim"
+        ],
+        "category": "bist",
+        "publishedAt": "2026-07-06T05:30:00Z"
+      },
+      "Sabah bülteni — 6 Temmuz 2026",
+      "Eski kayıt; içerik gösterilmiyor."
+    ],
+    [
+      {
+        "title": "Kapanış Bülteni: BIST +1,20%",
+        "sources": [
+          "BIST",
+          "TradingView"
+        ],
+        "category": "bist",
+        "publishedAt": "2026-09-12T21:30:00Z"
+      },
+      "Kapanış bülteni — 13 Eylül 2026",
+      "Eski kayıt; içerik gösterilmiyor."
+    ],
+    [
+      {
+        "title": "Altın +1,49% yükseldi (4.145). Güvenli liman talebi artıyor.",
+        "sources": [
+          "Yahoo Finance"
+        ],
+        "category": "global",
+        "publishedAt": "2026-08-01T12:00:00Z"
+      },
+      "Küresel piyasa notu — 1 Ağustos 2026",
+      "Eski kayıt; içerik gösterilmiyor."
+    ],
+    [
+      {
+        "title": "BIST Bankacılık sektörü +3,14% ile güçlü yükseldi; sektör rotasyonu ve para akışı takip ediliyor.",
+        "sources": [
+          "Yahoo Finance"
+        ],
+        "category": "bist",
+        "publishedAt": "2026-08-03T12:00:00Z"
+      },
+      "BIST piyasa notu — 3 Ağustos 2026",
+      "Eski kayıt; içerik gösterilmiyor."
+    ],
+    [
+      {
+        "title": "Haftalık Piyasa Özeti — 10 July 2026 haftası",
+        "sources": [
+          "BIST",
+          "KAP",
+          "Yahoo Finance"
+        ],
+        "category": "bist",
+        "publishedAt": "2026-07-10T15:30:00Z"
+      },
+      "Haftalık piyasa özeti — 10 Temmuz 2026",
+      "Eski kayıt; içerik gösterilmiyor."
+    ],
+    [
+      {
+        "title": "THYAO Finansal Analiz — 2025/Q1",
+        "sources": [
+          "KAP",
+          "Finansal Tablolar"
+        ],
+        "category": "bist",
+        "publishedAt": "2026-07-01T10:00:00Z"
+      },
+      "Finansal tablo özeti — 1 Temmuz 2026",
+      "Eski kayıt; içerik gösterilmiyor."
+    ],
+    [
+      {
+        "title": "Bitcoin +3.90% ile güçlü yükseldi",
+        "sources": [
+          "CoinDesk"
+        ],
+        "category": "kripto",
+        "publishedAt": "2026-08-05T23:59:00Z"
+      },
+      "Kripto piyasa notu — 6 Ağustos 2026",
+      "Eski kayıt; içerik gösterilmiyor."
+    ]
+  ]
+}

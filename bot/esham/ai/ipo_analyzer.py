@@ -90,6 +90,13 @@ class IpoAnalysis:
             meta["risks"] = list(self.risks)
         return meta
 
+    def has_content(self) -> bool:
+        """Belgeden en az bir alan ayıklandı mı? AI kapalı/başarısızken her şey boştur → yayın yapılmaz."""
+        return self.ai_generated and any([
+            self.price, self.discount_rate, self.offer_size, self.net_margin, self.fund_usage,
+            self.commitments, self.strengths, self.risks, any(v for v in self.valuation.values()),
+        ])
+
     def to_markdown(self) -> str:
         def bullets(items: list[str]) -> str:
             return "\n".join(f"- {i}" for i in items) if items else "- Belirtilmemiş"
@@ -120,11 +127,11 @@ class IpoAnalysis:
 | --- | --- |
 {val}
 
-## ✅ Olumlu Noktalar
+## Belgede Öne Çıkarılan Bilgiler
 
 {bullets(self.strengths)}
 
-## 🚨 Dikkat Edilecek Riskler
+## Belgede Belirtilen Riskler
 
 {bullets(self.risks)}
 
@@ -132,11 +139,11 @@ class IpoAnalysis:
 
 {bullets(self.commitments)}
 
-## Değerlendirme
+## Özet
 
-{self.verdict or 'Değerlendirme üretilemedi.'}
+{self.verdict or 'Özet üretilemedi.'}
 
-*Analiz güven düzeyi: {self.confidence}.*"""
+*Bilgi ayıklama güven düzeyi: {self.confidence}.*"""
 
     def to_pdf_data(self) -> dict:
         return {
@@ -155,9 +162,10 @@ class IpoAnalysis:
         }
 
 
-_PROMPT = """Sen deneyimli bir sermaye piyasası analistisin. Aşağıdaki halka arz
-izahnamesi / fiyat tespit raporu bölümlerini incele ve yalnızca JSON döndür.
-Yatırım tavsiyesi verme; nesnel ol. Bulamadığın alanları boş bırak (uydurma).
+_PROMPT = """Sen tarafsız bir belge özetleyicisisin. Aşağıdaki halka arz
+izahnamesi / fiyat tespit raporu bölümlerinden bilgi ayıkla ve yalnızca JSON döndür.
+Bulamadığın alanları boş bırak (uydurma). Yalnızca belgede yazanları aktar: halka arza
+katılım önerisi, "cazip/pahalı/ucuz" gibi değerleme yargısı, fiyat veya getiri tahmini YAZMA.
 
 ÖNEMLİ biçim kuralları:
 1. "price", "discount_rate", "offer_size" ve valuation değerlerinin HER BİRİ
@@ -187,10 +195,10 @@ Belge bölümleri:
   "net_margin": "net kâr marjı yüzde olarak (örn. '%18,3') — bulamazsan boş",
   "fund_usage": ["kısa fon kullanım kalemleri, her biri max 50 karakter"],
   "commitments": ["fiyat istikrarı, ortak satmama, bedelli yok gibi taahhütler"],
-  "strengths": ["3-5 olumlu nokta"],
-  "risks": ["3-5 risk/red flag"],
+  "strengths": ["belgede şirketin öne çıkardığı 3-5 bilgi (belgedeki ifadeyle)"],
+  "risks": ["belgenin risk bölümünde yazan 3-5 risk"],
   "valuation": {{"F/K": "", "PD/DD": "", "FD/FAVÖK": ""}},
-  "verdict": "2-3 cümlelik nesnel değerlendirme",
+  "verdict": "belgenin 2-3 cümlelik tarafsız özeti (değerlendirme veya öneri değil)",
   "confidence": "düşük|orta|yüksek"
 }}"""
 

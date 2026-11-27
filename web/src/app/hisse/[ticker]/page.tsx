@@ -24,8 +24,6 @@ import {
   type Report,
 } from "@/lib/content";
 import { ReportCard } from "@/components/ReportCard";
-import { DcfTerminalCard } from "@/components/DcfTerminalCard";
-import { KeyLevelsCard } from "@/components/KeyLevelsCard";
 import { FundamentalMetricsCard } from "@/components/FundamentalMetricsCard";
 import { FinancialHealthCard } from "@/components/FinancialHealthCard";
 import { WatchlistDrawer } from "@/components/WatchlistDrawer";
@@ -62,12 +60,12 @@ export async function generateMetadata({
   const companyName = COMPANY_NAMES[clean] || getStockName(clean) || `${clean} Pay Piyasası`;
 
   return {
-    title: `$${clean} Hisse Analizi, Hedef Fiyat & KAP Bildirimleri`,
-    description: `Borsa İstanbul $${clean} (${companyName}) hissesine ait teknik pivot seviyeleri, İNA (DCF) hedef fiyatı, KAP sözleşmeleri, temettü verimi ve bilanço çarpanları.`,
+    title: `$${clean} Hisse: Finansallar, Oranlar & KAP Bildirimleri`,
+    description: `Borsa İstanbul $${clean} (${companyName}) hissesine ait finansal tablolar, bilanço çarpanları, temettü bilgisi ve KAP bildirim özetleri.`,
     keywords: [
       `$${clean}`,
       `${clean} hisse`,
-      `${clean} hedef fiyat`,
+      `${clean} finansallar`,
       `${clean} analiz`,
       `${clean} kap`,
       `${clean} bilanço`,
@@ -80,8 +78,8 @@ export async function generateMetadata({
       canonical: `${SITE_URL}/hisse/${clean}`,
     },
     openGraph: {
-      title: `$${clean} Hisse Analizi & Hedef Değerleme | Esham`,
-      description: `$${clean} (${companyName}) teknik seviyeler, DCF değerlemesi, KAP geçmişi ve temettü takvimi.`,
+      title: `$${clean} Hisse: Finansallar & KAP Bildirimleri | Esham`,
+      description: `$${clean} (${companyName}) finansal tablolar, oranlar, KAP geçmişi ve temettü takvimi.`,
       url: `${SITE_URL}/hisse/${clean}`,
       siteName: "Esham",
       locale: "tr_TR",
@@ -90,8 +88,8 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: `$${clean} Hisse Analizi & Hedef Fiyat | Esham`,
-      description: `${companyName} hissesi için teknik pivotlar, DCF adil değer ve güncel KAP haberleri.`,
+      title: `$${clean} Hisse: Finansallar & KAP Bildirimleri | Esham`,
+      description: `${companyName} hissesi için finansal tablolar, oranlar ve güncel KAP bildirim özetleri.`,
       creator: "@eshamcomtr",
       images: [DEFAULT_OG_IMAGE.url],
     },
@@ -217,8 +215,6 @@ export default async function TickerPage({
   const dividendsDoc = loadDividends();
   const buybacksDoc = loadBuybacks();
   const companyQuant = quantData ? quantData[cleanTicker] : null;
-  const dcfData = companyQuant?.dcf;
-  const keyLevelsData = companyQuant?.key_levels;
   const fundamentalData = companyQuant?.fundamental;
   const financialHealthData = companyQuant?.financial_health;
 
@@ -329,7 +325,7 @@ export default async function TickerPage({
           },
         ]
       : []),
-    ...(stockRatios || dcfData || financialHealthData
+    ...(stockRatios || financialHealthData
       ? [
           {
             id: "degerleme",
@@ -359,9 +355,7 @@ export default async function TickerPage({
                       PD/DD, F/K ve ROE birlikte değerlendirilir (Oranlar sekmesi).
                     </p>
                   </div>
-                ) : (
-                  dcfData && <DcfTerminalCard dcf={dcfData} />
-                )}
+                ) : null}
                 {navStakes.length > 0 && navHoldingMcap && headerPrice !== null && navData && (
                   <NavCalculator
                     ticker={cleanTicker}
@@ -378,7 +372,8 @@ export default async function TickerPage({
           },
         ]
       : []),
-    ...(keyLevelsData ? [{ id: "teknik", label: "Teknik", content: <KeyLevelsCard data={keyLevelsData} /> }] : []),
+    // Teknik seviyeler (pivot/destek/direnç, KeyLevelsCard) ve hazır DCF "değerleme notu" (DcfTerminalCard)
+    // yatırım tavsiyesi gibi okunduğu için gösterilmez; bkz. bot/esham/neutral.py.
     {
       id: "haberler",
       label: `KAP & Haberler (${reports.length})`,
@@ -418,7 +413,7 @@ export default async function TickerPage({
     tickerSymbol: cleanTicker,
     exchange: "BIST",
     currency: "TRY",
-    description: `Borsa İstanbul $${cleanTicker} (${companyName}) hisse senedi teknik analizi, KAP bildirimleri, DCF hedef fiyatı ve finansal çarpanları.`,
+    description: `Borsa İstanbul $${cleanTicker} (${companyName}) hisse senedi finansal tabloları, finansal çarpanları ve KAP bildirim özetleri.`,
     url: `${SITE_URL}/hisse/${cleanTicker}`,
   };
 

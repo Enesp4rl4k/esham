@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Calculator } from "lucide-react";
-import { SCENARIOS, dcf, defaultAssumptions, defaultBase, sensitivity } from "@/lib/dcf";
+import { dcf, defaultAssumptions, defaultBase, sensitivity } from "@/lib/dcf";
 
 interface Props {
   ticker: string;
@@ -53,6 +53,11 @@ export function DcfCalculator({ ticker, currency, fxToTry, price, shares, netDeb
   const [wacc, setWacc] = useState(r1(def.wacc));
   const [g1, setG1] = useState(r1(def.growth1));
   const [gT, setGT] = useState(r1(def.terminalGrowth));
+  // Varsayılan çıktı YOK: sonuç yalnız kullanıcı en az bir varsayımı Esham'ın başlangıç değerlerinden
+  // FARKLI bir değere getirdiğinde gösterilir (statik HTML'de ve tek tıkla varsayılan değer basılmaz).
+  // Esham'ın hazır senaryo düğmeleri kaldırıldı: "sizin varsayımlarınız" ile Esham varsayılanları karışmasın.
+  const touched =
+    wacc !== r1(def.wacc) || g1 !== r1(def.growth1) || gT !== r1(def.terminalGrowth) || baseKey !== (startBase ?? "fcf");
 
   const fx = fxToTry ?? 1;
   const baseVal = baseKey === "fcf" ? fcf : netIncome;
@@ -79,13 +84,12 @@ export function DcfCalculator({ ticker, currency, fxToTry, price, shares, netDeb
     );
   }
 
-  const apply = (s: keyof typeof SCENARIOS) => {
-    const sc = SCENARIOS[s];
-    setWacc(Math.max(5, r1(def.wacc + sc.dWacc)));
-    setG1(r1(def.growth1 + sc.dG1));
-    setGT(Math.max(0, r1(def.terminalGrowth + sc.dGT)));
+  const reset = () => {
+    setBaseKey(startBase ?? "fcf");
+    setWacc(r1(def.wacc));
+    setG1(r1(def.growth1));
+    setGT(r1(def.terminalGrowth));
   };
-  const reset = () => apply("base");
 
   const fairTry = result ? result.perShare * fx : null;
   const upside = fairTry !== null && price ? (fairTry / price - 1) * 100 : null;
@@ -98,15 +102,9 @@ export function DcfCalculator({ ticker, currency, fxToTry, price, shares, netDeb
           <span className="p-1.5 rounded-lg bg-zinc-800/80 text-zinc-200 border border-zinc-700"><Calculator className="w-4 h-4" /></span>
           <h3 className="text-base font-bold text-white tracking-tight">DCF Değerleme · {ticker}</h3>
         </div>
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Senaryo">
-          {(Object.keys(SCENARIOS) as (keyof typeof SCENARIOS)[]).map((k) => (
-            <button key={k} type="button" onClick={() => apply(k)}
-              className="px-3 py-1.5 rounded-lg text-sm border bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-600 transition-colors">
-              {SCENARIOS[k].label}
-            </button>
-          ))}
-          <button type="button" onClick={reset} className="px-3 py-1.5 text-sm text-zinc-400 hover:text-white">Sıfırla</button>
-        </div>
+        <button type="button" onClick={reset} className="px-3 py-1.5 text-sm text-zinc-400 hover:text-white">
+          Başlangıç değerlerine dön
+        </button>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
@@ -130,7 +128,7 @@ export function DcfCalculator({ ticker, currency, fxToTry, price, shares, netDeb
           </fieldset>
 
           <Slider id="dcf-wacc" label="İskonto oranı (reel)" value={wacc} min={5} max={30} step={0.5} onChange={setWacc}
-            hint={`Nakit akışlarının bugünkü değere indirildiği reel oran. Varsayılan %${r1(def.wacc)} (${currency === "TRY" ? "TL" : currency}).`} />
+            hint={`Nakit akışlarının bugünkü değere indirildiği reel oran. Başlangıç değeri %${r1(def.wacc)} (${currency === "TRY" ? "TL" : currency}).`} />
           <Slider id="dcf-g1" label="1. yıl büyümesi (reel)" value={g1} min={-5} max={25} step={0.5} onChange={setG1}
             hint="Nakit akışının ilk yıl reel büyümesi; 5. yılda uç büyümeye doğrusal iner." />
           <Slider id="dcf-gt" label="Uç büyüme (reel)" value={gT} min={0} max={8} step={0.5} onChange={setGT}
@@ -138,19 +136,30 @@ export function DcfCalculator({ ticker, currency, fxToTry, price, shares, netDeb
         </div>
 
         <div>
-          {invalid ? (
+          {!touched ? (
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-5 text-sm text-zinc-300 space-y-3">
+              <p>
+                Kaydırıcılar Esham&apos;ın yalnızca başlangıç noktası olarak koyduğu değerlerdedir; Esham bu değerlerle
+                bir sonuç, değer veya hedef göstermez.
+              </p>
+              <p>
+                Sonuç, siz soldaki varsayımlardan <b>en az birini değiştirdiğinizde</b>, yalnızca sizin
+                varsayımlarınızla hesaplanır.
+              </p>
+            </div>
+          ) : invalid ? (
             <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-5 text-sm text-rose-200">
               İskonto oranı uç büyümeden büyük olmalı. Kaydırıcıları ayarlayın.
             </div>
           ) : (
             <>
               <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-5">
-                <p className="text-sm text-zinc-300">Hisse başına adil değer</p>
+                <p className="text-sm text-zinc-300">Sizin varsayımlarınızla hisse başına model değeri</p>
                 <p className="font-mono text-4xl font-bold text-white tabular-nums mt-1">{nf2.format(fairTry as number)} ₺</p>
                 <div className="flex flex-wrap gap-x-6 gap-y-1 mt-3 text-sm">
                   <span className="text-zinc-300">Güncel fiyat: <b className="font-mono text-white tabular-nums">{price ? `${nf2.format(price)} ₺` : "—"}</b></span>
                   {upside !== null && (
-                    <span className={upside >= 0 ? "text-emerald-400" : "text-rose-400"}>
+                    <span className="text-zinc-300">
                       Model farkı: <b className="font-mono tabular-nums">{upside >= 0 ? "+" : "−"}%{nf1.format(Math.abs(upside))}</b>
                     </span>
                   )}
@@ -185,7 +194,7 @@ export function DcfCalculator({ ticker, currency, fxToTry, price, shares, netDeb
         </div>
       </div>
 
-      {result && (
+      {touched && result && (
         <div className="grid gap-8 lg:grid-cols-2 mt-8 pt-6 border-t border-zinc-800/80">
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[360px]">
@@ -250,7 +259,7 @@ export function DcfCalculator({ ticker, currency, fxToTry, price, shares, netDeb
                   ))}
                 </tbody>
               </table>
-              <p className="text-xs text-zinc-400 mt-2">▲ güncel fiyatın üstü, ▼ altı. Ortadaki hücre mevcut varsayımlar.</p>
+              <p className="text-xs text-zinc-400 mt-2">▲ güncel fiyatın üstü, ▼ altı. Ortadaki hücre sizin varsayımlarınız; diğer hücreler bunların ±1–2 puan çevresi.</p>
             </div>
           )}
         </div>

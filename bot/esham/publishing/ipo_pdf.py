@@ -10,6 +10,7 @@ import html as html_escape_module
 from pathlib import Path
 
 from ..config import get_logger, settings
+from ..neutral import NOTE_GENERIC, strip_banned
 
 log = get_logger(__name__)
 
@@ -20,6 +21,24 @@ def _esc(value) -> str:
     if value in (None, ""):
         return "-"
     return html_escape_module.escape(str(value))
+
+
+#: Belge kimliği alanları (birebir) süzülmez; diğer metin alanları (LLM çıktısı) tarafsız dil süzgecinden geçer.
+_VERBATIM_KEYS = {"company_name", "ticker", "price", "discount", "offer_size", "valuation"}
+
+
+def _sanitize(data: dict) -> dict:
+    out: dict = {}
+    for k, v in data.items():
+        if k in _VERBATIM_KEYS:
+            out[k] = v
+        elif isinstance(v, str):
+            out[k] = strip_banned(v)
+        elif isinstance(v, list):
+            out[k] = [s for s in (strip_banned(str(x)) for x in v) if s]
+        else:
+            out[k] = v
+    return out
 
 
 class IpoPdfGenerator:
@@ -43,6 +62,7 @@ class IpoPdfGenerator:
         return f"<p>{_esc(value)}</p>"
 
     def build_html(self, data: dict) -> str:
+        data = _sanitize(data)
         r = self._render_field
         return f"""<!doctype html>
 <html lang="tr">
@@ -79,13 +99,12 @@ class IpoPdfGenerator:
       <div class="box"><h3>Değerleme Çarpanları</h3>{r(data.get('valuation'))}</div>
       <div class="box"><h3>Fonun Kullanım Yeri</h3>{r(data.get('fund_usage', data.get('funds_usage')))}</div>
       <div class="box"><h3>Taahhütler</h3>{r(data.get('commitments'))}</div>
-      <div class="box strengths"><h3>✅ Olumlu Noktalar</h3>{r(data.get('strengths'))}</div>
-      <div class="box risks"><h3>🚨 Riskler</h3>{r(data.get('risks'))}</div>
-      <div class="box full"><h3>Değerlendirme</h3>{_esc(data.get('verdict', data.get('financials')))}</div>
+      <div class="box strengths"><h3>Belgede Öne Çıkarılan Bilgiler</h3>{r(data.get('strengths'))}</div>
+      <div class="box risks"><h3>Belgede Belirtilen Riskler</h3>{r(data.get('risks'))}</div>
+      <div class="box full"><h3>Özet</h3>{_esc(data.get('verdict', data.get('financials')))}</div>
     </div>
     <hr />
-    <p class="disclaimer">Bu rapor yapay zeka tarafından KAP belgeleri analiz edilerek
-    üretilmiştir. Yatırım tavsiyesi değildir.</p>
+    <p class="disclaimer">{_esc(NOTE_GENERIC)}</p>
   </div>
 </body>
 </html>"""

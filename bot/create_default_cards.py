@@ -84,7 +84,7 @@ def make_default_card(category: str, bg_rgb: tuple, accent_rgb: tuple, label: st
     draw.text((cx + es_w, cy), "ham", fill=(240, 237, 232), font=font_main)
 
     # Alt satır tagline
-    tagline = "YAPAY ZEKA DESTEKLİ PİYASA ANALİZİ"
+    tagline = "KAMUYA AÇIK BİLDİRİM VE VERİ ÖZETLERİ"
     try:
         tb = draw.textbbox((0, 0), tagline, font=font_brand)
         tl_w = tb[2] - tb[0]
