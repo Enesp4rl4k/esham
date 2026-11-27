@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-27T20:24:49+03:00",
+  "generated_at": "2026-11-27T21:12:57+03:00",
   "sections": [
     {
       "id": "reports",
@@ -9,7 +9,7 @@
       "as_of": "2026-11-27T17:24:48+00:00",
       "fetched_at": "2026-11-27T17:24:48+00:00",
       "status": "fresh",
-      "detail": "0.0 saat önce (sınır 26 saat)"
+      "detail": "0.8 saat önce (sınır 26 saat)"
     },
     {
       "id": "market_ticker",
@@ -19,7 +19,7 @@
       "as_of": "2026-11-27T20:24:29+03:00",
       "fetched_at": "2026-11-27T20:24:29+03:00",
       "status": "fresh",
-      "detail": "0.0 saat önce (sınır 26 saat)"
+      "detail": "0.8 saat önce (sınır 26 saat)"
     },
     {
       "id": "economic_calendar",
@@ -29,7 +29,7 @@
       "as_of": "2026-11-27T20:24:29+03:00",
       "fetched_at": "2026-11-27T20:24:29+03:00",
       "status": "fresh",
-      "detail": "0.0 saat önce (sınır 26 saat)"
+      "detail": "0.8 saat önce (sınır 26 saat)"
     },
     {
       "id": "stocks",
@@ -39,7 +39,7 @@
       "as_of": "2026-11-27T00:05:09+00:00",
       "fetched_at": "2026-11-27T00:05:09+00:00",
       "status": "fresh",
-      "detail": "17.3 saat önce (sınır 120 saat)"
+      "detail": "18.1 saat önce (sınır 120 saat)"
     },
     {
       "id": "kap_coverage",
@@ -59,7 +59,7 @@
       "as_of": "2026-11-27T00:47:27+00:00",
       "fetched_at": "2026-11-27T00:47:27+00:00",
       "status": "fresh",
-      "detail": "16.6 saat önce (sınır 120 saat)"
+      "detail": "17.4 saat önce (sınır 120 saat)"
     },
     {
       "id": "kap_dividends",
@@ -69,7 +69,7 @@
       "as_of": "2026-11-24",
       "fetched_at": "2026-11-27T00:51:24+00:00",
       "status": "fresh",
-      "detail": "16.6 saat önce (sınır 52 saat); 110 hisseden 14'inde bildirim, 13 işlendi, 0 bekliyor"
+      "detail": "17.4 saat önce (sınır 52 saat); 110 hisseden 14'inde bildirim, 13 işlendi, 0 bekliyor"
     },
     {
       "id": "kap_buybacks",
@@ -79,7 +79,7 @@
       "as_of": "2026-11-26",
       "fetched_at": "2026-11-27T00:51:27+00:00",
       "status": "fresh",
-      "detail": "16.6 saat önce (sınır 52 saat); 110 hisseden 14'inde bildirim, 116 işlendi, 0 bekliyor"
+      "detail": "17.4 saat önce (sınır 52 saat); 110 hisseden 14'inde bildirim, 116 işlendi, 0 bekliyor"
     },
     {
       "id": "macro_indicators",
@@ -89,17 +89,17 @@
       "as_of": "2026-11-26T21:57:28+00:00",
       "fetched_at": "2026-11-26T21:57:28+00:00",
       "status": "stale",
-      "detail": "19.5 saat önce (sınır 52 saat); 4 gösterge; EVDS sorunları: TP.FG.J0 (12 ay önceki gözlem yok: TP.FG.J0)"
+      "detail": "20.3 saat önce (sınır 52 saat); 4 gösterge; EVDS sorunları: TP.FG.J0 (12 ay önceki gözlem yok: TP.FG.J0)"
     },
     {
       "id": "turib:indices",
       "label": "TÜRİB endeksleri",
       "source": "TÜRİB ELÜS bülteni",
       "source_url": "https://www.turib.com.tr",
-      "as_of": "2026-11-26",
-      "fetched_at": "2026-11-27T18:29:27+03:00",
-      "status": "stale",
-      "detail": "veri 1 gün önceki (son iyi değer taşındı)"
+      "as_of": "2026-11-27",
+      "fetched_at": "2026-11-27T21:11:02+03:00",
+      "status": "fresh",
+      "detail": "veri 0 gün önceki"
     },
     {
       "id": "turib:spotCommodities",
@@ -107,9 +107,9 @@
       "source": "TÜRİB ELÜS bülteni",
       "source_url": "https://www.turib.com.tr",
       "as_of": "2026-11-26",
-      "fetched_at": "2026-11-27T18:29:27+03:00",
-      "status": "stale",
-      "detail": "veri 1 gün önceki (son iyi değer taşındı)"
+      "fetched_at": "2026-11-27T21:11:02+03:00",
+      "status": "fresh",
+      "detail": "veri 1 gün önceki"
     },
     {
       "id": "turib:tmoComparison",
@@ -117,7 +117,7 @@
       "source": "Tarım ve Orman Bakanlığı / TMO duyuruları",
       "source_url": "https://www.tmo.gov.tr",
       "as_of": "2026-11-26",
-      "fetched_at": "2026-11-27T18:29:27+03:00",
+      "fetched_at": "2026-11-27T21:11:02+03:00",
       "status": "stale",
       "detail": "veri 1 gün önceki (son iyi değer taşındı)"
     },
@@ -127,9 +127,9 @@
       "source": "TÜRİB tarihsel seri (varsayımlı maliyet modeli)",
       "source_url": "https://www.turib.com.tr",
       "as_of": "2026-11-27",
-      "fetched_at": "2026-11-27T18:29:27+03:00",
-      "status": "stale",
-      "detail": "veri 0 gün önceki (son iyi değer taşındı)"
+      "fetched_at": "2026-11-27T21:11:02+03:00",
+      "status": "fresh",
+      "detail": "veri 0 gün önceki"
     },
     {
       "id": "turib:regionalArbitrage",
@@ -137,7 +137,7 @@
       "source": "TÜRİB ELÜS bülteni",
       "source_url": "https://www.turib.com.tr",
       "as_of": "2026-11-27",
-      "fetched_at": "2026-11-27T18:29:27+03:00",
+      "fetched_at": "2026-11-27T21:11:02+03:00",
       "status": "fresh",
       "detail": "veri 0 gün önceki"
     },
@@ -147,7 +147,7 @@
       "source": "Yahoo Finance (XGIDA/hisseler) + TÜRİB",
       "source_url": "https://finance.yahoo.com",
       "as_of": "2026-11-27",
-      "fetched_at": "2026-11-27T18:29:27+03:00",
+      "fetched_at": "2026-11-27T21:11:02+03:00",
       "status": "fresh",
       "detail": "veri 0 gün önceki"
     },
@@ -157,9 +157,9 @@
       "source": "TCMB döviz kurları + TÜRİB",
       "source_url": "https://www.tcmb.gov.tr/kurlar/kurlar_tr.html",
       "as_of": "2026-11-26",
-      "fetched_at": "2026-11-27T18:29:27+03:00",
-      "status": "stale",
-      "detail": "veri 1 gün önceki (son iyi değer taşındı)"
+      "fetched_at": "2026-11-27T21:11:02+03:00",
+      "status": "fresh",
+      "detail": "veri 1 gün önceki"
     },
     {
       "id": "turib:petrolTanker",
@@ -167,7 +167,7 @@
       "source": "Yahoo Finance (Brent vadeli)",
       "source_url": "https://finance.yahoo.com",
       "as_of": "2026-11-27",
-      "fetched_at": "2026-11-27T18:29:27+03:00",
+      "fetched_at": "2026-11-27T21:11:02+03:00",
       "status": "fresh",
       "detail": "veri 0 gün önceki"
     },
@@ -177,7 +177,7 @@
       "source": "IMF PortWatch (BM Global Platform AIS)",
       "source_url": "https://portwatch.imf.org/",
       "as_of": "2026-11-22",
-      "fetched_at": "2026-11-27T18:29:27+03:00",
+      "fetched_at": "2026-11-27T21:11:02+03:00",
       "status": "fresh",
       "detail": "veri 5 gün önceki"
     }
