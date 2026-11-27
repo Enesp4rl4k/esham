@@ -224,11 +224,9 @@ jobs:
         run: |
           python -m esham.main outbox-gate-failed --reason "Yayın kapısı: web testleri kırıldı (koşu ${{ github.run_id }})"
           cd ..
-          if [ "$GITHUB_REF_NAME" = "master" ]; then
-            if ! bash .github/scripts/commit-push.sh "state: yayın kapısı kırıldı, raporlar yayınlanmadı (${{ github.event.schedule || github.event.inputs.command }}) [skip ci]" \
-                bot/state/esham_state.json bot/state/telegram_outbox.json; then
-              echo "::error title=Durum push edilemedi::Kapı kırıldı ve durum da push edilemedi; sonraki koşu bildirimi yeniden dener (Telegram'a yine bir şey gitmez)."
-            fi
+          if [ "$GITHUB_REF_NAME" = "master" ] && ! bash .github/scripts/commit-push.sh "state: yayın kapısı kırıldı, raporlar yayınlanmadı (${{ github.event.schedule || github.event.inputs.command }}) [skip ci]" \
+              bot/state/esham_state.json bot/state/telegram_outbox.json; then
+            echo "::error title=Durum push edilemedi::Kapı kırıldı ve durum da push edilemedi; sonraki koşu bildirimi yeniden dener (Telegram'a yine bir şey gitmez)."
           fi
           echo "::error title=Yayın kapısı kırıldı::Yeni raporlar web testlerinden geçmedi. Raporlar commit'lenmedi, Telegram'a hiçbir şey gönderilmedi. Ayrıntı: 'Yayın kapısı' adımının çıktısı ve bot/state/esham_state.json → last_gate_failure."
           exit 1

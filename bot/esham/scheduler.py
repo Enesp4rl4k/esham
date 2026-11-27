@@ -166,8 +166,8 @@ class Scheduler:
             from .publishing.outbox import send_outbox
 
             send_outbox()
-        except Exception as exc:  # noqa: BLE001 — gönderim hatası döngüyü durdurmaz
-            log.error("Giden kutusu gönderilemedi: %s", exc)
+        except Exception:  # noqa: BLE001 — gönderim hatası döngüyü durdurmaz
+            log.exception("Giden kutusu gönderilemedi")
 
     def _safe_run(self, name: str, func: Callable[[], object]) -> None:
         try:

@@ -10,7 +10,7 @@ export GIT_AUTHOR_NAME="esham-bot" GIT_AUTHOR_EMAIL="bot@esham.local"
 export GIT_COMMITTER_NAME="esham-bot" GIT_COMMITTER_EMAIL="bot@esham.local"
 msg="$1"; shift
 for p in "$@"; do
-  if [ -e "$p" ]; then git add -- "$p"; fi
+  if [[ -e "$p" ]]; then git add -- "$p"; fi
 done
 if git diff --staged --quiet; then
   echo "clean"

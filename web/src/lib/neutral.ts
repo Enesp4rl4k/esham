@@ -134,7 +134,12 @@ export const isLegacy = (r: Pick<ViewableReport, "schemaVersion">) => !(typeof r
  */
 export function distinctSummary(r: { title: string; summary?: string | null }): string {
   // normalize(): Türkçe katlama (İ/I/ı → i), boşluk; sondaki noktalama yok sayılır. Python: neutral.distinct_summary.
-  const key = (t: string) => normalize(t).replace(/[\s.…!?;:,]+$/u, "");
+  const key = (t: string) => {
+    const s = normalize(t);
+    let end = s.length;
+    while (end > 0 && " \t.…!?;:,".includes(s[end - 1])) end--;
+    return s.slice(0, end);
+  };
   const summary = (r.summary ?? "").trim();
   return summary && key(summary) !== key(r.title) ? summary : "";
 }

@@ -246,7 +246,7 @@ def legacy_summary(doc: dict) -> str:
 
 # ---- özet tekrarı -----------------------------------------------------------
 # web/src/lib/neutral.ts `distinctSummary` ile aynı kural (ortak vektörler: web/src/lib/summary-vectors.json).
-_TRAILING_PUNCT_RE = re.compile(r"[\s.…!?;:,]+$")
+_TRAILING_PUNCT = " \t.…!?;:,"
 
 
 def distinct_summary(title: str, summary: str | None) -> str:
@@ -255,6 +255,6 @@ def distinct_summary(title: str, summary: str | None) -> str:
     s = (summary or "").strip()
 
     def key(t: str) -> str:
-        return _TRAILING_PUNCT_RE.sub("", normalize(t))
+        return normalize(t).rstrip(_TRAILING_PUNCT)
 
     return s if s and key(s) != key(title or "") else ""

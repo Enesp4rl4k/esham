@@ -419,6 +419,15 @@ class NewsStream:
             )
         return published
 
+    @staticmethod
+    def _flush_outbox() -> None:
+        """Uzun ömürlü (git'siz, kapısız) mod: giden kutusu hemen gönderilir. GitHub Actions bu yolu
+        KULLANMAZ (``--once``); orada gönderim push sonrası ayrı adımdır."""
+        try:
+            send_outbox()
+        except Exception:  # noqa: BLE001 — gönderim hatası döngüyü durdurmaz
+            log.exception("Giden kutusu gönderilemedi")
+
     def run(self) -> None:
         """Sürekli: periyodik tara, sabit aralıkla tek tek yayınla (drip)."""
         log.info(
@@ -448,11 +457,6 @@ class NewsStream:
                 self.publish_next()
             except Exception as exc:
                 log.error("Yayın hatası: %s", exc)
-            # Uzun ömürlü (git'siz, kapısız) mod: giden kutusu hemen gönderilir. GitHub Actions bu yolu
-            # KULLANMAZ (`--once`); orada gönderim push sonrası ayrı adımdır.
-            try:
-                send_outbox()
-            except Exception as exc:  # noqa: BLE001
-                log.error("Giden kutusu gönderilemedi: %s", exc)
+            self._flush_outbox()
 
             time.sleep(self.publish_interval)

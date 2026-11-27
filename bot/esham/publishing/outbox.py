@@ -70,7 +70,7 @@ _LINK_RE = re.compile(r"/rapor/([A-Za-z0-9][A-Za-z0-9\-]*)")
 _SAFE_RE = re.compile(r"[^A-Za-z0-9_.-]+")
 
 _PROCESS_RUN_ID = f"local-{uuid.uuid4().hex[:12]}"
-_context: contextvars.ContextVar[dict] = contextvars.ContextVar("esham_outbox_context", default={})
+_context: contextvars.ContextVar[dict | None] = contextvars.ContextVar("esham_outbox_context", default=None)
 
 
 def current_run_id() -> str:
@@ -92,7 +92,7 @@ def outbox_context(**meta: Any) -> Iterator[None]:
 
     Üretici kodu (pipeline) değişmeden mesajın hangi bildirime ait olduğu bilinir.
     """
-    token = _context.set({**_context.get(), **{k: v for k, v in meta.items() if v not in (None, "")}})
+    token = _context.set({**(_context.get() or {}), **{k: v for k, v in meta.items() if v not in (None, "")}})
     try:
         yield
     finally:
@@ -271,7 +271,7 @@ class Outbox:
         if problems:
             log.error("Telegram gönderisi giden kutusuna alınmadı (%s): %s", "; ".join(problems), text[:80])
             return None
-        meta = {**_context.get(), **{k: v for k, v in meta.items() if v not in (None, "")}}
+        meta = {**(_context.get() or {}), **{k: v for k, v in meta.items() if v not in (None, "")}}
         m = _LINK_RE.search(text)
         if m and not meta.get("slug"):
             meta["slug"] = m.group(1)
@@ -389,37 +389,39 @@ class Outbox:
                 log.error("Giden kutusu: %s gönderilmedi (%s).", e["key"], e["last_error"])
                 self.save()
                 continue
-            res = transport.send(e["text"], self.image_for(e))
-            if res.outcome == "sent":
-                e["status"] = SENT
-                e["sent_at"] = self.clock()
-                e["message_id"] = res.message_id
-                counts["sent"] += 1
-            elif res.outcome == "retryable":
-                e["attempts"] = int(e.get("attempts", 0)) + 1
-                e["last_error"] = res.error
-                e["claim_run"] = ""
-                if e["attempts"] >= MAX_SEND_ATTEMPTS:
-                    e["status"] = FAILED
-                    counts["failed"] += 1
-                    log.error("Giden kutusu: %s %d denemede gönderilemedi (%s); bırakıldı.",
-                              e["key"], e["attempts"], res.error)
-                else:
-                    e["status"] = PENDING
-                    counts["retry"] += 1
-                    log.warning("Giden kutusu: %s gönderilemedi (%s), deneme %d/%d; sonraki koşuda yeniden.",
-                                e["key"], res.error, e["attempts"], MAX_SEND_ATTEMPTS)
-            elif res.outcome == "dry_run":
-                e["status"] = SKIPPED
-                e["last_error"] = "Telegram kimlik bilgisi yok (dry-run)"
-                counts["skipped"] += 1
-            else:
-                e["status"] = UNKNOWN
-                e["last_error"] = res.error
-                counts["unknown"] += 1
-                log.error("Giden kutusu: %s gönderim sonucu belirsiz (%s); yeniden GÖNDERİLMEZ.", e["key"], res.error)
+            self._apply_result(e, transport.send(e["text"], self.image_for(e)), counts)
             self.save()
         return counts
+
+    def _apply_result(self, e: dict, res: SendResult, counts: dict[str, int]) -> None:
+        if res.outcome == "sent":
+            e["status"] = SENT
+            e["sent_at"] = self.clock()
+            e["message_id"] = res.message_id
+            counts["sent"] += 1
+        elif res.outcome == "retryable":
+            e["attempts"] = int(e.get("attempts", 0)) + 1
+            e["last_error"] = res.error
+            e["claim_run"] = ""
+            if e["attempts"] >= MAX_SEND_ATTEMPTS:
+                e["status"] = FAILED
+                counts["failed"] += 1
+                log.error("Giden kutusu: %s %d denemede gönderilemedi (%s); bırakıldı.",
+                          e["key"], e["attempts"], res.error)
+            else:
+                e["status"] = PENDING
+                counts["retry"] += 1
+                log.warning("Giden kutusu: %s gönderilemedi (%s), deneme %d/%d; sonraki koşuda yeniden.",
+                            e["key"], res.error, e["attempts"], MAX_SEND_ATTEMPTS)
+        elif res.outcome == "dry_run":
+            e["status"] = SKIPPED
+            e["last_error"] = "Telegram kimlik bilgisi yok (dry-run)"
+            counts["skipped"] += 1
+        else:
+            e["status"] = UNKNOWN
+            e["last_error"] = res.error
+            counts["unknown"] += 1
+            log.error("Giden kutusu: %s gönderim sonucu belirsiz (%s); yeniden GÖNDERİLMEZ.", e["key"], res.error)
 
     def drop_run(self, run_id: str | None = None) -> list[dict]:
         """Yayın kapısı kırıldı: bu koşunun (henüz hiç commit'lenmemiş) bekleyen kayıtlarını siler.
