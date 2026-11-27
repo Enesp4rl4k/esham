@@ -75,6 +75,47 @@ def _slug_of(data: bytes, rel: str) -> str:
         return Path(rel).stem
 
 
+class _Tree:
+    """Çalışma ağacındaki rapor dosyalarını yeni/eski sürümler arasında değiştirir."""
+
+    def __init__(self, root: Path, changed: list[str], head_content: Callable[[str], bytes | None]) -> None:
+        self.root = root
+        self.new = {rel: (root / rel).read_bytes() for rel in changed}
+        self.old = {rel: head_content(rel) for rel in changed}
+
+    def put(self, rel: str, use_new: bool) -> None:
+        data = self.new[rel] if use_new else self.old[rel]
+        p = self.root / rel
+        if data is not None:
+            p.write_bytes(data)
+        elif p.exists():
+            p.unlink()
+
+    def set_all(self, rels, use_new: bool) -> None:
+        for rel in rels:
+            self.put(rel, use_new)
+
+
+def _isolate(tree: _Tree, changed: list[str], runner: Callable[[], bool]) -> list[str]:
+    """Temel yeşilken her raporu tek başına sınar; kırılanları döner (ağaç: hepsi eski sürümde kalır)."""
+    bad: list[str] = []
+    for rel in changed:
+        tree.put(rel, True)
+        if not runner():
+            bad.append(rel)
+            log.error("Rapor kapıdan geçmedi: %s", rel)
+        tree.put(rel, False)
+    return bad
+
+
+def _drop_cards(root: Path, slugs: list[str], head_content: Callable[[str], bytes | None]) -> None:
+    """Kırık raporun (henüz commit'lenmemiş) kartı da yayına girmesin."""
+    for slug in slugs:
+        card = root / CARDS_REL / f"{slug}.png"
+        if slug and card.exists() and head_content(f"{CARDS_REL}/{slug}.png") is None:
+            card.unlink()
+
+
 def run_gate(
     root: Path = PROJECT_ROOT,
     *,
@@ -90,44 +131,22 @@ def run_gate(
     if runner():
         return GateResult("passed", checked=len(changed))
 
-    new = {rel: (root / rel).read_bytes() for rel in changed}
-    old = {rel: head_content(rel) for rel in changed}
-
-    def put(rel: str, data: bytes | None) -> None:
-        p = root / rel
-        if data is None:
-            if p.exists():
-                p.unlink()
-        else:
-            p.write_bytes(data)
-
+    tree = _Tree(root, changed, head_content)
     try:
-        for rel in changed:
-            put(rel, old[rel])
+        tree.set_all(changed, False)
         if not runner():
             log.error("Yeni raporlar OLMADAN da web testleri kırık: sorun kodda/testte, rapor suçlanmaz.")
             return GateResult("code_broken", checked=len(changed))
-        bad: list[str] = []
-        for rel in changed:
-            put(rel, new[rel])
-            if not runner():
-                bad.append(rel)
-                log.error("Rapor kapıdan geçmedi: %s", rel)
-            put(rel, old[rel])
+        bad = _isolate(tree, changed, runner)
         good = [rel for rel in changed if rel not in bad]
-        for rel in good:
-            put(rel, new[rel])
+        tree.set_all(good, True)
         if good and not runner():
             log.error("Raporlar tek tek geçti ama birlikte kırıldı; kimse cezalandırılmaz (code_broken).")
             return GateResult("code_broken", checked=len(changed))
-        slugs = [_slug_of(new[rel], rel) for rel in bad]
-        for slug in slugs:  # kırık raporun (henüz commit'lenmemiş) kartı da yayına girmesin
-            card = root / CARDS_REL / f"{slug}.png"
-            if slug and card.exists() and head_content(f"{CARDS_REL}/{slug}.png") is None:
-                card.unlink()
-        return GateResult("partial" if bad else "passed", bad=bad, bad_slugs=[s for s in slugs if s], checked=len(changed))
     except BaseException:
         # Beklenmeyen hata: yeni raporlar yerine konur; iş akışı adımı kırmızı biter, hiçbir şey commit'lenmez.
-        for rel in changed:
-            put(rel, new[rel])
+        tree.set_all(changed, True)
         raise
+    slugs = [s for s in (_slug_of(tree.new[rel], rel) for rel in bad) if s]
+    _drop_cards(root, slugs, head_content)
+    return GateResult("partial" if bad else "passed", bad=bad, bad_slugs=slugs, checked=len(changed))
