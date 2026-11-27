@@ -124,6 +124,10 @@ export interface ViewableReport {
   kap?: { url?: string; company?: string; type?: string; index?: string };
 }
 
+/** Eski kayıtlarda hisse kodu biçimli etiketler doğrulanamaz; yalın görünümde atılır (kaynak etiketleri hariç). */
+const TICKER_LIKE_RE = /^[A-Z][A-Z0-9]{2,5}$/;
+const KEEP_TAGS = ["KAP", "BIST"];
+
 export const isKapReport = (r: Pick<ViewableReport, "sources">) => r.sources.some((s) => s.toUpperCase() === "KAP");
 export const isLegacy = (r: Pick<ViewableReport, "schemaVersion">) => !(typeof r.schemaVersion === "number" && r.schemaVersion >= REPORT_SCHEMA_VERSION);
 
@@ -159,34 +163,38 @@ function trDate(iso: string): string {
   return `${ist.getUTCDate()} ${LEGACY.months[ist.getUTCMonth()]} ${ist.getUTCFullYear()}`;
 }
 
-const TICKER_RE = new RegExp(LEGACY.ticker_pattern);
-const TICKER_EXCLUDE: readonly string[] = LEGACY.ticker_exclude;
-const COMPANY_TYPES: readonly string[] = LEGACY.company_types;
-
-/**
- * Kaydın YAPILANDIRILMIŞ alanlarından hisse kodu (Python `structured_ticker`): önce `ipo.ticker`, sonra
- * etiketlerin ilki (botun yazdığı sözleşme: `[kod, ...]`). Başlık/yorum metninden kod ayrıştırılmaz;
- * kalıba uymuyorsa boş döner (tahmin yok).
- */
-export function structuredTicker(r: { tags?: string[]; ipo?: { ticker?: unknown } }): string {
-  const ok = (v: unknown): v is string => typeof v === "string" && TICKER_RE.test(v) && !TICKER_EXCLUDE.includes(v);
-  if (ok(r.ipo?.ticker)) return r.ipo.ticker;
-  const first = (r.tags ?? [])[0];
-  return ok(first) ? first : "";
-}
-
-/** Sürümsüz kaydın görünen başlığı: resmî KAP başlığı aynen; diğerleri "<tür> — <tarih>"; şirket başına üretilen türlerde "<KOD> — <tür> — <tarih>" (Python `legacy_title`). */
-export function legacyTitle(
-  r: Pick<ViewableReport, "title" | "sources" | "category" | "publishedAt"> & { tags?: string[]; ipo?: { ticker?: unknown } },
-): string {
+/** Sürümsüz kaydın görünen başlığı: resmî KAP başlığı aynen; diğerleri "<tür> — <tarih>" (Python `legacy_title`). Hisse kodu eklenmez: eski kayıtlardaki kodlar doğrulanamaz. */
+export function legacyTitle(r: Pick<ViewableReport, "title" | "sources" | "category" | "publishedAt">): string {
   if (isOfficialKapTitle(r)) return r.title;
   const categoryTypes = LEGACY.category_types as Record<string, string>;
-  const own = ownTemplateType(r.title);
-  const typ = own ?? categoryTypes[r.category] ?? "Piyasa notu";
-  const code = own !== null && COMPANY_TYPES.includes(own) ? structuredTicker(r) : "";
-  const label = code ? `${code} — ${typ}` : typ;
+  const typ = ownTemplateType(r.title) ?? categoryTypes[r.category] ?? "Piyasa notu";
   const date = trDate(r.publishedAt);
-  return date ? `${label} — ${date}` : label;
+  return date ? `${typ} — ${date}` : typ;
+}
+
+/** Aynı gün aynı türetilmiş başlığı alan eski kayıtları ayırmak için yayın saati (İstanbul, "13:45"); saat yoksa boş. */
+function trTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime()) || !/T\d\d:\d\d/.test(iso)) return "";
+  const ist = new Date(d.getTime() + 3 * 3600 * 1000);
+  return `${String(ist.getUTCHours()).padStart(2, "0")}:${String(ist.getUTCMinutes()).padStart(2, "0")}`;
+}
+
+/**
+ * Yalın görünümdeki eski kayıtlardan türetilmiş başlığı aynı olanlara, raporun kendi yayın saatini ekler
+ * ("… — 7 Temmuz 2026 · 13:45"). Resmî KAP başlıkları aynen kalır; saat alanı yoksa ayırıcı eklenmez.
+ */
+export function disambiguateLegacyTitles<T extends Pick<ViewableReport, "title" | "sources" | "publishedAt"> & { legacyMinimal?: boolean }>(
+  reports: T[],
+): T[] {
+  const derived = (r: T) => r.legacyMinimal === true && !isOfficialKapTitle(r);
+  const count = new Map<string, number>();
+  for (const r of reports) if (derived(r)) count.set(r.title, (count.get(r.title) ?? 0) + 1);
+  return reports.map((r) => {
+    if (!derived(r) || (count.get(r.title) ?? 0) < 2) return r;
+    const time = trTime(r.publishedAt);
+    return time ? { ...r, title: `${r.title} · ${time}` } : r;
+  });
 }
 
 export function legacySummary(r: Pick<ViewableReport, "title" | "sources">): string {
@@ -208,15 +216,14 @@ export function legacyView<T extends ViewableReport & { ipo?: object }>(
   if (!isLegacy(report)) return { report, minimal: false };
   const official = isOfficialKapTitle(report);
   const title = legacyTitle(report);
-  // Şirket: başlıktaki ön ek, yoksa raporun yapılandırılmış `kap.company` alanı; ikisi de yoksa şirket adı
-  // gösterilmez (tahmin yok) ve yapılandırılmış hisse kodu (varsa) ayrı satırda verilir.
+  // Şirket: başlıktaki ön ek, yoksa raporun yapılandırılmış `kap.company` alanı; ikisi de yoksa şirket satırı
+  // yoktur (tahmin yok). Eski kayıtlardaki hisse kodları (etiket/`ipo.ticker`) güvenilir değildir; gösterilmez.
   const company = official ? companyFromTitle(report.title) || (report.kap?.company ?? "").trim() : "";
-  const code = official && !company && report.tags.includes("KAP") ? structuredTicker(report) : "";
   const lines = official
     ? [
         "### Bildirim Bilgileri",
         `- **Başlık (KAP):** ${report.title}`,
-        ...(company ? [`- **Şirket:** ${company}`] : code ? [`- **Hisse kodu:** ${code}`] : []),
+        ...(company ? [`- **Şirket:** ${company}`] : []),
         `- **Yayın tarihi:** ${trDate(report.publishedAt)}`,
         "- **Bildirim türü:** Bu eski kayıtta saklanmamış.",
         `- **Kaynak:** [KAP bildirim sorgulama](${KAP_QUERY_URL})`,
@@ -230,14 +237,15 @@ export function legacyView<T extends ViewableReport & { ipo?: object }>(
         "",
         "> Bu sayfa eski bir kayıttır; içeriği güncel yayın ilkelerimize göre gösterilmemektedir.",
       ];
-  const ipo = report.ipo ? ({ ...report.ipo, verdict: undefined, confidence: undefined } as T["ipo"]) : report.ipo;
+  // Eski `ipo` bloğu (kod, değerlendirme) kullanılmaz.
+  const ipo = undefined as T["ipo"];
   return {
     report: {
       ...report,
       title,
       body: lines.join("\n"),
       summary: legacySummary(report),
-      tags: report.tags.filter((t) => !hasBanned(t)),
+      tags: report.tags.filter((t) => !hasBanned(t) && !(TICKER_LIKE_RE.test(t) && !KEEP_TAGS.includes(t))),
       image: undefined,
       ipo,
     },

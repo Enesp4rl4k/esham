@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
-import { findBanned, normalize, stripBanned, legacyView, legacyTitle, legacySummary, NOTE_KAP, isKapReport } from "./neutral.ts";
+import { findBanned, normalize, stripBanned, legacyView, legacyTitle, legacySummary, disambiguateLegacyTitles, NOTE_KAP, isKapReport } from "./neutral.ts";
 import { isIndexable } from "./thin-content.ts";
 
 const vectors = JSON.parse(readFileSync(new URL("./neutral-vectors.json", import.meta.url), "utf-8"));
@@ -116,32 +116,66 @@ test("dizin kararı tek fonksiyon: yalın görünüm ⇒ noindex (ipo meta veriy
   assert.equal(report.ipo?.verdict, undefined);
   assert.equal(isIndexable({ body: "x", ipo: { company: "X", ticker: "Y" } }), true); // sürüm 2 halka arz
 });
-test("eski başlıklar şirket başına üretilen türlerde yapılandırılmış hisse kodunu taşır (aynı gün çakışmaz)", () => {
-  const base = { sources: ["KAP", "İzahname"], category: "ipo", publishedAt: "2026-07-07T10:00:00Z" };
-  const a = legacyTitle({ ...base, title: "A A.Ş. Halka Arz Analizi", tags: ["EKIM", "Halka Arz"] });
-  const b = legacyTitle({ ...base, title: "B A.Ş. Halka Arz Analizi", tags: ["MEYSU", "Halka Arz"] });
-  assert.equal(a, "EKIM — Halka arz belgesi özeti — 7 Temmuz 2026");
-  assert.notEqual(a, b);
-  // Başlıktan kod ayrıştırılmaz; etiket yoksa türe dönülür.
-  assert.equal(legacyTitle({ ...base, title: "HUNER A.Ş. Halka Arz Analizi", tags: [] }), "Halka arz belgesi özeti — 7 Temmuz 2026");
-  // Piyasa düzeyindeki türlere kod eklenmez.
-  assert.equal(
-    legacyTitle({ ...base, category: "bist", sources: ["BIST"], title: "BIST & Küresel Piyasalar Sabah Raporu", tags: ["AKBNK"] }),
-    "Sabah bülteni — 7 Temmuz 2026",
-  );
+const ISVEA = readdirSync(reportsDir).filter((f) => f.includes("isvea-seramik"));
+const TICKER_PATTERN = /[A-Z][A-Z0-9]{2,5}/;
+
+test("eski raporlarda yapılandırılmış hisse kodu GÖSTERİLMEZ: İsvea raporlarında 'AYX' hiçbir yüzeyde yok", () => {
+  assert.ok(ISVEA.length >= 2); let withCode = 0;
+  const views = ISVEA.map((f) => {
+    const doc = JSON.parse(readFileSync(new URL(f, reportsDir), "utf-8"));
+    withCode += JSON.stringify(doc).includes("AYX") ? 1 : 0;
+    const { report } = legacyView({ ...doc, tags: doc.tags ?? [], sources: doc.sources ?? [] });
+    return { ...report, legacyMinimal: true };
+  });
+  assert.ok(withCode > 0, "veri hâlâ yanlış kodu taşıyor (sınama anlamlı)");
+  for (const v of disambiguateLegacyTitles(views)) {
+    // başlık, kart özeti, gövde (OG/JSON-LD/RSS bu alanlardan beslenir), etiketler, ipo bloğu
+    const surfaces = JSON.stringify({ t: v.title, s: v.summary, b: v.body, tags: v.tags, ipo: v.ipo });
+    assert.ok(!surfaces.includes("AYX"), surfaces);
+    assert.equal(v.ipo, undefined);
+  }
 });
 
-test("resmî KAP başlığında şirket ön eki yoksa yapılandırılmış alan gösterilir: kap.company, yoksa hisse kodu; başlıktan tahmin yok", () => {
+test("eski türetilmiş başlıkta ve şirket satırında hisse kodu deseni yok (tüm eski raporlar)", () => {
+  for (const f of readdirSync(reportsDir).filter((x) => x.endsWith(".json"))) {
+    const doc = JSON.parse(readFileSync(new URL(f, reportsDir), "utf-8"));
+    const { report } = legacyView({ ...doc, tags: doc.tags ?? [], sources: doc.sources ?? [] });
+    if (report.title !== doc.title) assert.ok(!TICKER_PATTERN.test(report.title.replace(/BIST|VİOP|KAP/g, "")), `${f}: ${report.title}`);
+    assert.ok(!/Hisse kodu/.test(report.body), f);
+    assert.ok(report.tags.every((t) => !/^[A-Z][A-Z0-9]{2,5}$/.test(t) || t === "KAP" || t === "BIST"), f);
+  }
+});
+
+test("aynı gün aynı türetilmiş başlık: raporun kendi yayın saati ayırıcı olur; KAP başlığı ve saatsiz kayıt değişmez", () => {
+  const mk = (title, publishedAt, extra = {}) => ({ title, sources: ["X"], publishedAt, legacyMinimal: true, ...extra });
+  const out = disambiguateLegacyTitles([
+    mk("Halka arz belgesi özeti — 6 Temmuz 2026", "2026-07-06T10:05:00Z"),
+    mk("Halka arz belgesi özeti — 6 Temmuz 2026", "2026-07-06T11:30:00Z"),
+    mk("Sabah bülteni — 6 Temmuz 2026", "2026-07-06T05:30:00Z"),
+    mk("Gündem notu — 6 Temmuz 2026", "2026-07-06"),
+    mk("Gündem notu — 6 Temmuz 2026", "2026-07-06"),
+    mk("A A.Ş.: Duyuru", "2026-07-06T10:00:00Z", { sources: ["KAP"] }),
+    mk("A A.Ş.: Duyuru", "2026-07-06T11:00:00Z", { sources: ["KAP"] }),
+  ]);
+  assert.deepEqual(out.map((r) => r.title), [
+    "Halka arz belgesi özeti — 6 Temmuz 2026 · 13:05",
+    "Halka arz belgesi özeti — 6 Temmuz 2026 · 14:30",
+    "Sabah bülteni — 6 Temmuz 2026",
+    "Gündem notu — 6 Temmuz 2026",
+    "Gündem notu — 6 Temmuz 2026",
+    "A A.Ş.: Duyuru",
+    "A A.Ş.: Duyuru",
+  ]);
+});
+
+test("resmî KAP başlığında şirket ön eki yoksa yalnız yapılandırılmış kap.company gösterilir; kod/tahmin yok", () => {
   const rep = (over) => ({ slug: "s", category: "bist", summary: "S", body: "x", publishedAt: "2026-07-07T10:00:00Z", aiGenerated: true, sources: ["KAP"], image: undefined, ...over });
   const noPrefix = "Kredi Derecelendirme Notu Bildirimi";
   const withCompany = legacyView(rep({ title: noPrefix, tags: ["PBT", "KAP", "BIST"], kap: { company: "PASİFİK TEKNOLOJİ A.Ş." } }));
   assert.ok(withCompany.report.body.includes("- **Şirket:** PASİFİK TEKNOLOJİ A.Ş."));
   assert.equal(withCompany.report.title, noPrefix);
-  const onlyTicker = legacyView(rep({ title: noPrefix, tags: ["PBT", "KAP", "BIST"] }));
-  assert.ok(onlyTicker.report.body.includes("- **Hisse kodu:** PBT"));
-  assert.ok(!onlyTicker.report.body.includes("Şirket:"));
-  const none = legacyView(rep({ title: noPrefix, tags: ["Gündem"] }));
-  assert.ok(!none.report.body.includes("Şirket:") && !none.report.body.includes("Hisse kodu"));
+  const none = legacyView(rep({ title: noPrefix, tags: ["PBT", "KAP", "BIST"] }));
+  assert.ok(!none.report.body.includes("Şirket:") && !none.report.body.includes("PBT"));
   const prefixed = legacyView(rep({ title: "X A.Ş.: Duyuru", tags: ["XXX", "KAP"], kap: { company: "BAŞKA A.Ş." } }));
   assert.ok(prefixed.report.body.includes("- **Şirket:** X A.Ş."));
 });

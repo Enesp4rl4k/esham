@@ -95,8 +95,8 @@
     "\\badil degeri? [0-9]",
     "\\bhisse basina adil deger",
     "\\bguclu iskonto",
-    "\\b(dusuk|yuksek) ?= ?(ucuz|pahali|verimli|karli)\\b",
-    "\\byapay zeka (destekli|ile) (kantitatif|finansal istihbarat|analiz edil)",
+    "\\b(dusuk|yuksek)( f/k)? ?= ?(ucuz|pahali|verimli|karli|fazla odeme|az borclu)",
+    "\\byapay zeka (destekli|ile) (kantitatif|finansal istihbarat|analiz)",
     "\\byuksek primli",
     "\\biskontolu islem",
     "\\bcazip\\b",
@@ -224,15 +224,6 @@
         "es kiyasi",
         "Sektör çarpan tablosu"
       ]
-    ],
-    "company_types": [
-      "Halka arz belgesi özeti",
-      "Finansal tablo özeti"
-    ],
-    "ticker_pattern": "^[A-Z][A-Z0-9]{2,5}$",
-    "ticker_exclude": [
-      "BIST",
-      "KAP"
     ],
     "category_types": {
       "bist": "BIST piyasa notu",

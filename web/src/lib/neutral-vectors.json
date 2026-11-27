@@ -44,6 +44,11 @@
     "Yüksek = verimli",
     "Yüksek = kârlı",
     "Düşük=ucuz",
+    "Düşük F/K = ucuz",
+    "Yüksek = fazla ödeme",
+    "Düşük = az borçlu",
+    "Yapay zeka destekli analiz",
+    "Yapay zeka ile analiz edilir",
     "Yapay zeka destekli kantitatif modellerle analiz edilir.",
     "Raporlar her gün yapay zeka ile analiz edilir.",
     "Yapay zeka destekli finansal istihbarat platformu",
@@ -172,6 +177,8 @@
   ],
   "keep": [
     "Fiyat / hisse başına kâr",
+    "Düşük F/K: 4,2x; yüksek ROE: %31",
+    "Yapay zeka destekli çip üreticisi sipariş aldı.",
     "Piyasa değeri / defter değeri (özkaynak)",
     "Düşük F/K (<8)",
     "F/K 8'in altı",
@@ -483,141 +490,6 @@
         "publishedAt": "2026-08-05T23:59:00Z"
       },
       "Kripto piyasa notu — 6 Ağustos 2026",
-      "Eski kayıt; içerik gösterilmiyor."
-    ],
-    [
-      {
-        "title": "Ekim Turizm Ticaret ve Sanayi A.Ş. Halka Arz Analizi",
-        "sources": [
-          "KAP",
-          "İzahname"
-        ],
-        "category": "ipo",
-        "publishedAt": "2026-07-07T10:00:00Z",
-        "tags": [
-          "EKIM",
-          "Halka Arz"
-        ]
-      },
-      "EKIM — Halka arz belgesi özeti — 7 Temmuz 2026",
-      "Eski kayıt; içerik gösterilmiyor."
-    ],
-    [
-      {
-        "title": "Meysu Gıda Sanayi ve Ticaret A.Ş. Halka Arz Halka Arz Analizi",
-        "sources": [
-          "KAP",
-          "İzahname"
-        ],
-        "category": "ipo",
-        "publishedAt": "2026-07-07T10:00:00Z",
-        "tags": [
-          "MEYSU",
-          "Halka Arz"
-        ]
-      },
-      "MEYSU — Halka arz belgesi özeti — 7 Temmuz 2026",
-      "Eski kayıt; içerik gösterilmiyor."
-    ],
-    [
-      {
-        "title": "Yapılandırılmış alanı olmayan A.Ş. Halka Arz Analizi",
-        "sources": [
-          "KAP",
-          "İzahname"
-        ],
-        "category": "ipo",
-        "publishedAt": "2026-07-07T10:00:00Z",
-        "tags": [
-          "Halka Arz"
-        ]
-      },
-      "Halka arz belgesi özeti — 7 Temmuz 2026",
-      "Eski kayıt; içerik gösterilmiyor."
-    ],
-    [
-      {
-        "title": "Başlıkta HUNER geçen ama etiketsiz A.Ş. Halka Arz Analizi",
-        "sources": [
-          "KAP",
-          "İzahname"
-        ],
-        "category": "ipo",
-        "publishedAt": "2026-07-07T10:00:00Z",
-        "tags": []
-      },
-      "Halka arz belgesi özeti — 7 Temmuz 2026",
-      "Eski kayıt; içerik gösterilmiyor."
-    ],
-    [
-      {
-        "title": "X A.Ş. Halka Arz Analizi",
-        "sources": [
-          "KAP",
-          "İzahname"
-        ],
-        "category": "ipo",
-        "publishedAt": "2026-11-10T10:00:00Z",
-        "tags": [
-          "Halka Arz"
-        ],
-        "ipo": {
-          "company": "HUN YENİLENEBİLİR ENERJİ ÜRETİM A.Ş.",
-          "ticker": "HUNER"
-        }
-      },
-      "HUNER — Halka arz belgesi özeti — 10 Kasım 2026",
-      "Eski kayıt; içerik gösterilmiyor."
-    ],
-    [
-      {
-        "title": "THYAO Finansal Analiz — 2025/Q1",
-        "sources": [
-          "KAP",
-          "Finansal Tablolar"
-        ],
-        "category": "bist",
-        "publishedAt": "2026-07-01T10:00:00Z",
-        "tags": [
-          "THYAO",
-          "Bilanço",
-          "Analiz"
-        ]
-      },
-      "THYAO — Finansal tablo özeti — 1 Temmuz 2026",
-      "Eski kayıt; içerik gösterilmiyor."
-    ],
-    [
-      {
-        "title": "X Finansal Analiz — 2025/Q2",
-        "sources": [
-          "BIST"
-        ],
-        "category": "bist",
-        "publishedAt": "2026-07-06T05:30:00Z",
-        "tags": [
-          "BIST",
-          "KAP"
-        ]
-      },
-      "Finansal tablo özeti — 6 Temmuz 2026",
-      "Eski kayıt; içerik gösterilmiyor."
-    ],
-    [
-      {
-        "title": "BIST & Küresel Piyasalar Sabah Raporu",
-        "sources": [
-          "KAP",
-          "BIST"
-        ],
-        "category": "bist",
-        "publishedAt": "2026-07-06T05:30:00Z",
-        "tags": [
-          "AKBNK",
-          "BIST100"
-        ]
-      },
-      "Sabah bülteni — 6 Temmuz 2026",
       "Eski kayıt; içerik gösterilmiyor."
     ]
   ]

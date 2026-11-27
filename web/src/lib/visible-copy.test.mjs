@@ -16,7 +16,7 @@ const FORBIDDEN = [
   /(düşük|yüksek) iyi\)/i,
   /ucuzluğa işaret|ucuzluk işareti/i,
   /Yüksek Prim Potansiyeli|Piyasada Pahalı/,
-  /\bUcuz hisseler?\b/i,
+  /\bUcuz hisse(ler)?\b/i,
 ];
 
 const srcRoot = fileURLToPath(new URL("../", import.meta.url));
@@ -60,4 +60,10 @@ test("üretilmiş metin süzgeci aynı ifadeleri yakalar; olgusal tanım ve şir
   for (const t of ["Fiyat / hisse başına kâr", "MEGA METAL Sanayi ve Ticaret A.Ş.", "/hisseler/tarama/dusuk-fk"]) {
     assert.deepEqual(findBanned(t), [], t);
   }
+});
+
+test("derlenmiş çıktı (varsa): İsvea eski raporlarının sayfalarında yanlış hisse kodu yok", { skip: !existsSync(outRoot) }, () => {
+  const pages = walk(join(outRoot, "rapor"), (n) => n.endsWith(".html") || n.endsWith(".txt")).filter((f) => f.includes("isvea-seramik"));
+  assert.ok(pages.length > 0);
+  assert.deepEqual(pages.filter((f) => readFileSync(f, "utf-8").includes("AYX")), []);
 });

@@ -269,7 +269,7 @@ export function MorningCockpit({
                     >
                       <div className="flex items-center gap-1.5 mb-0.5">
                         <span className="text-xs font-mono uppercase px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300">
-                          {r.ipo?.ticker ? `$${r.ipo.ticker}` : r.tags?.[0] ? `$${r.tags[0].toUpperCase()}` : "BIST"}
+                          {r.legacyMinimal ? "BIST" : r.ipo?.ticker ? `$${r.ipo.ticker}` : r.tags?.[0] ? `$${r.tags[0].toUpperCase()}` : "BIST"}
                         </span>
                         <span className="text-xs font-mono text-zinc-400">
                           #{i + 1}

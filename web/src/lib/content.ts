@@ -31,7 +31,7 @@ import { getUniverseTickers } from "./stocks";
 import type { CategorySlug, IpoMeta, Report } from "./content-utils";
 import { CATEGORIES } from "./content-utils";
 import { isIndexable } from "./thin-content";
-import { legacyView } from "./neutral";
+import { disambiguateLegacyTitles, legacyView } from "./neutral";
 
 const REPORTS_DIR = path.join(process.cwd(), "content", "reports");
 
@@ -160,8 +160,9 @@ export function getAllReports(): Report[] {
   reports.sort(
     (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
   );
-  cache = reports;
-  return reports;
+  const out = disambiguateLegacyTitles(reports);
+  cache = out;
+  return out;
 }
 
 /**
