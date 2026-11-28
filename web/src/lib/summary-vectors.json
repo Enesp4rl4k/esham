@@ -1,0 +1,17 @@
+{
+  "_doc": "distinctSummary (web/src/lib/neutral.ts) ve distinct_summary (bot/esham/neutral.py) ortak vektörleri: özet başlığı tekrarlıyorsa (Türkçe büyük/küçük harf, boşluk, sondaki noktalama farkıyla) boş döner; farklıysa özet aynen (kırpılmış) döner.",
+  "cases": [
+    { "title": "A: B", "summary": "Başka bir özet", "expected": "Başka bir özet" },
+    { "title": "A: B", "summary": "  a:  b ", "expected": "" },
+    { "title": "A: B", "summary": "", "expected": "" },
+    { "title": "A: B", "summary": null, "expected": "" },
+    { "title": "TÜRKİYE İŞ BANKASI A.Ş.: Pay Geri Alımı", "summary": "türkiye iş bankası a.ş.: pay geri alımı", "expected": "" },
+    { "title": "İŞ BANKASI", "summary": "iş bankası", "expected": "" },
+    { "title": "IŞIK HOLDİNG", "summary": "ışık holding", "expected": "" },
+    { "title": "X A.Ş.: Üretimi geçici olarak durdurdu", "summary": "X A.Ş.: Üretimi geçici olarak durdurdu.", "expected": "" },
+    { "title": "X A.Ş.: Üretimi geçici olarak durdurdu.", "summary": "X A.Ş.: Üretimi geçici olarak durdurdu", "expected": "" },
+    { "title": "X A.Ş.: Bildirim", "summary": "X A.Ş.: Bildirim…", "expected": "" },
+    { "title": "X A.Ş.: Bildirim", "summary": " X A.Ş.: Bildirim yayımladı. ", "expected": "X A.Ş.: Bildirim yayımladı." },
+    { "title": "S&P 500 yükseldi", "summary": "S&P 500 +1,16% yükseldi (7", "expected": "S&P 500 +1,16% yükseldi (7" }
+  ]
+}

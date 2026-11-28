@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
-import { findBanned, normalize, stripBanned, legacyView, legacyTitle, legacySummary, NOTE_KAP, isKapReport } from "./neutral.ts";
+import { findBanned, normalize, stripBanned, legacyView, legacyTitle, legacySummary, NOTE_KAP, isKapReport, isLegacy, distinctSummary } from "./neutral.ts";
 import { isIndexable } from "./thin-content.ts";
 
 const vectors = JSON.parse(readFileSync(new URL("./neutral-vectors.json", import.meta.url), "utf-8"));
@@ -68,21 +68,112 @@ test("görünüm kararı YALNIZ schemaVersion'a dayanır: sürüm 2 her üretici
   }
 });
 
-test("tüm eski raporlar: yalın görünümde yasaklı kalıp yok, eski kart yok; 'BIST için Beklenti' render edilmez", () => {
-  let minimal = 0;
-  let kept = 0;
-  for (const f of readdirSync(reportsDir).filter((x) => x.endsWith(".json"))) {
-    const doc = JSON.parse(readFileSync(new URL(f, reportsDir), "utf-8"));
-    const { report, minimal: m } = legacyView({ ...doc, tags: doc.tags ?? [], sources: doc.sources ?? [], aiGenerated: doc.aiGenerated !== false });
-    if (m) minimal++; else kept++;
+// Tüm kayıtlar bu iki denetimden geçer. Eski kayıt (schemaVersion yok) yalın görünüme düşer; GÜNCEL kayıt
+// (schemaVersion >= 2, bot'un her yeni raporu) olduğu gibi gösterilir. Önceki sürüm her dosyayı "eski" varsayıyordu:
+// zamanlanmış yayın ilk güncel raporu commit'leyince (2026-11-27) testler kırıldı ve site derlenemez oldu.
+const viewOf = (doc) => legacyView({ ...doc, tags: doc.tags ?? [], sources: doc.sources ?? [], aiGenerated: doc.aiGenerated !== false });
+
+// Resmî KAP alıntıları (başlık, şirket, tür) süzülmez; denetim bunların dışındaki metne yapılır.
+const withoutQuotes = (text, doc) =>
+  [doc.title, doc.kap?.company, doc.kap?.type].filter(Boolean).reduce((t, q) => t.split(q).join(""), text);
+
+function checkReportView(f, doc) {
+  const v = viewOf(doc);
+  const { report, minimal } = v;
+  if (isLegacy(doc)) {
+    assert.equal(minimal, true, f);
     assert.equal(report.image, undefined, f);
-    assert.ok(m, f); // sürüm alanı olmayan her kayıt yalın görünümde
-    // KAP başlığı birebir alıntıdır ve süzülmez; denetim başlık dışındaki üretilmiş/şablon metne yapılır.
-    const generated = report.body.split(doc.title).join("") + "\n" + report.summary.split(doc.title).join("");
-    assert.deepEqual(findBanned(generated), [], f);
-    assert.ok(!/BIST için Beklenti/i.test(report.body), f);
+  } else {
+    assert.equal(minimal, false, f); // güncel kayıt yalın görünüme DÜŞMEZ
+    assert.equal(report.body, doc.body, f);
+    assert.equal(report.title, doc.title, f);
   }
-  assert.ok(minimal > 0 && kept >= 0);
+  const generated = withoutQuotes(report.body, doc) + "\n" + withoutQuotes(report.summary, doc);
+  assert.deepEqual(findBanned(generated), [], f);
+  assert.ok(!/BIST için Beklenti/i.test(report.body), f);
+  return minimal;
+}
+
+function checkSummaryAndTitle(f, doc) {
+  const { report } = viewOf(doc);
+  if (isLegacy(doc)) {
+    assert.ok(!report.summary.includes(report.title), f);
+    if (report.title !== doc.title) {
+      assert.match(report.title, / — \d{1,2} \S+ \d{4}$/, f);
+      for (const bad of ["takip ediliyor", "izleniyor", "Güvenli liman", "risk iştahı", "rotasyon"]) assert.ok(!report.title.includes(bad), f);
+    }
+    return;
+  }
+  // Güncel kayıt: özet boş olamaz (feed/meta/arama ister); yalın KAP raporunda özet resmî başlığa DÜŞER,
+  // yani özet == başlık meşrudur. Önemli olan başlığın ekranda iki kez görünmemesidir.
+  assert.ok(report.summary.trim().length > 0, f);
+  // KAP dışı güncel kaydın başlığı bizim ürettiğimiz metindir (KAP başlığı alıntıdır, süzülmez).
+  if (!doc.kap) assert.deepEqual(findBanned(report.title), [], f);
+  const shown = distinctSummary(report); // kural ve ortak vektörler: report-gate.test.mjs
+  assert.ok(shown === "" || shown === report.summary.trim(), f);
+}
+
+const reportFiles = () => readdirSync(reportsDir).filter((x) => x.endsWith(".json"));
+
+test("tüm raporlar: eski kayıt yalın, güncel kayıt olduğu gibi; yasaklı kalıp yok; 'BIST için Beklenti' render edilmez", () => {
+  let minimal = 0;
+  for (const f of reportFiles()) if (checkReportView(f, load(f))) minimal++;
+  assert.ok(minimal > 0); // arşivdeki eski kayıtlar yalın görünümde
+});
+
+test("tüm raporlar: başlık yorum taşımaz; özet başlığı kartta tekrarlamaz", () => {
+  for (const f of reportFiles()) checkSummaryAndTitle(f, load(f));
+});
+
+// ---- güncel (şablon yolu) KAP raporu: botun bugün ürettiği biçim; regresyon (2026-11-27) ----
+
+const FRESH_KAP = {
+  slug: "x-a-s-ozet-hk-1000001-2026-11-30",
+  title: "X A.Ş.: Özet Hk.",
+  category: "bist",
+  summary: "X A.Ş.: Özet Hk.", // yalın rapor: özet resmî KAP başlığına düşer
+  publishedAt: "2026-11-30T09:00:00Z",
+  author: "Esham AI",
+  aiGenerated: true,
+  sources: ["KAP"],
+  tags: ["KAP", "BIST"],
+  body: [
+    "### Bildirim Bilgileri",
+    "- **Başlık (KAP):** X A.Ş.: Özet Hk.",
+    "- **Şirket:** X A.Ş.",
+    "- **Tarih:** 2026-11-30",
+    "- **Bildirim türü (KAP):** İzahname-Özet (SPK Tarafından Onaylanan)",
+    "- **Tutar:** Tutar bilgisi için bildirime bakın.",
+    "- **Kaynak:** [KAP bildirimi #1000001](https://www.kap.org.tr/tr/Bildirim/1000001)",
+  ].join("\n"),
+  image: "/cards/x-a-s-ozet-hk-1000001-2026-11-30.png",
+  schemaVersion: 2,
+  kap: { company: "X A.Ş.", type: "İzahname-Özet (SPK Tarafından Onaylanan)", index: "1000001", url: "https://www.kap.org.tr/tr/Bildirim/1000001" },
+};
+
+test("güncel yalın KAP raporu (özet == başlık, kart görseli var) aynı denetimlerden geçer", () => {
+  assert.equal(checkReportView("fresh", FRESH_KAP), false);
+  checkSummaryAndTitle("fresh", FRESH_KAP);
+  assert.equal(distinctSummary(FRESH_KAP), ""); // başlık altında aynı satır tekrar edilmez
+  assert.equal(viewOf(FRESH_KAP).report.image, FRESH_KAP.image); // güncel kartı yalın görünüm silmez
+});
+
+test("denetim gevşetilmedi: güncel raporda yasaklı kalıp, boş özet ya da yorum hâlâ yakalanır", () => {
+  const bad = { ...FRESH_KAP, body: FRESH_KAP.body + "\n\nHedef fiyat 150 TL, güçlü al." };
+  assert.throws(() => checkReportView("bad", bad));
+  assert.throws(() => checkSummaryAndTitle("bad", { ...FRESH_KAP, summary: " " }));
+  assert.throws(() => checkSummaryAndTitle("bad", { ...FRESH_KAP, kap: undefined, sources: ["Yahoo Finance"], title: "BIST için güçlü al sinyali" }));
+  // eski kayıt için yalın görünüm kuralları aynen sürer
+  const old = { ...FRESH_KAP, schemaVersion: undefined };
+  assert.equal(viewOf(old).minimal, true);
+  assert.equal(viewOf(old).report.image, undefined);
+});
+
+test("distinctSummary: farklı özet görünür; aynı (büyük/küçük harf, boşluk farkıyla) gizlenir; boş gizlenir", () => {
+  assert.equal(distinctSummary({ title: "A: B", summary: "Başka bir özet" }), "Başka bir özet");
+  assert.equal(distinctSummary({ title: "A: B", summary: "  a:  b " }), "");
+  assert.equal(distinctSummary({ title: "A: B", summary: "" }), "");
+  assert.equal(distinctSummary({ title: "A: B" }), "");
 });
 
 test("not metni tek kaynaktan", () => {
@@ -93,18 +184,6 @@ test("ortak vektörler: eski kayıt görünen başlığı ve özeti (Python lega
   for (const [doc, title, summary] of vectors.legacy) {
     assert.equal(legacyTitle(doc), title, doc.title);
     assert.equal(legacySummary(doc), summary, doc.title);
-  }
-});
-
-test("eski KAP dışı başlık yorum taşımaz; kartta başlık tekrarı yok", () => {
-  for (const f of readdirSync(reportsDir).filter((x) => x.endsWith(".json"))) {
-    const doc = JSON.parse(readFileSync(new URL(f, reportsDir), "utf-8"));
-    const { report } = legacyView({ ...doc, tags: doc.tags ?? [], sources: doc.sources ?? [], aiGenerated: doc.aiGenerated !== false });
-    assert.ok(!report.summary.includes(report.title), f);
-    if (report.title !== doc.title) {
-      assert.match(report.title, / — \d{1,2} \S+ \d{4}$/, f);
-      for (const bad of ["takip ediliyor", "izleniyor", "Güvenli liman", "risk iştahı", "rotasyon"]) assert.ok(!report.title.includes(bad), f);
-    }
   }
 });
 

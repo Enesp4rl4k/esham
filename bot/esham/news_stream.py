@@ -23,7 +23,9 @@ from .analysis import analyze_ipo_document
 from .config import get_logger, settings
 from .news_queue import NewsQueue
 from .pipeline import last_news_status, run_news_report
+from .publish_gate import record_publication, reset_run_publications
 from .publishing.cards import CardGenerator, CardSpec
+from .publishing.outbox import outbox_context, send_outbox
 from .publishing.social import SocialPublisher
 from .publishing.ticker_data import update_ticker_data
 from .sources import Disclosure
@@ -135,6 +137,10 @@ class NewsStream:
         self._seen: set[str] = self._state.load_seen()
         # Kuyrukta bekleyen (henüz kalıcı karar verilmemiş) bildirimler — aynı süreçte tekrar kuyruğa girmesin.
         self._queued: set[str] = set()
+        try:
+            reset_run_publications(self._state)
+        except Exception:  # noqa: BLE001 — test durum nesneleri get/set taşımayabilir
+            pass
 
     def _key(self, d: Disclosure) -> str:
         return f"{d.company}:{d.title}:{d.date}"
@@ -246,7 +252,8 @@ class NewsStream:
         if isinstance(item, MarketEvent):
             slug = None
             try:
-                slug = run_news_report(event=item, publish_social=True)
+                with outbox_context(kind="event"):
+                    slug = run_news_report(event=item, publish_social=True)
             except Exception as exc:
                 log.error("Makro olay yayın hatası (%s): %s", item.label, exc)
             if slug:
@@ -270,13 +277,16 @@ class NewsStream:
         slug = None
         status = "error"
         try:
-            slug = run_news_report(disclosure=item, publish_social=True)
+            with outbox_context(kap_index=item.disclosure_index, source_key=self._key(item), kind="kap"):
+                slug = run_news_report(disclosure=item, publish_social=True)
             status = last_news_status()
         except Exception as exc:
             log.error("KAP bildirim yayın hatası (%s): %s", item.title[:60], exc)
         if slug:
             log.info("KAP bildirimi yayınlandı: %s (kalan kuyruk: %d).", slug, len(self.queue))
         key = self._key(item)
+        if status == "published" and slug:
+            self._record_publication(item, slug)
         if status in ("published", "duplicate"):
             self._clear_attempts(key)
             self._mark_seen(item)
@@ -326,6 +336,14 @@ class NewsStream:
             data.pop(key)
             self._save_attempts(data)
 
+    def _record_publication(self, item: Disclosure, slug: str) -> None:
+        """Bu koşuda rapora dönüşen bildirim: yayın kapısı kırılırsa `publish_gate` geri alır."""
+        try:
+            record_publication(self._state, key=self._key(item), title=item.title, date=item.date,
+                               index=item.disclosure_index or "", slug=slug)
+        except Exception:  # noqa: BLE001 — test durum nesneleri get/set taşımayabilir
+            pass
+
     def _record_failure(self, item: Disclosure, status: str) -> None:
         try:
             failed = list(self._state.get("failed_disclosures", []) or [])
@@ -358,15 +376,17 @@ class NewsStream:
             return None
 
         if result.slug:
+            self._record_publication(item, result.slug)
             self._mark_seen(item)
             log.info("IPO bildirimi yayınlandı: %s (kalan kuyruk: %d).", result.slug, len(self.queue))
             link = f"{settings.site_url}/rapor/{result.slug}"
             code = f" ({ticker})" if ticker and ticker != company else ""
-            self.social.broadcast(
-                f"HALKA ARZ BELGESİ ÖZETİ: {company}{code}\n{link}\n#HalkaArz #BIST",
-                image_path=result.image_path,
-                verbatim=[company],
-            )
+            with outbox_context(kap_index=item.disclosure_index, source_key=self._key(item), kind="ipo"):
+                self.social.broadcast(
+                    f"HALKA ARZ BELGESİ ÖZETİ: {company}{code}\n{link}\n#HalkaArz #BIST",
+                    image_path=result.image_path,
+                    verbatim=[company],
+                )
         else:
             # Analiz yayınlanamadıysa bildirim kaybolmasın: yalın KAP raporu.
             self._publish_disclosure(item)
@@ -399,6 +419,15 @@ class NewsStream:
             )
         return published
 
+    @staticmethod
+    def _flush_outbox() -> None:
+        """Uzun ömürlü (git'siz, kapısız) mod: giden kutusu hemen gönderilir. GitHub Actions bu yolu
+        KULLANMAZ (``--once``); orada gönderim push sonrası ayrı adımdır."""
+        try:
+            send_outbox()
+        except Exception:  # noqa: BLE001 — gönderim hatası döngüyü durdurmaz
+            log.exception("Giden kutusu gönderilemedi")
+
     def run(self) -> None:
         """Sürekli: periyodik tara, sabit aralıkla tek tek yayınla (drip)."""
         log.info(
@@ -428,5 +457,6 @@ class NewsStream:
                 self.publish_next()
             except Exception as exc:
                 log.error("Yayın hatası: %s", exc)
+            self._flush_outbox()
 
             time.sleep(self.publish_interval)
