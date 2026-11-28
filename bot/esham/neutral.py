@@ -288,3 +288,18 @@ def disambiguate_legacy_titles(docs: list[dict]) -> list[dict]:
 
 def legacy_summary(doc: dict) -> str:
     return NOTE_LEGACY_SUMMARY_KAP if is_official_kap_title(doc) else NOTE_LEGACY_SUMMARY
+
+# ---- özet tekrarı -----------------------------------------------------------
+# web/src/lib/neutral.ts `distinctSummary` ile aynı kural (ortak vektörler: web/src/lib/summary-vectors.json).
+_TRAILING_PUNCT = " \t.…!?;:,"
+
+
+def distinct_summary(title: str, summary: str | None) -> str:
+    """Başlığın altında gösterilecek özet: başlığı tekrarlıyorsa "" (Türkçe büyük/küçük harf, boşluk ve
+    sondaki noktalama farkı yok sayılır; karşılaştırma ``normalize`` ile)."""
+    s = (summary or "").strip()
+
+    def key(t: str) -> str:
+        return normalize(t).rstrip(_TRAILING_PUNCT)
+
+    return s if s and key(s) != key(title or "") else ""

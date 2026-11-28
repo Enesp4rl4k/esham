@@ -5,18 +5,22 @@ Bot yalnızca Telegram kanalına otomatik yayın yapar.
 
 Her gönderi: (1) yasaklı piyasa yargısı/tavsiye kalıplarından deterministik olarak süzülür,
 (2) guardrail'dan geçer, (3) sonuna "yatırım tavsiyesi değildir" uyarısı eklenir.
+
+ÖNEMLİ: ``broadcast``/``broadcast_thread`` artık DOĞRUDAN GÖNDERMEZ. Gönderi giden kutusuna
+(``publishing/outbox.py``, ``bot/state/telegram_outbox.json``) yazılır; iş akışı raporlar yayın kapısından
+geçip master'a push edildikten SONRA ``python -m esham.main send-outbox`` ile gönderir. Yerelde hemen
+göndermek için: ``python -m esham.main --send-now <komut>``.
 """
 from __future__ import annotations
 
 from collections.abc import Sequence
 from pathlib import Path
 
-import requests
-
 from ..config import get_logger, settings
 from ..guardrails import allow, validate_tweet
 from ..neutral import DISCLAIMER_GENERIC, strip_banned
 from ..state import get_state
+from .outbox import Outbox, TelegramTransport
 
 log = get_logger(__name__)
 
@@ -36,41 +40,29 @@ def prepare_post(message: str, disclaimer: str | None = None, *, filtered: bool 
 class SocialPublisher:
 
     def post_telegram(self, message: str, image_path: Path | None = None) -> bool:
-        """Telegram kanalına mesaj/görsel gönderir."""
-        if not (settings.telegram_bot_token and settings.telegram_chat_id):
-            log.info("[DRY-RUN][Telegram] %s", message[:100])
-            return False
-        try:
-            if image_path and image_path.exists():
-                url = f"https://api.telegram.org/bot{settings.telegram_bot_token}/sendPhoto"
-                with open(image_path, "rb") as f:
-                    resp = requests.post(
-                        url,
-                        data={
-                            "chat_id": settings.telegram_chat_id,
-                            "caption": message[:1024],
-                            "parse_mode": "Markdown",
-                        },
-                        files={"photo": f},
-                        timeout=settings.http_timeout,
-                    )
-            else:
-                url = f"https://api.telegram.org/bot{settings.telegram_bot_token}/sendMessage"
-                resp = requests.post(
-                    url,
-                    json={
-                        "chat_id": settings.telegram_chat_id,
-                        "text": message[:4096],
-                        "parse_mode": "Markdown",
-                    },
-                    timeout=settings.http_timeout,
-                )
-            resp.raise_for_status()
+        """Telegram'a DOĞRUDAN gönderir. Yalnız operasyonel uyarılar (scheduler) ve giden kutusu
+        gönderici adımı kullanır; içerik gönderileri ``broadcast`` ile giden kutusuna gider."""
+        result = TelegramTransport().send(message, image_path)
+        if result.outcome == "sent":
             log.info("Telegram gönderildi.")
             return True
-        except requests.RequestException as exc:
-            log.error("Telegram gönderimi başarısız: %s", exc)
-            return False
+        if result.outcome != "dry_run":
+            log.error("Telegram gönderimi başarısız: %s", result.error)
+        return False
+
+    def enqueue(
+        self,
+        message: str,
+        image_path: Path | None = None,
+        *,
+        disclaimer: str | None = None,
+        verbatim: Sequence[str] = (),
+    ) -> bool:
+        """Hazır (süzülmüş, uyarı satırlı) gönderiyi giden kutusuna yazar; yazıldıysa True."""
+        entry = Outbox().enqueue(
+            message, image_path, disclaimer=disclaimer or DISCLAIMER_GENERIC, verbatim=verbatim,
+        )
+        return entry is not None
 
     def broadcast(
         self,
@@ -79,7 +71,7 @@ class SocialPublisher:
         disclaimer: str | None = None,
         verbatim: Sequence[str] = (),
     ) -> None:
-        """Telegram'a yayın yapar. Süzgeç + guardrail + günlük tavan kontrolü yapar.
+        """Telegram gönderisini hazırlar ve giden kutusuna yazar. Süzgeç + guardrail + günlük tavan kontrolü.
 
         ``verbatim``: mesajda geçen BİREBİR kaynak metinleri (ör. KAP başlığı). Bunları içeren satırlar
         süzülmez ve guardrail denetiminde maskelenir — olgusal kaynak bozulmaz.
@@ -120,13 +112,16 @@ class SocialPublisher:
             )
             return
 
-        sent = self.post_telegram(prepare_post(core, disclaimer, filtered=True), image_path)
-        if sent:
+        queued = self.enqueue(
+            prepare_post(core, disclaimer, filtered=True), image_path,
+            disclaimer=disclaimer or DISCLAIMER_GENERIC, verbatim=verbatim,
+        )
+        if queued:
             state.increment_daily_post_count()
 
     def broadcast_thread(self, tweets: list[str],
                          image_path: Path | None = None, disclaimer: str | None = None) -> None:
-        """Uzun içerikleri (sabah bülteni, haftalık özet) Telegram'a gönderir.
+        """Uzun içerikleri (sabah bülteni, haftalık özet) tek Telegram gönderisi olarak giden kutusuna yazar.
 
         Tüm parçaları birleşik tek mesaj olarak iletir.
         Twitter thread'i manuel olarak paylaşılır.
@@ -145,6 +140,5 @@ class SocialPublisher:
             return
 
         tg_text = prepare_post("\n\n".join(parts), disclaimer, filtered=True)
-        sent = self.post_telegram(tg_text, image_path)
-        if sent:
+        if self.enqueue(tg_text, image_path, disclaimer=disclaimer or DISCLAIMER_GENERIC):
             state.increment_daily_post_count()

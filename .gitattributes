@@ -1,1 +1,5 @@
 graphify-out/graph.json merge=graphify
+# Telegram giden kutusu anahtar bazında birleşir (son durum kazanır); bot durumu iki tarafta değişirse çakışır.
+# Sürücü yalnız iş akışında tanımlanır (bot/esham/git_sync.py); tanımsızsa git metin birleştirmesine düşer.
+bot/state/telegram_outbox.json merge=esham-outbox
+bot/state/esham_state.json merge=binary

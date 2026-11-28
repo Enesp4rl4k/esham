@@ -197,8 +197,9 @@ def news_env(monkeypatch, tmp_path):
     monkeypatch.setattr(pipeline, "_render_card", lambda spec: cards.append(spec) or None)
     monkeypatch.setattr(pipeline, "ContentStore", lambda: ContentStore(tmp_path / "reports", tmp_path / "cards"))
     monkeypatch.setattr(social, "get_state", lambda: _FakeState())
-    monkeypatch.setattr(social.SocialPublisher, "post_telegram",
-                        lambda self, message, image_path=None: posts.append(message) or True)
+    # Gönderiler artık giden kutusuna yazılır (doğrudan gönderim yok); yakalama noktası enqueue.
+    monkeypatch.setattr(social.SocialPublisher, "enqueue",
+                        lambda self, message, image_path=None, **k: posts.append(message) or True)
     assert not pipeline.settings.paused
     return {"cards": cards, "posts": posts, "dir": tmp_path / "reports", "kap": _FakeKap}
 
@@ -478,7 +479,7 @@ def test_guardrails_check_generated_text_only():
 def test_broadcast_keeps_verbatim_title_and_filters_rest(monkeypatch):
     posts: list[str] = []
     monkeypatch.setattr(social, "get_state", lambda: _FakeState())
-    monkeypatch.setattr(social.SocialPublisher, "post_telegram", lambda self, m, image_path=None: posts.append(m) or True)
+    monkeypatch.setattr(social.SocialPublisher, "enqueue", lambda self, m, image_path=None, **k: posts.append(m) or True)
     title = "ABC A.Ş.: Mega Sözleşme İmzalanması Hk."
     social.SocialPublisher().broadcast(f"{title}\nHedef fiyat 150 TL\nhttps://esham.pages.dev/rapor/x",
                                        disclaimer=NOTE_KAP, verbatim=[title])
@@ -612,7 +613,6 @@ def test_newsletter_legacy_non_kap_uses_neutral_title(tmp_path, monkeypatch):
     assert r["summary"] == "Eski kayıt; içerik gösterilmiyor."
     _s, html_body, text_body = newsletter.build_digest([r])
     assert "Güvenli liman" not in html_body + text_body and "izleniyor" not in html_body + text_body
-
 
 @pytest.mark.parametrize("docs,expected", VECTORS["disambiguate"])
 def test_shared_vectors_disambiguate(docs, expected):

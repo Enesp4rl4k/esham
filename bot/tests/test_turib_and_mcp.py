@@ -17,7 +17,18 @@ def test_turib_index_calculation():
     assert round(change, 2) == 2.12
 
 
-def test_agri_bist_margin_sensitivity():
+def test_agri_bist_margin_sensitivity(monkeypatch):
+    from esham.sources import MarketSummary
+    import esham.sources.agri_bist as agri_bist
+
+    class _Bist:  # canlı BIST isteği yok
+        def __init__(self, symbol="XU100.IS"):
+            self.symbol = symbol
+
+        def market_summary(self):
+            return MarketSummary(index=self.symbol, price="100,00", change="+1,00%")
+
+    monkeypatch.setattr(agri_bist, "BistSource", _Bist)
     analyzer = AgriBistAnalyzer()
     snap = TuribSnapshot(
         date="2026-11-02",

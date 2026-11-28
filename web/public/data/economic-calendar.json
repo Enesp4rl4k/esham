@@ -1,17 +1,59 @@
 {
-  "updated_at": "2026-11-27T02:47:50+03:00",
+  "updated_at": "2026-11-28T02:24:23+03:00",
   "events": [
     {
-      "time": "12:00",
+      "time": "13:00",
       "country": "Euro Bölgesi",
-      "event": "M3 Money Supply Annual Growth",
+      "event": "Business Confidence Index",
       "importance": "Orta",
-      "forecast": "3.5"
+      "forecast": ""
     },
     {
-      "time": "14:30",
-      "country": "Türkiye",
-      "event": "Net Foreign Exchange Reserves",
+      "time": "13:00",
+      "country": "Euro Bölgesi",
+      "event": "Economic Sentiment",
+      "importance": "Orta",
+      "forecast": "97.2"
+    },
+    {
+      "time": "13:00",
+      "country": "Euro Bölgesi",
+      "event": "Selling Price Expectations",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "16:30",
+      "country": "ABD",
+      "event": "Retail Inventories Ex Autos MoM Adv",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "16:30",
+      "country": "ABD",
+      "event": "Wholesale Inventories MoM Adv",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "16:30",
+      "country": "ABD",
+      "event": "Goods Trade Balance Adv",
+      "importance": "Orta",
+      "forecast": "-133"
+    },
+    {
+      "time": "16:30",
+      "country": "ABD",
+      "event": "USDA Pork Net Export Sales",
+      "importance": "Orta",
+      "forecast": ""
+    },
+    {
+      "time": "16:30",
+      "country": "ABD",
+      "event": "USDA Pork Gross Export Sales",
       "importance": "Orta",
       "forecast": ""
     }

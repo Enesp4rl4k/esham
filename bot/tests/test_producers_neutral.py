@@ -223,6 +223,18 @@ def test_producer_writes_schema_v2_and_is_clean_at_source(name):
         assert not hits, (name, hits)
 
 
+def test_template_kap_report_shape_matches_what_the_web_accepts():
+    """Şablon yolundaki KAP raporu = başlık + olgu bloğu. Özet resmî KAP başlığına düşebilir (özet == başlık meşru);
+    web testleri (neutral.test.mjs) ve sayfa bu biçimi kabul eder. Biçim değişirse web tarafı da güncellenmeli."""
+    PRODUCERS["KAP haber"]()
+    doc = _Store.drafts[-1].to_document()
+    assert doc["schemaVersion"] == REPORT_SCHEMA_VERSION
+    assert "KAP" in doc["sources"] and doc["kap"]["index"]
+    assert doc["summary"].strip(), "özet boş olamaz (feed/meta/arama)"
+    assert doc["title"] in doc["body"], "olgu bloğu resmî başlığı aynen taşır"
+    assert not find_banned(doc["body"].replace(doc["title"], ""))
+
+
 def test_every_publishing_producer_is_covered():
     """Yeni bir ReportDraft üreticisi eklenirse bu test listesine de eklenmeli."""
     import re

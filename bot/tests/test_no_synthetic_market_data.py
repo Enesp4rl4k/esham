@@ -166,6 +166,8 @@ def offline_turib(monkeypatch):
     monkeypatch.setattr(turib_data, "TmoSource", _Tmo)
     import esham.sources.tanker_freight as tf
     monkeypatch.setattr(tf, "TankerFreightSource", _Boom)
+    import esham.sources.portwatch as pw  # canlı PortWatch (arcgis) isteği yok: kaynak hatası yolu
+    monkeypatch.setattr(pw, "PortWatchSource", _Boom)
 
 
 def _old(commodity, as_of=None, price=9.99):
