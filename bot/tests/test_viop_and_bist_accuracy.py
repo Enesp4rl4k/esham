@@ -33,7 +33,7 @@ def test_viop_margin_parser_offline(monkeypatch):
     assert snap.futures_oi_value_tl == 95_000_000_000.0
     assert snap.profit_loss_total_tl == 2_100_000_000.0
     assert snap.margin_call_to_required_pct == pytest.approx(1.5, abs=0.001)
-    assert "Milyar TL" in snap.required_pretty()
+    assert "milyar TL" in snap.required_pretty()
 
 
 def test_viop_margin_parser_offline_no_table_gives_none(monkeypatch):

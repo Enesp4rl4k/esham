@@ -43,6 +43,15 @@ APOSTROPHE_SUFFIXES: frozenset[str] = frozenset(
 _LOST_APOSTROPHE_RE = _re.compile(r"(?:(?<=[^\W_])|(?<=\.))\?([^\W\d_]{1,6})(?![^\W_]|[=&/])")
 
 
+def _proper_noun_before(s: str, q: int) -> bool:
+    """'?' öncesindeki kelime en az 3 harf ve büyük harfle başlıyor mu (özel ad: "İstanbul", "ABD")."""
+    i = q
+    while i > 0 and s[i - 1].isalpha():
+        i -= 1
+    word = s[i:q]
+    return len(word) >= 3 and word[0].isupper()
+
+
 def repair_lost_apostrophes(s: str) -> str:
     """Görüntüleme için: 'Bulgaristan?da' -> "Bulgaristan'da". Ek listede değilse, ek küçük harfle
     başlamıyorsa ya da "?" bir URL/sorgu dizgisindeyse (kelimede '://', '=' ya da 'www.' varsa) dokunulmaz. "A.Ş.?nin" ve "Kocaeli/Gebze?de" onarılır."""
@@ -55,6 +64,8 @@ def repair_lost_apostrophes(s: str) -> str:
         token = s[start:end if end >= 0 else len(s)]
         if suffix not in APOSTROPHE_SUFFIXES or "://" in token or "=" in token or token.startswith("www."):
             return m.group(0)
+        if len(suffix) == 1 and not _proper_noun_before(s, m.start()):
+            return m.group(0)  # "x?a", "Ne?e": tek harfli ek yalnız özel ad sonrası ("İstanbul?a")
         return "'" + suffix
 
     return _LOST_APOSTROPHE_RE.sub(fix, s)

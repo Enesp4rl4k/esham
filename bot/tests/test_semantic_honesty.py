@@ -12,6 +12,7 @@ düzeltilmiş cümleleri ve (3) 13 üreticinin fikstür çıktısını birebir (
 """
 from __future__ import annotations
 
+import json
 import re
 from datetime import date, datetime
 
@@ -417,3 +418,41 @@ def test_nan_source_values_never_render(monkeypatch):
     monkeypatch.setattr(bist_mod, "retry_post", lambda *a, **k: resp)
     s = bist_mod.BistSource().market_summary()
     assert s.change == "" and s.change_pct is None and "nan" not in repr(s.change)
+
+
+def test_tradingview_fallback_never_borrows_yahoo_timestamp(monkeypatch):
+    """Yahoo yanıtı VAR ama fiyatı yok (ayrıştırılamaz) → TradingView değerleri; Yahoo'nun işlem zamanı ve
+    seans durumu bu değerlere EKLENMEZ (kaynak karışımı mutasyonu: `_with_session(tv_summary, yahoo_payload)`)."""
+    from esham.sources import bist as bist_mod
+
+    yahoo = _yahoo_payload()
+    del yahoo["chart"]["result"][0]["meta"]["regularMarketPrice"]  # ayrıştırılamaz, ama zaman damgası duruyor
+    monkeypatch.setattr(bist_mod.BistSource, "_yahoo_chart", lambda self, *a, **k: yahoo)
+    payload = {"data": [{"s": "BIST:XU100", "d": ["XU100", 10977.01, 2.18, 10737.18, 11000.0, 10700.0, 5e9]}]}
+    resp = type("R", (), {"raise_for_status": lambda self: None, "json": lambda self: payload})()
+    monkeypatch.setattr(bist_mod, "retry_post", lambda *a, **k: resp)
+    s = bist_mod.BistSource().market_summary()
+    assert s.price == "10.977,01" and s.change == "+%2,18"
+    assert s.as_of is None and s.market_open is None
+    assert market_text.bist_open(s, EVENING) is None and market_text.bist_close(s, EVENING) is None
+
+
+def test_producer_posts_go_to_outbox_not_telegram(monkeypatch, fakes):
+    """#31 sonrası: üretici gönderileri gerçek SocialPublisher ile giden kutusuna yazılır; doğrudan gönderim yok."""
+    from esham.publishing import outbox as outbox_mod
+    from esham.publishing import social as social_mod
+
+    monkeypatch.setattr(pipeline, "SocialPublisher", social_mod.SocialPublisher)  # fikstürün sahtesi yerine gerçeği
+    monkeypatch.setattr(social_mod, "get_state", lambda: type("S", (), {
+        "get_daily_post_count": lambda self: 0, "increment_daily_post_count": lambda self: None})())
+    monkeypatch.setattr(social_mod.SocialPublisher, "post_telegram",
+                        lambda *a, **k: (_ for _ in ()).throw(AssertionError("doğrudan Telegram gönderimi")))
+    monkeypatch.setattr(outbox_mod.TelegramTransport, "send",
+                        lambda *a, **k: (_ for _ in ()).throw(AssertionError("Telegram'a gönderildi")))
+    P._Store.drafts = []
+    assert pipeline.run_closing_report(publish_social=True)
+    entries = outbox_mod.load_entries(outbox_mod.outbox_path())
+    assert len(entries) == 1
+    dumped = json.dumps(entries[0], ensure_ascii=False)
+    assert "BIST XU100 endeksi 27.11.2026 seansını 10.000,00 puandan kapattı" in dumped
+    assert entries[0].get("status") == "pending"

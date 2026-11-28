@@ -23,7 +23,7 @@ on:
     - cron: "40 5 * * 1-5"    # e-posta bülteni (SMTP) 08:40 TR
     - cron: "45 5 * * 1-5"    # küresel makro raporu    08:45 TR
     - cron: "30 6 * * 1-5"    # VİOP açılış             09:30 TR
-    - cron: "05 7 * * 1-5"    # BIST açılış (ilk seans verisi) 10:05 TR
+    - cron: "20 7 * * 1-5"    # BIST açılış (ilk seans verisi, ~15 dk gecikmeli kaynak) 10:20 TR
     - cron: "15 8 * * 1-5"    # TÜRİB piyasa verisi     11:15 TR
     - cron: "0 10 * * 1-5"    # öğle ısı haritası       13:00 TR
     - cron: "45 11 * * 1-5"   # VİOP gün içi margin call 14:45 TR
@@ -156,7 +156,7 @@ jobs:
             "40 5 * * 1-5")              CMD="newsletter" ;;
             "45 5 * * 1-5")              CMD="global-report" ;;
             "30 6 * * 1-5")              CMD="viop --publish" ;;
-            "05 7 * * 1-5")              CMD="opening" ;;
+            "20 7 * * 1-5")              CMD="opening" ;;
             "15 8 * * 1-5")              CMD="publish-turib" ;;
             "0 10 * * 1-5")              CMD="heatmap" ;;
             "45 11 * * 1-5")             CMD="viop --publish" ;;

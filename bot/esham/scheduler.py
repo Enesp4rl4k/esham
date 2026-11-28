@@ -246,7 +246,8 @@ def build_default_scheduler(
     sched.add_daily("bulten-gonder", "08:40", lambda: run_newsletter())
     sched.add_daily("kuresel-makro", "08:45", lambda: run_global_report())
     sched.add_daily("viop-acilis", "09:30", lambda: run_viop_report(publish=True))
-    sched.add_daily("bist-acilis", "10:00", lambda: run_opening_report(publish_social=True))
+    # Yahoo BIST verisi ~15 dk gecikmeli: 10:00/10:05 koşusunda bugünün açılışı henüz yok (rapor atlanır).
+    sched.add_daily("bist-acilis", "10:20", lambda: run_opening_report(publish_social=True))
     sched.add_daily("turib-seans-ortasi", "11:15", lambda: update_turib_market_data())
     sched.add_daily("heatmap-ogle", "13:00", lambda: run_heatmap())
     sched.add_daily("turib-kapanis", "16:30", lambda: update_turib_market_data())

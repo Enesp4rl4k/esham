@@ -65,6 +65,8 @@ const INITIALS_RE = new RegExp("^(?:\\p{Lu}\\.)+$", "u");
 const LOWER_START_RE = new RegExp("^\\p{Ll}", "u");
 
 const APOSTROPHE_SUFFIXES = new Set<string>(rules.apostrophe.suffixes);
+const LETTER_RE = new RegExp("^\\p{L}$", "u");
+const UPPER_RE = new RegExp("^\\p{Lu}$", "u");
 const LOST_APOSTROPHE_RE = new RegExp("(?<=[\\p{L}\\p{N}.])\\?(\\p{L}{1,6})(?![\\p{L}\\p{N}=&/])", "gu");
 
 /**
@@ -79,6 +81,13 @@ export function repairLostApostrophes(text: string): string {
     const endIdx = s.indexOf(" ", offset + whole.length);
     const token = s.slice(start, endIdx >= 0 ? endIdx : s.length);
     if (!APOSTROPHE_SUFFIXES.has(suffix) || token.includes("://") || token.includes("=") || token.startsWith("www.")) return whole;
+    if (suffix.length === 1) {
+      // "x?a", "Ne?e": tek harfli ek yalnız özel ad sonrası ("İstanbul?a"); Python _proper_noun_before ile aynı.
+      let i = offset;
+      while (i > 0 && LETTER_RE.test(s[i - 1])) i--;
+      const word = s.slice(i, offset);
+      if (!(word.length >= 3 && UPPER_RE.test(word[0]))) return whole;
+    }
     return "'" + suffix;
   });
 }
