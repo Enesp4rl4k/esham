@@ -1,5 +1,6 @@
 import { SITE_URL } from "@/lib/config";
 import { seoTitle, seoDescription } from "@/lib/seo";
+import { distinctSummary } from "@/lib/neutral";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -210,8 +211,8 @@ export default async function ReportPage({
         {report.title}
       </h1>
 
-      {report.summary && report.summary.trim().toLowerCase() !== report.title.trim().toLowerCase() && (
-        <p className="text-xl text-zinc-400 leading-relaxed mb-8">{report.summary}</p>
+      {distinctSummary(report) && (
+        <p className="text-xl text-zinc-400 leading-relaxed mb-8">{distinctSummary(report)}</p>
       )}
 
       <SummaryNotice kap={report.sources.some((s) => s.toUpperCase() === "KAP")} />

@@ -61,6 +61,11 @@ class StateStore:
         self._data[key] = value
         self._save()
 
+    def delete(self, key: str) -> None:
+        if key in self._data:
+            del self._data[key]
+            self._save()
+
     # ---- KAP "görüldü" kümesi (zaman damgalı, otomatik budanır) ----------------
 
     def load_seen(self) -> set[str]:
