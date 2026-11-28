@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 
-from ..formatting import from_epoch
+from ..formatting import from_epoch, is_number
 
 
 @dataclass(frozen=True)
@@ -31,7 +31,7 @@ def daily_bars(result: dict) -> list[tuple[date, float]]:
     tz = timezone(timedelta(seconds=offset))
     by_day: dict[date, float] = {}
     for t, c in zip(ts, closes):
-        if t is None or c is None:
+        if t is None or not is_number(c):  # NaN/None bar atlanır
             continue
         try:
             d = datetime.fromtimestamp(int(t), tz=tz).date()

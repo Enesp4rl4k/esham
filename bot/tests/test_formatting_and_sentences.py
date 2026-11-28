@@ -131,27 +131,87 @@ def test_strip_banned_uses_abbreviation_aware_splitter():
     assert strip_banned("ABC A.Ş. hedef fiyatını 150 TL olarak açıkladı. Teslimat 2027'de.") == "Teslimat 2027'de."
 
 
-# ---- kayıp kesme işareti --------------------------------------------------------------------------
+# ---- kayıp kesme işareti (yalnız görüntüleme katmanı) ---------------------------------------------
 
-@pytest.mark.parametrize("raw,fixed", [
-    ("KIRAÇ GALVANİZ ...: Bulgaristan?da İhale Kazanılması", "KIRAÇ GALVANİZ ...: Bulgaristan'da İhale Kazanılması"),
-    ("Sermaye Piyasası Kurulu?na Başvuru", "Sermaye Piyasası Kurulu'na Başvuru"),
-    ("ABD?deki İştirakimiz", "ABD'deki İştirakimiz"),
-    ("CEO?nun görevden alınması", "CEO'nun görevden alınması"),
-    ("%51?ini temsil eden paylar", "%51'ini temsil eden paylar"),
-    ("Neden? Çünkü", "Neden? Çünkü"),  # soru işareti kelime arasında değil → dokunulmaz
-    ("Ne zaman?", "Ne zaman?"),
-])
-def test_repair_lost_apostrophes(raw, fixed):
+@pytest.mark.parametrize("raw,fixed", VECTORS["apostrophe"])
+def test_repair_lost_apostrophes_shared_vectors(raw, fixed):
+    """Ortak vektörler (TS: repairLostApostrophes). Yalnız 'harf?Türkçe-ek'; URL ve 'Neden?Çünkü' dokunulmaz."""
     assert repair_lost_apostrophes(raw) == fixed
 
 
-def test_kap_source_repairs_apostrophe_at_source():
+def _archived_kap_titles_with_lost_apostrophe() -> list[dict]:
+    import os
+
+    base = ROOT / "web" / "content" / "reports"
+    prefix = "\\\\?\\" if os.name == "nt" else ""  # Windows uzun yol sınırı (bazı slug'lar 260+ karakter)
+    out = []
+    for name in sorted(os.listdir(prefix + str(base))):
+        with open(prefix + str(base / name), encoding="utf-8") as fh:
+            doc = json.load(fh)
+        if "KAP" in (doc.get("sources") or []) and re.search(r"[^\W\d_]\?[^\W\d_]", doc.get("title", "")):
+            out.append(doc)
+    return out
+
+
+def test_raw_kap_title_key_and_slug_unchanged_so_archive_is_not_republished():
+    """Onarım kaynakta YAPILMAZ: ham başlık "görüldü" anahtarında, slug'da ve kayıtta aynen kalır.
+
+    Arşivde "?" taşıyan KAP başlıkları için: KapSource aynı başlığı üretir, NewsStream anahtarı onarımdan
+    bağımsızdır ve yayın slug'ı saklanan slug ile aynıdır → birleştirme günü bu bildirimler yeniden yayınlanmaz.
+    """
+    from esham.news_stream import NewsStream
+    from esham.publishing.content_store import slugify
     from esham.sources.kap import KapSource
 
-    d = KapSource()._to_disclosure({
-        "kapTitle": "KIRAÇ GALVANİZ TELEKOMİNİKASYON A.Ş.", "subject": "Yeni İş İlişkisi",
-        "summary": "Bulgaristan?da İhale Kazanılması", "disclosureIndex": 1, "publishDate": "27.11.2026 09:00:00",
-    })
-    assert d.title == "KIRAÇ GALVANİZ TELEKOMİNİKASYON A.Ş.: Bulgaristan'da İhale Kazanılması"
-    assert "?" not in d.raw_text
+    docs = _archived_kap_titles_with_lost_apostrophe()
+    assert len(docs) >= 10, len(docs)  # 2026-11-28 itibarıyla arşivde 14 başlık
+    key = NewsStream._key
+    for doc in docs:
+        company, content = doc["title"].split(": ", 1)
+        d = KapSource()._to_disclosure({"kapTitle": company, "subject": doc.get("kap", {}).get("type", "x"),
+                                        "summary": content, "disclosureIndex": doc.get("kap", {}).get("index")})
+        assert d.title == doc["title"], doc["title"]  # ham başlık aynen
+        assert key(None, d) == f"{d.company}:{doc['title']}:{d.date}"  # anahtar ham başlıktan
+        idx = (doc.get("kap") or {}).get("index", "")
+        assert doc["slug"].startswith(slugify(d.title) + (f"-{idx}" if idx else "")), doc["slug"]
+        # görüntülenen metin onarılır (arşivdeki tüm örnekler bilinen Türkçe eklerle), anahtar/slug buna dayanmaz
+        shown = repair_lost_apostrophes(d.title)
+        assert not re.search(r"[^\W\d_]\?[^\W\d_]", shown), shown
+
+
+def test_kap_report_keeps_raw_title_but_card_and_telegram_are_repaired(monkeypatch):
+    from esham import pipeline
+    from esham.ai.client import LlmClient
+    from esham.sources import Disclosure
+
+    monkeypatch.setattr(LlmClient, "generate", lambda self, *a, **k: None)
+    drafts, posts, cards = [], [], []
+
+    class _Store:
+        last_status = "published"
+
+        def prepare(self, draft):
+            return "ok"
+
+        def publish(self, draft, prepared=False):
+            drafts.append(draft)
+            return Path("x.json")
+
+    class _Social:
+        def broadcast(self, message, *a, **k):
+            posts.append((message, k.get("verbatim")))
+
+    monkeypatch.setattr(pipeline, "ContentStore", _Store)
+    monkeypatch.setattr(pipeline, "SocialPublisher", _Social)
+    monkeypatch.setattr(pipeline, "_render_card", lambda spec: cards.append(spec.headline))
+    monkeypatch.setattr(pipeline, "KapSource", lambda: type("K", (), {"get_detail_text": lambda s, i: ""})())
+    raw = "KIRAÇ GALVANİZ A.Ş.: Bulgaristan?da İhale Kazanılması"
+    d = Disclosure(raw, "KIRAÇ GALVANİZ A.Ş.", "2026-11-27", "Yeni İş İlişkisi", ticker="KRGLV", disclosure_index="1703999")
+    pipeline.run_news_report(disclosure=d, publish_social=True)
+    (draft,) = drafts
+    assert draft.title == raw and draft.summary == raw  # saklanan kayıt: ham KAP başlığı
+    assert draft.resolved_slug().startswith("kirac-galvaniz-a-s-bulgaristan-da-ihale-kazanilmasi-1703999")
+    assert cards == ["KIRAÇ GALVANİZ A.Ş.: Bulgaristan'da İhale Kazanılması"]
+    (msg, verbatim), = posts
+    assert "Bulgaristan'da" in msg and "?" not in msg.split("\n")[0]
+    assert verbatim and verbatim[0] in msg  # birebir parça (onarılmış görünüm) mesajda aynen geçer

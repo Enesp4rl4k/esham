@@ -14,6 +14,7 @@ from ..config import get_logger, settings
 from ..formatting import tr_number, tr_pct
 from ..sentences import first_sentence, safe_truncate
 from ..sources.sector import movers_lines
+from ..turkish import repair_lost_apostrophes
 from ..neutral import NOTE_AMOUNT_MISSING, strip_banned
 from ..translation import ensure_turkish, translate_to_turkish, is_mostly_english
 from ..sources import MarketSnapshot
@@ -642,7 +643,7 @@ Veri: {financial_data_text}
             lines.append("\n### KAP Bildirimleri (öne çıkanlar)")
             for d in snapshot.disclosures[:10]:
                 insider_flag = " [İÇSEL]" if d.is_insider else ""
-                lines.append(f"- {safe_truncate(d.title, 80)} [{d.disclosure_type}]{insider_flag}")
+                lines.append(f"- {safe_truncate(repair_lost_apostrophes(d.title), 80)} [{d.disclosure_type}]{insider_flag}")
 
         return "\n".join(lines) or "- Veri bulunamadı."
 
@@ -695,7 +696,7 @@ Veri: {financial_data_text}
         if snapshot.disclosures:
             kap = "## KAP Bildirimleri\n\n"
             for d in snapshot.disclosures:
-                kap += f"- **{d.title}** — {d.disclosure_type}\n"
+                kap += f"- **{repair_lost_apostrophes(d.title)}** — {d.disclosure_type}\n"  # görüntüleme onarımı
             kap += "\n"
 
         footer = (

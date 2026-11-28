@@ -9,6 +9,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 
+import math
+
 import requests
 
 from ..config import default_headers, get_logger, settings
@@ -75,6 +77,14 @@ CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
 TV_SCAN_URL = "https://scanner.tradingview.com/turkey/scan"
 
 
+def _finite(x: object) -> bool:
+    """Sayı ve sonlu mu (None, NaN, inf, metin → False)."""
+    try:
+        return x is not None and math.isfinite(float(x))  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return False
+
+
 class BistSource:
     def __init__(self, symbol: str = "XU100.IS") -> None:
         self.symbol = symbol
@@ -87,11 +97,25 @@ class BistSource:
         return clean
 
     def market_summary(self) -> MarketSummary | None:
-        """Endeks özeti: değerler TradingView'dan (yoksa Yahoo), son işlem ZAMANI ve seans durumu Yahoo
-        meta'sından. Zaman damgası alınamazsa ``as_of=None`` kalır; şablonlar o durumda tarih gerektiren
-        cümleyi YAZMAZ (tahminle "bugün" denmez)."""
+        """Endeks özeti. Fiyat ve zaman damgası AYNI kaynaktan gelir (kaynak karışımı yok):
+
+        1. Yahoo chart (5 gün/günlük): değer, açılış, önceki kapanış (``closes[-2]``), son işlem zamanı
+           (``regularMarketTime``) ve seans durumu aynı yanıttan. Ücretsiz BIST verisi ~15 dk gecikmelidir;
+           şablonlar bunu yazar (``market_text.DELAY_NOTE``).
+        2. Yahoo yoksa TradingView taraması: değerler var ama yanıt işlem zamanı VERMEZ → ``as_of=None``;
+           tarih gerektiren cümleler yazılmaz (tahminle "bugün" denmez).
+        """
         yahoo_payload = self._yahoo_chart("5d", "1d")
-        # 1. Öncelikli Kaynak: TradingView Turkey Scanner (gerçek açılış ve doğru günlük değişim)
+        if yahoo_payload is not None:
+            summary = self._parse_yahoo(yahoo_payload)
+            if summary:
+                summary = self._with_session(summary, yahoo_payload)
+                if summary.as_of is not None:
+                    return summary
+                log.warning("Yahoo BIST yanıtında işlem zamanı yok; TradingView deneniyor.")
+            else:
+                log.warning("BIST Yahoo verisi ayrıştırılamadı; TradingView deneniyor.")
+
         try:
             tv_sym = self._tv_ticker(self.symbol)
             resp = retry_post(
@@ -106,19 +130,11 @@ class BistSource:
             resp.raise_for_status()
             summary = self._parse_tv(resp.json(), tv_sym)
             if summary:
-                return self._with_session(summary, yahoo_payload)
-            log.warning("TradingView BIST verisi ayrıştırılamadı; Yahoo deneniyor.")
+                return summary  # as_of=None: zaman damgası başka kaynaktan EKLENMEZ
+            log.warning("TradingView BIST verisi ayrıştırılamadı.")
         except Exception as exc:
-            log.warning("TradingView BIST verisi alınamadı (%s); Yahoo deneniyor.", exc)
-
-        # 2. İkincil Kaynak: Yahoo Finance chart API (5 günlük mum serisiyle güvenli prevClose hesabı)
-        if yahoo_payload is not None:
-            summary = self._parse_yahoo(yahoo_payload)
-            if summary:
-                return self._with_session(summary, yahoo_payload)
-            log.warning("BIST Yahoo verisi ayrıştırılamadı; yapay veri üretilmiyor.")
-        else:
-            log.error("BIST verisi hiçbir resmi kaynaktan alınamadı; yapay veri üretilmiyor.")
+            log.warning("TradingView BIST verisi alınamadı (%s).", exc)
+        log.error("BIST verisi hiçbir resmi kaynaktan alınamadı; yapay veri üretilmiyor.")
         return None
 
     def _yahoo_chart(self, range_str: str, interval: str) -> dict | None:
@@ -165,10 +181,10 @@ class BistSource:
         low_val = row[5] if len(row) > 5 else None
         volume = row[6] if len(row) > 6 else None
 
-        if close is None:
+        if not _finite(close):
             return None
 
-        chg = float(change_pct) if change_pct is not None else None
+        chg = float(change_pct) if _finite(change_pct) else None  # NaN/None → değişim bilinmiyor
         open_pct: float | None = None
         if open_val is not None and chg is not None:
             try:
@@ -202,12 +218,12 @@ class BistSource:
             return None
 
         price = meta.get("regularMarketPrice")
-        if price is None:
+        if not _finite(price):
             return None
 
         # Yahoo'nun bayat 'previousClose' meta alanı yerine 5 günlük mumların sondan bir öncekini (closes[-2]) kullan
         raw_closes = quotes.get("close", [])
-        valid_closes = [float(c) for c in raw_closes if c is not None]
+        valid_closes = [float(c) for c in raw_closes if _finite(c)]
         prev = None
         if len(valid_closes) >= 2:
             prev = valid_closes[-2]
@@ -219,7 +235,7 @@ class BistSource:
             pct = (float(price) - float(prev)) / float(prev) * 100
 
         raw_opens = quotes.get("open", [])
-        valid_opens = [float(o) for o in raw_opens if o is not None]
+        valid_opens = [float(o) for o in raw_opens if _finite(o)]
         open_val = valid_opens[-1] if valid_opens else meta.get("regularMarketOpen")
         open_pct: float | None = None
         if open_val is not None and prev and prev > 0:

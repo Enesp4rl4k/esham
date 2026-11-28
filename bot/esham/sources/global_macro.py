@@ -18,7 +18,7 @@ import requests
 from ..config import default_headers, get_logger, sample_data_allowed, settings
 from datetime import datetime
 
-from ..formatting import from_epoch, tr_bp, tr_datetime, tr_pct
+from ..formatting import from_epoch, is_number, tr_bp, tr_datetime, tr_pct
 from ..formatting import tr_number as _tr_number
 from ..http import retry_get
 
@@ -181,10 +181,10 @@ class GlobalMacroSource:
             meta = resp.json()["chart"]["result"][0]["meta"]
             price = meta.get("regularMarketPrice")
             prev = meta.get("chartPreviousClose") or meta.get("previousClose")
-            if price is None:
+            if not is_number(price):
                 log.debug("Sembol %s için fiyat yok.", symbol)
                 return None
-            if not prev:
+            if not is_number(prev) or not prev:
                 # Önceki kapanış yoksa değişim BİLİNMİYOR: 0,00 diye yazılmaz, sembol atlanır.
                 log.debug("Sembol %s için önceki kapanış yok; atlanıyor.", symbol)
                 return None

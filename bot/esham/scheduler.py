@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 
 from .config import get_logger, settings
-from .formatting import tr_pct
+from .formatting import tr_date_text, tr_pct
 from .news_stream import NewsStream
 from .pipeline import (
     run_closing_report,
@@ -110,7 +110,7 @@ class MarginWatcher:
             slug = run_viop_report(prior_pct=self._prev_pct, publish=True)
             self.social.broadcast(
                 f"⚠️ VİOP teminat stresi yükseliyor: margin-call/gereken "
-                f"{tr_pct(pct, 3, signed=False)} ({snap.as_of}). Detay raporda. #VİOP #MarginCall"
+                f"{tr_pct(pct, 3, signed=False)} ({tr_date_text(snap.as_of)}). Detay raporda. #VİOP #MarginCall"
             )
         self._prev_pct = pct
         self._state.set_margin_prev_pct(pct)

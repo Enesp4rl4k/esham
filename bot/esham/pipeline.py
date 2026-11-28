@@ -21,9 +21,10 @@ from .config import get_logger, settings
 from datetime import datetime
 
 from . import market_text
-from .formatting import TR_TZ, tr_date, tr_datetime, tr_number, tr_pct
+from .formatting import TR_TZ, tr_date, tr_date_text, tr_datetime, tr_number, tr_pct
 from .neutral import strip_banned
 from .sentences import safe_truncate
+from .turkish import repair_lost_apostrophes
 from .publishing import ContentStore, ReportDraft
 from .publishing.content_store import slugify
 from .publishing.cards import CardGenerator, CardSpec
@@ -282,7 +283,7 @@ def run_viop_report(
         # Önceki kayıt yoksa bugünkü değerle "kıyaslanıp" Sabit denmez: karşılaştırma yok (None).
         prior_pct = get_state().get_margin_prev_pct()
     stress = assess_margin_stress(snap.margin_call_to_required_pct, prior_pct)
-    margin_as_of = getattr(snap, "as_of", "") or ""
+    margin_as_of = tr_date_text(getattr(snap, "as_of", "") or "")  # "2026-11-27" -> "27.11.2026"
     from .state import get_state
     get_state().set_margin_prev_pct(snap.margin_call_to_required_pct)
 
@@ -928,10 +929,11 @@ def run_news_report(
         label = classify_filing(title, disc_type)
         card_kicker = tr_upper(label)
         tags = [t for t in (ticker, "KAP", "BIST") if t]
-        card_headline = safe_truncate(title, 120)
+        # Ham başlık (title) anahtar/slug/kayıt için AYNEN; kart ve Telegram'da kayıp kesme işareti onarılır.
+        card_headline = safe_truncate(repair_lost_apostrophes(title), 120)
         card_ticker_val = ticker
         post_disclaimer = NOTE_KAP
-        verbatim_parts = [title]
+        verbatim_parts = [repair_lost_apostrophes(title)]
         kap_meta = {
             "company": company,
             "type": disc_type or "",
@@ -1087,7 +1089,8 @@ def run_news_report(
         link_suffix = f"\n\n{link}\n{hashtags}"
         max_body = 280 - len(link_suffix)
         tweet_body = tweet_text.strip()
-        tweet_body = safe_truncate(tweet_body, max_body)  # yarım sayı / açık parantez bırakmaz
+        # Görüntüleme katmanı: kayıp kesme işareti onarılır (ham başlık kayıtta aynen kalır).
+        tweet_body = safe_truncate(repair_lost_apostrophes(tweet_body), max_body)
         verbatim = [p for p in verbatim_parts if p] + ([tweet_body] if tweet_text == fallback_summary else [])
         SocialPublisher().broadcast(
             f"{tweet_body}{link_suffix}", image_path=card_path, disclaimer=post_disclaimer, verbatim=verbatim,
@@ -1119,12 +1122,18 @@ def run_weekly_summary(publish_social: bool = True) -> str | None:
         log.error("BIST verisi temin edilemedi; yapay veri basılmaması için rapor iptal edildi.")
         return None
     week = bist_src.weekly_change()
-    week_sentence = market_text.bist_week(bist.index, week)
+    week_sentence = market_text.bist_week(bist.index, week, today)  # bayatsa None (tatil haftası)
     if week_sentence is None:
-        log.error("Haftalık BIST değişimi hesaplanamadı; haftalık özet üretilmedi (günlük değişim haftalık sunulmaz).")
+        log.error("Haftalık BIST değişimi yok ya da eski (week=%s); haftalık özet üretilmedi.", week)
         return None
     macro = _drop_stale_macro(GlobalMacroSource().snapshot(), _now())
     sector_moves = SectorSource().snapshot(period="1w")
+    from .freshness import market_as_of_status
+    from .sources.sector import as_of_of
+    sec_date = as_of_of(sector_moves)
+    if sec_date and market_as_of_status(datetime.combine(sec_date, datetime.min.time(), TR_TZ), today) == "stale":
+        log.warning("Haftalık sektör verisi eski (%s); bölüm atlandı.", sec_date)
+        sector_moves = []
     disclosures = KapSource().latest_disclosures(days=7)
 
     # Sektör tablosu (haftalık değişime göre sıralı; yükselen/düşen listeleri işarete göre süzülür)
@@ -1142,12 +1151,12 @@ def run_weekly_summary(publish_social: bool = True) -> str | None:
     if insider_disclosures:
         kap_section += "### Pay Alım Satım ve Geri Alım Bildirimleri\n\n"
         for d in insider_disclosures[:3]:
-            kap_section += f"- {d.title}\n"
+            kap_section += f"- {repair_lost_apostrophes(d.title)}\n"
         kap_section += "\n"
     if notable_disclosures:
         kap_section += "### Öne Çıkan Bildirimler\n\n"
         for d in notable_disclosures:
-            kap_section += f"- **{d.title}** — {d.company} [{d.disclosure_type}]\n"
+            kap_section += f"- **{repair_lost_apostrophes(d.title)}** — {d.company} [{d.disclosure_type}]\n"
         kap_section += "\n"
 
     # AI ile özet üret

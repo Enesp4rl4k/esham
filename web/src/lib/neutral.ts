@@ -64,6 +64,25 @@ const ABBREVIATIONS = new Set<string>(rules.sentences.abbreviations);
 const INITIALS_RE = new RegExp("^(?:\\p{Lu}\\.)+$", "u");
 const LOWER_START_RE = new RegExp("^\\p{Ll}", "u");
 
+const APOSTROPHE_SUFFIXES = new Set<string>(rules.apostrophe.suffixes);
+const LOST_APOSTROPHE_RE = new RegExp("(?<=[\\p{L}\\p{N}.])\\?(\\p{L}{1,6})(?![\\p{L}\\p{N}=&/])", "gu");
+
+/**
+ * Görüntüleme katmanı: KAP verisindeki kayıp kesme işaretini onarır ("Bulgaristan?da" → "Bulgaristan'da").
+ * bot/esham/turkish.py `repair_lost_apostrophes` ile aynı kural (ortak vektörler: neutral-vectors.json →
+ * apostrophe). Ham başlık/anahtar/slug DEĞİŞMEZ; yalnız gösterilen metne uygulanır.
+ */
+export function repairLostApostrophes(text: string): string {
+  const s = text || "";
+  return s.replace(LOST_APOSTROPHE_RE, (whole: string, suffix: string, offset: number) => {
+    const start = s.lastIndexOf(" ", offset) + 1;
+    const endIdx = s.indexOf(" ", offset + whole.length);
+    const token = s.slice(start, endIdx >= 0 ? endIdx : s.length);
+    if (!APOSTROPHE_SUFFIXES.has(suffix) || token.includes("://") || token.includes("=") || token.startsWith("www.")) return whole;
+    return "'" + suffix;
+  });
+}
+
 /** bot/esham/sentences.py `split_sentences` ile aynı kural (bkz. neutral-rules.json → sentences._doc). */
 export function splitSentences(text: string): string[] {
   const out: string[] = [];
@@ -75,7 +94,8 @@ export function splitSentences(text: string): string[] {
       const tok = (words[words.length - 1] || "").replace(/^[("'“‘«[]+/, "");
       const initials = tok.length >= 2 && tok.length % 2 === 0 && INITIALS_RE.test(tok);
       const openParen = (prev.match(/\(/g) || []).length > (prev.match(/\)/g) || []).length;
-      if (LOWER_START_RE.test(piece) || ABBREVIATIONS.has(tok) || initials || openParen) {
+      const ordinal = /^\d{1,3}\.$/.test(prev.trim());
+      if (LOWER_START_RE.test(piece) || ABBREVIATIONS.has(tok) || initials || openParen || ordinal) {
         out[out.length - 1] = `${prev} ${piece}`;
         continue;
       }

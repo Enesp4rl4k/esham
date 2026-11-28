@@ -13,7 +13,8 @@ Kural (``web/src/lib/neutral.ts`` ``splitSentences`` ile birebir aynı; ortak ve
    - sonraki parça küçük harfle başlıyorsa ("6. madde", "vb. gibi"),
    - önceki parçanın son kelimesi bilinen kısaltmaysa (``neutral-rules.json`` → ``sentences.abbreviations``:
      "Ltd.", "Şti.", "vb." …) ya da büyük harf + nokta dizisiyse ("A.Ş.", "T.C.", "A."),
-   - önceki parçada kapanmamış parantez varsa (parantez içi bölünmez).
+   - önceki parçada kapanmamış parantez varsa (parantez içi bölünmez),
+   - önceki parça yalnız bir sıra numarasıysa ("1. Madde onaylandı.").
 """
 from __future__ import annotations
 
@@ -27,6 +28,7 @@ ABBREVIATIONS: frozenset[str] = frozenset(
 )
 
 _CANDIDATE_RE = re.compile(r"(?:(?<=[.!?…])|(?<=[.!?…][)\"”’»])) +")
+_ORDINAL_RE = re.compile(r"\d{1,3}\.")
 _TRIM_LEAD = "(\"'“‘«["
 
 
@@ -47,6 +49,8 @@ def _joins(prev: str, nxt: str) -> bool:
         return True
     tok = _last_token(prev)
     if tok in ABBREVIATIONS or _is_initials(tok):
+        return True
+    if _ORDINAL_RE.fullmatch(prev.strip()):  # cümle başı sıra numarası: "1. Madde onaylandı."
         return True
     return prev.count("(") > prev.count(")")
 

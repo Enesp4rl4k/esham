@@ -136,8 +136,8 @@ class AgriBistAnalyzer:
                 AgriCompanyImpact(
                     ticker=ticker,
                     company_name=meta["name"],
-                    stock_price=stock.price,
-                    stock_change=stock.change,
+                    stock_price=stock.price if stock else "—",  # veri yoksa eksik görünür
+                    stock_change=stock.change if stock else "—",
                     commodity=comm_name,
                     commodity_price=comm_price,
                     commodity_change=comm_chg,
@@ -148,14 +148,14 @@ class AgriBistAnalyzer:
 
         # Makro çıkarım
         macro_takeaway = (
-            f"BIST Gıda Endeksi (XGIDA) {xgida.change} hareket ederken, "
-            f"TÜRİB Hububat Endeksi {hububat_chg} seviyesinde."
+            (f"BIST Gıda Endeksi (XGIDA) {xgida.change} hareket ederken, " if xgida else "BIST Gıda Endeksi verisi alınamadı; ")
+            + f"TÜRİB Hububat Endeksi {hububat_chg} seviyesinde."
         )
 
         return AgriBistCorrelationReport(
             date=turib_snap.date,
-            xgida_price=xgida.price,
-            xgida_change=xgida.change,
+            xgida_price=xgida.price if xgida else "—",
+            xgida_change=xgida.change if xgida else "—",
             turib_hububat_index=hububat_val,
             turib_hububat_change=hububat_chg,
             company_impacts=company_impacts,

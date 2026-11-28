@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from .formatting import tr_date, tr_datetime, tr_number, tr_pct
+from .formatting import is_number, tr_date, tr_datetime, tr_number, tr_pct
 from .freshness import market_as_of_status
 from .sources import MarketSummary
 from .sources.bars import PeriodChange
@@ -51,13 +51,17 @@ SENTENCE_CATALOG: dict[str, tuple[str, str]] = {
 
 
 def _usable(b: MarketSummary | None, now: datetime) -> bool:
-    return bool(b and b.price and b.change_pct is not None
+    return bool(b and b.price and is_number(b.change_pct) and is_number(b.price_value)
                 and market_as_of_status(b.as_of, now) in ("today", "previous"))
+
+
+#: Ücretsiz BIST verisi (Yahoo) ~15 dk gecikmelidir; seans içi ve açılış cümlelerine eklenir.
+DELAY_NOTE = "Veri gecikmeli olabilir (~15 dk)."
 
 
 def session_note(b: MarketSummary) -> str:
     if b.market_open is True:
-        return " Seans açık; rakamlar gün içi."
+        return f" Seans açık; rakamlar gün içi. {DELAY_NOTE}"
     if b.market_open is False:
         return " Seans şu an kapalı."
     return ""
@@ -85,13 +89,13 @@ def bist_last_short(b: MarketSummary | None, now: datetime) -> str | None:
 def bist_open(b: MarketSummary | None, now: datetime) -> str | None:
     """'Borsa İstanbul XU100 endeksi 27.11.2026 seansını 10.737,18 puandan açtı; açılışın önceki kapanışa göre
     farkı -%0,06.' — yalnız bugünün açılışı ve açılış alanları varsa."""
-    if not (b and b.open_price and b.open_change_pct is not None
+    if not (b and b.open_price and is_number(b.open_change_pct)
             and market_as_of_status(b.as_of, now) == "today"):
         return None
     assert b.as_of is not None
     return (
         f"Borsa İstanbul {b.index} endeksi {tr_date(b.as_of)} seansını {b.open_price} puandan açtı; "
-        f"açılışın önceki kapanışa göre farkı {b.open_change}."
+        f"açılışın önceki kapanışa göre farkı {b.open_change}. {DELAY_NOTE}"
     )
 
 
@@ -107,12 +111,28 @@ def bist_close(b: MarketSummary | None, now: datetime) -> str | None:
     )
 
 
-def bist_week(index: str, wk: PeriodChange | None) -> str | None:
-    """'BIST XU100 endeksi 27.11.2026 kapanışında 10.977,01; 21.11.2026 kapanışına göre haftalık değişim -%1,39.'"""
-    if wk is None:
+def bist_week(index: str, wk: PeriodChange | None, now: datetime | None = None) -> str | None:
+    """'BIST XU100 endeksi 27.11.2026 kapanışında 10.977,01; 20.11.2026 kapanışına göre haftalık değişim -%1,39.'
+
+    ``now`` verilirse tazelik denetlenir: son kapanış ``MARKET_DATA_MAX_AGE_DAYS`` sınırından eskiyse (ör. uzun
+    bayram) cümle yazılmaz; sınır içinde ama bu haftaya ait değilse "Son işlem haftasında" diye açıkça belirtilir.
+    """
+    if wk is None or not (is_number(wk.pct) and is_number(wk.last_close)):
         return None
+    prefix = ""
+    if now is not None:
+        from datetime import datetime as _dt, time as _time
+
+        from .formatting import TR_TZ
+
+        last = _dt.combine(wk.last_date, _time(18, 0), tzinfo=TR_TZ)
+        if market_as_of_status(last, now) not in ("today", "previous"):
+            return None
+        if wk.last_date.isocalendar()[:2] != now.astimezone(TR_TZ).date().isocalendar()[:2]:
+            prefix = "Son işlem haftasında "
+    lead = f"{prefix}BIST" if prefix else "BIST"
     return (
-        f"BIST {index} endeksi {tr_date(wk.last_date)} kapanışında {tr_number(wk.last_close)}; "
+        f"{lead} {index} endeksi {tr_date(wk.last_date)} kapanışında {tr_number(wk.last_close)}; "
         f"{tr_date(wk.base_date)} kapanışına göre haftalık değişim {tr_pct(wk.pct)}."
     )
 

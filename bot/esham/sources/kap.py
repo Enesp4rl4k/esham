@@ -25,7 +25,7 @@ import requests
 
 from ..config import default_headers, get_logger, settings
 from ..kap_http import kap_get, kap_post
-from ..turkish import repair_lost_apostrophes, tr_fold
+from ..turkish import tr_fold
 from . import Disclosure
 
 log = get_logger(__name__)
@@ -204,10 +204,11 @@ class KapSource:
         return []
 
     def _to_disclosure(self, row: dict) -> Disclosure:
-        # KAP verisindeki kayıp kesme işareti ("Bulgaristan?da") kaynağında onarılır; bkz. turkish.py.
-        kap_title = repair_lost_apostrophes(str(row.get("kapTitle") or "").strip())
-        subject = repair_lost_apostrophes(str(row.get("subject") or "").strip())
-        summary = repair_lost_apostrophes(str(row.get("summary") or "").strip())
+        # Ham KAP metni AYNEN tutulur ("Bulgaristan?da" dahil): "görüldü" anahtarı, slug ve kayıt buna
+        # dayanır. Kayıp kesme işareti yalnız görüntülenen metinde onarılır (turkish.repair_lost_apostrophes).
+        kap_title = str(row.get("kapTitle") or "").strip()
+        subject = str(row.get("subject") or "").strip()
+        summary = str(row.get("summary") or "").strip()
         index = row.get("disclosureIndex")
         stock_codes = str(row.get("stockCodes") or "").strip()
         related_stocks = str(row.get("relatedStocks") or "").strip()
