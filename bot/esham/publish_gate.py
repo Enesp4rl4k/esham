@@ -46,28 +46,18 @@ def reset_run_publications(state: StateStore) -> None:
         state.set("run_publications", [p for p in pubs if p.get("run") == run])
 
 
-def handle_gate_failure(reason: str, slugs: list[str] | set[str], state: StateStore | None = None,
-                        outbox: Outbox | None = None) -> dict:
-    """YALNIZ kapıdan geçemeyen raporlar (``slugs``) için: gönderileri iptal, KAP bildirimlerinin sayacı artar.
-    Aynı koşudaki sağlam raporlara ve bildirimlere dokunulmaz."""
-    state = state or get_state()
-    outbox = outbox or Outbox()
-    run = current_run_id()
-    slugs = set(slugs)
-    dropped = outbox.drop_run(run, slugs=slugs)
-
-    now = time.time()
+def _blame(data: dict, pubs: list[dict], reason: str, now: float) -> tuple[list[str], list[str]]:
+    """Suçu rapora yazar: ``gate_failures`` sayacı artar; 3'te ``failed_disclosures`` (``data`` yerinde değişir)."""
     counters: dict = {
-        k: v for k, v in (state.get("gate_failures", {}) or {}).items()
+        k: v for k, v in (data.get("gate_failures", {}) or {}).items()
         if now - float(v.get("last", 0)) < _GATE_RETENTION_SECONDS
     }
-    seen: dict = dict(state.get("seen_disclosures", {}) or {})
-    failed = list(state.get("failed_disclosures", []) or [])
+    seen: dict = dict(data.get("seen_disclosures", {}) or {})
+    failed = list(data.get("failed_disclosures", []) or [])
     retry, given_up = [], []
-    for p in [p for p in (state.get("run_publications", []) or []) if p.get("run") == run and p.get("slug") in slugs]:
+    for p in pubs:
         key = p["key"]
-        c = counters.get(key, {"count": 0})
-        c = {"count": int(c.get("count", 0)) + 1, "last": now, "reason": reason[:300]}
+        c = {"count": int(counters.get(key, {}).get("count", 0)) + 1, "last": now, "reason": reason[:300]}
         counters[key] = c
         if c["count"] >= MAX_GATE_ATTEMPTS:
             failed.append({
@@ -82,10 +72,34 @@ def handle_gate_failure(reason: str, slugs: list[str] | set[str], state: StateSt
             retry.append(key)
             log.warning("Yayın kapısı kırıldı (deneme %d/%d); bildirim sonraki koşuda yeniden denenecek: %s",
                         c["count"], MAX_GATE_ATTEMPTS, p.get("title", "")[:120])
+    data["gate_failures"] = counters
+    data["seen_disclosures"] = seen
+    data["failed_disclosures"] = failed[-200:]
+    return retry, given_up
 
-    state.set("gate_failures", counters)
-    state.set("seen_disclosures", seen)
-    state.set("failed_disclosures", failed[-200:])
+
+def _run_pubs(data: dict, slugs: set[str]) -> list[dict]:
+    run = current_run_id()
+    return [p for p in (data.get("run_publications", []) or []) if p.get("run") == run and p.get("slug") in slugs]
+
+
+def handle_gate_failure(reason: str, slugs: list[str] | set[str], state: StateStore | None = None,
+                        outbox: Outbox | None = None) -> dict:
+    """``partial`` (aynı koşuda EN AZ BİR rapor geçti): YALNIZ kırılan raporlar (``slugs``) için gönderiler
+    iptal, KAP bildirimlerinin sayacı artar. Aynı koşudaki sağlam raporlara ve bildirimlere dokunulmaz."""
+    state = state or get_state()
+    outbox = outbox or Outbox()
+    run = current_run_id()
+    slugs = set(slugs)
+    dropped = outbox.drop_run(run, slugs=slugs)
+    now = time.time()
+    data = {k: state.get(k) for k in ("gate_failures", "seen_disclosures", "failed_disclosures", "run_publications")}
+    retry, given_up = _blame(data, _run_pubs(data, slugs), reason, now)
+    for k in ("gate_failures", "seen_disclosures", "failed_disclosures"):
+        state.set(k, data[k])
+    suspects = dict(state.get("gate_suspects", {}) or {})
+    if any(k in suspects for k in given_up):
+        state.set("gate_suspects", {k: v for k, v in suspects.items() if k not in given_up})
     state.set("last_gate_failure", {
         "run": run, "at": now, "reason": reason[:300], "reports": sorted(slugs),
         "dropped_posts": [e["key"] for e in dropped], "retry": retry, "given_up": given_up,
@@ -93,10 +107,22 @@ def handle_gate_failure(reason: str, slugs: list[str] | set[str], state: StateSt
     return {"dropped_posts": len(dropped), "retry": retry, "given_up": given_up}
 
 
+def note_successful_gate(state: StateStore, passed_slugs: list[str] | set[str]) -> None:
+    """Koşuda EN AZ BİR yeni rapor kapıdan geçti: kodun yeni raporları kabul ettiği görüldü.
+
+    Şüpheli (daha önce "hepsi kırıldı" koşusunda kırılmış) her bildirime ``success_since = True`` yazılır;
+    bu koşuda raporu geçen bildirim şüpheliden çıkar."""
+    suspects = dict(state.get("gate_suspects", {}) or {})
+    if not suspects:
+        return
+    passed = {p["key"] for p in _run_pubs({"run_publications": state.get("run_publications")}, set(passed_slugs))}
+    state.set("gate_suspects", {k: {**v, "success_since": True} for k, v in suspects.items() if k not in passed})
+
+
 def code_broken_marker(head_state: dict, today: str) -> tuple[dict, bool]:
-    """Kod/test kırık (temel kırmızı): koşunun durumu ATILIR (hiçbir sayaç artmaz, bildirimler sonraki koşuda
-    yeniden denenir). Yalnız master'daki duruma ``code_gate_broken`` işareti eklenir; günde bir kez
-    commit'lenir (günlük tek uyarı). Döner: (yazılacak durum, bugün ilk uyarı mı)."""
+    """Kod/test kırık: koşunun durumu ATILIR (hiçbir sayaç artmaz, bildirimler sonraki koşuda yeniden denenir).
+    Yalnız master'daki duruma ``code_gate_broken`` işareti eklenir; günde bir kez commit'lenir (günlük tek
+    uyarı). Döner: (yazılacak durum, bugün ilk uyarı mı)."""
     st = dict(head_state)
     mark = dict(st.get("code_gate_broken") or {})
     first_today = mark.get("last_alert_day") != today
@@ -104,3 +130,40 @@ def code_broken_marker(head_state: dict, today: str) -> tuple[dict, bool]:
     mark["last_alert_day"] = today
     st["code_gate_broken"] = mark
     return st, first_today
+
+
+def handle_all_broken(head_state: dict, pubs: list[dict], reason: str, today: str,
+                      now: float | None = None) -> tuple[dict, dict]:
+    """Temel yeşil ama yeni raporların HEPSİ kırık (tek raporlu koşu dahil) → KOD sorunu sayılır.
+
+    Durum makinesi (bildirim başına ``gate_suspects[key]``):
+
+    - yok ──(hepsi-kırık koşuda kırıldı)──▶ şüpheli{success_since=False}       [sayaç YOK]
+    - şüpheli{False} ──(hepsi-kırık koşuda yine kırıldı)──▶ aynı                 [sayaç YOK, kod sorunu]
+    - şüpheli{False} ──(başka raporların geçtiği bir koşu)──▶ şüpheli{True}      (``note_successful_gate``)
+    - şüpheli{True} ──(hepsi-kırık koşuda yine kırıldı)──▶ şüpheli{False}       [suç RAPORA: sayaç +1]
+    - herhangi ──(rapor geçti)──▶ yok;  sayaç 3 ──▶ ``failed_disclosures``, yok
+    - (``partial`` koşuda kırılan rapor şüpheli olmadan da doğrudan sayılır: ``handle_gate_failure``.)
+
+    Koşunun kendi durumu atılır; ``head_state`` (master) üzerine yalnız işaret, şüpheliler ve suçlanan
+    bildirimlerin sayaçları yazılır. Döner: (yazılacak durum, bilgi).
+    """
+    now = time.time() if now is None else now
+    st, first_today = code_broken_marker(head_state, today)
+    before = dict(st.get("gate_suspects", {}) or {})
+    suspects = dict(before)
+    blame: list[dict] = []
+    for p in pubs:
+        s = suspects.get(p["key"])
+        if s and s.get("success_since"):
+            blame.append(p)
+            suspects[p["key"]] = {**s, "success_since": False}
+        elif s is None:
+            suspects[p["key"]] = {"since": today, "success_since": False, "title": p.get("title", "")[:120]}
+    retry, given_up = _blame(st, blame, reason, now) if blame else ([], [])
+    for k in given_up:
+        suspects.pop(k, None)
+    st["gate_suspects"] = suspects
+    info = {"first_alert": first_today, "blamed": [p["key"] for p in blame], "retry": retry, "given_up": given_up,
+            "commit": first_today or suspects != before or bool(blame)}
+    return st, info

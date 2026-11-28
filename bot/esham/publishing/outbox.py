@@ -56,6 +56,9 @@ OUTBOX_VERSION = 1
 MAX_SEND_ATTEMPTS = 3
 #: Bu süreden eski bekleyen kayıt gönderilmez (``expired``): bayat haber kanala düşmesin.
 MAX_PENDING_AGE_SECONDS = 6 * 3600
+#: Yalnız dağıtım bekleyen gönderiler için yeniden derleme beklemesi (üstel): 15 dk, 30 dk, 1 sa, 2 sa (üst sınır).
+REBUILD_BASE_SECONDS = 15 * 60
+REBUILD_MAX_SECONDS = 2 * 3600
 #: Son durumdaki (gönderildi/başarısız/...) kayıtlar bu süre tutulur (idempotans penceresi), sonra budanır.
 RETENTION_SECONDS = 14 * 24 * 3600
 
@@ -94,11 +97,14 @@ def move(entry: dict, new: str) -> None:
 
 
 def _progress(e: dict) -> tuple:
-    """Birleştirme sırası: son durum her zaman kazanır; sonra deneme sayısı; eşitse in_flight > pending."""
+    """Birleştirme sırası: son durum > in_flight > pending (deneme sayısından bağımsız); eşitse deneme sayısı.
+
+    ``in_flight`` her zaman ``pending``'i yener: üstlenilmiş kayıt gönderilmiş olabilir, sonraki claim onu
+    ``unknown`` yapar (yeniden gönderilmez). Kaçan gönderi, tekrar eden gönderiden iyidir."""
     status = e.get("status")
     if status in TERMINAL:
-        return (2, _TERMINAL_PRIORITY.get(status, 0), 0)
-    return (1, int(e.get("attempts") or 0), 1 if status == IN_FLIGHT else 0)
+        return (3, _TERMINAL_PRIORITY.get(status, 0), 0)
+    return (2 if status == IN_FLIGHT else 1, int(e.get("attempts") or 0), 0)
 
 
 def merge_entry(a: dict, b: dict) -> dict:
@@ -442,9 +448,38 @@ class Outbox:
             self.save()
         return n
 
+    def _undeployed_entries(self) -> list[dict]:
+        return [e for e in self.entries
+                if e["status"] == PENDING and e.get("needs_deploy") and not e.get("deployed_at")]
+
     def undeployed(self) -> int:
-        return sum(1 for e in self.entries
-                   if e["status"] == PENDING and e.get("needs_deploy") and not e.get("deployed_at"))
+        return len(self._undeployed_entries())
+
+    def plan_rebuild(self) -> tuple[bool, int]:
+        """İçerik değişmediği hâlde YALNIZ dağıtım bekleyen gönderiler için yeniden derleme yapılsın mı?
+
+        Cloudflare uzun süre kapalıysa her koşuda derlenmesin: k. denemeden sonra bekleme
+        ``REBUILD_BASE_SECONDS * 2**(k-1)`` (üst sınır ``REBUILD_MAX_SECONDS``). Deneme sayısı kayıtlara yazılır
+        (iş akışı bunu derlemeden ÖNCE commit'ler; dağıtım kırılsa da sayaç ilerler). Döner: (derle, deneme no).
+        """
+        pending = self._undeployed_entries()
+        if not pending:
+            return False, 0
+        attempts = max(int(e.get("rebuild_attempts") or 0) for e in pending)
+        last = max(float(e.get("last_rebuild_at") or 0) for e in pending)
+        wait = min(REBUILD_BASE_SECONDS * 2 ** max(attempts - 1, 0), REBUILD_MAX_SECONDS) if attempts else 0
+        if attempts and self.clock() - last < wait:
+            log.warning("Dağıtım bekleyen %d gönderi var; %d yeniden derleme denemesinden sonra bekleniyor "
+                        "(%d sn kaldı).", len(pending), attempts, int(wait - (self.clock() - last)))
+            return False, attempts
+        for e in pending:
+            e["rebuild_attempts"] = attempts + 1
+            e["last_rebuild_at"] = self.clock()
+        self.save()
+        if attempts:
+            log.warning("Dağıtım bekleyen %d gönderi: üst üste %d dağıtım denemesi gönderiyi yayına sokmadı; "
+                        "yeniden derleniyor (deneme %d).", len(pending), attempts, attempts + 1)
+        return True, attempts + 1
 
     # -- gönderim --
     @staticmethod

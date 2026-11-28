@@ -78,11 +78,11 @@ def test_merge_never_moves_backwards_and_keeps_all_keys():
     assert merged["kap:3"]["status"] == ob.PENDING
 
 
-def test_merge_retry_attempts_beat_claim_and_deploy_mark_is_kept():
-    a = entry("k", ob.IN_FLIGHT, attempts=0, deployed_at=5.0, deployed_sha="abc")
-    b = entry("k", ob.PENDING, attempts=1)  # kesin ret sonrası yeniden bekleyen
-    m = ob.merge_entry(a, b)
-    assert m["status"] == ob.PENDING and m["attempts"] == 1 and m["deployed_sha"] == "abc"
+def test_in_flight_always_beats_pending_and_deploy_mark_is_kept():
+    a = entry("k", ob.IN_FLIGHT, attempts=0)
+    b = entry("k", ob.PENDING, attempts=2, deployed_at=5.0, deployed_sha="abc")  # deneme sayısı fazla olsa da
+    for m in (ob.merge_entry(a, b), ob.merge_entry(b, a)):
+        assert m["status"] == ob.IN_FLIGHT and m["deployed_sha"] == "abc"
 
 
 def test_merge_deletion_semantics():
@@ -225,3 +225,21 @@ def test_code_broken_marker_alerts_once_per_day():
     assert not again
     _, next_day = code_broken_marker(st2, "2026-11-28")
     assert next_day
+
+
+def test_external_network_is_blocked_for_unmarked_tests(request):
+    """conftest: işaretsiz testte dış bağlantı ve DNS denemesi engellenir (yerel adres serbest)."""
+    import socket
+
+    from conftest import ExternalNetworkBlocked
+
+    with pytest.raises(ExternalNetworkBlocked):
+        socket.getaddrinfo("query1.finance.yahoo.com", 443)
+    s = socket.socket()
+    try:
+        with pytest.raises(ExternalNetworkBlocked):
+            s.connect(("93.184.216.34", 80))
+    finally:
+        s.close()
+    assert len(request.node.esham_network_attempts) == 2   # yutulsa bile kaydedildi → teardown testi kırar
+    request.node.esham_network_attempts.clear()             # bu öz-test kasıtlı denedi

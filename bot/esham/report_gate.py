@@ -9,9 +9,13 @@ Akış (en ucuz yol önce; olağan durumda tek ``npm test``):
 2. Kırıldıysa yeni raporlar geçici olarak çekilir (yeni dosya kaldırılır, değişmiş dosya HEAD sürümüne
    döner) ve TEMEL koşulur. Temel de kırıksa sorun KODDA/TESTTE: ``code_broken``. Hiçbir sayaç artmaz,
    hiçbir bildirim düşmez, hiçbir şey commit'lenmez/gönderilmez; bildirimler sonraki koşuda yeniden denenir.
-3. Temel yeşilse her rapor TEK BAŞINA temele eklenip sınanır. Kırılanlar ayrılır (``partial``), kalanlar
-   yerine konur ve birlikte bir kez daha doğrulanır (rapor etkileşimi kırarsa ``code_broken`` gibi davranılır:
-   kimse cezalandırılmaz).
+3. Temel yeşilse her rapor TEK BAŞINA temele eklenip sınanır.
+   - Yeni raporların HEPSİ kırıksa (tek raporlu koşu dahil): ``all_broken`` = KOD sorunu (27.11: test "her
+     rapor eskidir" varsayıyordu, temel yeşil, her yeni rapor kırık). Sayaç yok; kalıcı suç ancak araya başka
+     raporların geçtiği bir koşu girdikten sonra hâlâ kırılan bildirime yazılır
+     (``publish_gate.handle_all_broken`` durum makinesi).
+   - En az bir rapor geçtiyse: kırılanlar ayrılır (``partial``, yalnız onların sayacı artar), kalanlar yerine
+     konur ve birlikte bir kez daha doğrulanır (rapor etkileşimi kırarsa ``code_broken``: kimse cezalandırılmaz).
 
 Rapor başına AYNI ``npm test`` koşulur (ayrı bir hafif doğrulayıcı yok): kurallar ve kod birebir aynıdır,
 eşdeğerlik kanıtı gerekmez. Maliyet yalnız kırık durumda: temel + rapor sayısı + 1 koşu (en çok ~5 rapor).
@@ -35,7 +39,7 @@ CARDS_REL = "web/public/cards"
 
 @dataclass
 class GateResult:
-    status: str                      # skipped | passed | partial | code_broken
+    status: str                      # skipped | passed | partial | all_broken | code_broken
     bad: list[str] = field(default_factory=list)       # kapıdan geçemeyen rapor yolları
     bad_slugs: list[str] = field(default_factory=list)
     checked: int = 0
@@ -138,6 +142,11 @@ def run_gate(
             log.error("Yeni raporlar OLMADAN da web testleri kırık: sorun kodda/testte, rapor suçlanmaz.")
             return GateResult("code_broken", checked=len(changed))
         bad = _isolate(tree, changed, runner)
+        if len(bad) == len(changed):
+            # Yeni raporların HEPSİ kırık (tek rapor dahil): 27.11 sınıfı (test yeni biçimi tanımıyor) → KOD sorunu.
+            log.error("Yeni raporların hepsi kırık; kod sorunu sayılıyor (sayaç yalnız şüpheli durum makinesiyle).")
+            slugs = [s for s in (_slug_of(tree.new[rel], rel) for rel in bad) if s]
+            return GateResult("all_broken", bad=bad, bad_slugs=slugs, checked=len(changed))
         good = [rel for rel in changed if rel not in bad]
         tree.set_all(good, True)
         if good and not runner():

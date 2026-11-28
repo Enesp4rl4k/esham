@@ -41,10 +41,16 @@ def cmd_send_outbox(args: argparse.Namespace) -> None:
     _emit(**result)
 
 
-def cmd_outbox_status(_: argparse.Namespace) -> None:
+def cmd_outbox_status(args: argparse.Namespace) -> None:
     from .publishing.outbox import Outbox
 
-    _emit(undeployed=Outbox().undeployed())
+    box = Outbox()
+    undeployed = box.undeployed()
+    if getattr(args, "plan_rebuild", False):
+        rebuild, attempt = box.plan_rebuild()
+        _emit(undeployed=undeployed, rebuild="true" if rebuild else "false", rebuild_attempt=attempt)
+    else:
+        _emit(undeployed=undeployed)
 
 
 def cmd_commit_push(args: argparse.Namespace) -> None:
@@ -68,10 +74,9 @@ def cmd_git_sync(_: argparse.Namespace) -> None:
         sys.exit(1)
 
 
-def _write_head_state_with_marker() -> bool:
-    """Kod kırık: koşunun durum/kutu değişiklikleri atılır, master'daki sürüme işaret eklenir."""
+def _write_head_state(transform) -> dict:
+    """Kod sorunu: koşunun durum/kutu değişiklikleri ATILIR; master'daki duruma ``transform`` uygulanır."""
     from .config import settings
-    from .publish_gate import code_broken_marker
     from .publishing.outbox import outbox_path
     from .report_gate import git_head_content
 
@@ -83,7 +88,7 @@ def _write_head_state_with_marker() -> bool:
     state_file = settings.state_file
     raw = head(rel(state_file))
     head_state = json.loads(raw.decode("utf-8")) if raw else {}
-    new_state, first_today = code_broken_marker(head_state, time.strftime("%Y-%m-%d"))
+    new_state, info = transform(head_state)
     state_file.write_text(json.dumps(new_state, ensure_ascii=False, indent=2), encoding="utf-8")
     box = outbox_path()
     raw_box = head(rel(box))
@@ -92,24 +97,51 @@ def _write_head_state_with_marker() -> bool:
             box.unlink()
     else:
         box.write_bytes(raw_box)
-    return first_today
+    return info
+
+
+def _code_problem(res, reason: str) -> None:
+    from .publish_gate import code_broken_marker, handle_all_broken
+    from .state import get_state
+
+    today = time.strftime("%Y-%m-%d")
+    if res.status == "all_broken":
+        from .publish_gate import _run_pubs
+
+        pubs = _run_pubs({"run_publications": get_state().get("run_publications")}, set(res.bad_slugs))
+        info = _write_head_state(lambda st: handle_all_broken(st, pubs, reason, today))
+        why = (f"Temel yeşil ama yeni raporların HEPSİ ({len(res.bad)}) kırık: test/kod yeni raporları tanımıyor "
+               "olabilir (27.11 sınıfı).")
+        if info["blamed"]:
+            why += (f" Araya başarılı koşu girdiği hâlde yine kırılan {len(info['blamed'])} bildirimin sayacı arttı "
+                    f"(bırakılan: {len(info['given_up'])}).")
+    else:
+        def marker_only(st: dict) -> tuple[dict, dict]:
+            new, first = code_broken_marker(st, today)
+            return new, {"first_alert": first, "commit": first}
+
+        info = _write_head_state(marker_only)
+        why = "Web testleri yeni raporlar OLMADAN da kırılıyor."
+    _emit(status="code_broken", kind=res.status, excluded=0,
+          alert="true" if info["first_alert"] else "false", commit_state="true" if info["commit"] else "false")
+    print(f"::error title=Kod/test kırık (code_gate_broken)::{why} Hiçbir rapor commit'lenmedi, Telegram'a hiçbir şey "
+          "gönderilmedi; bildirimler sonraki koşuda yeniden denenecek. Kodu/testleri düzeltin.")
+    sys.exit(3)
 
 
 def cmd_report_gate(args: argparse.Namespace) -> None:
-    from .publish_gate import handle_gate_failure
+    from .publish_gate import handle_gate_failure, note_successful_gate
     from .report_gate import run_gate
     from .state import get_state
 
     res = run_gate(PROJECT_ROOT)
-    if res.status == "code_broken":
-        first_today = _write_head_state_with_marker()
-        _emit(status="code_broken", excluded=0, alert="true" if first_today else "false")
-        print("::error title=Kod/test kırık::Web testleri yeni raporlar OLMADAN da kırılıyor. Hiçbir rapor "
-              "commit'lenmedi, Telegram'a hiçbir şey gönderilmedi, hiçbir bildirim sayacı artmadı; bildirimler "
-              "sonraki koşuda yeniden denenecek. Kodu/testleri düzeltin.")
-        sys.exit(3)
+    if res.status in ("code_broken", "all_broken"):
+        _code_problem(res, args.reason)
     state = get_state()
-    state.delete("code_gate_broken")  # kapı yeniden yeşil: kod kırık işareti kalkar
+    if res.status in ("passed", "partial"):
+        state.delete("code_gate_broken")  # yeni raporlar yeniden geçiyor: kod kırık işareti kalkar
+        passed = [p.get("slug") for p in (state.get("run_publications", []) or []) if p.get("slug") not in res.bad_slugs]
+        note_successful_gate(state, passed)
     if res.status == "partial":
         r = handle_gate_failure(args.reason, res.bad_slugs)
         print(f"::error title=Kapıdan geçemeyen rapor::{len(res.bad)} rapor ayrıldı (commit'lenmedi, gönderilmedi): "
@@ -127,7 +159,10 @@ def register(sub) -> None:
     so.add_argument("--deployed-sha", default="", help="Yalnız iş akışı: başarılı dağıtımın commit'i")
     so.set_defaults(func=cmd_send_outbox)
 
-    sub.add_parser("outbox-status", help="Dağıtım bekleyen kayıt sayısı").set_defaults(func=cmd_outbox_status)
+    os_ = sub.add_parser("outbox-status", help="Dağıtım bekleyen kayıt sayısı")
+    os_.add_argument("--plan-rebuild", action="store_true",
+                     help="Yalnız dağıtım bekleyenler için yeniden derleme kararı (üstel bekleme; denemeyi kayda yazar)")
+    os_.set_defaults(func=cmd_outbox_status)
 
     cp = sub.add_parser("commit-push", help="İş akışı: yolları commit'le, push et (giden kutusu anahtar bazında birleşir)")
     cp.add_argument("--message", required=True)

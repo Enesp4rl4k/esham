@@ -74,6 +74,10 @@ def test_viop_stress_assessment():
     assert stress_down.level == "Geriliyor"
 
 
+def _no_network(*a, **k):
+    raise ConnectionError("çevrimdışı test: ağ yok")
+
+
 def test_bist_market_summary_offline(monkeypatch):
     """TradingView tarayıcı yanıtının yapısındaki sentetik yük ile BIST özeti (ağ yok)."""
     payload = {"data": [{"s": "BIST:XU100", "d": ["XU100", 10000.0, 2.0, 9900.0, 10050.0, 9850.0, 5_000_000_000]}]}
@@ -86,6 +90,8 @@ def test_bist_market_summary_offline(monkeypatch):
             return payload
 
     monkeypatch.setattr("esham.sources.bist.retry_post", lambda *a, **k: _R())
+    # Yahoo grafik çağrıları (yedek kaynak ve oturum/zaman verisi) da ağa çıkmasın; yoksa conftest testi kırar.
+    monkeypatch.setattr("esham.sources.bist.retry_get", _no_network, raising=False)
     summary = BistSource().market_summary()
     assert summary is not None and summary.index == "XU100"
     assert summary.price and summary.change.startswith("+") and summary.open_price and summary.open_change

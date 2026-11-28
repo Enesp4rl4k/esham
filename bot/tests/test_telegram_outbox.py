@@ -23,6 +23,7 @@ from esham.publishing import outbox as ob
 from esham.publishing.content_store import slugify
 from esham.publishing.social import SocialPublisher
 from esham.sources import Disclosure
+from esham.state import get_state
 
 PNG = b"\x89PNG\r\n\x1a\n" + b"esham-test-card" * 4
 
@@ -165,8 +166,21 @@ class World:
         res = report_gate.run_gate(self.work, runner=self._web_tests, changed=changed,
                                    head_content=lambda rel: None)
         self.gate = res
-        if res.status == "code_broken":
-            return "code_broken"  # hiçbir şey commit'lenmez, sayaç artmaz, gönderim yok
+        if res.status in ("code_broken", "all_broken"):
+            # ci_commands._code_problem ile aynı: koşunun durumu atılır, master'daki duruma işaret/şüpheli yazılır
+            pubs = publish_gate._run_pubs({"run_publications": get_state().get("run_publications")}, set(res.bad_slugs))
+            head = self.origin_state()
+            if res.status == "all_broken":
+                new, info = publish_gate.handle_all_broken(head, pubs, "web testleri kırıldı (test)", "2026-11-27")
+            else:
+                new, first = publish_gate.code_broken_marker(head, "2026-11-27")
+                info = {"commit": first}
+            if info["commit"]:
+                (self.origin / "state" / "esham_state.json").write_text(json.dumps(new, ensure_ascii=False), encoding="utf-8")
+            return res.status  # rapor commit'lenmez, gönderim yok
+        passed = [p.get("slug") for p in (get_state().get("run_publications") or []) if p.get("slug") not in res.bad_slugs]
+        if res.status in ("passed", "partial"):
+            publish_gate.note_successful_gate(get_state(), passed)
         if res.status == "partial":
             publish_gate.handle_gate_failure("web testleri kırıldı (test)", res.bad_slugs)
         if not push_ok:
@@ -254,36 +268,77 @@ def test_run_step_only_writes_outbox(world):
 
 # ---- 2. kapı kırılır ----------------------------------------------------------------------------
 
-def test_gate_failure_sends_nothing_and_stops_after_three_attempts(world):
-    f = filing(1)
-    key = f"{f.company}:{f.title}:{f.date}"
-    for i in (1, 2):
-        world.run([f], bad="all")
-        assert world.gate.status == "partial" and world.gate.bad_slugs
-        st = world.origin_state()
-        assert st["gate_failures"][key]["count"] == i
-        assert key not in st.get("seen_disclosures", {})   # yeniden denenecek
-        assert world.origin_outbox() == []                  # iptal edilen gönderi commit'lenmedi
-        assert world.origin_reports() == []                 # kıran rapor commit'lenmedi
-    world.run([f], bad="all")
+def _key(f):
+    return f"{f.company}:{f.title}:{f.date}"
+
+
+def test_all_new_reports_broken_counts_nothing_then_all_publish(world):
+    """(a) 5/5 kırık (temel yeşil) = 27.11 sınıfı → KOD sorunu: sayaç yok, gönderim yok; kod düzelince 5'i de gider."""
+    fs = [filing(i) for i in range(1, 6)]
+    for _ in range(4):
+        assert world.run(fs, bad="all") == "all_broken"
     st = world.origin_state()
-    (failed,) = st["failed_disclosures"]
-    assert failed["status"] == "gate_failed" and failed["attempts"] == 3
-    assert failed["index"] == f.disclosure_index and "web testleri" in failed["reason"]
-    assert key in st["seen_disclosures"]                    # bir daha denenmez
-    # kapı düzelse bile bırakılan bildirim yeniden işlenmez; sonsuz döngü yok
-    for _ in range(3):
-        world.run([f])
-    assert world.transport.calls == 0 and world.transport.sent == []
-    assert world.origin_reports() == []
+    assert not st.get("gate_failures") and not st.get("failed_disclosures")
+    assert set(st["gate_suspects"]) == {_key(f) for f in fs} and st.get("code_gate_broken")
+    assert world.transport.calls == 0 and world.origin_reports() == []
+    assert world.run(fs) == "ok"
+    assert len(world.transport.sent) == 5 and len(world.origin_reports()) == 5
+    assert world.origin_state()["gate_suspects"] == {}             # geçen bildirimler şüpheliden çıktı
 
 
-def test_gate_failure_once_then_success_sends_once(world):
+def test_single_report_run_broken_without_any_success_is_never_blamed(world):
+    """Tek raporlu koşu kırık ve arada başarılı koşu yok: kod sorunu olarak kalır (sınırsız, gönderimsiz)."""
     f = filing(1)
-    world.run([f], bad="all")
+    for _ in range(5):
+        assert world.run([f], bad="all") == "all_broken"
+    st = world.origin_state()
+    assert not st.get("gate_failures") and not st.get("failed_disclosures")
+    assert st["gate_suspects"][_key(f)]["success_since"] is False
+    assert world.transport.calls == 0 and world.origin_reports() == []
+
+
+def test_single_broken_report_blamed_while_others_pass_three_times(world):
+    """(c) tek raporlu koşu kırık; sonraki koşularda başka raporlar geçerken o hâlâ kırık → 3'te failed_disclosures."""
+    s = filing(1)
+    assert world.run([s], bad={s.disclosure_index}) == "all_broken"          # şüpheli, sayaç yok
+    for i, other in enumerate((filing(2), filing(3), filing(4)), start=1):
+        world.run([s, other], bad={s.disclosure_index})
+        assert world.gate.status == "partial"
+        st = world.origin_state()
+        if i < 3:
+            assert st["gate_failures"][_key(s)]["count"] == i
+    (failed,) = st["failed_disclosures"]
+    assert failed["index"] == s.disclosure_index and failed["attempts"] == 3 and failed["status"] == "gate_failed"
+    assert _key(s) not in st.get("gate_suspects", {})
+    assert len(world.transport.sent) == 3                                      # yalnız sağlamlar gitti
+    world.run([s])                                                             # bırakıldı: bir daha işlenmez
+    assert world.gate is None or world.gate.status == "skipped"
+
+
+def test_alone_broken_report_blamed_only_after_an_intervening_success(world):
+    """(c') hep tek başına kırılan rapor: suç ancak araya başka raporların geçtiği bir koşu girince yazılır."""
+    s = filing(1)
+    world.run([s], bad="all")                                                  # şüpheli{False}
+    world.run([s], bad="all")                                                  # yine kod sorunu
+    assert not world.origin_state().get("gate_failures")
+    world.run([filing(9)])                                                     # başka rapor geçti → şüpheli{True}
+    assert world.origin_state()["gate_suspects"][_key(s)]["success_since"] is True
+    world.run([s], bad="all")                                                  # araya başarı girdi: suç rapora
+    st = world.origin_state()
+    assert st["gate_failures"][_key(s)]["count"] == 1
+    assert st["gate_suspects"][_key(s)]["success_since"] is False
+    world.run([s], bad="all")                                                  # arada başarı yok: sayaç artmaz
+    assert world.origin_state()["gate_failures"][_key(s)]["count"] == 1
+
+
+def test_single_report_run_broken_then_code_fixed_loses_nothing(world):
+    """(d) tek raporlu koşu kırık, kod düzelince geçer → kayıp yok, tek gönderi."""
+    f = filing(1)
+    assert world.run([f], bad="all") == "all_broken"
     assert world.transport.sent == []
     assert world.run([f]) == "ok"
     assert len(world.transport.sent) == 1 and len(world.origin_reports()) == 1
+    assert world.origin_state()["gate_suspects"] == {}
 
 
 # ---- 3. push başarısız --------------------------------------------------------------------------
@@ -357,12 +412,12 @@ def test_one_broken_report_does_not_take_four_healthy_ones_down(world):
     assert set(st["gate_failures"]) == {f"{bad.company}:{bad.title}:{bad.date}"}
     assert st["gate_failures"][f"{bad.company}:{bad.title}:{bad.date}"]["count"] == 1
     assert "failed_disclosures" not in st or st["failed_disclosures"] == []
-    # sağlamlar bir daha işlenmez; bozuk olan 3. denemede bırakılır, sağlamlara hiçbir şey olmaz
-    world.run(fs, bad={bad.disclosure_index})
-    world.run(fs, bad={bad.disclosure_index})
+    # sağlamlar bir daha işlenmez; bozuk olan, başka raporların geçtiği koşularda 3. kez kırılınca bırakılır
+    world.run(fs + [filing(6)], bad={bad.disclosure_index})
+    world.run(fs + [filing(7)], bad={bad.disclosure_index})
     st = world.origin_state()
     assert [x["index"] for x in st["failed_disclosures"]] == [bad.disclosure_index]
-    assert len(world.transport.sent) == 4 and len(world.origin_reports()) == 4
+    assert len(world.transport.sent) == 6 and len(world.origin_reports()) == 6
 
 
 def test_code_broken_gate_counts_nothing_and_next_run_publishes_all(world):
@@ -375,6 +430,20 @@ def test_code_broken_gate_counts_nothing_and_next_run_publishes_all(world):
     assert not st.get("gate_failures") and not st.get("failed_disclosures")
     assert world.run(fs) == "ok"                       # kod düzeldi: hepsi yayınlanır ve gönderilir
     assert len(world.transport.sent) == 3 and len(world.origin_reports()) == 3
+
+
+def test_rebuild_backoff_for_undeployed_posts(tmp_path):
+    now = [10_000.0]
+    box = ob.Outbox(tmp_path / "o.json", clock=lambda: now[0])
+    assert box.plan_rebuild() == (False, 0)                                     # bekleyen yok
+    box.enqueue(f"Sayfalı\nhttps://esham.pages.dev/rapor/x-2026-11-27\n\n{NOTE_GENERIC}", disclaimer=NOTE_GENERIC)
+    plan = []
+    for _ in range(12):                                                        # 3 saat boyunca 15 dakikada bir
+        plan.append(box.plan_rebuild()[0])
+        now[0] += 15 * 60
+    # deneme anları: 0, 15 dk, 45 dk, 1 sa 45 dk, 3 sa 45 dk (bekleme 15, 30, 60, 120 dk) → ilk 3 saatte 4 derleme
+    assert plan == [True, True, False, True, False, False, False, True, False, False, False, False]
+    assert box.mark_deployed("abc") == 1 and box.plan_rebuild() == (False, 0)  # dağıtım başarılı: bitti
 
 
 def test_gate_runs_tests_once_when_everything_passes(world):
