@@ -20,13 +20,14 @@ export const NAV: NavGroup[] = [
   {
     key: "piyasa",
     label: "Piyasa",
-    match: ["/halka-arz-takvimi", "/tarim-emtia", "/piyasa"],
+    match: ["/halka-arz-takvimi", "/tarim-emtia", "/piyasa", "/veri"],
     items: [
       { href: "/halka-arz-takvimi", label: "Halka Arz Takvimi", description: "Taslak ve onaylı izahnameler, fiyat tespit raporları" },
       { href: "/tarim-emtia", label: "Emtia, Petrol & Tanker", description: "Brent, İstanbul Boğazı geçişleri, TÜRİB ve TMO fiyatları" },
       { href: "/piyasa/temettu-takvimi", label: "Kâr Payı Takvimi", description: "KAP bildirimlerinden hak kullanım ve ödeme tarihleri" },
       { href: "/piyasa/geri-alimlar", label: "Pay Geri Alımları", description: "KAP bildirimlerinden işlem, fiyat ve program limiti" },
       { href: "/piyasa/makro-gostergeler", label: "Makro Göstergeler", description: "TCMB faiz, USD/TRY değişimi; kaynak ve tarihleriyle" },
+      { href: "/veri", label: "Veri Grafikleri", description: "Resmî istatistiklerden zaman serileri; tablo ve CSV ile" },
       { href: "/kategori/viop", label: "VİOP & Türev", description: "Vadeli kontratlar, baz farkı ve teminatlar" },
     ],
   },

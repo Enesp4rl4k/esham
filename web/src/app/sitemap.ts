@@ -5,6 +5,8 @@ import { MIN_INDEXABLE, SCANS, comparePairs, runScan, sectorGroups } from "@/lib
 import { MIN_CATEGORY_FUNDS, categoryGroups } from "@/lib/funds";
 import { loadFundUniverse } from "@/lib/funds-data";
 import { getAllReports, getAllTickers, isIndexableReport, CATEGORIES, type CategorySlug } from "@/lib/content";
+import { veriSitemap } from "@/lib/veri";
+import { loadDatasets } from "@/lib/veri-data";
 
 export const dynamic = "force-static";
 
@@ -157,5 +159,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       ]
     : [];
 
-  return [...staticRoutes, ...categoryRoutes, ...stockRoutes, ...sectorRoutes, ...scanRoutes, ...compareRoutes, ...fundRoutes, ...reportRoutes];
+  // 7. Veri grafikleri: dizin + indekslenebilir veri sayfaları (örnek veri hariç)
+  const dataRoutes: MetadataRoute.Sitemap = veriSitemap(SITE_URL, loadDatasets());
+
+  return [...staticRoutes, ...categoryRoutes, ...stockRoutes, ...sectorRoutes, ...scanRoutes, ...compareRoutes, ...fundRoutes, ...dataRoutes, ...reportRoutes];
 }

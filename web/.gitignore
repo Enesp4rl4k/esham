@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# veri grafikleri: kart sahneleri ve taslak PNG (bot/esham/jobs/publish_veri_cards.py)
+/.veri-scenes/

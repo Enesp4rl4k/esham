@@ -1,0 +1,1911 @@
+{
+ "schema": 1,
+ "slug": "halka-acik-bankalar-sube-sayisi",
+ "title": "Altı halka açık bankanın şube sayısı",
+ "kicker": "Bankacılık",
+ "measure": "Şube sayısı",
+ "unit": "adet",
+ "periodType": "quarter",
+ "coverage": "Yurt içi ve yurt dışı şubeler toplamı, dönem sonu",
+ "description": "Akbank, Garanti BBVA, Halkbank, İş Bankası, Vakıfbank ve Yapı Kredi'nin çeyreklik şube sayıları; TBB verisi, tablo ve CSV ile.",
+ "sample": false,
+ "source": {
+  "name": "Türkiye Bankalar Birliği (TBB)",
+  "short": "TBB",
+  "publication": "Banka, Çalışan ve Şube Bilgileri",
+  "url": "https://www.tbb.org.tr/istatistiki-raporlar/11237",
+  "termsUrl": "https://www.tbb.org.tr/kullanim-kosullari",
+  "terms": "TBB kullanım koşullarına göre sitedeki çalışmalar kaynak gösterilerek yayımlanabilir; ticari amaçlı kullanım TBB'nin yazılı iznine tabidir. Raporun kendisi kaynak gösterilerek yapılan alıntılar dışında çoğaltılamaz; bu sayfada yalnızca altı bankanın şube sayısı kaynak gösterilerek alıntılanmıştır."
+ },
+ "methodology": [
+  "Değerler, TBB'nin çeyreklik 'Banka, Çalışan ve Şube Bilgileri' raporundaki 'Tablo 1 – Banka, Şube ve Çalışan Sayıları' tablosunun 'Şube Sayısı' sütunundan alınmıştır.",
+  "TBB dipnotuna göre şube sayısı yurt içi ve yurt dışı şubelerin toplamıdır; değerler çeyrek sonu (dönem sonu) itibarıyladır.",
+  "Her çeyreğin değeri o çeyreğe ait raporun kendisinden alınır. Sonraki raporların karşılaştırma sütunlarında geçmiş bir dönem farklı yayımlanırsa bu grafik o dönemin kendi raporundaki değeri gösterir.",
+  "Kapsam: hisseleri Borsa İstanbul'da işlem gören altı mevduat bankası (Akbank, Garanti BBVA, Halkbank, İş Bankası, Vakıfbank, Yapı Kredi). Grup sabittir; seri sırası alfabetiktir ve bir sıralama ya da değerlendirme içermez.",
+  "TBB raporu üye mevduat bankaları ile kalkınma ve yatırım bankalarının bildirimlerine dayanır; katılım bankaları kapsam dışıdır.",
+  "Eksik dönem boş bırakılır ve çizgide boşluk olarak görünür; ara değer üretilmez.",
+  "TBB sitesinde ekli dosyalar 2017 Eylül döneminden başladığı için seri 3Ç 2017'de başlar.",
+  "Seri kırılması: 37 raporun tamamında şube sayısı dipnotu aynıdır (\"yurtiçi ve yurtdışı şube sayıları toplamı\"); tanım değişikliği tespit edilmedi. Banka unvanları ve TBB'nin banka grubu sınıflaması dönem içinde değişebilir; bu, şube sayısının tanımını etkilemez."
+ ],
+ "breaks": [],
+ "updatedAt": "2026-11-27",
+ "periods": [
+  "2017-Q3",
+  "2017-Q4",
+  "2018-Q1",
+  "2018-Q2",
+  "2018-Q3",
+  "2018-Q4",
+  "2019-Q1",
+  "2019-Q2",
+  "2019-Q3",
+  "2019-Q4",
+  "2020-Q1",
+  "2020-Q2",
+  "2020-Q3",
+  "2020-Q4",
+  "2021-Q1",
+  "2021-Q2",
+  "2021-Q3",
+  "2021-Q4",
+  "2022-Q1",
+  "2022-Q2",
+  "2022-Q3",
+  "2022-Q4",
+  "2023-Q1",
+  "2023-Q2",
+  "2023-Q3",
+  "2023-Q4",
+  "2024-Q1",
+  "2024-Q2",
+  "2024-Q3",
+  "2024-Q4",
+  "2025-Q1",
+  "2025-Q2",
+  "2025-Q3",
+  "2025-Q4",
+  "2026-Q1",
+  "2026-Q2",
+  "2026-Q3"
+ ],
+ "files": {
+  "2017-Q3": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Eylul_2017.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/50731/field_raporlar_ekler/271770",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2017-eylul-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2017-Q4": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Aralik_2017.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/50747/field_raporlar_ekler/272075",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2017-aralik-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2018-Q1": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Mart_2018.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/50753/field_raporlar_ekler/272153",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2018-mart-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2018-Q2": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Haziran_2018.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/50785/field_raporlar_ekler/272682",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2018-haziran-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2018-Q3": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Eylul_2018.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/50810/field_raporlar_ekler/273062",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2018-eylul-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2018-Q4": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Aralik_2018.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/50826/field_raporlar_ekler/273371",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2018-aralik-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2019-Q1": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Mart_2019.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/50832/field_raporlar_ekler/273475",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2019-mart-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2019-Q2": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Haziran_2019.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/50866/field_raporlar_ekler/273951",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2019-haziran-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2019-Q3": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Eylul_2019.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/50884/field_raporlar_ekler/274222",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2019-eylul-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2019-Q4": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Aralik_2019.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/50901/field_raporlar_ekler/274535",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2019-aralik-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2020-Q1": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Mart_2020.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/50910/field_raporlar_ekler/274731",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2020-mart-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2020-Q2": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Haziran_2020.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/50942/field_raporlar_ekler/275154",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2020-haziran-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2020-Q3": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Eylul_2020.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/50960/field_raporlar_ekler/275437",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2020-eylul-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2020-Q4": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Aralik_2020.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/50976/field_raporlar_ekler/275751",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2020-aralik-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2021-Q1": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Mart_2021.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/51059/field_raporlar_ekler/275993",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2021-mart-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2021-Q2": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Haziran_2021.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/51093/field_raporlar_ekler/276405",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2021-haziran-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2021-Q3": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Eylul_2021.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/51117/field_raporlar_ekler/276765",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2021-eylul-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2021-Q4": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Aralik_2021.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/51136/field_raporlar_ekler/277093",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2021-aralik-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2022-Q1": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Mart_2022.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/51148/field_raporlar_ekler/277190",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2022-mart-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2022-Q2": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Haziran_2022.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/51188/field_raporlar_ekler/277707",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2022-haziran-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2022-Q3": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Eylul_2022.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/51211/field_raporlar_ekler/278046",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2022-eylul-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2022-Q4": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Aralik_2022.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/51232/field_raporlar_ekler/278386",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2022-aralik-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2023-Q1": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Mart_2023.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/51247/field_raporlar_ekler/278626",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2023-mart-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2023-Q2": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Haziran_2023.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/51284/field_raporlar_ekler/279034",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2023-haziran-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2023-Q3": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Eylul_2023.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/51307/field_raporlar_ekler/279377",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2023-eylul-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2023-Q4": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Aralik_2023.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/51327/field_raporlar_ekler/279699",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2023-aralik-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2024-Q1": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Mart_2024.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/51338/field_raporlar_ekler/279820",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2024-mart-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2024-Q2": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Haziran_2024.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/51380/field_raporlar_ekler/280359",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2024-haziran-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2024-Q3": {
+   "name": "Banka_Calisan_ve_Sube_Sayilari-Eylul_2024.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/51406/field_raporlar_ekler/280747",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2024-eylul-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2024-Q4": {
+   "name": "banka-calisan-ve-sube-sayilari-aralik-2024.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/54314/field_raporlar_ekler/304131",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2024-aralik-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2025-Q1": {
+   "name": "banka-calisan-ve-sube-sayilari-mart-2025.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/54418/field_raporlar_ekler/304158",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2025-mart-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2025-Q2": {
+   "name": "banka-calisan-ve-sube-sayilari-haziran-2025.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/54531/field_raporlar_ekler/305843",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2025-haziran-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2025-Q3": {
+   "name": "banka-calisan-ve-sube-sayilari-eylul-2025.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/54631/field_raporlar_ekler/306924",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2025-eylul-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2025-Q4": {
+   "name": "Banka Çalışan ve Şube Sayıları-Aralık 2025.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/54703/field_raporlar_ekler/308126",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2025-aralik-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2026-Q1": {
+   "name": "Banka Çalışan ve Şube Sayıları-Mart 2026_0.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/54779/field_raporlar_ekler/309499",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2026-mart-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2026-Q2": {
+   "name": "Banka Çalışan ve Şube Sayıları-Haziran 2026.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/54910/field_raporlar_ekler/309905",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2026-haziran-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  },
+  "2026-Q3": {
+   "name": "Banka Çalışan ve Şube Sayıları-Eylül 2026.xlsx",
+   "url": "https://www.tbb.org.tr/download/node/54999/field_raporlar_ekler/310875",
+   "page": "https://www.tbb.org.tr/istatistiki-raporlar/2026-eylul-banka-calisan-ve-sube-bilgileri",
+   "retrieved": "2026-11-27"
+  }
+ },
+ "series": [
+  {
+   "id": "akbank",
+   "label": "Akbank",
+   "sourceLabel": "Akbank T.A.Ş.",
+   "ticker": "AKBNK",
+   "values": [
+    826,
+    801,
+    801,
+    800,
+    782,
+    781,
+    780,
+    777,
+    771,
+    771,
+    758,
+    747,
+    719,
+    716,
+    714,
+    714,
+    711,
+    711,
+    711,
+    711,
+    713,
+    711,
+    710,
+    713,
+    713,
+    705,
+    702,
+    700,
+    704,
+    694,
+    694,
+    689,
+    671,
+    647,
+    634,
+    625,
+    601
+   ],
+   "provenance": [
+    {
+     "file": "2017-Q3",
+     "sheet": "Sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2017-Q4",
+     "sheet": "Sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2018-Q1",
+     "sheet": "Sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2018-Q2",
+     "sheet": "Sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2018-Q3",
+     "sheet": "Sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2018-Q4",
+     "sheet": "Sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2019-Q1",
+     "sheet": "Sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2019-Q2",
+     "sheet": "Sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2019-Q3",
+     "sheet": "Sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2019-Q4",
+     "sheet": "Sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2020-Q1",
+     "sheet": "Sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2020-Q2",
+     "sheet": "sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2020-Q3",
+     "sheet": "sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2020-Q4",
+     "sheet": "sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2021-Q1",
+     "sheet": "sayı",
+     "cell": "C17",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2021-Q2",
+     "sheet": "sayı",
+     "cell": "C17",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2021-Q3",
+     "sheet": "sayı",
+     "cell": "C17",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2021-Q4",
+     "sheet": "sayı",
+     "cell": "C17",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2022-Q1",
+     "sheet": "sayı",
+     "cell": "C17",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2022-Q2",
+     "sheet": "sayı",
+     "cell": "C17",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2022-Q3",
+     "sheet": "sayı",
+     "cell": "C17",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2022-Q4",
+     "sheet": "sayı",
+     "cell": "C17",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2023-Q1",
+     "sheet": "sayı",
+     "cell": "C17",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2023-Q2",
+     "sheet": "sayı",
+     "cell": "C17",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2023-Q3",
+     "sheet": "sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2023-Q4",
+     "sheet": "sayı",
+     "cell": "C17",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2024-Q1",
+     "sheet": "sayı",
+     "cell": "C17",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2024-Q2",
+     "sheet": "sayı",
+     "cell": "C17",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2024-Q3",
+     "sheet": "sayı",
+     "cell": "C17",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2024-Q4",
+     "sheet": "sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2025-Q1",
+     "sheet": "sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2025-Q2",
+     "sheet": "sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2025-Q3",
+     "sheet": "sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2025-Q4",
+     "sheet": "sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2026-Q1",
+     "sheet": "sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2026-Q2",
+     "sheet": "sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    },
+    {
+     "file": "2026-Q3",
+     "sheet": "sayı",
+     "cell": "C18",
+     "label": "Akbank T.A.Ş."
+    }
+   ]
+  },
+  {
+   "id": "garanti",
+   "label": "Garanti BBVA",
+   "sourceLabel": "Türkiye Garanti Bankası A.Ş.",
+   "ticker": "GARAN",
+   "values": [
+    950,
+    945,
+    936,
+    930,
+    930,
+    934,
+    930,
+    924,
+    918,
+    912,
+    912,
+    909,
+    902,
+    892,
+    892,
+    879,
+    874,
+    871,
+    868,
+    857,
+    849,
+    837,
+    833,
+    827,
+    825,
+    804,
+    804,
+    804,
+    805,
+    794,
+    796,
+    797,
+    797,
+    794,
+    793,
+    795,
+    792
+   ],
+   "provenance": [
+    {
+     "file": "2017-Q3",
+     "sheet": "Sayı",
+     "cell": "H26",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2017-Q4",
+     "sheet": "Sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2018-Q1",
+     "sheet": "Sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2018-Q2",
+     "sheet": "Sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2018-Q3",
+     "sheet": "Sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2018-Q4",
+     "sheet": "Sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2019-Q1",
+     "sheet": "Sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2019-Q2",
+     "sheet": "Sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2019-Q3",
+     "sheet": "Sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2019-Q4",
+     "sheet": "Sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2020-Q1",
+     "sheet": "Sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2020-Q2",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2020-Q3",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2020-Q4",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2021-Q1",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2021-Q2",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2021-Q3",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2021-Q4",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2022-Q1",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2022-Q2",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2022-Q3",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2022-Q4",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2023-Q1",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2023-Q2",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2023-Q3",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2023-Q4",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2024-Q1",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2024-Q2",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2024-Q3",
+     "sheet": "sayı",
+     "cell": "H28",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2024-Q4",
+     "sheet": "sayı",
+     "cell": "H28",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2025-Q1",
+     "sheet": "sayı",
+     "cell": "H28",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2025-Q2",
+     "sheet": "sayı",
+     "cell": "H28",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2025-Q3",
+     "sheet": "sayı",
+     "cell": "H28",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2025-Q4",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2026-Q1",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2026-Q2",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    },
+    {
+     "file": "2026-Q3",
+     "sheet": "sayı",
+     "cell": "H27",
+     "label": "Türkiye Garanti Bankası A.Ş."
+    }
+   ]
+  },
+  {
+   "id": "halkbank",
+   "label": "Halkbank",
+   "sourceLabel": "Türkiye Halk Bankası A.Ş.",
+   "ticker": "HALKB",
+   "values": [
+    969,
+    969,
+    972,
+    978,
+    987,
+    994,
+    998,
+    996,
+    998,
+    1006,
+    1006,
+    1009,
+    1011,
+    1013,
+    1013,
+    1015,
+    1016,
+    1023,
+    1026,
+    1034,
+    1036,
+    1038,
+    1049,
+    1061,
+    1066,
+    1079,
+    1089,
+    1094,
+    1094,
+    1092,
+    1095,
+    1100,
+    1105,
+    1105,
+    1112,
+    1117,
+    1119
+   ],
+   "provenance": [
+    {
+     "file": "2017-Q3",
+     "sheet": "Sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2017-Q4",
+     "sheet": "Sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2018-Q1",
+     "sheet": "Sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2018-Q2",
+     "sheet": "Sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2018-Q3",
+     "sheet": "Sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2018-Q4",
+     "sheet": "Sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2019-Q1",
+     "sheet": "Sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2019-Q2",
+     "sheet": "Sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2019-Q3",
+     "sheet": "Sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2019-Q4",
+     "sheet": "Sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2020-Q1",
+     "sheet": "Sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2020-Q2",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2020-Q3",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2020-Q4",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2021-Q1",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2021-Q2",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2021-Q3",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2021-Q4",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2022-Q1",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2022-Q2",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2022-Q3",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2022-Q4",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2023-Q1",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2023-Q2",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2023-Q3",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2023-Q4",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2024-Q1",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2024-Q2",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2024-Q3",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2024-Q4",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2025-Q1",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2025-Q2",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2025-Q3",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2025-Q4",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2026-Q1",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2026-Q2",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    },
+    {
+     "file": "2026-Q3",
+     "sheet": "sayı",
+     "cell": "C12",
+     "label": "Türkiye Halk Bankası A.Ş."
+    }
+   ]
+  },
+  {
+   "id": "isbank",
+   "label": "İş Bankası",
+   "sourceLabel": "Türkiye İş Bankası A.Ş.",
+   "ticker": "ISCTR",
+   "values": [
+    1370,
+    1364,
+    1364,
+    1364,
+    1357,
+    1355,
+    1336,
+    1306,
+    1281,
+    1271,
+    1265,
+    1257,
+    1241,
+    1227,
+    1220,
+    1204,
+    1201,
+    1195,
+    1184,
+    1153,
+    1140,
+    1131,
+    1126,
+    1113,
+    1102,
+    1088,
+    1083,
+    1072,
+    1068,
+    1034,
+    1031,
+    1033,
+    1029,
+    1019,
+    1019,
+    1021,
+    1012
+   ],
+   "provenance": [
+    {
+     "file": "2017-Q3",
+     "sheet": "Sayı",
+     "cell": "C24",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2017-Q4",
+     "sheet": "Sayı",
+     "cell": "C24",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2018-Q1",
+     "sheet": "Sayı",
+     "cell": "C24",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2018-Q2",
+     "sheet": "Sayı",
+     "cell": "C24",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2018-Q3",
+     "sheet": "Sayı",
+     "cell": "C24",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2018-Q4",
+     "sheet": "Sayı",
+     "cell": "C24",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2019-Q1",
+     "sheet": "Sayı",
+     "cell": "C24",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2019-Q2",
+     "sheet": "Sayı",
+     "cell": "C24",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2019-Q3",
+     "sheet": "Sayı",
+     "cell": "C24",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2019-Q4",
+     "sheet": "Sayı",
+     "cell": "C24",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2020-Q1",
+     "sheet": "Sayı",
+     "cell": "C24",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2020-Q2",
+     "sheet": "sayı",
+     "cell": "C24",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2020-Q3",
+     "sheet": "sayı",
+     "cell": "C24",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2020-Q4",
+     "sheet": "sayı",
+     "cell": "C24",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2021-Q1",
+     "sheet": "sayı",
+     "cell": "C23",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2021-Q2",
+     "sheet": "sayı",
+     "cell": "C23",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2021-Q3",
+     "sheet": "sayı",
+     "cell": "C23",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2021-Q4",
+     "sheet": "sayı",
+     "cell": "C23",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2022-Q1",
+     "sheet": "sayı",
+     "cell": "C23",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2022-Q2",
+     "sheet": "sayı",
+     "cell": "C23",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2022-Q3",
+     "sheet": "sayı",
+     "cell": "C23",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2022-Q4",
+     "sheet": "sayı",
+     "cell": "C23",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2023-Q1",
+     "sheet": "sayı",
+     "cell": "C23",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2023-Q2",
+     "sheet": "sayı",
+     "cell": "C24",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2023-Q3",
+     "sheet": "sayı",
+     "cell": "C25",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2023-Q4",
+     "sheet": "sayı",
+     "cell": "C24",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2024-Q1",
+     "sheet": "sayı",
+     "cell": "C24",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2024-Q2",
+     "sheet": "sayı",
+     "cell": "C24",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2024-Q3",
+     "sheet": "sayı",
+     "cell": "C24",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2024-Q4",
+     "sheet": "sayı",
+     "cell": "C27",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2025-Q1",
+     "sheet": "sayı",
+     "cell": "C27",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2025-Q2",
+     "sheet": "sayı",
+     "cell": "C27",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2025-Q3",
+     "sheet": "sayı",
+     "cell": "C27",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2025-Q4",
+     "sheet": "sayı",
+     "cell": "C27",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2026-Q1",
+     "sheet": "sayı",
+     "cell": "C27",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2026-Q2",
+     "sheet": "sayı",
+     "cell": "C27",
+     "label": "Türkiye İş Bankası A.Ş."
+    },
+    {
+     "file": "2026-Q3",
+     "sheet": "sayı",
+     "cell": "C26",
+     "label": "Türkiye İş Bankası A.Ş."
+    }
+   ]
+  },
+  {
+   "id": "vakifbank",
+   "label": "Vakıfbank",
+   "sourceLabel": "Türkiye Vakıflar Bankası T.A.O.",
+   "ticker": "VAKBN",
+   "values": [
+    926,
+    927,
+    935,
+    956,
+    950,
+    951,
+    950,
+    951,
+    946,
+    943,
+    940,
+    939,
+    938,
+    936,
+    938,
+    939,
+    938,
+    940,
+    937,
+    939,
+    939,
+    949,
+    949,
+    943,
+    941,
+    944,
+    948,
+    950,
+    959,
+    964,
+    976,
+    979,
+    978,
+    978,
+    970,
+    967,
+    970
+   ],
+   "provenance": [
+    {
+     "file": "2017-Q3",
+     "sheet": "Sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2017-Q4",
+     "sheet": "Sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2018-Q1",
+     "sheet": "Sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2018-Q2",
+     "sheet": "Sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2018-Q3",
+     "sheet": "Sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2018-Q4",
+     "sheet": "Sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2019-Q1",
+     "sheet": "Sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2019-Q2",
+     "sheet": "Sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2019-Q3",
+     "sheet": "Sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2019-Q4",
+     "sheet": "Sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2020-Q1",
+     "sheet": "Sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2020-Q2",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2020-Q3",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2020-Q4",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2021-Q1",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2021-Q2",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2021-Q3",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2021-Q4",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2022-Q1",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2022-Q2",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2022-Q3",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2022-Q4",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2023-Q1",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2023-Q2",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2023-Q3",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2023-Q4",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2024-Q1",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2024-Q2",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2024-Q3",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2024-Q4",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2025-Q1",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2025-Q2",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2025-Q3",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2025-Q4",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2026-Q1",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2026-Q2",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    },
+    {
+     "file": "2026-Q3",
+     "sheet": "sayı",
+     "cell": "C13",
+     "label": "Türkiye Vakıflar Bankası T.A.O."
+    }
+   ]
+  },
+  {
+   "id": "yapikredi",
+   "label": "Yapı Kredi",
+   "sourceLabel": "Yapı ve Kredi Bankası A.Ş.",
+   "ticker": "YKBNK",
+   "values": [
+    888,
+    866,
+    866,
+    866,
+    867,
+    854,
+    854,
+    854,
+    854,
+    846,
+    845,
+    845,
+    845,
+    835,
+    835,
+    835,
+    826,
+    804,
+    805,
+    804,
+    802,
+    801,
+    803,
+    800,
+    796,
+    780,
+    781,
+    781,
+    773,
+    772,
+    773,
+    772,
+    767,
+    740,
+    741,
+    734,
+    723
+   ],
+   "provenance": [
+    {
+     "file": "2017-Q3",
+     "sheet": "Sayı",
+     "cell": "C25",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2017-Q4",
+     "sheet": "Sayı",
+     "cell": "C25",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2018-Q1",
+     "sheet": "Sayı",
+     "cell": "C25",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2018-Q2",
+     "sheet": "Sayı",
+     "cell": "C25",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2018-Q3",
+     "sheet": "Sayı",
+     "cell": "C25",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2018-Q4",
+     "sheet": "Sayı",
+     "cell": "C25",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2019-Q1",
+     "sheet": "Sayı",
+     "cell": "C25",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2019-Q2",
+     "sheet": "Sayı",
+     "cell": "C25",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2019-Q3",
+     "sheet": "Sayı",
+     "cell": "C25",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2019-Q4",
+     "sheet": "Sayı",
+     "cell": "C25",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2020-Q1",
+     "sheet": "Sayı",
+     "cell": "C25",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2020-Q2",
+     "sheet": "sayı",
+     "cell": "C25",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2020-Q3",
+     "sheet": "sayı",
+     "cell": "C25",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2020-Q4",
+     "sheet": "sayı",
+     "cell": "C25",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2021-Q1",
+     "sheet": "sayı",
+     "cell": "C24",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2021-Q2",
+     "sheet": "sayı",
+     "cell": "C24",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2021-Q3",
+     "sheet": "sayı",
+     "cell": "C24",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2021-Q4",
+     "sheet": "sayı",
+     "cell": "C24",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2022-Q1",
+     "sheet": "sayı",
+     "cell": "C24",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2022-Q2",
+     "sheet": "sayı",
+     "cell": "C24",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2022-Q3",
+     "sheet": "sayı",
+     "cell": "C24",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2022-Q4",
+     "sheet": "sayı",
+     "cell": "C24",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2023-Q1",
+     "sheet": "sayı",
+     "cell": "C24",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2023-Q2",
+     "sheet": "sayı",
+     "cell": "C25",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2023-Q3",
+     "sheet": "sayı",
+     "cell": "C26",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2023-Q4",
+     "sheet": "sayı",
+     "cell": "C25",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2024-Q1",
+     "sheet": "sayı",
+     "cell": "C25",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2024-Q2",
+     "sheet": "sayı",
+     "cell": "C25",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2024-Q3",
+     "sheet": "sayı",
+     "cell": "C25",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2024-Q4",
+     "sheet": "sayı",
+     "cell": "C28",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2025-Q1",
+     "sheet": "sayı",
+     "cell": "C28",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2025-Q2",
+     "sheet": "sayı",
+     "cell": "C28",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2025-Q3",
+     "sheet": "sayı",
+     "cell": "C28",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2025-Q4",
+     "sheet": "sayı",
+     "cell": "C28",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2026-Q1",
+     "sheet": "sayı",
+     "cell": "C28",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2026-Q2",
+     "sheet": "sayı",
+     "cell": "C28",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    },
+    {
+     "file": "2026-Q3",
+     "sheet": "sayı",
+     "cell": "C27",
+     "label": "Yapı ve Kredi Bankası A.Ş."
+    }
+   ]
+  }
+ ]
+}
