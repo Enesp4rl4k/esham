@@ -20,8 +20,8 @@ def test_viop_margin_is_official_takasbank():
     assert len(snap.as_of) > 0
     
     # 2. Pretty strings should format correctly
-    assert "Milyar TL" in snap.required_pretty()
-    assert ("Milyar TL" in snap.margin_call_pretty()) or ("Milyon TL" in snap.margin_call_pretty())
+    assert "milyar TL" in snap.required_pretty()
+    assert ("milyar TL" in snap.margin_call_pretty()) or ("milyon TL" in snap.margin_call_pretty())
 
 
 def test_viop_stress_assessment():
