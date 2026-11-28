@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 import requests
 
 from ..config import default_headers, get_logger, sample_data_allowed, settings
-from ..formatting import tr_money, tr_number
+from ..formatting import tr_money, tr_number, tr_pct
 from .sector import SECTORS
 
 log = get_logger(__name__)
@@ -98,7 +98,7 @@ class PeerMetric:
     def change_str(self) -> str:
         if self.change_pct is None:
             return "—"
-        return f"{'+' if self.change_pct >= 0 else ''}{tr_number(self.change_pct, 2)}%"
+        return tr_pct(self.change_pct)
 
     @property
     def has_fundamentals(self) -> bool:
@@ -153,7 +153,7 @@ class PeerSnapshot:
         if abs(pct) < 5:
             return "sektör medyanına yakın"
         direction = "üzerinde" if pct > 0 else "altında"
-        return f"sektör medyanının %{abs(pct):.0f} {direction}"
+        return f"sektör medyanının {tr_pct(abs(pct), 0, signed=False)} {direction}"
 
 
 class PeerSource:

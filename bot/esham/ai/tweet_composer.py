@@ -11,6 +11,7 @@ from __future__ import annotations
 import re
 
 from ..config import get_logger, settings
+from ..sentences import first_sentence, safe_truncate
 from .client import LlmClient
 
 log = get_logger(__name__)
@@ -74,7 +75,7 @@ class TweetComposer:
 
     def _compose_fallback(self, news: str, category: str, emoji: str) -> str:
         # İlk cümleyi al, gerekirse kısalt, kategori hashtag'lerini ekle.
-        sentence = re.split(r"(?<=[.!?])\s+", news.strip())[0]
+        sentence = first_sentence(news)  # sayı/kısaltma farkında (A.Ş., 7.266,17)
         tags = " ".join(CATEGORY_HASHTAGS.get(category, CATEGORY_HASHTAGS["gundem"]))
         return f"{emoji} {sentence} {tags}".strip()
 
@@ -94,5 +95,4 @@ class TweetComposer:
         if budget < 0:
             budget = SAFE_TARGET
             suffix = ""
-        clipped = body[:budget].rsplit(" ", 1)[0].rstrip(" ,.;:")
-        return f"{clipped}…{suffix}".strip()
+        return f"{safe_truncate(body, budget + 1)}{suffix}".strip()

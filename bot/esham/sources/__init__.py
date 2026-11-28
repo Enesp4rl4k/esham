@@ -7,6 +7,7 @@ veriyle zarifçe geri dönülür. Böylece bir kaynak bozulsa da pipeline devam 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -31,6 +32,17 @@ class Disclosure:
 
 @dataclass
 class MarketSummary:
+    """BIST endeks özeti. Alanların ANLAMI (şablon cümleleri buna göre yazılır):
+
+    price        — son işlem fiyatı (seans açıksa gün içi son fiyat, kapalıysa son seansın kapanışı)
+    change       — ``price``'ın ÖNCEKİ SEANS KAPANIŞINA göre yüzde değişimi (``+%2,18``)
+    open_price   — ``as_of`` gününün seans açılış fiyatı
+    open_change  — açılış fiyatının önceki seans kapanışına göre yüzde farkı
+    as_of        — ``price``'ın ait olduğu son işlem zamanı (Türkiye saati); bilinmiyorsa None
+    market_open  — veri çekildiği anda seans açık mı (True/False); bilinmiyorsa None
+    volume       — kaynağın hacim alanı; birimi (TL mi lot mu) doğrulanamadığı için metinlerde KULLANILMAZ
+    """
+
     index: str
     price: str
     change: str
@@ -39,6 +51,12 @@ class MarketSummary:
     open_change: str = ""
     high: str = ""
     low: str = ""
+    price_value: float | None = None
+    change_pct: float | None = None
+    open_value: float | None = None
+    open_change_pct: float | None = None
+    as_of: "datetime | None" = None
+    market_open: bool | None = None
 
 
 @dataclass
@@ -61,7 +79,7 @@ class MarketSnapshot:
         macro       — Küresel makro: ABD 10Y, EUR/USD, Altın, VIX, Brent
         viop_quote  — VİOP endeks/vadeli fiyat ve değişimi
         viop_margin — Takasbank marketwide teminat snapshot'ı
-        sector      — Sektör rotasyonu hareketleri (haftalık)
+        sector      — Sektör endekslerinin GÜNLÜK değişimi (önceki kapanışa göre; ``SectorMove.as_of``)
         turib       — TÜRİB ELÜS tarımsal emtia ve hububat endeks özeti
     """
 

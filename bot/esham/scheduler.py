@@ -23,6 +23,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 
 from .config import get_logger, settings
+from .formatting import tr_date_text, tr_pct
 from .news_stream import NewsStream
 from .pipeline import (
     run_closing_report,
@@ -109,7 +110,7 @@ class MarginWatcher:
             slug = run_viop_report(prior_pct=self._prev_pct, publish=True)
             self.social.broadcast(
                 f"⚠️ VİOP teminat stresi yükseliyor: margin-call/gereken "
-                f"%{pct:.2f}. Detay raporda. #VİOP #MarginCall"
+                f"{tr_pct(pct, 3, signed=False)} ({tr_date_text(snap.as_of)}). Detay raporda. #VİOP #MarginCall"
             )
         self._prev_pct = pct
         self._state.set_margin_prev_pct(pct)
@@ -245,7 +246,8 @@ def build_default_scheduler(
     sched.add_daily("bulten-gonder", "08:40", lambda: run_newsletter())
     sched.add_daily("kuresel-makro", "08:45", lambda: run_global_report())
     sched.add_daily("viop-acilis", "09:30", lambda: run_viop_report(publish=True))
-    sched.add_daily("bist-acilis", "10:00", lambda: run_opening_report(publish_social=True))
+    # Yahoo BIST verisi ~15 dk gecikmeli: 10:00/10:05 koşusunda bugünün açılışı henüz yok (rapor atlanır).
+    sched.add_daily("bist-acilis", "10:20", lambda: run_opening_report(publish_social=True))
     sched.add_daily("turib-seans-ortasi", "11:15", lambda: update_turib_market_data())
     sched.add_daily("heatmap-ogle", "13:00", lambda: run_heatmap())
     sched.add_daily("turib-kapanis", "16:30", lambda: update_turib_market_data())

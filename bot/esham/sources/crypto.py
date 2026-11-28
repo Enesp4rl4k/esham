@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 import requests
 
 from ..config import default_headers, get_logger, settings
-from ..formatting import tr_number as _tr_number
+from ..formatting import tr_pct
 from ..http import retry_get
 
 log = get_logger(__name__)
@@ -41,8 +41,7 @@ class CryptoTicker:
 
     @property
     def change_str(self) -> str:
-        sign = "+" if self.change_pct >= 0 else ""
-        return f"{sign}{_tr_number(self.change_pct, 2)}%"
+        return tr_pct(self.change_pct)
 
 
 class CryptoSource:

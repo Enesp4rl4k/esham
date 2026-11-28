@@ -204,6 +204,8 @@ class KapSource:
         return []
 
     def _to_disclosure(self, row: dict) -> Disclosure:
+        # Ham KAP metni AYNEN tutulur ("Bulgaristan?da" dahil): "görüldü" anahtarı, slug ve kayıt buna
+        # dayanır. Kayıp kesme işareti yalnız görüntülenen metinde onarılır (turkish.repair_lost_apostrophes).
         kap_title = str(row.get("kapTitle") or "").strip()
         subject = str(row.get("subject") or "").strip()
         summary = str(row.get("summary") or "").strip()

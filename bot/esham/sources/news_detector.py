@@ -22,6 +22,7 @@ from datetime import datetime, timezone
 from typing import Literal
 
 from ..config import get_logger
+from ..formatting import parse_tr_pct, tr_date, tr_datetime, tr_number, tr_pct
 from ..translation import ensure_turkish, translate_to_turkish, is_mostly_english
 from .global_macro import GlobalMacroSource, MacroTicker
 from .sector import SectorMove, SectorSource
@@ -39,7 +40,9 @@ def _env_float(key: str, default: float) -> float:
 
 # Her sembol için "haber tetiklensin" minimum değişim eşikleri (%)
 THRESHOLDS: dict[str, float] = {
-    "ABD 10Y":  _env_float("ESHAM_THRESH_ABD10Y",   0.04),   # 4 baz puan (% cinsinden)
+    # ABD 10Y eşiği YÜZDE PUAN farkıdır (0,04 = 4 baz puan); eskiden yüzde değişimle (göreli) kıyaslanıyordu
+    # ve %4,9 faizde 0,2 baz puanlık oynamada bile tetikleniyordu. Bkz. macro_move_size.
+    "ABD 10Y":  _env_float("ESHAM_THRESH_ABD10Y",   0.04),
     "EUR/USD":  _env_float("ESHAM_THRESH_EURUSD",    0.30),   # %0.30
     "USD/TRY":  _env_float("ESHAM_THRESH_USDTRY",    0.50),   # %0.50 — Dolar/TL
     "ALTIN":    _env_float("ESHAM_THRESH_ALTIN",     0.80),   # %0.80
@@ -119,14 +122,12 @@ class MarketEvent:
 
 
 # ---- yardımcı formatlayıcılar ---------------------------------------------------
+# Başlıklar yalnız veriyi aktarır: ne olduğu (önceki kapanışa göre değişim), değeri ve zamanı. "güçlü/sert"
+# gibi nitelemeler ve "yükseldi/geriledi" gibi tamamlanmış hareket bildiren fiiller kullanılmaz (gün içi veri
+# için yanlış zaman kipi olur).
 
 def _fmt_pct(pct: float) -> str:
-    sign = "+" if pct >= 0 else ""
-    return f"{sign}{pct:.2f}%"
-
-
-def _direction(pct: float) -> str:
-    return "yükseldi" if pct >= 0 else "geriledi"
+    return tr_pct(pct)
 
 
 def _dedup_key(prefix: str, label: str, pct: float = 0.0) -> str:
@@ -139,15 +140,26 @@ def _dedup_key(prefix: str, label: str, pct: float = 0.0) -> str:
     return f"{prefix}:{label}:{day}"
 
 
+def macro_move_size(ticker: MacroTicker) -> float:
+    """Eşikle kıyaslanan büyüklük: faizde yüzde PUAN farkı, diğerlerinde yüzde değişim (mutlak)."""
+    pts = ticker.change_points
+    if ticker.is_rate:
+        return abs(pts) if pts is not None else 0.0
+    return abs(ticker.change_pct)
+
+
 # ---- olay oluşturucular ---------------------------------------------------------
 
+_MACRO_NAMES = {"VIX": "VIX endeksi", "ABD 10Y": "ABD 10 yıllık tahvil faizi", "ALTIN": "Altın (COMEX vadeli)",
+                "BRENT": "Brent petrol (vadeli)"}
+
+
 def _macro_event(ticker: MacroTicker) -> MarketEvent:
-    direction = _direction(ticker.change_pct)
-    # Başlık yalnız veriyi aktarır; "risk iştahı", "güvenli liman talebi" gibi yorum/neden atfı yok.
-    names = {"VIX": "VIX endeksi", "ABD 10Y": "ABD 10 yıllık tahvil faizi", "ALTIN": "Altın", "BRENT": "Brent petrol"}
-    name = names.get(ticker.label, ticker.label)
-    value = f" ({ticker.value_str})" if ticker.value_str else ""
-    headline = f"{name} {ticker.change_str} {direction}{value}."
+    name = _MACRO_NAMES.get(ticker.label, ticker.label)
+    change = ticker.change_report
+    headline = f"{name} önceki kapanışa göre {change} ({ticker.value_str})."
+    when = f" (veri zamanı: {tr_datetime(ticker.as_of)})" if ticker.as_of else ""
+    details = f"{name} son değeri {ticker.value_str}{when}; önceki kapanışa göre değişim {change}."
 
     tags = ["Makro", ticker.label.replace("/", ""), "Küresel"]
     return MarketEvent(
@@ -155,19 +167,17 @@ def _macro_event(ticker: MacroTicker) -> MarketEvent:
         label=ticker.label,
         change_pct=ticker.change_pct,
         value_str=ticker.value_str,
-        change_str=ticker.change_str,
+        change_str=change,
         headline=headline,
         key=_dedup_key("macro", ticker.label, ticker.change_pct),
         tags=tags,
+        details=details,
     )
 
 
 def _sector_event(move: SectorMove) -> MarketEvent:
-    direction = _direction(move.change_pct)
-    strength = "güçlü" if move.change_pct >= 0 else "sert"
-    headline = (
-        f"BIST {move.name} sektör endeksi {move.change_str} ile {strength} {direction}."
-    )
+    when = f" (veri tarihi: {tr_date(move.as_of)})" if move.as_of else ""
+    headline = f"BIST {move.name} sektör endeksi önceki kapanışa göre {move.change_str}{when}."
     tags = ["Sektör", move.name, "BIST"]
     return MarketEvent(
         kind="SEKTÖR_HAREKET",
@@ -312,7 +322,7 @@ class NewsDetector:
 
         for ticker in snap.tickers:
             threshold = THRESHOLDS.get(ticker.label, 1.0)
-            if abs(ticker.change_pct) < threshold:
+            if macro_move_size(ticker) < threshold:
                 continue
             event = _macro_event(ticker)
             if event.key in self._seen_keys:
@@ -338,26 +348,22 @@ class NewsDetector:
             log.warning("BIST endeks tarama hatası: %s", exc)
             return events
 
-        change_str = summary.change  # ör. "+1,23%" veya "-0,87%"
-        if not change_str:
+        if summary is None:
             return events
-        try:
-            pct = float(
-                change_str.replace("%", "").replace(",", ".").replace("+", "").strip()
-            )
-        except ValueError:
+        pct = summary.change_pct if summary.change_pct is not None else parse_tr_pct(summary.change)
+        if pct is None:
             return events
 
         if abs(pct) < BIST_THRESHOLD:
             return events
 
-        direction = _direction(pct)
-        strength = "güçlü" if pct >= 0 else "sert"
+        # Son işlem zamanı bilinmiyorsa olay üretilmez: zamansız bir fiyatı "güncel" diye yazmayız.
+        if summary.as_of is None:
+            log.info("BIST hareketi var ama son işlem zamanı bilinmiyor; olay üretilmedi.")
+            return events
         headline = (
-            f"BIST {summary.index} endeksi {_fmt_pct(pct)} ile {strength} {direction}. "
-            f"Güncel seviye: {summary.price}"
-            + (f", hacim: {summary.volume}" if summary.volume else "")
-            + "."
+            f"BIST {summary.index} endeksi önceki kapanışa göre {_fmt_pct(pct)}; "
+            f"son işlem {summary.price} ({tr_datetime(summary.as_of)})."
         )
         key = _dedup_key("bist", summary.index, pct)
         if key in self._seen_keys:
@@ -394,13 +400,9 @@ class NewsDetector:
             return events
 
         for move in moves:
-            direction = _direction(move.change_pct)
-            strength = "güçlü" if move.change_pct >= 0 else "sert"
+            # "hacim" alanı 3 aylık ORTALAMA hacimdir; günün hacmi gibi yazılmaz (başlıktan çıkarıldı).
             headline = (
-                f"{move.ticker} hissesi {move.change_str} ile {strength} {direction}. "
-                f"Güncel fiyat: {move.price_str}"
-                + (f", hacim: {move.volume}" if move.volume else "")
-                + "."
+                f"{move.ticker} hissesi önceki kapanışa göre {move.change_str}; son fiyat {move.price_str}."
             )
             key = _dedup_key("hisse", move.ticker, move.change_pct)
             if key in self._seen_keys:
@@ -554,14 +556,14 @@ class NewsDetector:
             if abs(ticker.change_pct) < threshold:
                 continue
                 
-            direction = _direction(ticker.change_pct)
-            strength = "güçlü" if ticker.change_pct >= 0 else "sert"
+            # Yahoo kripto "önceki kapanış"ı bir önceki UTC gününün kapanışıdır; "son 24 saat" DEĞİLDİR.
             headline = (
-                f"{ticker.label} {_fmt_pct(ticker.change_pct)} ile {strength} {direction} (Güncel: ${ticker.price:,.0f})"
+                f"{ticker.label} önceki günlük kapanışa (UTC) göre {_fmt_pct(ticker.change_pct)} "
+                f"(${tr_number(ticker.price, 0)})."
             )
             details = (
-                f"{ticker.label} ({ticker.symbol}) son 24 saatlik seansta {_fmt_pct(ticker.change_pct)} "
-                f"oranında değişerek ${ticker.price:,.2f} seviyesine geldi."
+                f"{ticker.label} ({ticker.symbol}) son fiyatı ${tr_number(ticker.price, 2)}; "
+                f"önceki günlük kapanışa (UTC) göre değişim {_fmt_pct(ticker.change_pct)}."
             )
             key = _dedup_key("crypto", ticker.symbol, ticker.change_pct)
             if key in self._seen_keys:
@@ -573,7 +575,7 @@ class NewsDetector:
                 kind="KRIPTO_HAREKET",
                 label=ticker.label,
                 change_pct=ticker.change_pct,
-                value_str=f"${ticker.price:,.0f}",
+                value_str=f"${tr_number(ticker.price, 0)}",
                 change_str=_fmt_pct(ticker.change_pct),
                 headline=headline,
                 key=key,

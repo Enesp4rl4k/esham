@@ -246,5 +246,28 @@
       "Kasım",
       "Aralık"
     ]
+  },
+  "apostrophe": {
+    "_doc": "Görüntüleme katmanında KAP verisindeki kayıp kesme işaretinin onarımı (bot/esham/turkish.py repair_lost_apostrophes, neutral.ts repairLostApostrophes): harf/rakam + '?' + bu listedeki küçük harfli Türkçe ek → kesme işareti. Ham başlık, anahtar ve slug değişmez.",
+    "suffixes": [
+      "a", "e", "ı", "i", "u", "ü", "ya", "ye", "yı", "yi", "yu", "yü", "na", "ne", "nı", "ni", "nu", "nü",
+      "ın", "in", "un", "ün", "nın", "nin", "nun", "nün", "yın", "yin", "yun", "yün",
+      "ını", "ini", "unu", "ünü", "ına", "ine", "una", "üne", "ında", "inde", "unda", "ünde",
+      "da", "de", "ta", "te", "dan", "den", "tan", "ten", "daki", "deki", "taki", "teki",
+      "nda", "nde", "ndan", "nden", "ndaki", "ndeki", "ki", "la", "le", "yla", "yle",
+      "dır", "dir", "dur", "dür", "tır", "tir", "tur", "tür", "lar", "ler", "ları", "leri",
+      "ıncı", "inci", "uncu", "üncü", "ncı", "nci", "ncu", "ncü", "lık", "lik", "luk", "lük",
+      "sı", "si", "su", "sü", "sını", "sini", "sunu", "sünü", "sının", "sinin", "sunun", "sünün",
+      "sına", "sine", "suna", "süne", "sında", "sinde", "sunda", "sünde",
+      "ca", "ce", "ça", "çe", "nca", "nce", "ınca", "ince", "unca", "ünce", "yla", "sıyla", "siyle"
+    ]
+  },
+  "sentences": {
+    "_doc": "Cümle bölme (bot/esham/sentences.py ve neutral.ts splitSentences aynı kural): aday sınır '.!?…' ARDINDAN boşluk; sonraki parça küçük harfle başlıyorsa, önceki parçanın son kelimesi bu listede ya da büyük harf+nokta dizisiyse (A.Ş., T.C.) veya önceki parçada açık parantez varsa ya da önceki parça yalnız sıra numarasıysa ('1.') birleştirilir.",
+    "abbreviations": [
+      "Ltd.", "Şti.", "Tic.", "San.", "Sti.", "Koop.", "Ort.", "Yay.", "Inc.", "Corp.", "Co.", "Plc.", "Ltd.Şti.",
+      "vb.", "vs.", "bkz.", "Bkz.", "örn.", "Örn.", "yy.", "Dr.", "Prof.", "Doç.", "Av.", "Sn.", "Md.", "No.", "Nr.",
+      "Tel.", "St.", "Mr.", "Ms.", "Jr.", "Cad.", "Sok.", "Mah.", "Bşk.", "mn.", "mlr.", "mly.", "Hk.", "hk."
+    ]
   }
 }

@@ -11,6 +11,8 @@ import logging
 from dataclasses import dataclass, field
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+from ..formatting import tr_number, tr_pct
+
 log = logging.getLogger(__name__)
 
 # BIST-30'un önemli hisseleri — Yahoo Finance formatı (.IS suffix)
@@ -47,12 +49,11 @@ class StockMove:
 
     @property
     def change_str(self) -> str:
-        sign = "+" if self.change_pct >= 0 else ""
-        return f"{sign}{self.change_pct:.2f}%"
+        return tr_pct(self.change_pct)
 
     @property
     def price_str(self) -> str:
-        return f"₺{self.price:,.2f}"
+        return f"{tr_number(self.price)} TL"
 
 
 def _fetch_one(symbol: str, ticker: str) -> StockMove | None:

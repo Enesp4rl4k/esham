@@ -58,7 +58,61 @@ export function hasBanned(text: string): boolean {
 }
 
 const HEADING_RE = /^(#{1,6}) /;
-const SENTENCE_SPLIT_RE = /(?<=[.!?…]) +/;
+const SENTENCE_SPLIT_RE = /(?:(?<=[.!?…])|(?<=[.!?…][)"”’»])) +/;
+const ABBREVIATIONS = new Set<string>(rules.sentences.abbreviations);
+// Çalışma anında kurulur (tsconfig hedefi ES2017; \p{..} literal'i tip denetiminde hedef uyarısı verebilir).
+const INITIALS_RE = new RegExp("^(?:\\p{Lu}\\.)+$", "u");
+const LOWER_START_RE = new RegExp("^\\p{Ll}", "u");
+
+const APOSTROPHE_SUFFIXES = new Set<string>(rules.apostrophe.suffixes);
+const LETTER_RE = new RegExp("^\\p{L}$", "u");
+const UPPER_RE = new RegExp("^\\p{Lu}$", "u");
+const LOST_APOSTROPHE_RE = new RegExp("(?<=[\\p{L}\\p{N}.])\\?(\\p{L}{1,6})(?![\\p{L}\\p{N}=&/])", "gu");
+
+/**
+ * Görüntüleme katmanı: KAP verisindeki kayıp kesme işaretini onarır ("Bulgaristan?da" → "Bulgaristan'da").
+ * bot/esham/turkish.py `repair_lost_apostrophes` ile aynı kural (ortak vektörler: neutral-vectors.json →
+ * apostrophe). Ham başlık/anahtar/slug DEĞİŞMEZ; yalnız gösterilen metne uygulanır.
+ */
+export function repairLostApostrophes(text: string): string {
+  const s = text || "";
+  return s.replace(LOST_APOSTROPHE_RE, (whole: string, suffix: string, offset: number) => {
+    const start = s.lastIndexOf(" ", offset) + 1;
+    const endIdx = s.indexOf(" ", offset + whole.length);
+    const token = s.slice(start, endIdx >= 0 ? endIdx : s.length);
+    if (!APOSTROPHE_SUFFIXES.has(suffix) || token.includes("://") || token.includes("=") || token.startsWith("www.")) return whole;
+    if (suffix.length === 1) {
+      // "x?a", "Ne?e": tek harfli ek yalnız özel ad sonrası ("İstanbul?a"); Python _proper_noun_before ile aynı.
+      let i = offset;
+      while (i > 0 && LETTER_RE.test(s[i - 1])) i--;
+      const word = s.slice(i, offset);
+      if (!(word.length >= 3 && UPPER_RE.test(word[0]))) return whole;
+    }
+    return "'" + suffix;
+  });
+}
+
+/** bot/esham/sentences.py `split_sentences` ile aynı kural (bkz. neutral-rules.json → sentences._doc). */
+export function splitSentences(text: string): string[] {
+  const out: string[] = [];
+  for (const piece of (text || "").split(SENTENCE_SPLIT_RE)) {
+    if (!piece) continue;
+    const prev = out[out.length - 1];
+    if (prev !== undefined) {
+      const words = prev.trimEnd().split(/\s+/);
+      const tok = (words[words.length - 1] || "").replace(/^[("'“‘«[]+/, "");
+      const initials = tok.length >= 2 && tok.length % 2 === 0 && INITIALS_RE.test(tok);
+      const openParen = (prev.match(/\(/g) || []).length > (prev.match(/\)/g) || []).length;
+      const ordinal = /^\d{1,3}\.$/.test(prev.trim());
+      if (LOWER_START_RE.test(piece) || ABBREVIATIONS.has(tok) || initials || openParen || ordinal) {
+        out[out.length - 1] = `${prev} ${piece}`;
+        continue;
+      }
+    }
+    out.push(piece);
+  }
+  return out;
+}
 const TABLE_SEP_RE = /^\|? *:?-{2,}/;
 const STRUCTURAL_RE = /^(?:[|\-*+>]|\d+[.)] )/;
 
@@ -101,7 +155,7 @@ export function stripBanned(markdown: string): string {
       continue;
     }
     if (m || STRUCTURAL_RE.test(line.trimStart())) continue;
-    const rest = line.split(SENTENCE_SPLIT_RE).filter((s) => !hasBanned(s)).join(" ").trim();
+    const rest = splitSentences(line).filter((s) => !hasBanned(s)).join(" ").trim();
     if (rest) out.push(rest);
   }
   return dropOrphanTables(out).join("\n").replace(/\n{3,}/g, "\n\n").trim();

@@ -339,7 +339,56 @@
     [
       "## A\n### Boğa senaryosu\nmetin\n#### alt\nalt metin\n### Temiz\nkalır",
       "## A\n### Temiz\nkalır"
+    ],
+    [
+      "ABC A.Ş. hedef fiyatını 150 TL olarak açıkladı. Teslimat 2027'de.",
+      "Teslimat 2027'de."
+    ],
+    [
+      "XYZ Ltd. Şti. Hedef fiyat 150 TL dedi. Teslimat 27.11.2026 tarihinde.",
+      "Teslimat 27.11.2026 tarihinde."
+    ],
+    [
+      "Gelir arttı (yıllık %12. Hedef fiyat 150 TL.) Kapanış 18.10'da.",
+      "Kapanış 18.10'da."
+    ],
+    [
+      "S&P 500 +%1,16 (7.266,17). Hedef fiyat 8.000. T.C. Merkez Bankası faizi sabit tuttu.",
+      "S&P 500 +%1,16 (7.266,17). T.C. Merkez Bankası faizi sabit tuttu."
     ]
+  ],
+  "apostrophe": [
+    ["KIRAÇ GALVANİZ A.Ş.: Bulgaristan?da İhale Kazanılması", "KIRAÇ GALVANİZ A.Ş.: Bulgaristan'da İhale Kazanılması"],
+    ["Sermaye Piyasası Kurulu?na Başvuru", "Sermaye Piyasası Kurulu'na Başvuru"],
+    ["ABD?deki İştirakimiz", "ABD'deki İştirakimiz"],
+    ["CEO?nun görevden alınması", "CEO'nun görevden alınması"],
+    ["%51?ini temsil eden paylar", "%51'ini temsil eden paylar"],
+    ["Esas Sözleşme?sinin 6. maddesi", "Esas Sözleşme'sinin 6. maddesi"],
+    ["Akfen GYO A.Ş.?nin portföyünde Kocaeli/Gebze?de arsa", "Akfen GYO A.Ş.'nin portföyünde Kocaeli/Gebze'de arsa"],
+    ["Kurulu?nca onaylanması", "Kurulu'nca onaylanması"],
+    ["www.kap.org.tr?da", "www.kap.org.tr?da"],
+    ["x?a", "x?a"],
+    ["Ne?e baktın", "Ne?e baktın"],
+    ["İstanbul?a taşındı", "İstanbul'a taşındı"],
+    ["ABD?ye ihracat", "ABD'ye ihracat"],
+    ["Neden?Çünkü", "Neden?Çünkü"],
+    ["Kim?Ben", "Kim?Ben"],
+    ["https://x.com/a?b=1", "https://x.com/a?b=1"],
+    ["bkz. kap.org.tr/tr?da=1", "bkz. kap.org.tr/tr?da=1"],
+    ["x?y?z", "x?y?z"],
+    ["Ne zaman?", "Ne zaman?"]
+  ],
+  "sentences": [
+    ["S&P 500 +1,16% yükseldi (7.266,17).", ["S&P 500 +1,16% yükseldi (7.266,17)."]],
+    ["XU100 27.11.2026 tarihinde 10.977,01 oldu. Saat 08.30'da veri geldi.", ["XU100 27.11.2026 tarihinde 10.977,01 oldu.", "Saat 08.30'da veri geldi."]],
+    ["AKTİF YATIRIM BANKASI A.Ş. Özet yayımladı. T.C. Hazine ihaleyi açıkladı.", ["AKTİF YATIRIM BANKASI A.Ş. Özet yayımladı.", "T.C. Hazine ihaleyi açıkladı."]],
+    ["ABC Ltd. Şti. sözleşme imzaladı. Kira, aidat vb. giderler dahil. Bitti!", ["ABC Ltd. Şti. sözleşme imzaladı.", "Kira, aidat vb. giderler dahil.", "Bitti!"]],
+    ["Esas sözleşmenin 6. maddesi değişti. Yeni metin ektedir.", ["Esas sözleşmenin 6. maddesi değişti.", "Yeni metin ektedir."]],
+    ["Oran arttı (önceki ölçüm %0,43. Bugün %2,57.) Veri Takasbank'tan.", ["Oran arttı (önceki ölçüm %0,43. Bugün %2,57.)", "Veri Takasbank'tan."]],
+    ["Kâr 3 mn. TL oldu. Gider arttı.", ["Kâr 3 mn. TL oldu.", "Gider arttı."]],
+    ["1. Madde onaylandı. 2. Madde reddedildi.", ["1. Madde onaylandı.", "2. Madde reddedildi."]],
+    ["Gelir 2026. Şirket büyüdü.", ["Gelir 2026.", "Şirket büyüdü."]],
+    ["", []]
   ],
   "legacy": [
     [

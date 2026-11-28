@@ -33,7 +33,7 @@ def test_viop_margin_parser_offline(monkeypatch):
     assert snap.futures_oi_value_tl == 95_000_000_000.0
     assert snap.profit_loss_total_tl == 2_100_000_000.0
     assert snap.margin_call_to_required_pct == pytest.approx(1.5, abs=0.001)
-    assert "Milyar TL" in snap.required_pretty()
+    assert "milyar TL" in snap.required_pretty()
 
 
 def test_viop_margin_parser_offline_no_table_gives_none(monkeypatch):
@@ -58,14 +58,17 @@ def test_viop_margin_is_official_takasbank():
     assert len(snap.as_of) > 0
     
     # 2. Pretty strings should format correctly
-    assert "Milyar TL" in snap.required_pretty()
-    assert ("Milyar TL" in snap.margin_call_pretty()) or ("Milyon TL" in snap.margin_call_pretty())
+    assert "milyar TL" in snap.required_pretty()
+    assert ("milyar TL" in snap.margin_call_pretty()) or ("milyon TL" in snap.margin_call_pretty())
 
 
 def test_viop_stress_assessment():
     stress_up = assess_margin_stress(today_pct=1.33, prior_pct=0.45)
     assert stress_up.level == "Yükseliyor"
-    assert "önceki güne göre yükseldi" in stress_up.note and "olası" not in stress_up.note
+    # Önceki değer bir önceki koşunun kaydıdır (tarihi saklanmaz): "önceki güne göre" denmez.
+    assert "önceki kayıtlı ölçüme göre yükseldi" in stress_up.note and "olası" not in stress_up.note
+    assert "önceki güne" not in stress_up.note and "%0,450 → %1,330" in stress_up.note
+    assert assess_margin_stress(today_pct=0.5).level == "Bilinmiyor"
 
     stress_flat = assess_margin_stress(today_pct=0.83, prior_pct=0.82)
     assert stress_flat.level == "Sabit"

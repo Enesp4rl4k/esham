@@ -209,7 +209,7 @@ def _cmd_viop(args: argparse.Namespace) -> None:
     snap = src.margin_snapshot()
     prior = args.prior_pct if args.prior_pct is not None else get_state().get_margin_prev_pct()
     stress = assess_margin_stress(snap.margin_call_to_required_pct, prior)
-    print("\n=== VİOP Marketwide Teminat (Takasbank) ===")
+    print("\n=== VİOP Piyasa Geneli Teminat (Takasbank) ===")
     print(f"  Teminatlı hesap: {snap.margined_account_count:,}")
     print(f"  Margin-call toplam: {snap.margin_call_pretty()}")
     print(f"  Gereken teminat: {snap.required_pretty()}")

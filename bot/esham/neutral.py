@@ -97,13 +97,16 @@ def is_clean(text: str) -> bool:
 
 
 _HEADING_RE = re.compile(r"^(#{1,6}) ")
-_SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?…]) +")
 _TABLE_SEP_RE = re.compile(r"^\|? *:?-{2,}")
 _STRUCTURAL_RE = re.compile(r"^(?:[|\-*+>]|\d+[.)] )")
 
 
 def _strip_sentences(line: str) -> str:
-    return " ".join(s for s in _SENTENCE_SPLIT_RE.split(line) if not find_banned(s)).strip()
+    # Sayı/kısaltma farkında bölme (sentences.py; TS splitSentences ile aynı): "A.Ş. hedef ..." gibi bir
+    # cümle kısaltmada bölünüp yarısı yayında kalmasın.
+    from .sentences import split_sentences
+
+    return " ".join(s for s in split_sentences(line) if not find_banned(s)).strip()
 
 
 def _drop_orphan_tables(lines: list[str]) -> list[str]:

@@ -29,6 +29,35 @@ STOCK_ROW_STALE_HOURS = 120
 
 
 # --------------------------------------------------------------------------------------------
+# Rapor metinlerindeki piyasa rakamları için tazelik koruması
+# --------------------------------------------------------------------------------------------
+
+#: Bir piyasa rakamının "son işlem günü" diye yazılabileceği en büyük yaş (takvim günü). Hafta sonu + bir
+#: resmî tatil (cuma→salı) sığar; daha eskisi "eski veri" sayılır ve rapor cümlesi YAZILMAZ.
+MARKET_DATA_MAX_AGE_DAYS = 4
+
+
+def market_as_of_status(as_of: datetime | None, now: datetime) -> str:
+    """Piyasa rakamının rapor anına göre durumu.
+
+    ``"today"``: veri bugünün (TSİ) · ``"previous"``: önceki bir işlem günü, sınır içinde ·
+    ``"stale"``: sınırdan eski ya da gelecekte · ``"unknown"``: zaman damgası yok.
+    Şablonlar "bugün" kelimesini YALNIZ ``"today"`` için kullanır; ``"stale"``/``"unknown"`` durumunda tarih
+    gerektiren cümle yazılmaz.
+    """
+    if as_of is None:
+        return "unknown"
+    a = (as_of if as_of.tzinfo else as_of.replace(tzinfo=timezone.utc)).astimezone(TR_TZ).date()
+    n = (now if now.tzinfo else now.replace(tzinfo=timezone.utc)).astimezone(TR_TZ).date()
+    age = (n - a).days
+    if age == 0:
+        return "today"
+    if 0 < age <= MARKET_DATA_MAX_AGE_DAYS:
+        return "previous"
+    return "stale"
+
+
+# --------------------------------------------------------------------------------------------
 # TÜRİB / emtia sayfası bölümleri (turib_data bunu `sections` alanına yazar)
 # --------------------------------------------------------------------------------------------
 
