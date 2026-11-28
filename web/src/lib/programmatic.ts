@@ -127,13 +127,13 @@ export const SCANS: Scan[] = [
   {
     slug: "dusuk-fk", id: "ucuz", title: "Düşük F/K'lı Hisseler", h1: "F/K oranı düşük BIST hisseleri", hint: "F/K 8'in altı",
     metric: "pe", dir: 1,
-    explain: "F/K (fiyat/kazanç), hissenin fiyatının son 12 aylık net kârının kaç katı olduğunu gösterir. Düşük F/K ucuzluk işareti olabilir, ancak kârın geçici yükselmesi, sektörün yapısı ya da enflasyon muhasebesi etkisi de düşük F/K üretir; mutlaka sektör medyanıyla birlikte okuyun.",
+    explain: "F/K (fiyat/kazanç), hissenin fiyatının son 12 aylık net kârının kaç katı olduğunu gösterir. Oran; kârın geçici değişimi, sektörün yapısı ve enflasyon muhasebesi etkisinden etkilenir, bu nedenle sektör medyanıyla birlikte okunur.",
     test: (s) => s.pe !== null && s.pe > 0 && s.pe < 8,
   },
   {
     slug: "yuksek-roe", id: "roe", title: "Yüksek ROE'li Hisseler", h1: "Özkaynak kârlılığı (ROE) yüksek BIST hisseleri", hint: "ROE %25 üzeri",
     metric: "roe", dir: -1,
-    explain: "ROE (özkaynak kârlılığı), şirketin özkaynağıyla ne kadar kâr ürettiğini gösterir. Yüksek ROE verimli sermaye kullanımına işaret eder; yüksek borçla şişirilmiş ROE'ye karşı net borç/FAVÖK ile birlikte bakın. %200 üzerindeki değerler anlamsız kabul edilip listeden çıkarılır.",
+    explain: "ROE (özkaynak kârlılığı), şirketin özkaynağıyla ne kadar kâr ürettiğini gösterir. Oran, yüksek borçla şişmiş olabilir; bu nedenle net borç/FAVÖK ile birlikte okunur. %200 üzerindeki değerler anlamsız kabul edilip listeden çıkarılır.",
     test: (s) => s.roe !== null && s.roe > 25 && s.roe < 200,
   },
   {
@@ -151,7 +151,7 @@ export const SCANS: Scan[] = [
   {
     slug: "defter-degerinin-altinda", id: "iskonto", title: "PD/DD 1'in Altındaki Hisseler", h1: "Defter değerinin altında işlem gören BIST hisseleri", hint: "PD/DD 1'in altı",
     metric: "pb", dir: 1,
-    explain: "PD/DD, piyasa değerinin defter değerine (özkaynak) oranıdır. 1'in altı, piyasanın şirketi muhasebe özkaynağından düşük fiyatladığı anlamına gelir; varlıkların gerçek değeri defterdekinden düşük olabileceği için tek başına alım sinyali değildir.",
+    explain: "PD/DD, piyasa değerinin defter değerine (özkaynak) oranıdır. 1'in altı, piyasa değerinin muhasebe özkaynağından düşük olduğu anlamına gelir; varlıkların gerçek değeri defter değerinden farklı olabileceği için oran tek başına bir sonuç vermez.",
     test: (s) => s.pb !== null && s.pb > 0 && s.pb < 1,
   },
   {

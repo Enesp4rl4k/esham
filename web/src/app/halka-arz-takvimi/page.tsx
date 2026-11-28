@@ -7,11 +7,11 @@ import { NOTE_GENERIC } from "@/lib/neutral";
 export const metadata: Metadata = {
   title: "Halka Arz Takvimi",
   description:
-    "KAP izahnameleri ve fiyat tespit raporları; yapay zeka destekli iskonto oranı ve risk analizi.",
+    "KAP izahnameleri ve fiyat tespit raporlarının kamuya açık özetleri: iskonto oranı, fon kullanımı, risk faktörleri.",
   openGraph: {
     title: "Halka Arz Takvimi — Esham",
     description:
-      "KAP izahnameleri ve fiyat tespit raporları; yapay zeka destekli iskonto oranı ve risk analizi.",
+      "KAP izahnameleri ve fiyat tespit raporlarının kamuya açık özetleri: iskonto oranı, fon kullanımı, risk faktörleri.",
   },
 };
 
@@ -188,8 +188,8 @@ export default function HalkaArzTakvimiPage() {
             Halka Arz Takvimi
           </h1>
           <p className="text-lg text-zinc-400 leading-relaxed">
-            KAP izahnameleri ve fiyat tespit raporları yapay zeka tarafından otomatik analiz edilir.
-            İskonto oranları, fon kullanımı ve risk faktörleri özetlenir.
+            KAP izahnameleri ve fiyat tespit raporlarının kamuya açık içeriği otomatik olarak özetlenir.
+            İskonto oranı, fon kullanımı ve risk faktörleri belgede yer aldığı şekilde aktarılır.
           </p>
         </div>
       </header>

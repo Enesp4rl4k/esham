@@ -40,6 +40,13 @@
     "%40 yukarı potansiyel",
     "değerlenme potansiyeli",
     "hisse ucuz kaldı",
+    "Düşük = ucuz",
+    "Yüksek = verimli",
+    "Yüksek = kârlı",
+    "Düşük=ucuz",
+    "Düşük F/K = ucuz",
+    "Yüksek = fazla ödeme",
+    "Düşük = az borçlu",
     "hisse pahalı",
     "fırsat kaçırmayın",
     "Kaçırmayın!",
@@ -164,6 +171,17 @@
     "🔥 Dev ihale"
   ],
   "keep": [
+    "Fiyat / hisse başına kâr",
+    "Düşük F/K: 4,2x; yüksek ROE: %31",
+    "Yapay zeka destekli çip üreticisi sipariş aldı.",
+    "ASELSAN ELEKTRONİK SANAYİ VE TİCARET A.Ş.: Yapay Zeka Destekli Analiz Platformu İçin Sözleşme İmzalanması",
+    "Yapay zeka destekli analiz platformu geliştirilmesi için sözleşme imzalanmıştır.",
+    "Piyasa değeri / defter değeri (özkaynak)",
+    "Düşük F/K (<8)",
+    "F/K 8'in altı",
+    "MEGA METAL Sanayi ve Ticaret A.Ş. bildirimi",
+    "Yapay zeka çiplerine yönelik ihracat kısıtları genişledi.",
+    "Şirket yapay zeka tabanlı yazılım geliştirme hizmeti sunmaktadır.",
     "Şirketimiz ile Boğaziçi Elektrik arasında sözleşme imzalanmıştır.",
     "Hedef şirketin paylarının %60'ı devralınacaktır.",
     "Hedef şirket ile birleşme işlemi SPK onayına sunulmuştur.",
@@ -519,6 +537,86 @@
       },
       "Kripto piyasa notu — 6 Ağustos 2026",
       "Eski kayıt; içerik gösterilmiyor."
+    ]
+  ],
+  "disambiguate": [
+    [
+      [
+        {
+          "title": "Halka arz belgesi özeti — 7 Temmuz 2026",
+          "publishedAt": "2026-07-07T10:05:00Z",
+          "derived": true
+        },
+        {
+          "title": "Halka arz belgesi özeti — 7 Temmuz 2026",
+          "publishedAt": "2026-07-07T11:30:00Z",
+          "derived": true
+        },
+        {
+          "title": "Sabah bülteni — 7 Temmuz 2026",
+          "publishedAt": "2026-07-07T05:30:00Z",
+          "derived": true
+        },
+        {
+          "title": "A A.Ş.: Duyuru",
+          "publishedAt": "2026-07-07T10:00:00Z",
+          "derived": false
+        },
+        {
+          "title": "A A.Ş.: Duyuru",
+          "publishedAt": "2026-07-07T11:00:00Z",
+          "derived": false
+        },
+        {
+          "title": "Gündem notu — 7 Temmuz 2026",
+          "publishedAt": "2026-07-07",
+          "derived": true
+        },
+        {
+          "title": "Gündem notu — 7 Temmuz 2026",
+          "publishedAt": "2026-07-07",
+          "derived": true
+        }
+      ],
+      [
+        "Halka arz belgesi özeti — 7 Temmuz 2026 · 13:05",
+        "Halka arz belgesi özeti — 7 Temmuz 2026 · 14:30",
+        "Sabah bülteni — 7 Temmuz 2026",
+        "A A.Ş.: Duyuru",
+        "A A.Ş.: Duyuru",
+        "Gündem notu — 7 Temmuz 2026",
+        "Gündem notu — 7 Temmuz 2026"
+      ]
+    ],
+    [
+      [
+        {
+          "title": "Halka arz belgesi özeti — 7 Temmuz 2026",
+          "publishedAt": "2026-07-07T10:05:09Z",
+          "derived": true
+        },
+        {
+          "title": "Halka arz belgesi özeti — 7 Temmuz 2026",
+          "publishedAt": "2026-07-07T10:05:41Z",
+          "derived": true
+        },
+        {
+          "title": "Halka arz belgesi özeti — 7 Temmuz 2026",
+          "publishedAt": "2026-07-07T10:05:41Z",
+          "derived": true
+        },
+        {
+          "title": "Halka arz belgesi özeti — 7 Temmuz 2026",
+          "publishedAt": "2026-07-07T12:00:00Z",
+          "derived": true
+        }
+      ],
+      [
+        "Halka arz belgesi özeti — 7 Temmuz 2026 · 13:05:09",
+        "Halka arz belgesi özeti — 7 Temmuz 2026 · 13:05:41",
+        "Halka arz belgesi özeti — 7 Temmuz 2026 · 13:05:41",
+        "Halka arz belgesi özeti — 7 Temmuz 2026 · 15:00"
+      ]
     ]
   ]
 }

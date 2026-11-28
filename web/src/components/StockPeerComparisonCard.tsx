@@ -274,7 +274,7 @@ export function StockPeerComparisonCard({
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-zinc-400 font-mono gap-2 pt-2 border-t border-zinc-800/80">
-        <span>* Yeşil renkli F/K ve PD/DD değerleri, sektör medyanına göre iskontolu çarpanı gösterir.</span>
+        <span>* Yeşil renkli F/K ve PD/DD değerleri sektör medyanının altındadır.</span>
         <span>Kaynak: Borsa İstanbul, KAP ve Esham Quant Modeli</span>
       </div>
     </div>

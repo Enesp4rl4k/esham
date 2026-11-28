@@ -44,8 +44,6 @@ export default async function ComparePage({ params }: Readonly<{ params: Promise
   if (!f) notFound();
   const { a, b, u } = f;
   const rows = comparePair(a, b);
-  const winsA = rows.filter((r) => r.winner === "a").length;
-  const winsB = rows.filter((r) => r.winner === "b").length;
   const date = u.updated_at.slice(0, 10);
   const st = sectorStats(u.stocks.filter((x) => x.sector === a.sector));
   const same = comparePairs(u).filter((p) => p.slug !== f.slug && (p.a.ticker === a.ticker || p.b.ticker === a.ticker || p.a.ticker === b.ticker || p.b.ticker === b.ticker)).slice(0, 8);
@@ -69,7 +67,7 @@ export default async function ComparePage({ params }: Readonly<{ params: Promise
       <h1 className="text-3xl md:text-4xl font-display font-bold mb-3">{a.ticker} - {b.ticker} Karşılaştırması</h1>
       <p className="text-base text-zinc-300 leading-relaxed mb-8">
         {a.name} ({a.ticker}) ve {b.name} ({b.ticker}) aynı sektörde ({a.sector}) işlem görüyor. Aşağıda son 12 aylık bilançodan hesaplanan oranlar yan yana veriliyor (tarama zamanı {date});
-        {rows.length} oranın {winsA} tanesinde {a.ticker}, {winsB} tanesinde {b.ticker} daha avantajlı görünüyor. Bu bir üstünlük sıralaması değil, hangi tarafın tek tek oranlarda öne çıktığının özetidir.
+        Her satırdaki ● işareti, o oranda değeri daha düşük (çarpanlar, borç) ya da daha yüksek (marj, getiri, verim) olan tarafı gösterir; bu bir değerlendirme ya da sıralama değildir.
       </p>
 
       <div className="overflow-x-auto rounded-xl border border-zinc-800">
@@ -86,12 +84,12 @@ export default async function ComparePage({ params }: Readonly<{ params: Promise
             {rows.map((r) => (
               <tr key={r.metric.key}>
                 <th scope="row" className="text-left px-4 py-3 font-normal text-zinc-300">
-                  {r.metric.label} <span className="text-xs text-zinc-400">({r.metric.better === "low" ? "düşük iyi" : "yüksek iyi"})</span>
+                  {r.metric.label} <span className="text-xs text-zinc-400">({r.metric.better === "low" ? "düşük değer işaretlenir" : "yüksek değer işaretlenir"})</span>
                 </th>
                 {(["a", "b"] as const).map((side) => (
                   <td key={side} className={`px-4 py-3 text-right ${r.winner === side ? "font-bold text-white" : "text-zinc-300"}`}>
                     {fmt(r[side], r.metric.unit)}
-                    {r.winner === side && <span className="sr-only"> (avantajlı)</span>}
+                    {r.winner === side && <span className="sr-only"> (işaretli taraf)</span>}
                     {r.winner === side && <span aria-hidden className="ml-1.5 text-emerald-400">●</span>}
                   </td>
                 ))}
@@ -100,7 +98,7 @@ export default async function ComparePage({ params }: Readonly<{ params: Promise
           </tbody>
         </table>
       </div>
-      <p className="text-sm text-zinc-400 mt-3">● işareti, ilgili oranda daha avantajlı tarafı gösterir. Avantaj yön varsayımına bağlıdır; düşük F/K ucuzluk, yüksek ROE verimlilik işareti olabilir ancak tek başına karar nedeni değildir.</p>
+      <p className="text-sm text-zinc-400 mt-3">● işareti, ilgili oranda değeri daha düşük (F/K, PD/DD, FD/FAVÖK, borç oranları) ya da daha yüksek (ROE, marj, temettü verimi) olan tarafı gösterir. Oranlar tek başına bir sonuç vermez.</p>
 
       <section className="mt-10">
         <h2 className="text-xl font-display font-semibold mb-3">Sektör bağlamı ve nasıl okunur?</h2>

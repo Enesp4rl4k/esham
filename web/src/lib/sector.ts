@@ -18,13 +18,13 @@ export interface MetricDef {
 }
 
 export const METRICS: MetricDef[] = [
-  { key: "pe", label: "F/K", unit: "x", better: "low", hint: "Düşük = ucuz", valid: (v) => v > 0 },
-  { key: "pb", label: "PD/DD", unit: "x", better: "low", hint: "Düşük = ucuz", valid: (v) => v > 0 },
-  { key: "ev_ebitda", label: "FD/FAVÖK", unit: "x", better: "low", hint: "Düşük = ucuz", nonFinancialOnly: true, valid: (v) => v > 0 },
-  { key: "roe", label: "ROE", unit: "%", better: "high", hint: "Yüksek = verimli", valid: (v) => Math.abs(v) < 200 },
-  { key: "net_margin", label: "Net Marj", unit: "%", better: "high", hint: "Yüksek = kârlı", valid: () => true },
-  { key: "dividend_yield", label: "Temettü Verimi", unit: "%", better: "high", hint: "Yüksek = fazla ödeme", valid: () => true },
-  { key: "net_debt_ebitda", label: "Net Borç/FAVÖK", unit: "x", better: "low", hint: "Düşük = az borçlu", nonFinancialOnly: true, valid: (v) => v > -50 && v < 50 },
+  { key: "pe", label: "F/K", unit: "x", better: "low", hint: "Fiyat / hisse başına kâr", valid: (v) => v > 0 },
+  { key: "pb", label: "PD/DD", unit: "x", better: "low", hint: "Piyasa değeri / defter değeri (özkaynak)", valid: (v) => v > 0 },
+  { key: "ev_ebitda", label: "FD/FAVÖK", unit: "x", better: "low", hint: "Firma değeri / FAVÖK", nonFinancialOnly: true, valid: (v) => v > 0 },
+  { key: "roe", label: "ROE", unit: "%", better: "high", hint: "Net kâr / özkaynak", valid: (v) => Math.abs(v) < 200 },
+  { key: "net_margin", label: "Net Marj", unit: "%", better: "high", hint: "Net kâr / hasılat", valid: () => true },
+  { key: "dividend_yield", label: "Temettü Verimi", unit: "%", better: "high", hint: "Brüt temettü / hisse fiyatı", valid: () => true },
+  { key: "net_debt_ebitda", label: "Net Borç/FAVÖK", unit: "x", better: "low", hint: "(Borç − nakit) / FAVÖK", nonFinancialOnly: true, valid: (v) => v > -50 && v < 50 },
 ];
 
 export interface MetricPosition {

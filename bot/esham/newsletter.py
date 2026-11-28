@@ -29,7 +29,15 @@ from email.mime.text import MIMEText
 from pathlib import Path
 
 from .config import get_logger, settings
-from .neutral import NOTE_GENERIC, is_legacy, legacy_summary, legacy_title, sanitize_summary
+from .neutral import (
+    NOTE_GENERIC,
+    disambiguate_legacy_titles,
+    is_legacy,
+    is_official_kap_title,
+    legacy_summary,
+    legacy_title,
+    sanitize_summary,
+)
 
 log = get_logger(__name__)
 
@@ -200,13 +208,14 @@ def latest_reports(limit: int | None = None) -> list[dict]:
         # eski özet ve yorum taşıyan başlık gösterilmez.
         if is_legacy(doc):
             doc["summary"] = legacy_summary(doc)
+            doc["title_derived"] = not is_official_kap_title(doc)
             doc["title"] = legacy_title(doc)
         else:
             doc["summary"] = sanitize_summary(str(doc.get("summary", "")), str(doc.get("title", "")))
         reports.append(doc)
         if len(reports) >= limit:
             break
-    return reports
+    return disambiguate_legacy_titles(reports)
 
 
 def _date_tr(iso: str) -> str:

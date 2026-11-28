@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
-import { findBanned, normalize, stripBanned, legacyView, legacyTitle, legacySummary, NOTE_KAP, isKapReport, isLegacy, distinctSummary } from "./neutral.ts";
+import { findBanned, normalize, stripBanned, legacyView, legacyTitle, legacySummary, disambiguateLegacyTitles, NOTE_KAP, isKapReport, isLegacy, distinctSummary } from "./neutral.ts";
 import { isIndexable } from "./thin-content.ts";
 
 const vectors = JSON.parse(readFileSync(new URL("./neutral-vectors.json", import.meta.url), "utf-8"));
@@ -194,4 +194,72 @@ test("dizin kararı tek fonksiyon: yalın görünüm ⇒ noindex (ipo meta veriy
   assert.equal(isIndexable({ ...report, legacyMinimal: minimal }), false);
   assert.equal(report.ipo?.verdict, undefined);
   assert.equal(isIndexable({ body: "x", ipo: { company: "X", ticker: "Y" } }), true); // sürüm 2 halka arz
+});
+const ISVEA = readdirSync(reportsDir).filter((f) => f.includes("isvea-seramik"));
+const TICKER_PATTERN = /[A-Z][A-Z0-9]{2,5}/;
+
+test("eski raporlarda yapılandırılmış hisse kodu GÖSTERİLMEZ: İsvea raporlarında 'AYX' hiçbir yüzeyde yok", () => {
+  assert.ok(ISVEA.length >= 2); let withCode = 0;
+  const views = ISVEA.map((f) => {
+    const doc = JSON.parse(readFileSync(new URL(f, reportsDir), "utf-8"));
+    withCode += JSON.stringify(doc).includes("AYX") ? 1 : 0;
+    const { report } = legacyView({ ...doc, tags: doc.tags ?? [], sources: doc.sources ?? [] });
+    return { ...report, legacyMinimal: true };
+  });
+  assert.ok(withCode > 0, "veri hâlâ yanlış kodu taşıyor (sınama anlamlı)");
+  for (const v of disambiguateLegacyTitles(views)) {
+    // başlık, kart özeti, gövde (OG/JSON-LD/RSS bu alanlardan beslenir), etiketler, ipo bloğu
+    const surfaces = JSON.stringify({ t: v.title, s: v.summary, b: v.body, tags: v.tags, ipo: v.ipo });
+    assert.ok(!surfaces.includes("AYX"), surfaces);
+    assert.equal(v.ipo, undefined);
+  }
+});
+
+test("eski türetilmiş başlıkta ve şirket satırında hisse kodu deseni yok (tüm eski raporlar)", () => {
+  for (const f of readdirSync(reportsDir).filter((x) => x.endsWith(".json"))) {
+    const doc = JSON.parse(readFileSync(new URL(f, reportsDir), "utf-8"));
+    if (!isLegacy(doc)) continue; // yeni (sürüm 2) raporlar kendi kurallarıyla sınanır
+    const { report } = legacyView({ ...doc, tags: doc.tags ?? [], sources: doc.sources ?? [] });
+    if (report.title !== doc.title) assert.ok(!TICKER_PATTERN.test(report.title.replace(/BIST|VİOP|KAP/g, "")), `${f}: ${report.title}`);
+    assert.ok(!/Hisse kodu/.test(report.body), f);
+    assert.ok(report.tags.every((t) => !/^[A-Z][A-Z0-9]{2,5}$/.test(t) || t === "KAP" || t === "BIST"), f);
+  }
+});
+
+test("ortak vektörler: aynı gün başlık ayırıcısı (Python disambiguate_legacy_titles ile aynı)", () => {
+  for (const [docs, expected] of vectors.disambiguate) {
+    const out = disambiguateLegacyTitles(docs.map((d) => ({ ...d, legacyTitleDerived: d.derived })));
+    assert.deepEqual(out.map((r) => r.title), expected);
+  }
+});
+
+test("KAP kaynaklı ama bizim türettiğimiz başlık ayrıştırılır; resmî KAP başlığı değişmez (gerçek eski raporlar)", () => {
+  const views = [];
+  for (const f of readdirSync(reportsDir).filter((x) => x.endsWith(".json"))) {
+    const doc = JSON.parse(readFileSync(new URL(f, reportsDir), "utf-8"));
+    const v = legacyView({ ...doc, tags: doc.tags ?? [], sources: doc.sources ?? [] });
+    if (!v.minimal) continue; // yalnız eski (sürümsüz) kayıtlar
+    views.push({ ...v.report, legacyMinimal: true, legacyTitleDerived: v.titleDerived, _orig: doc.title });
+  }
+  const out = disambiguateLegacyTitles(views);
+  const kapDerived = out.filter((r) => r.legacyTitleDerived && r.sources.includes("KAP") && r.title !== r._orig);
+  assert.ok(kapDerived.length > 0);
+  assert.ok(out.filter((r) => r.title.startsWith("Halka arz belgesi özeti — 7 Temmuz 2026")).every((r) => / · \d\d:\d\d/.test(r.title)));
+  for (const r of out.filter((x) => !x.legacyTitleDerived)) assert.equal(r.title, r._orig);
+  // Birim: KAP kaynaklı örnek
+  const v = (t) => legacyView({ slug: "s", category: "ipo", summary: "", body: "", aiGenerated: true, tags: [], sources: ["KAP", "İzahname"], title: t, publishedAt: "2026-07-07T10:05:00Z" });
+  assert.equal(v("X A.Ş. Halka Arz Analizi").titleDerived, true);
+  assert.equal(v("X A.Ş.: Duyuru").titleDerived, false);
+});
+
+test("resmî KAP başlığında şirket ön eki yoksa yalnız yapılandırılmış kap.company gösterilir; kod/tahmin yok", () => {
+  const rep = (over) => ({ slug: "s", category: "bist", summary: "S", body: "x", publishedAt: "2026-07-07T10:00:00Z", aiGenerated: true, sources: ["KAP"], image: undefined, ...over });
+  const noPrefix = "Kredi Derecelendirme Notu Bildirimi";
+  const withCompany = legacyView(rep({ title: noPrefix, tags: ["PBT", "KAP", "BIST"], kap: { company: "PASİFİK TEKNOLOJİ A.Ş." } }));
+  assert.ok(withCompany.report.body.includes("- **Şirket:** PASİFİK TEKNOLOJİ A.Ş."));
+  assert.equal(withCompany.report.title, noPrefix);
+  const none = legacyView(rep({ title: noPrefix, tags: ["PBT", "KAP", "BIST"] }));
+  assert.ok(!none.report.body.includes("Şirket:") && !none.report.body.includes("PBT"));
+  const prefixed = legacyView(rep({ title: "X A.Ş.: Duyuru", tags: ["XXX", "KAP"], kap: { company: "BAŞKA A.Ş." } }));
+  assert.ok(prefixed.report.body.includes("- **Şirket:** X A.Ş."));
 });

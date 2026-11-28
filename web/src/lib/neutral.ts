@@ -178,6 +178,10 @@ export interface ViewableReport {
   kap?: { url?: string; company?: string; type?: string; index?: string };
 }
 
+/** Eski kayıtlarda hisse kodu biçimli etiketler doğrulanamaz; yalın görünümde atılır (kaynak etiketleri hariç). */
+const TICKER_LIKE_RE = /^[A-Z][A-Z0-9]{2,5}$/;
+const KEEP_TAGS = ["KAP", "BIST"];
+
 export const isKapReport = (r: Pick<ViewableReport, "sources">) => r.sources.some((s) => s.toUpperCase() === "KAP");
 export const isLegacy = (r: Pick<ViewableReport, "schemaVersion">) => !(typeof r.schemaVersion === "number" && r.schemaVersion >= REPORT_SCHEMA_VERSION);
 
@@ -230,13 +234,51 @@ function trDate(iso: string): string {
   return `${ist.getUTCDate()} ${LEGACY.months[ist.getUTCMonth()]} ${ist.getUTCFullYear()}`;
 }
 
-/** Sürümsüz kaydın görünen başlığı: resmî KAP başlığı aynen; diğerleri "<tür> — <tarih>" (Python `legacy_title`). */
+/** Sürümsüz kaydın görünen başlığı: resmî KAP başlığı aynen; diğerleri "<tür> — <tarih>" (Python `legacy_title`). Hisse kodu eklenmez: eski kayıtlardaki kodlar doğrulanamaz. */
 export function legacyTitle(r: Pick<ViewableReport, "title" | "sources" | "category" | "publishedAt">): string {
   if (isOfficialKapTitle(r)) return r.title;
   const categoryTypes = LEGACY.category_types as Record<string, string>;
   const typ = ownTemplateType(r.title) ?? categoryTypes[r.category] ?? "Piyasa notu";
   const date = trDate(r.publishedAt);
   return date ? `${typ} — ${date}` : typ;
+}
+
+/** Yayın zamanı ayırıcıları (İstanbul): dakika "13:45"; ISO metni saniye de taşıyorsa saniye "13:45:07". Saat alanı yoksa null. */
+function trClock(iso: string): { hm: string; hms: string | null } | null {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime()) || !/T\d\d:\d\d/.test(iso)) return null;
+  const ist = new Date(d.getTime() + 3 * 3600 * 1000);
+  const p = (n: number) => String(n).padStart(2, "0");
+  const hm = `${p(ist.getUTCHours())}:${p(ist.getUTCMinutes())}`;
+  return { hm, hms: /T\d\d:\d\d:\d\d/.test(iso) ? `${hm}:${p(ist.getUTCSeconds())}` : null };
+}
+
+/**
+ * Yalın görünümde BİZİM türetmiş olduğumuz başlıklardan (`legacyTitleDerived`, `legacyView` işaretler; KAP kaynaklı
+ * olsa da) aynı olanlara raporun kendi yayın saatini ekler ("… — 7 Temmuz 2026 · 13:45"). Aynı dakikada
+ * yayınlananlarda saniye de eklenir; hâlâ aynıysa çakışma kabul edilir. Resmî KAP başlıkları aynen kalır;
+ * saat alanı yoksa ayırıcı eklenmez. Python `disambiguate_legacy_titles` ile aynı (ortak vektörler).
+ */
+export function disambiguateLegacyTitles<T extends Pick<ViewableReport, "title" | "publishedAt"> & { legacyTitleDerived?: boolean }>(
+  reports: T[],
+): T[] {
+  const group = (rs: T[]) => {
+    const m = new Map<string, number>();
+    for (const r of rs) if (r.legacyTitleDerived === true) m.set(r.title, (m.get(r.title) ?? 0) + 1);
+    return m;
+  };
+  const first = group(reports);
+  const step1 = reports.map((r) => {
+    if (r.legacyTitleDerived !== true || (first.get(r.title) ?? 0) < 2) return r;
+    const c = trClock(r.publishedAt);
+    return c ? { ...r, title: `${r.title} · ${c.hm}` } : r;
+  });
+  const second = group(step1);
+  return step1.map((r, k) => {
+    if (r.legacyTitleDerived !== true || (second.get(r.title) ?? 0) < 2 || r === reports[k]) return r;
+    const c = trClock(r.publishedAt);
+    return c?.hms ? { ...r, title: `${reports[k].title} · ${c.hms}` } : r;
+  });
 }
 
 export function legacySummary(r: Pick<ViewableReport, "title" | "sources">): string {
@@ -254,11 +296,13 @@ export function legacySummary(r: Pick<ViewableReport, "title" | "sources">): str
  */
 export function legacyView<T extends ViewableReport & { ipo?: object }>(
   report: T,
-): { report: T; minimal: boolean } {
-  if (!isLegacy(report)) return { report, minimal: false };
+): { report: T; minimal: boolean; titleDerived: boolean } {
+  if (!isLegacy(report)) return { report, minimal: false, titleDerived: false };
   const official = isOfficialKapTitle(report);
   const title = legacyTitle(report);
-  const company = official ? companyFromTitle(report.title) : "";
+  // Şirket: başlıktaki ön ek, yoksa raporun yapılandırılmış `kap.company` alanı; ikisi de yoksa şirket satırı
+  // yoktur (tahmin yok). Eski kayıtlardaki hisse kodları (etiket/`ipo.ticker`) güvenilir değildir; gösterilmez.
+  const company = official ? companyFromTitle(report.title) || (report.kap?.company ?? "").trim() : "";
   const lines = official
     ? [
         "### Bildirim Bilgileri",
@@ -277,17 +321,19 @@ export function legacyView<T extends ViewableReport & { ipo?: object }>(
         "",
         "> Bu sayfa eski bir kayıttır; içeriği güncel yayın ilkelerimize göre gösterilmemektedir.",
       ];
-  const ipo = report.ipo ? ({ ...report.ipo, verdict: undefined, confidence: undefined } as T["ipo"]) : report.ipo;
+  // Eski `ipo` bloğu (kod, değerlendirme) kullanılmaz.
+  const ipo = undefined as T["ipo"];
   return {
     report: {
       ...report,
       title,
       body: lines.join("\n"),
       summary: legacySummary(report),
-      tags: report.tags.filter((t) => !hasBanned(t)),
+      tags: report.tags.filter((t) => !hasBanned(t) && !(TICKER_LIKE_RE.test(t) && !KEEP_TAGS.includes(t))),
       image: undefined,
       ipo,
     },
     minimal: true,
+    titleDerived: !official, // başlığı biz türettik (KAP kaynaklı olsa da)
   };
 }

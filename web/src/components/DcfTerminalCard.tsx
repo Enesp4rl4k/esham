@@ -527,10 +527,10 @@ function DcfTerminalCardInner({ dcf }: DcfTerminalCardProps) {
             </div>
             <div className="flex items-center gap-3 text-xs font-mono">
               <span className="flex items-center gap-1 text-emerald-400">
-                <span className="w-2.5 h-2.5 rounded bg-emerald-500/30 border border-emerald-500/50" /> Yüksek Prim Potansiyeli
+                <span className="w-2.5 h-2.5 rounded bg-emerald-500/30 border border-emerald-500/50" /> Model değeri fiyatın üzerinde
               </span>
               <span className="flex items-center gap-1 text-rose-400">
-                <span className="w-2.5 h-2.5 rounded bg-rose-500/30 border border-rose-500/50" /> Piyasada Pahalı / Primli
+                <span className="w-2.5 h-2.5 rounded bg-rose-500/30 border border-rose-500/50" /> Model değeri fiyatın altında
               </span>
             </div>
           </div>

@@ -95,6 +95,7 @@
     "\\badil degeri? [0-9]",
     "\\bhisse basina adil deger",
     "\\bguclu iskonto",
+    "\\b(dusuk|yuksek)( f/k)? ?= ?(ucuz|pahali|verimli|karli|fazla odeme|az borclu)",
     "\\byuksek primli",
     "\\biskontolu islem",
     "\\bcazip\\b",
