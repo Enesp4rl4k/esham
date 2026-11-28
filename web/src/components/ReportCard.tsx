@@ -7,6 +7,7 @@ import {
   readingMinutes,
   getReportImageUrl,
 } from "@/lib/content-utils";
+import { distinctSummary } from "@/lib/neutral";
 
 const catColor: Record<CategorySlug, string> = {
   bist:      "text-sky-400",
@@ -36,6 +37,7 @@ export function ReportCard({ report }: { report: Report }) {
   const imageUrl = getReportImageUrl(report);
   const color = catColor[report.category];
   const border = catBorder[report.category];
+  const summary = distinctSummary(report);
 
   return (
     <Link href={`/rapor/${report.slug}`} className="group block">
@@ -83,13 +85,15 @@ export function ReportCard({ report }: { report: Report }) {
         {report.title}
       </h3>
 
-      {/* Özet */}
-      <p
-        className="text-sm leading-relaxed line-clamp-2"
-        style={{ color: "var(--text-secondary)" }}
-      >
-        {report.summary}
-      </p>
+      {/* Özet (başlığı birebir tekrarlayan özet gösterilmez: yalın KAP raporu) */}
+      {summary && (
+        <p
+          className="text-sm leading-relaxed line-clamp-2"
+          style={{ color: "var(--text-secondary)" }}
+        >
+          {summary}
+        </p>
+      )}
     </Link>
   );
 }

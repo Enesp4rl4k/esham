@@ -62,7 +62,8 @@ Rapor JSON'unda opsiyonel alanlar da vardır: `image` (marka kartı) ve `ipo`
 | `analysis` | Belge → analiz → web raporu + IPO PDF orkestrasyonu |
 | `publishing/content_store` | **Web köprüsü** — JSON rapor yazar |
 | `publishing/ipo_pdf` | Halka arz analiz PDF/HTML raporu |
-| `publishing/social` | Twitter/X ve Telegram paylaşımı |
+| `publishing/social` | Telegram gönderisini hazırlar (süzgeç + uyarı satırı), **giden kutusuna** yazar |
+| `publishing/outbox` | Telegram giden kutusu: push sonrası en fazla bir kez gönderim (`bot/state/telegram_outbox.json`) |
 | `newsletter` | **Abone deposu + SMTP bülteni** (doğrulama, imzalı çıkış, dry-run) |
 | `pipeline` | Sabah raporu orkestrasyonu |
 | `news_stream` | Anlık KAP/insider haber akışı (öncelikli kuyruk + drip) |
@@ -78,6 +79,19 @@ py -m esham.main morning-report          # sabah bültenini üret + yayınla
 py -m esham.main morning-report --no-social
 py -m esham.main news-stream --once      # tek tur KAP taraması
 py -m esham.main ipo-pdf                 # örnek halka arz raporu
+
+# Telegram: komutlar DOĞRUDAN göndermez, giden kutusuna yazar (bot/state/telegram_outbox.json).
+py -m esham.main --send-now morning-report   # yerel: komut bitince BU koşunun gönderilerini hemen gönder
+py -m esham.main send-outbox                 # KURU ÇALIŞTIRMA: yerel bekleyenleri listeler, dosyaya dokunmaz
+py -m esham.main send-outbox --send          # yerel GERÇEK gönderim (git işlemi yapmaz, sonucu push etmez)
+# İş akışında sıra: bot koşusu → yayın kapısı (rapor başına web testleri) → commit + push → derleme/dağıtım
+# → send-outbox --ci (yalnız başarılı dağıtıma girmiş sayfalar; claim push'u → gönderim → sonuç push'u).
+# Uzun ömürlü 'run' / 'news-stream' (sürekli) modları yerel kayıtlarını her işten sonra kendisi gönderir.
+#
+# UYARI: yerel send-outbox / --send-now ve sürekli kipleri (run, news-stream) zamanlanmış iş akışıyla AYNI ANDA
+# ve aynı Telegram kanalına çalıştırmayın: ayrı durum dosyaları birbirini görmez, aynı bildirim iki kez gidebilir.
+# Yerel kip yalnız yerel koşuların (created_run "local-…") kayıtlarını gönderir; origin'den çekilmiş iş akışı
+# kayıtlarına dokunmaz — sonucu push etmediği için iş akışının kayıtlarını yerelden göndermek çift gönderi demektir.
 
 # Belge analizi (PDF yolu/URL, KAP linki veya ham metin kabul eder)
 py -m esham.main analyze-ipo <kaynak> --company "TechYazılım A.Ş." --ticker TCHYZ

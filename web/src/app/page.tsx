@@ -27,6 +27,7 @@ import { SectorCards, StockLeaderboards } from "@/components/HomeDiscovery";
 import { HomeHero } from "@/components/HomeHero";
 import { HomeSections, type HomePreset, type HomeSection } from "@/components/HomeSections";
 import { loadUniverse } from "@/lib/stocks";
+import { distinctSummary } from "@/lib/neutral";
 
 // Kategori etiket renkleri — CSS değişkenleriyle
 const catColors: Record<CategorySlug, string> = {
@@ -312,7 +313,9 @@ export default async function Home() {
             <h2 className="text-xl font-display font-bold leading-snug mb-1.5 group-hover:opacity-75 transition-opacity" style={{ letterSpacing: "-0.02em" }}>
               {featured.title}
             </h2>
-            <p className="text-sm leading-relaxed line-clamp-3" style={{ color: "var(--text-secondary)" }}>{featured.summary}</p>
+            {distinctSummary(featured) && (
+              <p className="text-sm leading-relaxed line-clamp-3" style={{ color: "var(--text-secondary)" }}>{distinctSummary(featured)}</p>
+            )}
           </Link>
 
           <ul className="lg:col-span-7 grid sm:grid-cols-2 gap-x-6 content-start">

@@ -5,6 +5,11 @@ Kullanım:
     py -m esham.main morning-report --no-social
     py -m esham.main news-stream --interval 300
     py -m esham.main ipo-pdf               # örnek halka arz PDF/HTML raporu
+
+Telegram: komutlar gönderiyi DOĞRUDAN göndermez, giden kutusuna yazar (bot/state/telegram_outbox.json).
+    py -m esham.main --send-now morning-report   # yerel: komuttan sonra giden kutusunu hemen gönder
+    py -m esham.main send-outbox                 # KURU: yerel bekleyenleri listeler; --send ile gönderir (git yok)
+İş akışında gönderim, raporlar yayın kapısından geçip master'a push edildikten SONRA ayrı adımdır.
 """
 from __future__ import annotations
 
@@ -397,6 +402,11 @@ def _cmd_ipo_pdf(_: argparse.Namespace) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="esham", description="Esham içerik motoru")
+    parser.add_argument(
+        "--send-now", action="store_true",
+        help="Yerel/elle koşu: komut bitince giden kutusundaki Telegram gönderilerini hemen gönder "
+             "(iş akışında KULLANILMAZ; orada gönderim push sonrası ayrı adımdır)",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     mr = sub.add_parser("morning-report", help="Sabah bültenini üret ve yayınla")
@@ -580,6 +590,10 @@ def build_parser() -> argparse.ArgumentParser:
     hl.add_argument("--offline", action="store_true", help="Ağ sorgusu yapma, yalnızca yerel dosya tazeliği")
     hl.set_defaults(func=_cmd_health)
 
+    from .ci_commands import register as _register_ci
+
+    _register_ci(sub)
+
     return parser
 
 
@@ -590,6 +604,14 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
     args.func(args)
+    # Yalnız komut normal biterse (sys.exit ile çıkan başarısız komutta gönderim yapılmaz).
+    from .ci_commands import CI_FUNCS
+
+    if args.send_now and args.func not in CI_FUNCS:
+        from .publishing.outbox import send_outbox
+
+        # Yerel gerçek gönderim: YALNIZ bu süreçte (local-…) kuyruğa giren kayıtlar; iş akışının kayıtlarına dokunmaz.
+        print("Giden kutusu (--send-now): " + str(send_outbox()))
 
 
 if __name__ == "__main__":
