@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-28T02:48:31+03:00",
+  "generated_at": "2026-11-28T03:13:56+03:00",
   "sections": [
     {
       "id": "reports",
@@ -9,7 +9,7 @@
       "as_of": "2026-11-27T23:39:55+00:00",
       "fetched_at": "2026-11-27T23:39:55+00:00",
       "status": "fresh",
-      "detail": "0.1 saat önce (sınır 74 saat)"
+      "detail": "0.6 saat önce (sınır 74 saat)"
     },
     {
       "id": "market_ticker",
@@ -19,7 +19,7 @@
       "as_of": "2026-11-28T02:24:23+03:00",
       "fetched_at": "2026-11-28T02:24:23+03:00",
       "status": "fresh",
-      "detail": "0.4 saat önce (sınır 74 saat)"
+      "detail": "0.8 saat önce (sınır 74 saat)"
     },
     {
       "id": "economic_calendar",
@@ -29,7 +29,7 @@
       "as_of": "2026-11-28T02:24:23+03:00",
       "fetched_at": "2026-11-28T02:24:23+03:00",
       "status": "fresh",
-      "detail": "0.4 saat önce (sınır 74 saat)"
+      "detail": "0.8 saat önce (sınır 74 saat)"
     },
     {
       "id": "stocks",
@@ -39,7 +39,7 @@
       "as_of": "2026-11-27T23:48:29+00:00",
       "fetched_at": "2026-11-27T23:48:29+00:00",
       "status": "fresh",
-      "detail": "0.0 saat önce (sınır 120 saat)"
+      "detail": "0.4 saat önce (sınır 120 saat)"
     },
     {
       "id": "kap_coverage",
@@ -56,10 +56,10 @@
       "label": "TEFAS fonları",
       "source": "TEFAS (tefas.gov.tr)",
       "source_url": "https://www.tefas.gov.tr",
-      "as_of": "2026-11-27T00:47:27+00:00",
-      "fetched_at": "2026-11-27T00:47:27+00:00",
+      "as_of": "2026-11-28T00:13:55+00:00",
+      "fetched_at": "2026-11-28T00:13:55+00:00",
       "status": "fresh",
-      "detail": "23.0 saat önce (sınır 120 saat)"
+      "detail": "0.0 saat önce (sınır 120 saat)"
     },
     {
       "id": "kap_dividends",
@@ -69,7 +69,7 @@
       "as_of": "2026-11-24",
       "fetched_at": "2026-11-27T00:51:24+00:00",
       "status": "fresh",
-      "detail": "23.0 saat önce (sınır 100 saat); 110 hisseden 14'inde bildirim, 13 işlendi, 0 bekliyor"
+      "detail": "23.4 saat önce (sınır 100 saat); 110 hisseden 14'inde bildirim, 13 işlendi, 0 bekliyor"
     },
     {
       "id": "kap_buybacks",
@@ -79,7 +79,7 @@
       "as_of": "2026-11-26",
       "fetched_at": "2026-11-27T00:51:27+00:00",
       "status": "fresh",
-      "detail": "23.0 saat önce (sınır 100 saat); 110 hisseden 14'inde bildirim, 116 işlendi, 0 bekliyor"
+      "detail": "23.4 saat önce (sınır 100 saat); 110 hisseden 14'inde bildirim, 116 işlendi, 0 bekliyor"
     },
     {
       "id": "macro_indicators",
@@ -89,7 +89,7 @@
       "as_of": "2026-11-27T21:39:48+00:00",
       "fetched_at": "2026-11-27T21:39:48+00:00",
       "status": "stale",
-      "detail": "2.1 saat önce (sınır 100 saat); 4 gösterge; EVDS sorunları: TP.FG.J0 (12 ay önceki gözlem yok: TP.FG.J0)"
+      "detail": "2.6 saat önce (sınır 100 saat); 4 gösterge; EVDS sorunları: TP.FG.J0 (12 ay önceki gözlem yok: TP.FG.J0)"
     },
     {
       "id": "turib:indices",
